@@ -1,5 +1,64 @@
 import json
 
+def filter_price_metadata(price_metadatas, offer_refs):
+    """
+    Filter PriceMetadatas to only include those associated with the specific offer's references.
+    
+    Args:
+        price_metadatas (dict): The complete PriceMetadatas from AirShoppingRS
+        offer_refs (set): Set of references collected from the selected offer
+        
+    Returns:
+        dict: Filtered PriceMetadatas containing only the metadata relevant to the selected offer
+    """
+    if not price_metadatas or not offer_refs:
+        return price_metadatas  # Return as is if there's nothing to filter
+        
+    filtered_metadata = {}
+    price_metadata_list = price_metadatas.get("PriceMetadata", [])
+    if not isinstance(price_metadata_list, list):
+        price_metadata_list = [price_metadata_list] if price_metadata_list else []
+    
+    filtered_price_metadata_list = []
+    
+    # For each price metadata, check if its MetadataKey contains any reference from our offer
+    for metadata_item in price_metadata_list:
+        metadata_key = metadata_item.get("MetadataKey", "")
+        
+        # Check if this metadata is associated with any of our offer references
+        is_relevant = False
+        for ref in offer_refs:
+            # Check if the reference is part of the metadata key
+            if str(ref) in metadata_key:
+                is_relevant = True
+                break
+                
+            # Also check if there are any references within the AugmentationPoint
+            aug_point = metadata_item.get("AugmentationPoint", {}).get("AugPoint", [])
+            if not isinstance(aug_point, list):
+                aug_point = [aug_point] if aug_point else []
+                
+            for aug in aug_point:
+                if isinstance(aug, dict) and "any" in aug:
+                    # The 'value' field often contains serialized JSON with references
+                    value = aug.get("any", {}).get("value", "")
+                    if str(ref) in value:
+                        is_relevant = True
+                        break
+                        
+            if is_relevant:
+                break
+        
+        if is_relevant:
+            filtered_price_metadata_list.append(metadata_item)
+    
+    # If we found any relevant metadata, return them, otherwise return empty structure
+    if filtered_price_metadata_list:
+        filtered_metadata = {"PriceMetadata": filtered_price_metadata_list}
+    
+    return filtered_metadata
+
+
 def build_flight_price_request(airshopping_response, selected_offer_index=0):
     """
     Generate a complete FlightPrice request from the AirShopping response.
@@ -35,15 +94,16 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0):
     offers_group = airshopping_response.get("OffersGroup", {})
     data_lists = airshopping_response.get("DataLists", {})
     
-    # Extract PriceMetadatas from Metadata.Other.OtherMetadata[0].PriceMetadatas
-    metadata = {}
+    # Extract all PriceMetadatas from Metadata.Other.OtherMetadata[0].PriceMetadatas
+    # We will filter these later based on the selected offer's references
+    all_metadata = {}
     try:
         other_metadata = airshopping_response.get("Metadata", {}).get("Other", {})
         other_metadata_list = other_metadata.get("OtherMetadata", [])
         if other_metadata_list and isinstance(other_metadata_list, list) and len(other_metadata_list) > 0:
             first_other_metadata = other_metadata_list[0]
             if "PriceMetadatas" in first_other_metadata:
-                metadata = {"PriceMetadatas": first_other_metadata["PriceMetadatas"]}
+                all_metadata = {"PriceMetadatas": first_other_metadata["PriceMetadatas"]}
             else:
                 pass
         else:
@@ -68,7 +128,24 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0):
     # 4. Build FareList from FareGroup references
     fare_list = []
     try:
-        # Get all FareComponent refs from the selected offer
+        # Collect all references from the selected offer to filter PriceMetadatas later
+        all_offer_refs = set()
+        
+        # Add refs from the offer itself if they exist
+        if "refs" in selected_offer:
+            current_offer_refs = selected_offer.get("refs")
+            if isinstance(current_offer_refs, list):
+                for ref_val in current_offer_refs:
+                    if isinstance(ref_val, str):
+                        all_offer_refs.add(ref_val)
+                    elif isinstance(ref_val, dict) and "Ref" in ref_val:
+                        all_offer_refs.add(ref_val["Ref"])
+            elif isinstance(current_offer_refs, str): # Single string ref
+                all_offer_refs.add(current_offer_refs)
+            elif isinstance(current_offer_refs, dict) and "Ref" in current_offer_refs: # Single dict ref
+                all_offer_refs.add(current_offer_refs["Ref"])
+
+        # Get all FareComponent refs from the selected offer (this comment is now more of a section header)
         priced_offers = selected_offer.get("PricedOffer", {})
         if not isinstance(priced_offers, list):
             priced_offers = [priced_offers]
@@ -98,6 +175,14 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0):
                     refs = component.get("refs", [])
                     if not isinstance(refs, list):
                         refs = [refs] if refs else []
+                    
+                    # Add refs to our collection for PriceMetadata filtering
+                    for ref in refs:
+                        if isinstance(ref, str):
+                            all_offer_refs.add(ref)
+                        elif isinstance(ref, dict) and "Ref" in ref:
+                            all_offer_refs.add(ref["Ref"])
+                    
                     fare_component_refs.update(refs)
                     
                     # Also check for refs in FareRules if they exist
@@ -108,6 +193,14 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0):
                             penalty_refs = penalty.get("refs", [])
                             if not isinstance(penalty_refs, list):
                                 penalty_refs = [penalty_refs] if penalty_refs else []
+                            
+                            # Add penalty refs to our collection for PriceMetadata filtering
+                            for ref in penalty_refs:
+                                if isinstance(ref, str):
+                                    all_offer_refs.add(ref)
+                                elif isinstance(ref, dict) and "Ref" in ref:
+                                    all_offer_refs.add(ref["Ref"])
+                                    
                             if penalty_refs:
                                 fare_component_refs.update(penalty_refs)
         
@@ -117,6 +210,21 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0):
         for ref in fare_component_refs:
             for fare_group in fare_groups:
                 list_key = fare_group.get("ListKey")
+                if list_key:
+                    # Add the ListKey as a reference for PriceMetadata filtering
+                    all_offer_refs.add(list_key)
+                    
+                    # If this fare group has refs, add those to our collection too
+                    fg_refs = fare_group.get("refs", [])
+                    if not isinstance(fg_refs, list):
+                        fg_refs = [fg_refs] if fg_refs else []
+                        
+                    for fg_ref in fg_refs:
+                        if isinstance(fg_ref, str):
+                            all_offer_refs.add(fg_ref)
+                        elif isinstance(fg_ref, dict) and "Ref" in fg_ref:
+                            all_offer_refs.add(fg_ref["Ref"])
+                
                 if list_key and list_key == ref and list_key not in added_fare_groups:
                     # Create a new fare group entry with required fields
                     new_fare_group = {
@@ -215,8 +323,26 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0):
             else:
                 offer["refs"] = [{"Ref": ref}]
     
-    # Process OfferItemIDs from PricedOffer.OfferPrice
+    # Process OfferItemIDs from PricedOffer.OfferPrice and collect all references
     offer_item_ids = []
+    # Collect all references from the selected offer to filter PriceMetadatas later
+    all_offer_refs = set()
+    
+    # Add refs from the offer itself if they exist
+    if "refs" in selected_offer:
+        if isinstance(selected_offer["refs"], list):
+            for ref in selected_offer["refs"]:
+                if isinstance(ref, dict) and "Ref" in ref:
+                    all_offer_refs.add(ref["Ref"])
+                elif isinstance(ref, str):
+                    all_offer_refs.add(ref)
+        else:
+            ref = selected_offer["refs"]
+            if isinstance(ref, dict) and "Ref" in ref:
+                all_offer_refs.add(ref["Ref"])
+            elif isinstance(ref, str):
+                all_offer_refs.add(ref)
+    
     try:
         # Get all PricedOffers from the selected offer
         priced_offers = selected_offer.get("PricedOffer", {})
@@ -296,10 +422,7 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0):
             anonymous_travelers = [anonymous_travelers]
             
     
-        # Create a set to track unique PTC values
-        unique_ptcs = set()
-        
-        # Create a traveler entry for each unique PTC
+        # Create a traveler entry for each anonymous traveler
         for traveler in anonymous_travelers:
             if not isinstance(traveler, dict):
                 continue
@@ -307,8 +430,7 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0):
             ptc = traveler.get("PTC", {})
             if isinstance(ptc, dict):
                 ptc_value = ptc.get("value")
-                if ptc_value and ptc_value not in unique_ptcs:
-                    unique_ptcs.add(ptc_value)
+                if ptc_value:
                     travelers.append({
                         "AnonymousTraveler": [{
                             "PTC": {
@@ -430,7 +552,7 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0):
             "Other": {
                 "OtherMetadata": [
                     {
-                        "PriceMetadatas": metadata.get("PriceMetadatas", {})
+                        "PriceMetadatas": filter_price_metadata(all_metadata.get("PriceMetadatas", {}), all_offer_refs)
                     }
                 ]
             }

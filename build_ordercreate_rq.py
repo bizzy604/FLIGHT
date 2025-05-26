@@ -299,15 +299,6 @@ def process_data_lists(flight_price_response: Dict[str, Any], order_create_rq: D
             "Fare": {
                 "FareCode": {
                     "Code": fare_group.get('Fare', {}).get('FareCode', {}).get('Code')
-                },
-                "FareDetail": {
-                    "Remarks": {
-                        "Remark": [
-                            {
-                                "value": "PUBL"
-                            }
-                        ]
-                    }
                 }
             },
             "FareBasisCode": {
@@ -317,7 +308,15 @@ def process_data_lists(flight_price_response: Dict[str, Any], order_create_rq: D
         })
     
 def process_passengers(flight_price_response: Dict[str, Any], order_create_rq: Dict[str, Any]) -> None:
-    """Process passenger information."""
+    """
+    Process passenger information.
+    
+    Extracts passenger references from the FlightPriceResponse and creates the passenger entries
+    with correct titles based on gender and passenger type.
+    """
+    # Extract traveler references from PricedFlightOffers
+    traveler_refs = extract_traveler_references(flight_price_response)
+    
     # Get travelers from AnonymousTravelerList or IdentifiedTravelerList
     data_lists = flight_price_response.get('DataLists', {})
     traveler_list = data_lists.get('AnonymousTravelerList', {}).get('AnonymousTraveler', [])
@@ -327,128 +326,228 @@ def process_passengers(flight_price_response: Dict[str, Any], order_create_rq: D
     if not isinstance(traveler_list, list):
         traveler_list = [traveler_list]
     
-    # Add standard passenger information
-    passengers = [
-        {
-            "Contacts": {
-                "Contact": [
-                    {
-                        "PhoneContact": {
-                            "Number": [
-                                {
-                                    "CountryCode": "254",
-                                    "value": "0700000000"
-                                }
-                            ],
-                            "Application": "Home"
-                        },
-                        "EmailContact": {
-                            "Address": {
-                                "value": "kevinamoni20@gmail.com"
-                            }
-                        },
-                        "AddressContact": {
-                            "Street": [
-                                "Nairobi, Kenya 30500"
-                            ],
-                            "PostalCode": "301",
-                            "CityName": "Nairobi",
-                            "CountryCode": {
-                                "value": "254"
-                            }
+    # Create a map of travelers by ObjectKey
+    traveler_map = {}
+    for traveler in traveler_list:
+        if isinstance(traveler, dict) and 'ObjectKey' in traveler:
+            traveler_map[traveler['ObjectKey']] = traveler
+    
+    # Sample passenger data for contact information (only applied to first adult)
+    contact_info = {
+        "Contact": [
+            {
+                "PhoneContact": {
+                    "Number": [
+                        {
+                            "CountryCode": "254",
+                            "value": "0700000000"
                         }
+                    ],
+                    "Application": "Home"
+                },
+                "EmailContact": {
+                    "Address": {
+                        "value": "kevinamoni20@gmail.com"
                     }
-                ]
-            },
-            "ObjectKey": "T1",
-            "Gender": {
-                "value": "Male"
-            },
-            "PTC": {
-                "value": "ADT"
-            },
-            "Name": {
-                "Given": [
-                    {
-                        "value": "Amoni"
+                },
+                "AddressContact": {
+                    "Street": [
+                        "Nairobi, Kenya 30500"
+                    ],
+                    "PostalCode": "301",
+                    "CityName": "Nairobi",
+                    "CountryCode": {
+                        "value": "254"
                     }
-                ],
-                "Title": "Mr",
-                "Surname": {
-                    "value": "Kevin"
                 }
             }
-        },
-        {
-            "ObjectKey": "T2",
+        ]
+    }
+    
+    # Sample passenger names - we'd need a separate function to get real names in a production system
+    sample_names = {
+        'ADT_Male': {'Given': 'Amoni', 'Surname': 'Kevin'},
+        'ADT_Female': {'Given': 'Egole', 'Surname': 'David'},  # Note: Normally this would be a female name
+        'CHD_Male': {'Given': 'Egole', 'Surname': 'David'},
+        'CHD_Female': {'Given': 'Linda', 'Surname': 'Smith'},
+        'INF_Male': {'Given': 'Egole', 'Surname': 'Bizzy'},
+        'INF_Female': {'Given': 'Anna', 'Surname': 'Bizzy'}
+    }
+    
+    # Define title mapping for passenger types and genders
+    title_mapping = {
+        'ADT': {'Male': 'Mr', 'Female': 'Ms'},  # Adult titles
+        'CHD': {'Male': 'Mstr', 'Female': 'Miss'},  # Child titles
+        'INF': {'Male': 'Mstr', 'Female': 'Miss'}   # Infant titles
+    }
+    
+    # Process passengers based on extracted references
+    passengers = []
+    adult_refs = {}  # To store refs of adults for infant associations
+    
+    # First pass to identify adults for infant associations
+    for ref in traveler_refs:
+        ptc = get_ptc_from_ref(ref, traveler_map)
+        if ptc == 'ADT':
+            adult_refs[ref] = True
+    
+    # Default adult reference for infants if no adult is found
+    default_adult_ref = next(iter(adult_refs)) if adult_refs else None
+    
+    # Create passenger entries
+    for ref in traveler_refs:
+        ptc = get_ptc_from_ref(ref, traveler_map)
+        gender = get_gender_for_passenger(ptc)  # In a real system, this would come from data
+        
+        # Get appropriate title based on PTC and gender
+        title = title_mapping.get(ptc, {}).get(gender, 'Mr')  # Default to Mr if mapping not found
+        
+        # Get sample name based on PTC and gender
+        name_key = f"{ptc}_{gender}"
+        name_data = sample_names.get(name_key, sample_names.get('ADT_Male'))  # Default if not found
+        
+        passenger = {
+            "ObjectKey": ref,
             "Gender": {
-                "value": "Female"
+                "value": gender
             },
             "PTC": {
-                "value": "ADT"
+                "value": ptc
             },
             "Name": {
                 "Given": [
                     {
-                        "value": "Egole"
+                        "value": name_data['Given']
                     }
                 ],
-                "Title": "Mr",
+                "Title": title,
                 "Surname": {
-                    "value": "David"
-                }
-            }
-        },
-        {
-            "ObjectKey": "T3",
-            "Gender": {
-                "value": "Male"
-            },
-            "PTC": {
-                "value": "CHD"
-            },
-            "Name": {
-                "Given": [
-                    {
-                        "value": "Egole"
-                    }
-                ],
-                "Title": "Mstr",
-                "Surname": {
-                    "value": "David"
-                }
-            }
-        },
-        {
-            "ObjectKey": "T1.1",
-            "Gender": {
-                "value": "Male"
-            },
-            "PTC": {
-                "value": "INF"
-            },
-            "PassengerAssociation": "T1",
-            "Age": {
-                "BirthDate": {
-                    "value": "2024-05-25"
-                }
-            },
-            "Name": {
-                "Given": [
-                    {
-                        "value": "Egole"
-                    }
-                ],
-                "Title": "Miss",
-                "Surname": {
-                    "value": "Bizzy"
+                    "value": name_data['Surname']
                 }
             }
         }
-    ]
+        
+        # Add contact info only to the first adult
+        if ptc == 'ADT' and not any(p.get('Contacts') for p in passengers):
+            passenger["Contacts"] = contact_info
+        
+        # For infants, add PassengerAssociation to an adult
+        if ptc == 'INF':
+            # For infant associations, parse the object key to find parent (e.g., T1.1 associated with T1)
+            # Otherwise default to first adult found
+            parts = ref.split('.')
+            if len(parts) > 1 and parts[0] in adult_refs:
+                passenger["PassengerAssociation"] = parts[0]
+            elif default_adult_ref:
+                passenger["PassengerAssociation"] = default_adult_ref
+            
+            # Add birth date for infants
+            passenger["Age"] = {
+                "BirthDate": {
+                    "value": "2024-05-25"  # Sample date, would be dynamic in production
+                }
+            }
+        
+        passengers.append(passenger)
     
     # Add passengers to OrderCreateRQ
     order_create_rq['Query']['Passengers']['Passenger'] = passengers
+
+def extract_traveler_references(flight_price_response: Dict[str, Any]) -> List[str]:
+    """
+    Extract traveler references from the FlightPriceResponse.
+    
+    Path: PricedFlightOffers.PricedFlightOffer[x].OfferPrice[x].RequestedDate.Associations[x].AssociatedTraveler.TravelerReferences[x]
+    
+    Returns:
+        List of traveler reference strings (e.g., ['T1', 'T2', 'T3', 'T1.1'])
+    """
+    traveler_refs = set()
+    priced_offers = flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
+    
+    if not isinstance(priced_offers, list):
+        priced_offers = [priced_offers] if priced_offers else []
+    
+    for offer in priced_offers:
+        offer_prices = offer.get('OfferPrice', [])
+        if not isinstance(offer_prices, list):
+            offer_prices = [offer_prices] if offer_prices else []
+        
+        for price in offer_prices:
+            requested_date = price.get('RequestedDate', {})
+            associations = requested_date.get('Associations', [])
+            
+            if not isinstance(associations, list):
+                associations = [associations] if associations else []
+            
+            for assoc in associations:
+                associated_traveler = assoc.get('AssociatedTraveler', {})
+                traveler_references = associated_traveler.get('TravelerReferences', [])
+                
+                if not isinstance(traveler_references, list):
+                    traveler_references = [traveler_references] if traveler_references else []
+                
+                for ref in traveler_references:
+                    if ref:
+                        traveler_refs.add(ref)
+    
+    return list(traveler_refs)
+
+def get_ptc_from_ref(ref: str, traveler_map: Dict[str, Any]) -> str:
+    """
+    Get the Passenger Type Code (PTC) for a traveler reference.
+    
+    If the reference contains a dot (e.g., 'T1.1'), it's an infant.
+    Otherwise, check the traveler map or default to 'ADT'.
+    
+    Args:
+        ref: Traveler reference string (e.g., 'T1', 'T1.1')
+        traveler_map: Map of traveler data by ObjectKey
+        
+    Returns:
+        PTC string ('ADT', 'CHD', or 'INF')
+    """
+    # If reference contains a dot, it's likely an infant (e.g., T1.1)
+    if '.' in ref:
+        return 'INF'
+    
+    # Check if we have PTC info in the traveler map
+    if ref in traveler_map:
+        ptc_data = traveler_map[ref].get('PTC', {})
+        if isinstance(ptc_data, dict) and 'value' in ptc_data:
+            return ptc_data['value']
+    
+    # Based on conventional patterns (T1, T2 are adults, T3, T4 are often children)
+    if ref in ['T1', 'T2']:
+        return 'ADT'
+    elif ref in ['T3', 'T4']:
+        return 'CHD'
+    
+    # Default to adult if we can't determine
+    return 'ADT'
+
+def get_gender_for_passenger(ptc: str) -> str:
+    """
+    Return a gender for the passenger based on PTC.
+    In a real system, this would come from actual passenger data.
+    
+    Args:
+        ptc: Passenger Type Code ('ADT', 'CHD', or 'INF')
+        
+    Returns:
+        Gender string ('Male' or 'Female')
+    """
+    # For demo purposes - in reality this would come from actual passenger data
+    gender_map = {
+        'ADT': ['Male', 'Female'],  # First adult male, second female
+        'CHD': ['Male', 'Female'],  # First child male, second female
+        'INF': ['Male', 'Female']   # First infant male, second female
+    }
+    
+    # Use deterministic but arbitrary gender assignment based on hash of PTC
+    index = hash(ptc) % 2  # Either 0 or 1
+    return gender_map.get(ptc, ['Male', 'Female'])[index]
+
 
 def process_payments(flight_price_response: Dict[str, Any], order_create_rq: Dict[str, Any]) -> None:
     """Process payment information."""
@@ -562,30 +661,7 @@ def process_metadata(flight_price_response: Dict[str, Any], order_create_rq: Dic
         })
     else:
         # Use sample metadata from template
-        order_create_rq['Query']['Metadata']['Other']['OtherMetadata'] = [
-            {
-                "PriceMetadatas": {
-                    "PriceMetadata": [
-                        {
-                            "MetadataKey": "Pfrk2ny2axc1vwpgr",
-                            "AugmentationPoint": {
-                                "AugPoint": [
-                                    {
-                                        "any": {
-                                            "VdcAugPoint": [
-                                                {
-                                                    "Value": "NO80Q~MVB8OLO~MqA9UX~MqM9@NK~MpC8CVA~MEA9QBK5G@~MSN9NT@K~M@K9+0~MBS9GMP~MMS8H~MEP9/~MKF8A~`D*skUlegwksiYq*flxKey"
-                                                }
-                                            ]
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            }
-        ]
+        order_create_rq['Query']['Metadata']['Other']['OtherMetadata'] = []
     
     return order_create_rq
 
