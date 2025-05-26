@@ -1,0 +1,3762 @@
+{
+    "Document": {
+        "id": "document"
+    },
+    "ShoppingResponseID": {
+        "ResponseID": {
+            "value": "W2ZKBIw8nvnXInZ5NX8O4VJYDzRvjv7eoZFLLbOlSQ4-WY"
+        }
+    },
+    "PricedFlightOffers": {
+        "PricedFlightOffer": [
+            {
+                "OfferID": {
+                    "ObjectKey": "P498249F-84F4-4436-B9B2ccmxitfwrb44y-1",
+                    "value": "P498249F-84F4-4436-B9B2ccmxitfwrb44y-1",
+                    "Owner": "WY",
+                    "Channel": "NDC"
+                },
+                "OfferPrice": [
+                    {
+                        "RequestedDate": {
+                            "Associations": [
+                                {
+                                    "AssociatedTraveler": {
+                                        "TravelerReferences": [
+                                            "T1",
+                                            "T2"
+                                        ]
+                                    },
+                                    "ApplicableFlight": {
+                                        "FlightSegmentReference": [
+                                            {
+                                                "ClassOfService": {
+                                                    "Code": {
+                                                        "value": "H"
+                                                    },
+                                                    "MarketingName": {
+                                                        "value": "ECONOMY",
+                                                        "CabinDesignator": "Y"
+                                                    },
+                                                    "refs": [
+                                                        "Pfcp6cbol25qvxzsq"
+                                                    ]
+                                                },
+                                                "BagDetailAssociation": {
+                                                    "CheckedBagReferences": [
+                                                        "Pbgaq7afsahknfyk6"
+                                                    ],
+                                                    "CarryOnReferences": [
+                                                        "Pcyo8ppwcqzt402ik"
+                                                    ]
+                                                },
+                                                "ref": "Isgm0200313340d47"
+                                            },
+                                            {
+                                                "ClassOfService": {
+                                                    "Code": {
+                                                        "value": "H"
+                                                    },
+                                                    "MarketingName": {
+                                                        "value": "ECONOMY",
+                                                        "CabinDesignator": "Y"
+                                                    },
+                                                    "refs": [
+                                                        "Pfcp6cbol25qvxzsq"
+                                                    ]
+                                                },
+                                                "BagDetailAssociation": {
+                                                    "CheckedBagReferences": [
+                                                        "Pbgaq7afsahknfyk6"
+                                                    ],
+                                                    "CarryOnReferences": [
+                                                        "Pcyo8ppwcqzt402ik"
+                                                    ]
+                                                },
+                                                "ref": "Isgm0300313340d47"
+                                            }
+                                        ],
+                                        "OriginDestinationReferences": [
+                                            "OD1"
+                                        ],
+                                        "FlightReferences": {
+                                            "value": [
+                                                "Pfltmzarjjg70zrli"
+                                            ]
+                                        }
+                                    },
+                                    "PriceClass": {
+                                        "PriceClassReference": "Ppc1uioco2d1066e"
+                                    }
+                                },
+                                {
+                                    "AssociatedTraveler": {
+                                        "TravelerReferences": [
+                                            "T1",
+                                            "T2"
+                                        ]
+                                    },
+                                    "ApplicableFlight": {
+                                        "FlightSegmentReference": [
+                                            {
+                                                "ClassOfService": {
+                                                    "Code": {
+                                                        "value": "V"
+                                                    },
+                                                    "MarketingName": {
+                                                        "value": "ECONOMY",
+                                                        "CabinDesignator": "Y"
+                                                    },
+                                                    "refs": [
+                                                        "Pfcpg65qu1bng9ny6"
+                                                    ]
+                                                },
+                                                "BagDetailAssociation": {
+                                                    "CheckedBagReferences": [
+                                                        "Pbgaocjb7fuh47kya"
+                                                    ],
+                                                    "CarryOnReferences": [
+                                                        "Pcyo1ewv9hc62d52h"
+                                                    ]
+                                                },
+                                                "ref": "Isgm7b00313340d47"
+                                            },
+                                            {
+                                                "ClassOfService": {
+                                                    "Code": {
+                                                        "value": "V"
+                                                    },
+                                                    "MarketingName": {
+                                                        "value": "ECONOMY",
+                                                        "CabinDesignator": "Y"
+                                                    },
+                                                    "refs": [
+                                                        "Pfcpg65qu1bng9ny6"
+                                                    ]
+                                                },
+                                                "BagDetailAssociation": {
+                                                    "CheckedBagReferences": [
+                                                        "Pbgaocjb7fuh47kya"
+                                                    ],
+                                                    "CarryOnReferences": [
+                                                        "Pcyo1ewv9hc62d52h"
+                                                    ]
+                                                },
+                                                "ref": "Isgm7c00313340d47"
+                                            }
+                                        ],
+                                        "OriginDestinationReferences": [
+                                            "OD2"
+                                        ],
+                                        "FlightReferences": {
+                                            "value": [
+                                                "Pfltm83brsto8spso"
+                                            ]
+                                        }
+                                    },
+                                    "PriceClass": {
+                                        "PriceClassReference": "Ppc1uioco2d1066e"
+                                    }
+                                }
+                            ],
+                            "PriceDetail": {
+                                "TotalAmount": {
+                                    "SimpleCurrencyPrice": {
+                                        "value": 74870,
+                                        "Code": "INR"
+                                    }
+                                },
+                                "BaseAmount": {
+                                    "value": 62015,
+                                    "Code": "INR"
+                                },
+                                "Discount": [
+                                    {
+                                        "DiscountAmount": {
+                                            "value": 3101,
+                                            "Code": "INR"
+                                        },
+                                        "DiscountPercent": 5,
+                                        "discountOwner": "Magellan Travel Services (P) Ltd.",
+                                        "discountCode": "Disc_rea",
+                                        "discountName": "ReaDiscount",
+                                        "preDiscountedAmount": {
+                                            "value": 62015,
+                                            "Code": "INR"
+                                        }
+                                    }
+                                ],
+                                "Taxes": {
+                                    "Total": {
+                                        "value": 15956,
+                                        "Code": "INR"
+                                    },
+                                    "Breakdown": {
+                                        "Tax": [
+                                            {
+                                                "Amount": {
+                                                    "value": 5300,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "YQ",
+                                                "Description": "Fuel Surcharge"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 3101,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "K3",
+                                                "Description": "Goods and Service Tax - Interim"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 265,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "K3",
+                                                "Description": "Goods and Service Tax - Interim"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 726,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "IN",
+                                                "Description": "India Inland Air Travel Tax"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 307,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "IN",
+                                                "Description": "India Inland Air Travel Tax"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 448,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "OM",
+                                                "Description": "Airport Tax"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 1754,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "AE",
+                                                "Description": "UAE Passenger Service Charge"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 117,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "TP",
+                                                "Description": "Psgr Security and Safety Fee"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 117,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "ZR",
+                                                "Description": "Intl Advanced Psgr Information Fee"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 117,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "ZR",
+                                                "Description": "Intl Advanced Psgr Information Fee"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 1053,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "F6",
+                                                "Description": "Passenger Facilities Charge"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 448,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "I2",
+                                                "Description": "Security Fee"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 1217,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "P2",
+                                                "Description": "Aviation Security Fee-India"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 986,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "S6",
+                                                "Description": "Infrastructure Charge"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "FareDetail": {
+                            "FareComponent": [
+                                {
+                                    "FareBasis": {
+                                        "FareBasisCode": {
+                                            "Code": "HCMRIA"
+                                        },
+                                        "RBD": "H H"
+                                    },
+                                    "FareRules": {
+                                        "Penalty": {
+                                            "refs": [
+                                                "Change-4-Non_Refundable",
+                                                "Change-2-4366-4366",
+                                                "Cancel-4-Non_Refundable",
+                                                "Cancel-2-15280-15280"
+                                            ]
+                                        }
+                                    },
+                                    "refs": [
+                                        "Isgm0200313340d47",
+                                        "Isgm0300313340d47"
+                                    ]
+                                },
+                                {
+                                    "FareBasis": {
+                                        "FareBasisCode": {
+                                            "Code": "VCM6IA"
+                                        },
+                                        "RBD": "V V"
+                                    },
+                                    "FareRules": {
+                                        "Penalty": {
+                                            "refs": [
+                                                "Change-4-Non_Refundable",
+                                                "Change-2-4366-4366",
+                                                "Cancel-4-Non_Refundable",
+                                                "Cancel-2-15280-15280"
+                                            ]
+                                        }
+                                    },
+                                    "refs": [
+                                        "Isgm7b00313340d47",
+                                        "Isgm7c00313340d47"
+                                    ]
+                                }
+                            ]
+                        },
+                        "OfferItemID": "P498249F-84F4-4436-B9B2ccmxitfwrb44y-1-1"
+                    },
+                    {
+                        "RequestedDate": {
+                            "Associations": [
+                                {
+                                    "AssociatedTraveler": {
+                                        "TravelerReferences": [
+                                            "T3"
+                                        ]
+                                    },
+                                    "ApplicableFlight": {
+                                        "FlightSegmentReference": [
+                                            {
+                                                "ClassOfService": {
+                                                    "Code": {
+                                                        "value": "H"
+                                                    },
+                                                    "MarketingName": {
+                                                        "value": "ECONOMY",
+                                                        "CabinDesignator": "Y"
+                                                    },
+                                                    "refs": [
+                                                        "Pfcppgmezjl9ih3oa"
+                                                    ]
+                                                },
+                                                "BagDetailAssociation": {
+                                                    "CheckedBagReferences": [
+                                                        "Pbgaplzvgjm5qv58r"
+                                                    ],
+                                                    "CarryOnReferences": [
+                                                        "Pcyoo6y1pozhyvcow"
+                                                    ]
+                                                },
+                                                "ref": "Isgm0200313340d47"
+                                            },
+                                            {
+                                                "ClassOfService": {
+                                                    "Code": {
+                                                        "value": "H"
+                                                    },
+                                                    "MarketingName": {
+                                                        "value": "ECONOMY",
+                                                        "CabinDesignator": "Y"
+                                                    },
+                                                    "refs": [
+                                                        "Pfcppgmezjl9ih3oa"
+                                                    ]
+                                                },
+                                                "BagDetailAssociation": {
+                                                    "CheckedBagReferences": [
+                                                        "Pbgaplzvgjm5qv58r"
+                                                    ],
+                                                    "CarryOnReferences": [
+                                                        "Pcyoo6y1pozhyvcow"
+                                                    ]
+                                                },
+                                                "ref": "Isgm0300313340d47"
+                                            }
+                                        ],
+                                        "OriginDestinationReferences": [
+                                            "OD1"
+                                        ],
+                                        "FlightReferences": {
+                                            "value": [
+                                                "Pfltmzarjjg70zrli"
+                                            ]
+                                        }
+                                    },
+                                    "PriceClass": {
+                                        "PriceClassReference": "Ppc1uioco2d1066e"
+                                    }
+                                },
+                                {
+                                    "AssociatedTraveler": {
+                                        "TravelerReferences": [
+                                            "T3"
+                                        ]
+                                    },
+                                    "ApplicableFlight": {
+                                        "FlightSegmentReference": [
+                                            {
+                                                "ClassOfService": {
+                                                    "Code": {
+                                                        "value": "V"
+                                                    },
+                                                    "MarketingName": {
+                                                        "value": "ECONOMY",
+                                                        "CabinDesignator": "Y"
+                                                    },
+                                                    "refs": [
+                                                        "Pfcp3krn9ms2cniyh"
+                                                    ]
+                                                },
+                                                "BagDetailAssociation": {
+                                                    "CheckedBagReferences": [
+                                                        "Pbgaxt54j242pzgur"
+                                                    ],
+                                                    "CarryOnReferences": [
+                                                        "Pcyo9la58hp405tmq"
+                                                    ]
+                                                },
+                                                "ref": "Isgm7b00313340d47"
+                                            },
+                                            {
+                                                "ClassOfService": {
+                                                    "Code": {
+                                                        "value": "V"
+                                                    },
+                                                    "MarketingName": {
+                                                        "value": "ECONOMY",
+                                                        "CabinDesignator": "Y"
+                                                    },
+                                                    "refs": [
+                                                        "Pfcp3krn9ms2cniyh"
+                                                    ]
+                                                },
+                                                "BagDetailAssociation": {
+                                                    "CheckedBagReferences": [
+                                                        "Pbgaxt54j242pzgur"
+                                                    ],
+                                                    "CarryOnReferences": [
+                                                        "Pcyo9la58hp405tmq"
+                                                    ]
+                                                },
+                                                "ref": "Isgm7c00313340d47"
+                                            }
+                                        ],
+                                        "OriginDestinationReferences": [
+                                            "OD2"
+                                        ],
+                                        "FlightReferences": {
+                                            "value": [
+                                                "Pfltm83brsto8spso"
+                                            ]
+                                        }
+                                    },
+                                    "PriceClass": {
+                                        "PriceClassReference": "Ppc1uioco2d1066e"
+                                    }
+                                }
+                            ],
+                            "PriceDetail": {
+                                "TotalAmount": {
+                                    "SimpleCurrencyPrice": {
+                                        "value": 59365,
+                                        "Code": "INR"
+                                    }
+                                },
+                                "BaseAmount": {
+                                    "value": 46510,
+                                    "Code": "INR"
+                                },
+                                "Discount": [
+                                    {
+                                        "DiscountAmount": {
+                                            "value": 2326,
+                                            "Code": "INR"
+                                        },
+                                        "DiscountPercent": 5,
+                                        "discountOwner": "Magellan Travel Services (P) Ltd.",
+                                        "discountCode": "Disc_rea",
+                                        "discountName": "ReaDiscount",
+                                        "preDiscountedAmount": {
+                                            "value": 46510,
+                                            "Code": "INR"
+                                        }
+                                    }
+                                ],
+                                "Taxes": {
+                                    "Total": {
+                                        "value": 15181,
+                                        "Code": "INR"
+                                    },
+                                    "Breakdown": {
+                                        "Tax": [
+                                            {
+                                                "Amount": {
+                                                    "value": 5300,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "YQ",
+                                                "Description": "Fuel Surcharge"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 2326,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "K3",
+                                                "Description": "Goods and Service Tax - Interim"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 265,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "K3",
+                                                "Description": "Goods and Service Tax - Interim"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 726,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "IN",
+                                                "Description": "India Inland Air Travel Tax"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 307,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "IN",
+                                                "Description": "India Inland Air Travel Tax"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 448,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "OM",
+                                                "Description": "Airport Tax"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 1754,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "AE",
+                                                "Description": "UAE Passenger Service Charge"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 117,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "TP",
+                                                "Description": "Psgr Security and Safety Fee"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 117,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "ZR",
+                                                "Description": "Intl Advanced Psgr Information Fee"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 117,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "ZR",
+                                                "Description": "Intl Advanced Psgr Information Fee"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 1053,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "F6",
+                                                "Description": "Passenger Facilities Charge"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 448,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "I2",
+                                                "Description": "Security Fee"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 1217,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "P2",
+                                                "Description": "Aviation Security Fee-India"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 986,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "S6",
+                                                "Description": "Infrastructure Charge"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "FareDetail": {
+                            "FareComponent": [
+                                {
+                                    "FareBasis": {
+                                        "FareBasisCode": {
+                                            "Code": "HCMRIACH"
+                                        },
+                                        "RBD": "H H"
+                                    },
+                                    "FareRules": {
+                                        "Penalty": {
+                                            "refs": [
+                                                "Change-4-Non_Refundable",
+                                                "Change-2-4366-4366",
+                                                "Cancel-4-Non_Refundable",
+                                                "Cancel-2-15280-15280"
+                                            ]
+                                        }
+                                    },
+                                    "refs": [
+                                        "Isgm0200313340d47",
+                                        "Isgm0300313340d47"
+                                    ]
+                                },
+                                {
+                                    "FareBasis": {
+                                        "FareBasisCode": {
+                                            "Code": "VCM6IACH"
+                                        },
+                                        "RBD": "V V"
+                                    },
+                                    "FareRules": {
+                                        "Penalty": {
+                                            "refs": [
+                                                "Change-4-Non_Refundable",
+                                                "Change-2-4366-4366",
+                                                "Cancel-4-Non_Refundable",
+                                                "Cancel-2-15280-15280"
+                                            ]
+                                        }
+                                    },
+                                    "refs": [
+                                        "Isgm7b00313340d47",
+                                        "Isgm7c00313340d47"
+                                    ]
+                                }
+                            ]
+                        },
+                        "OfferItemID": "P498249F-84F4-4436-B9B2ccmxitfwrb44y-1-2"
+                    },
+                    {
+                        "RequestedDate": {
+                            "Associations": [
+                                {
+                                    "AssociatedTraveler": {
+                                        "TravelerReferences": [
+                                            "T1.1"
+                                        ]
+                                    },
+                                    "ApplicableFlight": {
+                                        "FlightSegmentReference": [
+                                            {
+                                                "ClassOfService": {
+                                                    "Code": {
+                                                        "value": "H"
+                                                    },
+                                                    "MarketingName": {
+                                                        "value": "ECONOMY",
+                                                        "CabinDesignator": "Y"
+                                                    },
+                                                    "refs": [
+                                                        "Pfcpenx787cuf65p5"
+                                                    ]
+                                                },
+                                                "BagDetailAssociation": {
+                                                    "CheckedBagReferences": [
+                                                        "Pbga3adet8jfhvp0n"
+                                                    ]
+                                                },
+                                                "ref": "Isgm0200313340d47"
+                                            },
+                                            {
+                                                "ClassOfService": {
+                                                    "Code": {
+                                                        "value": "H"
+                                                    },
+                                                    "MarketingName": {
+                                                        "value": "ECONOMY",
+                                                        "CabinDesignator": "Y"
+                                                    },
+                                                    "refs": [
+                                                        "Pfcpenx787cuf65p5"
+                                                    ]
+                                                },
+                                                "BagDetailAssociation": {
+                                                    "CheckedBagReferences": [
+                                                        "Pbga3adet8jfhvp0n"
+                                                    ]
+                                                },
+                                                "ref": "Isgm0300313340d47"
+                                            }
+                                        ],
+                                        "OriginDestinationReferences": [
+                                            "OD1"
+                                        ],
+                                        "FlightReferences": {
+                                            "value": [
+                                                "Pfltmzarjjg70zrli"
+                                            ]
+                                        }
+                                    },
+                                    "PriceClass": {
+                                        "PriceClassReference": "Ppc1uioco2d1066e"
+                                    }
+                                },
+                                {
+                                    "AssociatedTraveler": {
+                                        "TravelerReferences": [
+                                            "T1.1"
+                                        ]
+                                    },
+                                    "ApplicableFlight": {
+                                        "FlightSegmentReference": [
+                                            {
+                                                "ClassOfService": {
+                                                    "Code": {
+                                                        "value": "V"
+                                                    },
+                                                    "MarketingName": {
+                                                        "value": "ECONOMY",
+                                                        "CabinDesignator": "Y"
+                                                    },
+                                                    "refs": [
+                                                        "Pfcpf4u1dbqldtsaj"
+                                                    ]
+                                                },
+                                                "BagDetailAssociation": {
+                                                    "CheckedBagReferences": [
+                                                        "Pbgaciwotz21s3lg1"
+                                                    ]
+                                                },
+                                                "ref": "Isgm7b00313340d47"
+                                            },
+                                            {
+                                                "ClassOfService": {
+                                                    "Code": {
+                                                        "value": "V"
+                                                    },
+                                                    "MarketingName": {
+                                                        "value": "ECONOMY",
+                                                        "CabinDesignator": "Y"
+                                                    },
+                                                    "refs": [
+                                                        "Pfcpf4u1dbqldtsaj"
+                                                    ]
+                                                },
+                                                "BagDetailAssociation": {
+                                                    "CheckedBagReferences": [
+                                                        "Pbgaciwotz21s3lg1"
+                                                    ]
+                                                },
+                                                "ref": "Isgm7c00313340d47"
+                                            }
+                                        ],
+                                        "OriginDestinationReferences": [
+                                            "OD2"
+                                        ],
+                                        "FlightReferences": {
+                                            "value": [
+                                                "Pfltm83brsto8spso"
+                                            ]
+                                        }
+                                    },
+                                    "PriceClass": {
+                                        "PriceClassReference": "Ppc1uioco2d1066e"
+                                    }
+                                }
+                            ],
+                            "PriceDetail": {
+                                "TotalAmount": {
+                                    "SimpleCurrencyPrice": {
+                                        "value": 13392,
+                                        "Code": "INR"
+                                    }
+                                },
+                                "BaseAmount": {
+                                    "value": 12405,
+                                    "Code": "INR"
+                                },
+                                "Discount": [
+                                    {
+                                        "DiscountAmount": {
+                                            "value": 620,
+                                            "Code": "INR"
+                                        },
+                                        "DiscountPercent": 5,
+                                        "discountOwner": "Magellan Travel Services (P) Ltd.",
+                                        "discountCode": "Disc_rea",
+                                        "discountName": "ReaDiscount",
+                                        "preDiscountedAmount": {
+                                            "value": 12405,
+                                            "Code": "INR"
+                                        }
+                                    }
+                                ],
+                                "Taxes": {
+                                    "Total": {
+                                        "value": 1607,
+                                        "Code": "INR"
+                                    },
+                                    "Breakdown": {
+                                        "Tax": [
+                                            {
+                                                "Amount": {
+                                                    "value": 621,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "K3",
+                                                "Description": "Goods and Service Tax - Interim"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 986,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "S6",
+                                                "Description": "Infrastructure Charge"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "FareDetail": {
+                            "FareComponent": [
+                                {
+                                    "FareBasis": {
+                                        "FareBasisCode": {
+                                            "Code": "HCMRIAIN"
+                                        },
+                                        "RBD": "H H"
+                                    },
+                                    "FareRules": {
+                                        "Penalty": {
+                                            "refs": [
+                                                "Change-4-Non_Refundable",
+                                                "Change-2-4366-4366",
+                                                "Cancel-4-Non_Refundable",
+                                                "Cancel-2-15280-15280"
+                                            ]
+                                        }
+                                    },
+                                    "refs": [
+                                        "Isgm0200313340d47",
+                                        "Isgm0300313340d47"
+                                    ]
+                                },
+                                {
+                                    "FareBasis": {
+                                        "FareBasisCode": {
+                                            "Code": "VCM6IAIN"
+                                        },
+                                        "RBD": "V V"
+                                    },
+                                    "FareRules": {
+                                        "Penalty": {
+                                            "refs": [
+                                                "Change-4-Non_Refundable",
+                                                "Change-2-4366-4366",
+                                                "Cancel-4-Non_Refundable",
+                                                "Cancel-2-15280-15280"
+                                            ]
+                                        }
+                                    },
+                                    "refs": [
+                                        "Isgm7b00313340d47",
+                                        "Isgm7c00313340d47"
+                                    ]
+                                }
+                            ]
+                        },
+                        "OfferItemID": "P498249F-84F4-4436-B9B2ccmxitfwrb44y-1-3"
+                    }
+                ],
+                "TimeLimits": {
+                    "OfferExpiration": {
+                        "DateTime": "2025-05-26T06:59:08.000"
+                    },
+                    "Payment": {
+                        "DateTime": "2025-05-29T10:05:00.000"
+                    }
+                }
+            }
+        ]
+    },
+    "DataLists": {
+        "AnonymousTravelerList": {
+            "AnonymousTraveler": [
+                {
+                    "ObjectKey": "T1",
+                    "PTC": {
+                        "value": "ADT"
+                    }
+                },
+                {
+                    "ObjectKey": "T2",
+                    "PTC": {
+                        "value": "ADT"
+                    }
+                },
+                {
+                    "ObjectKey": "T3",
+                    "PTC": {
+                        "value": "CHD"
+                    }
+                },
+                {
+                    "ObjectKey": "T1.1",
+                    "PTC": {
+                        "value": "INF"
+                    }
+                }
+            ]
+        },
+        "CarryOnAllowanceList": {
+            "CarryOnAllowance": [
+                {
+                    "ListKey": "Pcyo8ppwcqzt402ik",
+                    "AllowanceDescription": {
+                        "ApplicableParty": "Traveler",
+                        "Descriptions": {
+                            "Description": [
+                                {
+                                    "Text": {
+                                        "value": "CARRY ON ALLOWANCE"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "PieceAllowance": [
+                        {
+                            "ApplicableParty": "Traveler",
+                            "TotalQuantity": 1,
+                            "PieceMeasurements": [
+                                {
+                                    "Quantity": 1
+                                }
+                            ]
+                        }
+                    ],
+                    "WeightAllowance": {
+                        "MaximumWeight": [
+                            {
+                                "Value": 7,
+                                "UOM": "Kilogram"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ListKey": "Pcyo1ewv9hc62d52h",
+                    "AllowanceDescription": {
+                        "ApplicableParty": "Traveler",
+                        "Descriptions": {
+                            "Description": [
+                                {
+                                    "Text": {
+                                        "value": "CARRY ON ALLOWANCE"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "PieceAllowance": [
+                        {
+                            "ApplicableParty": "Traveler",
+                            "TotalQuantity": 1,
+                            "PieceMeasurements": [
+                                {
+                                    "Quantity": 1
+                                }
+                            ]
+                        }
+                    ],
+                    "WeightAllowance": {
+                        "MaximumWeight": [
+                            {
+                                "Value": 7,
+                                "UOM": "Kilogram"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ListKey": "Pcyoo6y1pozhyvcow",
+                    "AllowanceDescription": {
+                        "ApplicableParty": "Traveler",
+                        "Descriptions": {
+                            "Description": [
+                                {
+                                    "Text": {
+                                        "value": "CARRY ON ALLOWANCE"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "PieceAllowance": [
+                        {
+                            "ApplicableParty": "Traveler",
+                            "TotalQuantity": 1,
+                            "PieceMeasurements": [
+                                {
+                                    "Quantity": 1
+                                }
+                            ]
+                        }
+                    ],
+                    "WeightAllowance": {
+                        "MaximumWeight": [
+                            {
+                                "Value": 7,
+                                "UOM": "Kilogram"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ListKey": "Pcyo9la58hp405tmq",
+                    "AllowanceDescription": {
+                        "ApplicableParty": "Traveler",
+                        "Descriptions": {
+                            "Description": [
+                                {
+                                    "Text": {
+                                        "value": "CARRY ON ALLOWANCE"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "PieceAllowance": [
+                        {
+                            "ApplicableParty": "Traveler",
+                            "TotalQuantity": 1,
+                            "PieceMeasurements": [
+                                {
+                                    "Quantity": 1
+                                }
+                            ]
+                        }
+                    ],
+                    "WeightAllowance": {
+                        "MaximumWeight": [
+                            {
+                                "Value": 7,
+                                "UOM": "Kilogram"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "CheckedBagAllowanceList": {
+            "CheckedBagAllowance": [
+                {
+                    "ListKey": "Pbgaq7afsahknfyk6",
+                    "AllowanceDescription": {
+                        "ApplicableParty": "Traveler",
+                        "Descriptions": {
+                            "Description": [
+                                {
+                                    "Text": {
+                                        "value": "CHECKED ALLOWANCE"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "WeightAllowance": {
+                        "ApplicableParty": "Traveler",
+                        "MaximumWeight": [
+                            {
+                                "Value": 20,
+                                "UOM": "Kilogram"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ListKey": "Pbgaocjb7fuh47kya",
+                    "AllowanceDescription": {
+                        "ApplicableParty": "Traveler",
+                        "Descriptions": {
+                            "Description": [
+                                {
+                                    "Text": {
+                                        "value": "CHECKED ALLOWANCE"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "WeightAllowance": {
+                        "ApplicableParty": "Traveler",
+                        "MaximumWeight": [
+                            {
+                                "Value": 20,
+                                "UOM": "Kilogram"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ListKey": "Pbgaplzvgjm5qv58r",
+                    "AllowanceDescription": {
+                        "ApplicableParty": "Traveler",
+                        "Descriptions": {
+                            "Description": [
+                                {
+                                    "Text": {
+                                        "value": "CHECKED ALLOWANCE"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "WeightAllowance": {
+                        "ApplicableParty": "Traveler",
+                        "MaximumWeight": [
+                            {
+                                "Value": 20,
+                                "UOM": "Kilogram"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ListKey": "Pbgaxt54j242pzgur",
+                    "AllowanceDescription": {
+                        "ApplicableParty": "Traveler",
+                        "Descriptions": {
+                            "Description": [
+                                {
+                                    "Text": {
+                                        "value": "CHECKED ALLOWANCE"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "WeightAllowance": {
+                        "ApplicableParty": "Traveler",
+                        "MaximumWeight": [
+                            {
+                                "Value": 20,
+                                "UOM": "Kilogram"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ListKey": "Pbga3adet8jfhvp0n",
+                    "AllowanceDescription": {
+                        "ApplicableParty": "Traveler",
+                        "Descriptions": {
+                            "Description": [
+                                {
+                                    "Text": {
+                                        "value": "CHECKED ALLOWANCE"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "WeightAllowance": {
+                        "ApplicableParty": "Traveler",
+                        "MaximumWeight": [
+                            {
+                                "Value": 10,
+                                "UOM": "Kilogram"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ListKey": "Pbgaciwotz21s3lg1",
+                    "AllowanceDescription": {
+                        "ApplicableParty": "Traveler",
+                        "Descriptions": {
+                            "Description": [
+                                {
+                                    "Text": {
+                                        "value": "CHECKED ALLOWANCE"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "WeightAllowance": {
+                        "ApplicableParty": "Traveler",
+                        "MaximumWeight": [
+                            {
+                                "Value": 10,
+                                "UOM": "Kilogram"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "FareList": {
+            "FareGroup": [
+                {
+                    "ListKey": "Pfcp6cbol25qvxzsq",
+                    "Fare": {
+                        "FareCode": {
+                            "Code": "70J"
+                        },
+                        "FareDetail": {
+                            "Remarks": {
+                                "Remark": [
+                                    {
+                                        "value": "PUBL"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "FareBasisCode": {
+                        "Code": "HCMRIA"
+                    },
+                    "refs": [
+                        "Pfrk6cbol25qvxzsq"
+                    ]
+                },
+                {
+                    "ListKey": "Pfcpg65qu1bng9ny6",
+                    "Fare": {
+                        "FareCode": {
+                            "Code": "70J"
+                        },
+                        "FareDetail": {
+                            "Remarks": {
+                                "Remark": [
+                                    {
+                                        "value": "PUBL"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "FareBasisCode": {
+                        "Code": "VCM6IA"
+                    },
+                    "refs": [
+                        "Pfrkg65qu1bng9ny6"
+                    ]
+                },
+                {
+                    "ListKey": "Pfcppgmezjl9ih3oa",
+                    "Fare": {
+                        "FareCode": {
+                            "Code": "70J"
+                        },
+                        "FareDetail": {
+                            "Remarks": {
+                                "Remark": [
+                                    {
+                                        "value": "PUBL"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "FareBasisCode": {
+                        "Code": "HCMRIACH"
+                    },
+                    "refs": [
+                        "Pfrkpgmezjl9ih3oa"
+                    ]
+                },
+                {
+                    "ListKey": "Pfcp3krn9ms2cniyh",
+                    "Fare": {
+                        "FareCode": {
+                            "Code": "70J"
+                        },
+                        "FareDetail": {
+                            "Remarks": {
+                                "Remark": [
+                                    {
+                                        "value": "PUBL"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "FareBasisCode": {
+                        "Code": "VCM6IACH"
+                    },
+                    "refs": [
+                        "Pfrk3krn9ms2cniyh"
+                    ]
+                },
+                {
+                    "ListKey": "Pfcpenx787cuf65p5",
+                    "Fare": {
+                        "FareCode": {
+                            "Code": "70J"
+                        },
+                        "FareDetail": {
+                            "Remarks": {
+                                "Remark": [
+                                    {
+                                        "value": "PUBL"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "FareBasisCode": {
+                        "Code": "HCMRIAIN"
+                    },
+                    "refs": [
+                        "Pfrkenx787cuf65p5"
+                    ]
+                },
+                {
+                    "ListKey": "Pfcpf4u1dbqldtsaj",
+                    "Fare": {
+                        "FareCode": {
+                            "Code": "70J"
+                        },
+                        "FareDetail": {
+                            "Remarks": {
+                                "Remark": [
+                                    {
+                                        "value": "PUBL"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "FareBasisCode": {
+                        "Code": "VCM6IAIN"
+                    },
+                    "refs": [
+                        "Pfrkf4u1dbqldtsaj"
+                    ]
+                }
+            ]
+        },
+        "FlightSegmentList": {
+            "FlightSegment": [
+                {
+                    "SegmentKey": "Isgm0200313340d47",
+                    "Departure": {
+                        "AirportCode": {
+                            "value": "BOM"
+                        },
+                        "Date": "2025-05-29T00:00:00.000",
+                        "Time": "10:05",
+                        "AirportName": "Mumbai, IN",
+                        "Terminal": {
+                            "Name": "2"
+                        }
+                    },
+                    "Arrival": {
+                        "AirportCode": {
+                            "value": "MCT"
+                        },
+                        "Date": "2025-05-29T00:00:00.000",
+                        "Time": "11:20",
+                        "AirportName": "Muscat, OM"
+                    },
+                    "MarketingCarrier": {
+                        "AirlineID": {
+                            "value": "WY"
+                        },
+                        "Name": "Oman Air",
+                        "FlightNumber": {
+                            "value": "202"
+                        }
+                    },
+                    "Equipment": {
+                        "Name": "Boeing 737-900 Passenger",
+                        "AircraftCode": {
+                            "value": "739"
+                        }
+                    },
+                    "FlightDetail": {
+                        "FlightDuration": {
+                            "Value": "PT2H40M"
+                        }
+                    }
+                },
+                {
+                    "SegmentKey": "Isgm0300313340d47",
+                    "Departure": {
+                        "AirportCode": {
+                            "value": "MCT"
+                        },
+                        "Date": "2025-05-29T00:00:00.000",
+                        "Time": "14:30",
+                        "AirportName": "Muscat, OM"
+                    },
+                    "Arrival": {
+                        "AirportCode": {
+                            "value": "DXB"
+                        },
+                        "Date": "2025-05-29T00:00:00.000",
+                        "Time": "15:40",
+                        "AirportName": "Dubai International, AE",
+                        "Terminal": {
+                            "Name": "1"
+                        }
+                    },
+                    "MarketingCarrier": {
+                        "AirlineID": {
+                            "value": "WY"
+                        },
+                        "Name": "Oman Air",
+                        "FlightNumber": {
+                            "value": "609"
+                        }
+                    },
+                    "Equipment": {
+                        "Name": "Boeing 737-800 Passenger",
+                        "AircraftCode": {
+                            "value": "738"
+                        }
+                    },
+                    "FlightDetail": {
+                        "FlightDuration": {
+                            "Value": "PT1H10M"
+                        }
+                    }
+                },
+                {
+                    "SegmentKey": "Isgm7b00313340d47",
+                    "Departure": {
+                        "AirportCode": {
+                            "value": "DXB"
+                        },
+                        "Date": "2025-06-02T00:00:00.000",
+                        "Time": "11:05",
+                        "AirportName": "Dubai International, AE",
+                        "Terminal": {
+                            "Name": "1"
+                        }
+                    },
+                    "Arrival": {
+                        "AirportCode": {
+                            "value": "MCT"
+                        },
+                        "Date": "2025-06-02T00:00:00.000",
+                        "Time": "12:20",
+                        "AirportName": "Muscat, OM"
+                    },
+                    "MarketingCarrier": {
+                        "AirlineID": {
+                            "value": "WY"
+                        },
+                        "Name": "Oman Air",
+                        "FlightNumber": {
+                            "value": "604"
+                        }
+                    },
+                    "Equipment": {
+                        "Name": "Boeing 737-800 Passenger",
+                        "AircraftCode": {
+                            "value": "738"
+                        }
+                    },
+                    "FlightDetail": {
+                        "FlightDuration": {
+                            "Value": "PT1H15M"
+                        }
+                    }
+                },
+                {
+                    "SegmentKey": "Isgm7c00313340d47",
+                    "Departure": {
+                        "AirportCode": {
+                            "value": "MCT"
+                        },
+                        "Date": "2025-06-03T00:00:00.000",
+                        "Time": "09:20",
+                        "AirportName": "Muscat, OM"
+                    },
+                    "Arrival": {
+                        "AirportCode": {
+                            "value": "BOM"
+                        },
+                        "Date": "2025-06-03T00:00:00.000",
+                        "Time": "13:40",
+                        "AirportName": "Mumbai, IN",
+                        "Terminal": {
+                            "Name": "2"
+                        }
+                    },
+                    "MarketingCarrier": {
+                        "AirlineID": {
+                            "value": "WY"
+                        },
+                        "Name": "Oman Air",
+                        "FlightNumber": {
+                            "value": "203"
+                        }
+                    },
+                    "Equipment": {
+                        "Name": "Boeing 737-900 Passenger",
+                        "AircraftCode": {
+                            "value": "739"
+                        }
+                    },
+                    "FlightDetail": {
+                        "FlightDuration": {
+                            "Value": "PT2H50M"
+                        }
+                    }
+                }
+            ]
+        },
+        "FlightList": {
+            "Flight": [
+                {
+                    "FlightKey": "Pfltmzarjjg70zrli",
+                    "SegmentReferences": {
+                        "value": [
+                            "Isgm0200313340d47",
+                            "Isgm0300313340d47"
+                        ]
+                    }
+                },
+                {
+                    "FlightKey": "Pfltm83brsto8spso",
+                    "SegmentReferences": {
+                        "value": [
+                            "Isgm7b00313340d47",
+                            "Isgm7c00313340d47"
+                        ]
+                    }
+                }
+            ]
+        },
+        "OriginDestinationList": {
+            "OriginDestination": [
+                {
+                    "OriginDestinationKey": "OD1",
+                    "FlightReferences": {
+                        "value": [
+                            "Pfltmzarjjg70zrli"
+                        ]
+                    },
+                    "DepartureCode": {
+                        "value": "BOM"
+                    },
+                    "ArrivalCode": {
+                        "value": "DXB"
+                    }
+                },
+                {
+                    "OriginDestinationKey": "OD2",
+                    "FlightReferences": {
+                        "value": [
+                            "Pfltm83brsto8spso"
+                        ]
+                    },
+                    "DepartureCode": {
+                        "value": "DXB"
+                    },
+                    "ArrivalCode": {
+                        "value": "BOM"
+                    }
+                }
+            ]
+        },
+        "PenaltyList": {
+            "Penalty": [
+                {
+                    "ObjectKey": "Change-4-Non_Refundable",
+                    "Details": {
+                        "Detail": [
+                            {
+                                "Type": "Change-Noshow",
+                                "Application": {
+                                    "Code": "4"
+                                },
+                                "Amounts": {
+                                    "Amount": [
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 77971,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MIN",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Not Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 77971,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MAX",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Not Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "ChangeFeeInd": false,
+                    "ChangeAllowedInd": false
+                },
+                {
+                    "ObjectKey": "Change-2-4366-4366",
+                    "Details": {
+                        "Detail": [
+                            {
+                                "Type": "Change",
+                                "Application": {
+                                    "Code": "2"
+                                },
+                                "Amounts": {
+                                    "Amount": [
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 4366,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MIN",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 4366,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MAX",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "ChangeFeeInd": true,
+                    "ChangeAllowedInd": true
+                },
+                {
+                    "ObjectKey": "Cancel-4-Non_Refundable",
+                    "Details": {
+                        "Detail": [
+                            {
+                                "Type": "Cancel-Noshow",
+                                "Application": {
+                                    "Code": "4"
+                                },
+                                "Amounts": {
+                                    "Amount": [
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 77971,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MIN",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Not Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 77971,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MAX",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Not Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "CancelFeeInd": false,
+                    "RefundableInd": false
+                },
+                {
+                    "ObjectKey": "Cancel-2-15280-15280",
+                    "Details": {
+                        "Detail": [
+                            {
+                                "Type": "Cancel",
+                                "Application": {
+                                    "Code": "2"
+                                },
+                                "Amounts": {
+                                    "Amount": [
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 15280,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MIN",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 15280,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MAX",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "CancelFeeInd": true,
+                    "RefundableInd": true
+                }
+            ]
+        },
+        "PriceClassList": {
+            "PriceClass": [
+                {
+                    "ObjectKey": "Ppc1uioco2d1066e",
+                    "Name": "Economy Comfort",
+                    "Code": "EC",
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Cancellation: Fees Apply"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Change: Fees Apply"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "No-Show: Non-Refundable"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles earning: Allowed"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles Upgrade: Not Allowed"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Easy Pass*: Fees Apply"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Security Fast Track: Fees Apply"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Lounge: Fees Apply"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Cabin Bag: 1 x 7kg"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Checked Bag: 20KG"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Seat Selection: Fees Apply"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Icons"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Icons"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Icons"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "ServiceList": {
+            "Service": [
+                {
+                    "ObjectKey": "Psvcvgwe74jwpv5b4",
+                    "ServiceID": {
+                        "value": "Psvcvgwe74jwpv5b4",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "CABIN BAG - 1 x 7kg"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "CABIN BAG - 1 x 7kg"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcoys5hwjf6hbd2",
+                    "ServiceID": {
+                        "value": "Psvcoys5hwjf6hbd2",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Change - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Change - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc8g8be811ndl2s",
+                    "ServiceID": {
+                        "value": "Psvc8g8be811ndl2s",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Miles upgrade - Not Allowed"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles upgrade - Not Allowed"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcruk1wqo2hps9f",
+                    "ServiceID": {
+                        "value": "Psvcruk1wqo2hps9f",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Miles earning - Allowed"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles earning - Allowed"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcjvwkp7eky80e8",
+                    "ServiceID": {
+                        "value": "Psvcjvwkp7eky80e8",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Lounge - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Lounge - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcxq1vt6a1a2646",
+                    "ServiceID": {
+                        "value": "Psvcxq1vt6a1a2646",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Cancellation - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Cancellation - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc5n9wfbxt4phnk",
+                    "ServiceID": {
+                        "value": "Psvc5n9wfbxt4phnk",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Seat Selection -  Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Seat Selection -  Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcqzaa27h7ru1k8",
+                    "ServiceID": {
+                        "value": "Psvcqzaa27h7ru1k8",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Checked Bag- 20KG"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Checked Bag- 20KG"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvczoy945759g7rd",
+                    "ServiceID": {
+                        "value": "Psvczoy945759g7rd",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "No Show - Non Refundable"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "No Show - Non Refundable"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcqc407gnvxg242",
+                    "ServiceID": {
+                        "value": "Psvcqc407gnvxg242",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "CABIN BAG - 1 x 7kg"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "CABIN BAG - 1 x 7kg"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvczeyc3tc5prynn",
+                    "ServiceID": {
+                        "value": "Psvczeyc3tc5prynn",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Change - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Change - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvckusnhal65ewch",
+                    "ServiceID": {
+                        "value": "Psvckusnhal65ewch",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Miles upgrade - Not Allowed"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles upgrade - Not Allowed"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvctp2m0wa656506",
+                    "ServiceID": {
+                        "value": "Psvctp2m0wa656506",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Miles earning - Allowed"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles earning - Allowed"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcxx3k50u8g5vy5",
+                    "ServiceID": {
+                        "value": "Psvcxx3k50u8g5vy5",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Lounge - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Lounge - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc56ok4kq5emz1i",
+                    "ServiceID": {
+                        "value": "Psvc56ok4kq5emz1i",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Cancellation - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Cancellation - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcii0nbuehgh1z6",
+                    "ServiceID": {
+                        "value": "Psvcii0nbuehgh1z6",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Seat Selection -  Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Seat Selection -  Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcgsyg8nms7re8p",
+                    "ServiceID": {
+                        "value": "Psvcgsyg8nms7re8p",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Checked Bag- 20KG"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Checked Bag- 20KG"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcu57bjfcqqhjzo",
+                    "ServiceID": {
+                        "value": "Psvcu57bjfcqqhjzo",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "No Show - Non Refundable"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "No Show - Non Refundable"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvchkp8ud1uuu40w",
+                    "ServiceID": {
+                        "value": "Psvchkp8ud1uuu40w",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "CABIN BAG - 1 x 7kg"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "CABIN BAG - 1 x 7kg"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc8j381jufj56ag",
+                    "ServiceID": {
+                        "value": "Psvc8j381jufj56ag",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Change - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Change - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc9a8xwfbf0ar0b",
+                    "ServiceID": {
+                        "value": "Psvc9a8xwfbf0ar0b",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Miles upgrade - Not Allowed"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles upgrade - Not Allowed"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcf1sz1oc6jr2i9",
+                    "ServiceID": {
+                        "value": "Psvcf1sz1oc6jr2i9",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Miles earning - Allowed"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles earning - Allowed"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcvy40ob5p9j4w4",
+                    "ServiceID": {
+                        "value": "Psvcvy40ob5p9j4w4",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Lounge - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Lounge - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc8bjxcpljfqxhb",
+                    "ServiceID": {
+                        "value": "Psvc8bjxcpljfqxhb",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Cancellation - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Cancellation - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvct9aro213ah3zt",
+                    "ServiceID": {
+                        "value": "Psvct9aro213ah3zt",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Seat Selection -  Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Seat Selection -  Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc5tw7derin98db",
+                    "ServiceID": {
+                        "value": "Psvc5tw7derin98db",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Checked Bag- 20KG"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Checked Bag- 20KG"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvch2e7p6whgly77",
+                    "ServiceID": {
+                        "value": "Psvch2e7p6whgly77",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "No Show - Non Refundable"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "No Show - Non Refundable"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvconq8cbfmstlwu",
+                    "ServiceID": {
+                        "value": "Psvconq8cbfmstlwu",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "CABIN BAG - 1 x 7kg"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "CABIN BAG - 1 x 7kg"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcca0428wswlk34",
+                    "ServiceID": {
+                        "value": "Psvcca0428wswlk34",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Change - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Change - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcoyf0446cz5lqj",
+                    "ServiceID": {
+                        "value": "Psvcoyf0446cz5lqj",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Miles upgrade - Not Allowed"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles upgrade - Not Allowed"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvclgznu5p54qeul",
+                    "ServiceID": {
+                        "value": "Psvclgznu5p54qeul",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Miles earning - Allowed"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles earning - Allowed"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcr5go8j31tu2dv",
+                    "ServiceID": {
+                        "value": "Psvcr5go8j31tu2dv",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Lounge - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Lounge - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcle0vtstzs2683",
+                    "ServiceID": {
+                        "value": "Psvcle0vtstzs2683",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Cancellation - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Cancellation - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc62kyzhf67eope",
+                    "ServiceID": {
+                        "value": "Psvc62kyzhf67eope",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Seat Selection -  Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Seat Selection -  Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvctn28o8q1scurr",
+                    "ServiceID": {
+                        "value": "Psvctn28o8q1scurr",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Checked Bag- 20KG"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Checked Bag- 20KG"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvct35cuayyy8cw6",
+                    "ServiceID": {
+                        "value": "Psvct35cuayyy8cw6",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "No Show - Non Refundable"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "No Show - Non Refundable"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcu8yr0nb26okg9",
+                    "ServiceID": {
+                        "value": "Psvcu8yr0nb26okg9",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "CABIN BAG - 1 x 7kg"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "CABIN BAG - 1 x 7kg"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc8fcwtusli4cdo",
+                    "ServiceID": {
+                        "value": "Psvc8fcwtusli4cdo",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Change - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Change - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcu4adf6judijf3",
+                    "ServiceID": {
+                        "value": "Psvcu4adf6judijf3",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Miles upgrade - Not Allowed"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles upgrade - Not Allowed"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvco5sf9ky4v7t31",
+                    "ServiceID": {
+                        "value": "Psvco5sf9ky4v7t31",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Miles earning - Allowed"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles earning - Allowed"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc7vsn0t6qzite8",
+                    "ServiceID": {
+                        "value": "Psvc7vsn0t6qzite8",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Lounge - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Lounge - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcmxdyfywdujwll",
+                    "ServiceID": {
+                        "value": "Psvcmxdyfywdujwll",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Cancellation - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Cancellation - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcy8ty5lk9h2qln",
+                    "ServiceID": {
+                        "value": "Psvcy8ty5lk9h2qln",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Seat Selection -  Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Seat Selection -  Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvckai61rypbl13k",
+                    "ServiceID": {
+                        "value": "Psvckai61rypbl13k",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Checked Bag- 20KG"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Checked Bag- 20KG"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcltllt5o5gzkww",
+                    "ServiceID": {
+                        "value": "Psvcltllt5o5gzkww",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "No Show - Non Refundable"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "No Show - Non Refundable"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc5yqwdcd01g2cr",
+                    "ServiceID": {
+                        "value": "Psvc5yqwdcd01g2cr",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "CABIN BAG - 1 x 7kg"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "CABIN BAG - 1 x 7kg"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvckx3b7xemayi8u",
+                    "ServiceID": {
+                        "value": "Psvckx3b7xemayi8u",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Change - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Change - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvctsk8l39a2gex3",
+                    "ServiceID": {
+                        "value": "Psvctsk8l39a2gex3",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Miles upgrade - Not Allowed"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles upgrade - Not Allowed"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvckl23en41v84tr",
+                    "ServiceID": {
+                        "value": "Psvckl23en41v84tr",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Miles earning - Allowed"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles earning - Allowed"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcbdvbs2hr04ux7",
+                    "ServiceID": {
+                        "value": "Psvcbdvbs2hr04ux7",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Lounge - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Lounge - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc6kdq6b8p1fl58",
+                    "ServiceID": {
+                        "value": "Psvc6kdq6b8p1fl58",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Cancellation - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Cancellation - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvce91hxwupkyqp5",
+                    "ServiceID": {
+                        "value": "Psvce91hxwupkyqp5",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Seat Selection -  Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Seat Selection -  Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvca7bhskbuwlwze",
+                    "ServiceID": {
+                        "value": "Psvca7bhskbuwlwze",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Checked Bag- 20KG"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Checked Bag- 20KG"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc80f28hpk4xkds",
+                    "ServiceID": {
+                        "value": "Psvc80f28hpk4xkds",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "No Show - Non Refundable"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "No Show - Non Refundable"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcqw60mg6p7vcez",
+                    "ServiceID": {
+                        "value": "Psvcqw60mg6p7vcez",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "CABIN BAG - 1 x 7kg"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "CABIN BAG - 1 x 7kg"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcwgrwa91t5056s",
+                    "ServiceID": {
+                        "value": "Psvcwgrwa91t5056s",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Change - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Change - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcmq3ieh7x3x9z7",
+                    "ServiceID": {
+                        "value": "Psvcmq3ieh7x3x9z7",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Miles upgrade - Not Allowed"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles upgrade - Not Allowed"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc60kmkyki9bsqv",
+                    "ServiceID": {
+                        "value": "Psvc60kmkyki9bsqv",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Miles earning - Allowed"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles earning - Allowed"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc52ghf9cdg7ih1",
+                    "ServiceID": {
+                        "value": "Psvc52ghf9cdg7ih1",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Lounge - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Lounge - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvconh2pm6iiisoh",
+                    "ServiceID": {
+                        "value": "Psvconh2pm6iiisoh",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Cancellation - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Cancellation - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcug31hkiacde2u",
+                    "ServiceID": {
+                        "value": "Psvcug31hkiacde2u",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Seat Selection -  Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Seat Selection -  Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc6t5d0h8ebxnvv",
+                    "ServiceID": {
+                        "value": "Psvc6t5d0h8ebxnvv",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Checked Bag- 20KG"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Checked Bag- 20KG"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc0g2ipx18z0gah",
+                    "ServiceID": {
+                        "value": "Psvc0g2ipx18z0gah",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "No Show - Non Refundable"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "No Show - Non Refundable"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcso43meliivym4",
+                    "ServiceID": {
+                        "value": "Psvcso43meliivym4",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "CABIN BAG - 1 x 7kg"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "CABIN BAG - 1 x 7kg"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcim6x8ekjif665",
+                    "ServiceID": {
+                        "value": "Psvcim6x8ekjif665",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Change - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Change - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcgbabb3490204c",
+                    "ServiceID": {
+                        "value": "Psvcgbabb3490204c",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Miles upgrade - Not Allowed"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles upgrade - Not Allowed"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcm3iv1oygjyc5m",
+                    "ServiceID": {
+                        "value": "Psvcm3iv1oygjyc5m",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Miles earning - Allowed"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Miles earning - Allowed"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc68wx3pqj3iuk4",
+                    "ServiceID": {
+                        "value": "Psvc68wx3pqj3iuk4",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Lounge - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Lounge - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcaaphknffyem34",
+                    "ServiceID": {
+                        "value": "Psvcaaphknffyem34",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Cancellation - Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Cancellation - Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc8htchh53uhsye",
+                    "ServiceID": {
+                        "value": "Psvc8htchh53uhsye",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Seat Selection -  Fees Apply"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Seat Selection -  Fees Apply"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvcor95c3hfd7kpb",
+                    "ServiceID": {
+                        "value": "Psvcor95c3hfd7kpb",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "Checked Bag- 20KG"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "Checked Bag- 20KG"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "ObjectKey": "Psvc8uux9gfv4lqk0",
+                    "ServiceID": {
+                        "value": "Psvc8uux9gfv4lqk0",
+                        "Owner": "WY"
+                    },
+                    "Name": {
+                        "value": "No Show - Non Refundable"
+                    },
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "Included"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "No Show - Non Refundable"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    },
+    "Metadata": {
+        "Other": {
+            "OtherMetadata": [
+                {
+                    "CurrencyMetadatas": {
+                        "CurrencyMetadata": [
+                            {
+                                "MetadataKey": "INR",
+                                "Decimals": 0
+                            },
+                            {
+                                "MetadataKey": "NUC",
+                                "Decimals": 2
+                            }
+                        ]
+                    },
+                    "PriceMetadatas": {
+                        "PriceMetadata": [
+                            {
+                                "MetadataKey": "Pfrkpgmezjl9ih3oa",
+                                "AugmentationPoint": {
+                                    "AugPoint": [
+                                        {
+                                            "any": {
+                                                "VdcAugPoint": [
+                                                    {
+                                                        "Value": "NO80Q~MVB8OLO~MqA9UX~MqM9@NK~MpC8CVA~MEA9FBKQG@AG~MSN9NT@K~M@K9+0~MBS9GMP~MMS8H~MEP9.~MKF8A~`D*szhAsv9Z6Ag8*flxKey"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "MetadataKey": "Pfrkf4u1dbqldtsaj",
+                                "AugmentationPoint": {
+                                    "AugPoint": [
+                                        {
+                                            "any": {
+                                                "VdcAugPoint": [
+                                                    {
+                                                        "Value": "NO80Q~MVB8OLO~MqA9UX~MqM9@NK~MpC8CVA~MEA9TBK5G@GM~MSN9NT@K~M@K9+0~MBS9GMP~MMS8H~MEP9/~MKF8A~`D*szhAsv9Z6Ag8*flxKey"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "MetadataKey": "Pfrkg65qu1bng9ny6",
+                                "AugmentationPoint": {
+                                    "AugPoint": [
+                                        {
+                                            "any": {
+                                                "VdcAugPoint": [
+                                                    {
+                                                        "Value": "NO80Q~MVB8OLO~MqA9UX~MqM9@NK~MpC8CVA~MEA9TBK5G@~MSN9NT@K~M@K9+0~MBS9GMP~MMS8H~MEP9/~MKF8A~`D*szhAsv9Z6Ag8*flxKey"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "MetadataKey": "Pfrk3krn9ms2cniyh",
+                                "AugmentationPoint": {
+                                    "AugPoint": [
+                                        {
+                                            "any": {
+                                                "VdcAugPoint": [
+                                                    {
+                                                        "Value": "NO80Q~MVB8OLO~MqA9UX~MqM9@NK~MpC8CVA~MEA9TBK5G@AG~MSN9NT@K~M@K9+0~MBS9GMP~MMS8H~MEP9/~MKF8A~`D*szhAsv9Z6Ag8*flxKey"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "MetadataKey": "Pfrk6cbol25qvxzsq",
+                                "AugmentationPoint": {
+                                    "AugPoint": [
+                                        {
+                                            "any": {
+                                                "VdcAugPoint": [
+                                                    {
+                                                        "Value": "NO80Q~MVB8OLO~MqA9UX~MqM9@NK~MpC8CVA~MEA9FBKQG@~MSN9NT@K~M@K9+0~MBS9GMP~MMS8H~MEP9.~MKF8A~`D*szhAsv9Z6Ag8*flxKey"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "MetadataKey": "Pfrkenx787cuf65p5",
+                                "AugmentationPoint": {
+                                    "AugPoint": [
+                                        {
+                                            "any": {
+                                                "VdcAugPoint": [
+                                                    {
+                                                        "Value": "NO80Q~MVB8OLO~MqA9UX~MqM9@NK~MpC8CVA~MEA9FBKQG@GM~MSN9NT@K~M@K9+0~MBS9GMP~MMS8H~MEP9.~MKF8A~`D*szhAsv9Z6Ag8*flxKey"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}
