@@ -1,0 +1,95 @@
+{
+  "Preference": {
+    "FarePreferences": {
+      "Types": {
+        "Type": [
+          {
+            "Code": "PUBL"
+          }
+        ]
+      }
+    },
+    "PricingMethodPreference": {
+      "BestPricingOption": "Y"
+    },
+    "CabinPreferences": {
+      "CabinType": [
+        {
+          "Code": "Y",
+          "OriginDestinationReferences": [
+            "OD1",
+            "OD2"
+          ]
+        }
+      ]
+    }
+  },
+  "ResponseParameters": {
+    "SortOrder": [
+      {
+        "Order": "ASCENDING",
+        "Parameter": "PRICE"
+      },
+      {
+        "Order": "ASCENDING",
+        "Parameter": "STOP"
+      },
+      {
+        "Order": "ASCENDING",
+        "Parameter": "DEPARTURE_TIME"
+      }
+    ],
+    "ShopResultPreference": "FULL"
+  },
+  "Travelers": {
+    "Traveler": [
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": "ADT"
+          }
+        ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": "ADT"
+          }
+        ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": "CHD"
+          }
+        ]
+      }
+    ]
+  },
+  "CoreQuery": {
+    "OriginDestinations": {
+      "OriginDestination": [
+        {
+          "Departure": {
+            "AirportCode": "BOM",
+            "Date": "2025-06-03"
+          },
+          "Arrival": {
+            "AirportCode": "DEL"
+          },
+          "OriginDestinationKey": "OD1"
+        },
+        {
+          "Departure": {
+            "AirportCode": "DEL",
+            "Date": "2025-06-10"
+          },
+          "Arrival": {
+            "AirportCode": "BOM"
+          },
+          "OriginDestinationKey": "OD2"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,758 @@
+{
+  "DataLists": {
+    "FareGroup": [
+      {
+        "ListKey": "WY-Xfbc07005f0356ed5",
+        "FareBasisCode": {
+          "Code": "OICM3IA"
+        },
+        "refs": [
+          "WY-Xfrk06005f0356ed5"
+        ]
+      },
+      {
+        "ListKey": "WY-Xfbc47005f0356ed5",
+        "FareBasisCode": {
+          "Code": "RCM3IACH"
+        },
+        "refs": [
+          "WY-Xfrk46005f0356ed5"
+        ]
+      },
+      {
+        "ListKey": "WY-Xfbc4a005f0356ed5",
+        "FareBasisCode": {
+          "Code": "RCM3IAIN"
+        },
+        "refs": [
+          "WY-Xfrk49005f0356ed5"
+        ]
+      },
+      {
+        "ListKey": "WY-Xfbc16005f0356ed5",
+        "FareBasisCode": {
+          "Code": "OICM3IACH"
+        },
+        "refs": [
+          "WY-Xfrk15005f0356ed5"
+        ]
+      },
+      {
+        "ListKey": "WY-Xfbc19005f0356ed5",
+        "FareBasisCode": {
+          "Code": "OICM3IAIN"
+        },
+        "refs": [
+          "WY-Xfrk18005f0356ed5"
+        ]
+      },
+      {
+        "ListKey": "WY-Xfbc44005f0356ed5",
+        "FareBasisCode": {
+          "Code": "RCM3IA"
+        },
+        "refs": [
+          "WY-Xfrk43005f0356ed5"
+        ]
+      }
+    ],
+    "AnonymousTravelerList": {
+      "AnonymousTraveler": [
+        {
+          "ObjectKey": "WY-T1",
+          "PTC": {
+            "value": "ADT"
+          }
+        },
+        {
+          "ObjectKey": "WY-T2",
+          "PTC": {
+            "value": "ADT"
+          }
+        },
+        {
+          "ObjectKey": "WY-T3",
+          "PTC": {
+            "value": "CHD"
+          }
+        },
+        {
+          "ObjectKey": "WY-T1.1",
+          "PTC": {
+            "value": "INF"
+          }
+        }
+      ]
+    }
+  },
+  "Query": {
+    "OriginDestination": [
+      {
+        "Flight": [
+          {
+            "SegmentKey": "WY-Isgm02005f0356ed5",
+            "Departure": {
+              "AirportCode": {
+                "value": "BOM"
+              },
+              "Date": "2025-05-29T00:00:00.000",
+              "Time": "10:05",
+              "AirportName": "Mumbai, IN",
+              "Terminal": {
+                "Name": "2"
+              }
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "MCT"
+              },
+              "Date": "2025-05-29T00:00:00.000",
+              "Time": "11:20",
+              "ChangeOfDay": 0,
+              "AirportName": "Muscat, OM"
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "WY"
+              },
+              "Name": "Oman Air",
+              "FlightNumber": {
+                "value": "202"
+              }
+            },
+            "Equipment": {
+              "Name": "Boeing 737-900 Passenger",
+              "AircraftCode": {
+                "value": "739"
+              }
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT2H45M"
+              }
+            }
+          },
+          {
+            "SegmentKey": "WY-Isgm03005f0356ed5",
+            "Departure": {
+              "AirportCode": {
+                "value": "MCT"
+              },
+              "Date": "2025-05-29T00:00:00.000",
+              "Time": "14:15",
+              "AirportName": "Muscat, OM"
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "LHR"
+              },
+              "Date": "2025-05-29T00:00:00.000",
+              "Time": "19:10",
+              "ChangeOfDay": 0,
+              "AirportName": "London Heathrow Apt, GB",
+              "Terminal": {
+                "Name": "4"
+              }
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "WY"
+              },
+              "Name": "Oman Air",
+              "FlightNumber": {
+                "value": "101"
+              }
+            },
+            "Equipment": {
+              "Name": "Boeing 787-9",
+              "AircraftCode": {
+                "value": "789"
+              }
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT7H55M"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "Flight": [
+          {
+            "SegmentKey": "WY-Isgm3f005f0356ed5",
+            "Departure": {
+              "AirportCode": {
+                "value": "LHR"
+              },
+              "Date": "2025-06-02T00:00:00.000",
+              "Time": "20:50",
+              "AirportName": "London Heathrow Apt, GB",
+              "Terminal": {
+                "Name": "4"
+              }
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "MCT"
+              },
+              "Date": "2025-06-03T00:00:00.000",
+              "Time": "07:00",
+              "ChangeOfDay": 0,
+              "AirportName": "Muscat, OM"
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "WY"
+              },
+              "Name": "Oman Air",
+              "FlightNumber": {
+                "value": "102"
+              }
+            },
+            "Equipment": {
+              "Name": "Boeing 787-9",
+              "AircraftCode": {
+                "value": "789"
+              }
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT7H10M"
+              }
+            }
+          },
+          {
+            "SegmentKey": "WY-Isgm40005f0356ed5",
+            "Departure": {
+              "AirportCode": {
+                "value": "MCT"
+              },
+              "Date": "2025-06-03T00:00:00.000",
+              "Time": "09:20",
+              "AirportName": "Muscat, OM"
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "BOM"
+              },
+              "Date": "2025-06-03T00:00:00.000",
+              "Time": "13:40",
+              "ChangeOfDay": 0,
+              "AirportName": "Mumbai, IN",
+              "Terminal": {
+                "Name": "2"
+              }
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "WY"
+              },
+              "Name": "Oman Air",
+              "FlightNumber": {
+                "value": "203"
+              }
+            },
+            "Equipment": {
+              "Name": "Boeing 737-900 Passenger",
+              "AircraftCode": {
+                "value": "739"
+              }
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT2H50M"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "Offers": {
+      "Offer": [
+        {
+          "OfferID": {
+            "value": "XCFD6C0B8-C7C2-4688-932C-1:XCFD6C0B8-C7C2-4688-932C-5",
+            "Owner": "WY",
+            "Channel": "NDC"
+          },
+          "OfferItemIDs": {
+            "OfferItemID": [
+              {
+                "value": "XCFD6C0B8-C7C2-4688-932C-1-1:XCFD6C0B8-C7C2-4688-932C-5-1",
+                "refs": [
+                  "WY-T1",
+                  "WY-T2"
+                ]
+              },
+              {
+                "value": "XCFD6C0B8-C7C2-4688-932C-1-10:XCFD6C0B8-C7C2-4688-932C-5-10",
+                "refs": [
+                  "WY-T3"
+                ]
+              },
+              {
+                "value": "XCFD6C0B8-C7C2-4688-932C-1-19:XCFD6C0B8-C7C2-4688-932C-5-19",
+                "refs": [
+                  "WY-T1.1"
+                ]
+              }
+            ]
+          },
+          "refs": [
+            {
+              "Ref": "VDC-FR-Cancel-4-Non_Refundable"
+            },
+            {
+              "Ref": "VDC-FBC-MCT-LHR-Xfbc07005f0356ed5"
+            },
+            {
+              "Ref": "VDC-FBC-BOM-MCT-Xfbc07005f0356ed5"
+            },
+            {
+              "Ref": "VDC-FBC-BOM-MCT-Xfbc19005f0356ed5"
+            },
+            {
+              "Ref": "VDC-PC-79Xlayf8z0aoD1QmgEig"
+            },
+            {
+              "Ref": "VDC-FBC-MCT-BOM-Xfbc44005f0356ed5"
+            },
+            {
+              "Ref": "VDC-FBC-MCT-BOM-Xfbc47005f0356ed5"
+            },
+            {
+              "Ref": "VDC-FBC-LHR-MCT-Xfbc47005f0356ed5"
+            },
+            {
+              "Ref": "VDC-FR-Change-4-Non_Refundable"
+            },
+            {
+              "Ref": "VDC-FBC-MCT-LHR-Xfbc19005f0356ed5"
+            },
+            {
+              "Ref": "VDC-FR-Change-2-4366-4366"
+            },
+            {
+              "Ref": "VDC-FR-Cancel-2-15280-15280"
+            },
+            {
+              "Ref": "VDC-FBC-BOM-MCT-Xfbc16005f0356ed5"
+            },
+            {
+              "Ref": "VDC-FBC-MCT-BOM-Xfbc4a005f0356ed5"
+            },
+            {
+              "Ref": "VDC-FBC-MCT-LHR-Xfbc16005f0356ed5"
+            },
+            {
+              "Ref": "VDC-FBC-LHR-MCT-Xfbc4a005f0356ed5"
+            },
+            {
+              "Ref": "VDC-PC-Yz7oScxhH8QkP0lNCm2e"
+            },
+            {
+              "Ref": "VDC-FBC-LHR-MCT-Xfbc44005f0356ed5"
+            },
+            {
+              "Ref": "VDC-AIRLINE-SRID"
+            },
+            {
+              "Ref": "VDC-PR-dWJ4KE59Qu4ToDcWeDpw"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "ShoppingResponseID": {
+    "Owner": "WY",
+    "ResponseID": {
+      "value": "taQo9oYO7-ykkiKhw6HinRGV9wSCzh04ATt7bXek-vo-WY"
+    }
+  },
+  "Travelers": {
+    "Traveler": [
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "CHD"
+            }
+          }
+        ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "INF"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "Metadata": {
+    "Other": {
+      "OtherMetadata": [
+        {
+          "PriceMetadatas": {
+            "PriceMetadata": [
+              {
+                "MetadataKey": "VDC-FR-Change-4-Non_Refundable",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "com.verteil.thirdparties.common.helper.staticdata.farerules.augmentation.dto.FareRuleAugPoint",
+                        "value": "eyJhc3NvY2lhdGVkUHRjU2VnbWVudEFuZEZhcmVCYXNpc0NvZGVJbmZvTGlzdCI6WyJBRFR8Qk9NfDIwMjUtMDUtMjl8MTQ6NTB8TUNUfDIwNCIsIkNIRHxNQ1R8MjAyNS0wNi0wM3wwOToyMHxCT018MjAzIiwiQ0hEfE1DVHwyMDI1LTA1LTMwfDE0OjE1fExIUnwxMDEiLCJBRFR8TUNUfDIwMjUtMDYtMDN8MDk6MjB8Qk9NfDIwMyIsIkNIRHxMSFJ8MjAyNS0wNi0wMnwyMDo1MHxNQ1R8MTAyIiwiQ0hEfE1DVHwyMDI1LTA2LTA0fDAyOjIwfEJPTXwyMDEiLCJDSER8TUNUfDIwMjUtMDUtMjl8MTQ6MTV8TEhSfDEwMSIsIkFEVHxNQ1R8MjAyNS0wNS0yOXwxNDoxNXxMSFJ8MTAxIiwiSU5GfEJPTXwyMDI1LTA1LTI5fDE0OjUwfE1DVHwyMDQiLCJDSER8Qk9NfDIwMjUtMDUtMjl8MTA6MDV8TUNUfDIwMiIsIkFEVHxNQ1R8MjAyNS0wNi0wNHwwMjoyMHxCT018MjAxIiwiSU5GfE1DVHwyMDI1LTA1LTI5fDE0OjE1fExIUnwxMDEiLCJJTkZ8TEhSfDIwMjUtMDYtMDJ8MjA6NTB8TUNUfDEwMiIsIkFEVHxCT018MjAyNS0wNS0yOXwxMDowNXxNQ1R8MjAyIiwiSU5GfE1DVHwyMDI1LTA1LTMwfDE0OjE1fExIUnwxMDEiLCJJTkZ8TUNUfDIwMjUtMDYtMDR8MDI6MjB8Qk9NfDIwMSIsIkFEVHxMSFJ8MjAyNS0wNi0wMnwyMDo1MHxNQ1R8MTAyIiwiQ0hEfEJPTXwyMDI1LTA1LTI5fDE0OjUwfE1DVHwyMDQiLCJBRFR8TUNUfDIwMjUtMDUtMzB8MTQ6MTV8TEhSfDEwMSIsIklORnxCT018MjAyNS0wNS0yOXwxMDowNXxNQ1R8MjAyIiwiSU5GfE1DVHwyMDI1LTA2LTAzfDA5OjIwfEJPTXwyMDMiXSwicGVuYWx0eURldGFpbHMiOnsiT2JqZWN0S2V5IjoiQ2hhbmdlLTQtTm9uX1JlZnVuZGFibGUiLCJEZXRhaWxzIjp7IkRldGFpbCI6W3siVHlwZSI6IkNoYW5nZS1Ob3Nob3ciLCJBcHBsaWNhdGlvbiI6eyJDb2RlIjoiNCJ9LCJBbW91bnRzIjp7IkFtb3VudCI6W3siQ3VycmVuY3lBbW91bnRWYWx1ZSI6eyJ2YWx1ZSI6MTA0MDg5LCJDb2RlIjoiSU5SIn0sIkFtb3VudEFwcGxpY2F0aW9uIjoiTUlOIiwiQXBwbGljYWJsZUZlZVJlbWFya3MiOnsiUmVtYXJrIjpbeyJ2YWx1ZSI6Ik5vdCBBbGxvd2VkIn1dfX0seyJDdXJyZW5jeUFtb3VudFZhbHVlIjp7InZhbHVlIjoxMDQwODksIkNvZGUiOiJJTlIifSwiQW1vdW50QXBwbGljYXRpb24iOiJNQVgiLCJBcHBsaWNhYmxlRmVlUmVtYXJrcyI6eyJSZW1hcmsiOlt7InZhbHVlIjoiTm90IEFsbG93ZWQifV19fV19fV19LCJDaGFuZ2VGZWVJbmQiOmZhbHNlLCJDaGFuZ2VBbGxvd2VkSW5kIjpmYWxzZX19"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-FR-Change-2-4366-4366",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "com.verteil.thirdparties.common.helper.staticdata.farerules.augmentation.dto.FareRuleAugPoint",
+                        "value": "eyJhc3NvY2lhdGVkUHRjU2VnbWVudEFuZEZhcmVCYXNpc0NvZGVJbmZvTGlzdCI6WyJBRFR8Qk9NfDIwMjUtMDUtMjl8MTQ6NTB8TUNUfDIwNCIsIkNIRHxNQ1R8MjAyNS0wNi0wM3wwOToyMHxCT018MjAzIiwiQ0hEfE1DVHwyMDI1LTA1LTMwfDE0OjE1fExIUnwxMDEiLCJBRFR8TUNUfDIwMjUtMDYtMDN8MDk6MjB8Qk9NfDIwMyIsIkNIRHxMSFJ8MjAyNS0wNi0wMnwyMDo1MHxNQ1R8MTAyIiwiQ0hEfE1DVHwyMDI1LTA2LTA0fDAyOjIwfEJPTXwyMDEiLCJDSER8TUNUfDIwMjUtMDUtMjl8MTQ6MTV8TEhSfDEwMSIsIkFEVHxNQ1R8MjAyNS0wNS0yOXwxNDoxNXxMSFJ8MTAxIiwiSU5GfEJPTXwyMDI1LTA1LTI5fDE0OjUwfE1DVHwyMDQiLCJDSER8Qk9NfDIwMjUtMDUtMjl8MTA6MDV8TUNUfDIwMiIsIkFEVHxNQ1R8MjAyNS0wNi0wNHwwMjoyMHxCT018MjAxIiwiSU5GfE1DVHwyMDI1LTA1LTI5fDE0OjE1fExIUnwxMDEiLCJJTkZ8TEhSfDIwMjUtMDYtMDJ8MjA6NTB8TUNUfDEwMiIsIkFEVHxCT018MjAyNS0wNS0yOXwxMDowNXxNQ1R8MjAyIiwiSU5GfE1DVHwyMDI1LTA1LTMwfDE0OjE1fExIUnwxMDEiLCJJTkZ8TUNUfDIwMjUtMDYtMDR8MDI6MjB8Qk9NfDIwMSIsIkFEVHxMSFJ8MjAyNS0wNi0wMnwyMDo1MHxNQ1R8MTAyIiwiQ0hEfEJPTXwyMDI1LTA1LTI5fDE0OjUwfE1DVHwyMDQiLCJBRFR8TUNUfDIwMjUtMDUtMzB8MTQ6MTV8TEhSfDEwMSIsIklORnxCT018MjAyNS0wNS0yOXwxMDowNXxNQ1R8MjAyIiwiSU5GfE1DVHwyMDI1LTA2LTAzfDA5OjIwfEJPTXwyMDMiXSwicGVuYWx0eURldGFpbHMiOnsiT2JqZWN0S2V5IjoiQ2hhbmdlLTItNDM2Ni00MzY2IiwiRGV0YWlscyI6eyJEZXRhaWwiOlt7IlR5cGUiOiJDaGFuZ2UiLCJBcHBsaWNhdGlvbiI6eyJDb2RlIjoiMiJ9LCJBbW91bnRzIjp7IkFtb3VudCI6W3siQ3VycmVuY3lBbW91bnRWYWx1ZSI6eyJ2YWx1ZSI6NDM2NiwiQ29kZSI6IklOUiJ9LCJBbW91bnRBcHBsaWNhdGlvbiI6Ik1JTiIsIkFwcGxpY2FibGVGZWVSZW1hcmtzIjp7IlJlbWFyayI6W3sidmFsdWUiOiJBbGxvd2VkIn1dfX0seyJDdXJyZW5jeUFtb3VudFZhbHVlIjp7InZhbHVlIjo0MzY2LCJDb2RlIjoiSU5SIn0sIkFtb3VudEFwcGxpY2F0aW9uIjoiTUFYIiwiQXBwbGljYWJsZUZlZVJlbWFya3MiOnsiUmVtYXJrIjpbeyJ2YWx1ZSI6IkFsbG93ZWQifV19fV19fV19LCJDaGFuZ2VGZWVJbmQiOnRydWUsIkNoYW5nZUFsbG93ZWRJbmQiOnRydWV9fQ=="
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-FR-Cancel-4-Non_Refundable",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "com.verteil.thirdparties.common.helper.staticdata.farerules.augmentation.dto.FareRuleAugPoint",
+                        "value": "eyJhc3NvY2lhdGVkUHRjU2VnbWVudEFuZEZhcmVCYXNpc0NvZGVJbmZvTGlzdCI6WyJBRFR8Qk9NfDIwMjUtMDUtMjl8MTQ6NTB8TUNUfDIwNCIsIkNIRHxNQ1R8MjAyNS0wNi0wM3wwOToyMHxCT018MjAzIiwiQ0hEfE1DVHwyMDI1LTA1LTMwfDE0OjE1fExIUnwxMDEiLCJBRFR8TUNUfDIwMjUtMDYtMDN8MDk6MjB8Qk9NfDIwMyIsIkNIRHxMSFJ8MjAyNS0wNi0wMnwyMDo1MHxNQ1R8MTAyIiwiQ0hEfE1DVHwyMDI1LTA2LTA0fDAyOjIwfEJPTXwyMDEiLCJDSER8TUNUfDIwMjUtMDUtMjl8MTQ6MTV8TEhSfDEwMSIsIkFEVHxNQ1R8MjAyNS0wNS0yOXwxNDoxNXxMSFJ8MTAxIiwiSU5GfEJPTXwyMDI1LTA1LTI5fDE0OjUwfE1DVHwyMDQiLCJDSER8Qk9NfDIwMjUtMDUtMjl8MTA6MDV8TUNUfDIwMiIsIkFEVHxNQ1R8MjAyNS0wNi0wNHwwMjoyMHxCT018MjAxIiwiSU5GfE1DVHwyMDI1LTA1LTI5fDE0OjE1fExIUnwxMDEiLCJJTkZ8TEhSfDIwMjUtMDYtMDJ8MjA6NTB8TUNUfDEwMiIsIkFEVHxCT018MjAyNS0wNS0yOXwxMDowNXxNQ1R8MjAyIiwiSU5GfE1DVHwyMDI1LTA1LTMwfDE0OjE1fExIUnwxMDEiLCJJTkZ8TUNUfDIwMjUtMDYtMDR8MDI6MjB8Qk9NfDIwMSIsIkFEVHxMSFJ8MjAyNS0wNi0wMnwyMDo1MHxNQ1R8MTAyIiwiQ0hEfEJPTXwyMDI1LTA1LTI5fDE0OjUwfE1DVHwyMDQiLCJBRFR8TUNUfDIwMjUtMDUtMzB8MTQ6MTV8TEhSfDEwMSIsIklORnxCT018MjAyNS0wNS0yOXwxMDowNXxNQ1R8MjAyIiwiSU5GfE1DVHwyMDI1LTA2LTAzfDA5OjIwfEJPTXwyMDMiXSwicGVuYWx0eURldGFpbHMiOnsiT2JqZWN0S2V5IjoiQ2FuY2VsLTQtTm9uX1JlZnVuZGFibGUiLCJEZXRhaWxzIjp7IkRldGFpbCI6W3siVHlwZSI6IkNhbmNlbC1Ob3Nob3ciLCJBcHBsaWNhdGlvbiI6eyJDb2RlIjoiNCJ9LCJBbW91bnRzIjp7IkFtb3VudCI6W3siQ3VycmVuY3lBbW91bnRWYWx1ZSI6eyJ2YWx1ZSI6MTA0MDg5LCJDb2RlIjoiSU5SIn0sIkFtb3VudEFwcGxpY2F0aW9uIjoiTUlOIiwiQXBwbGljYWJsZUZlZVJlbWFya3MiOnsiUmVtYXJrIjpbeyJ2YWx1ZSI6Ik5vdCBBbGxvd2VkIn1dfX0seyJDdXJyZW5jeUFtb3VudFZhbHVlIjp7InZhbHVlIjoxMDQwODksIkNvZGUiOiJJTlIifSwiQW1vdW50QXBwbGljYXRpb24iOiJNQVgiLCJBcHBsaWNhYmxlRmVlUmVtYXJrcyI6eyJSZW1hcmsiOlt7InZhbHVlIjoiTm90IEFsbG93ZWQifV19fV19fV19LCJDYW5jZWxGZWVJbmQiOmZhbHNlLCJSZWZ1bmRhYmxlSW5kIjpmYWxzZX19"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-FR-Cancel-2-15280-15280",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "com.verteil.thirdparties.common.helper.staticdata.farerules.augmentation.dto.FareRuleAugPoint",
+                        "value": "eyJhc3NvY2lhdGVkUHRjU2VnbWVudEFuZEZhcmVCYXNpc0NvZGVJbmZvTGlzdCI6WyJBRFR8Qk9NfDIwMjUtMDUtMjl8MTQ6NTB8TUNUfDIwNCIsIkNIRHxNQ1R8MjAyNS0wNi0wM3wwOToyMHxCT018MjAzIiwiQ0hEfE1DVHwyMDI1LTA1LTMwfDE0OjE1fExIUnwxMDEiLCJBRFR8TUNUfDIwMjUtMDYtMDN8MDk6MjB8Qk9NfDIwMyIsIkNIRHxMSFJ8MjAyNS0wNi0wMnwyMDo1MHxNQ1R8MTAyIiwiQ0hEfE1DVHwyMDI1LTA2LTA0fDAyOjIwfEJPTXwyMDEiLCJDSER8TUNUfDIwMjUtMDUtMjl8MTQ6MTV8TEhSfDEwMSIsIkFEVHxNQ1R8MjAyNS0wNS0yOXwxNDoxNXxMSFJ8MTAxIiwiSU5GfEJPTXwyMDI1LTA1LTI5fDE0OjUwfE1DVHwyMDQiLCJDSER8Qk9NfDIwMjUtMDUtMjl8MTA6MDV8TUNUfDIwMiIsIkFEVHxNQ1R8MjAyNS0wNi0wNHwwMjoyMHxCT018MjAxIiwiSU5GfE1DVHwyMDI1LTA1LTI5fDE0OjE1fExIUnwxMDEiLCJJTkZ8TEhSfDIwMjUtMDYtMDJ8MjA6NTB8TUNUfDEwMiIsIkFEVHxCT018MjAyNS0wNS0yOXwxMDowNXxNQ1R8MjAyIiwiSU5GfE1DVHwyMDI1LTA1LTMwfDE0OjE1fExIUnwxMDEiLCJJTkZ8TUNUfDIwMjUtMDYtMDR8MDI6MjB8Qk9NfDIwMSIsIkFEVHxMSFJ8MjAyNS0wNi0wMnwyMDo1MHxNQ1R8MTAyIiwiQ0hEfEJPTXwyMDI1LTA1LTI5fDE0OjUwfE1DVHwyMDQiLCJBRFR8TUNUfDIwMjUtMDUtMzB8MTQ6MTV8TEhSfDEwMSIsIklORnxCT018MjAyNS0wNS0yOXwxMDowNXxNQ1R8MjAyIiwiSU5GfE1DVHwyMDI1LTA2LTAzfDA5OjIwfEJPTXwyMDMiXSwicGVuYWx0eURldGFpbHMiOnsiT2JqZWN0S2V5IjoiQ2FuY2VsLTItMTUyODAtMTUyODAiLCJEZXRhaWxzIjp7IkRldGFpbCI6W3siVHlwZSI6IkNhbmNlbCIsIkFwcGxpY2F0aW9uIjp7IkNvZGUiOiIyIn0sIkFtb3VudHMiOnsiQW1vdW50IjpbeyJDdXJyZW5jeUFtb3VudFZhbHVlIjp7InZhbHVlIjoxNTI4MCwiQ29kZSI6IklOUiJ9LCJBbW91bnRBcHBsaWNhdGlvbiI6Ik1JTiIsIkFwcGxpY2FibGVGZWVSZW1hcmtzIjp7IlJlbWFyayI6W3sidmFsdWUiOiJBbGxvd2VkIn1dfX0seyJDdXJyZW5jeUFtb3VudFZhbHVlIjp7InZhbHVlIjoxNTI4MCwiQ29kZSI6IklOUiJ9LCJBbW91bnRBcHBsaWNhdGlvbiI6Ik1BWCIsIkFwcGxpY2FibGVGZWVSZW1hcmtzIjp7IlJlbWFyayI6W3sidmFsdWUiOiJBbGxvd2VkIn1dfX1dfX1dfSwiQ2FuY2VsRmVlSW5kIjp0cnVlLCJSZWZ1bmRhYmxlSW5kIjp0cnVlfX0="
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-FBC-MCT-BOM-Xfbc44005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "java.util.HashMap",
+                        "value": "eyJNQ1QtQk9NLUFEVCI6IlJDTTNJQSJ9"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-FBC-MCT-LHR-Xfbc19005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "java.util.HashMap",
+                        "value": "eyJNQ1QtTEhSLUlORiI6Ik9JQ00zSUFJTiJ9"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-FBC-BOM-MCT-Xfbc07005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "java.util.HashMap",
+                        "value": "eyJCT00tTUNULUFEVCI6Ik9JQ00zSUEifQ=="
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-FBC-MCT-LHR-Xfbc16005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "java.util.HashMap",
+                        "value": "eyJNQ1QtTEhSLUNIRCI6Ik9JQ00zSUFDSCJ9"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-FBC-LHR-MCT-Xfbc4a005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "java.util.HashMap",
+                        "value": "eyJMSFItTUNULUlORiI6IlJDTTNJQUlOIn0="
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-FBC-MCT-BOM-Xfbc47005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "java.util.HashMap",
+                        "value": "eyJNQ1QtQk9NLUNIRCI6IlJDTTNJQUNIIn0="
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-FBC-MCT-BOM-Xfbc4a005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "java.util.HashMap",
+                        "value": "eyJNQ1QtQk9NLUlORiI6IlJDTTNJQUlOIn0="
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-FBC-MCT-LHR-Xfbc07005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "java.util.HashMap",
+                        "value": "eyJNQ1QtTEhSLUFEVCI6Ik9JQ00zSUEifQ=="
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-FBC-BOM-MCT-Xfbc19005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "java.util.HashMap",
+                        "value": "eyJCT00tTUNULUlORiI6Ik9JQ00zSUFJTiJ9"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-FBC-LHR-MCT-Xfbc44005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "java.util.HashMap",
+                        "value": "eyJMSFItTUNULUFEVCI6IlJDTTNJQSJ9"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-FBC-BOM-MCT-Xfbc16005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "java.util.HashMap",
+                        "value": "eyJCT00tTUNULUNIRCI6Ik9JQ00zSUFDSCJ9"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-FBC-LHR-MCT-Xfbc47005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "java.util.HashMap",
+                        "value": "eyJMSFItTUNULUNIRCI6IlJDTTNJQUNIIn0="
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "WY-Xfrk06005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "value": "NO8RUR~MWA9VMM~MpB8VW~MpN8AML~MqB9JGP~MDB8NGBK2G@~MSN9NT@K~MNP9.~MNW8@BS~M@K9717/~MBS9GMP~MKF8A~`D~MEP9.~MMS8A~MAB9W*s1UhTveeZHpm*flxKey"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "WY-Xfrk15005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "value": "NO8RUR~MWA9VMM~MpB8VW~MpN8AML~MqB9JGP~MDB8NGBK2G@AG~MSN9NT@K~MNP9.~MNW8BLM~M@K94844~MBS9GMP~MKF8A~`D~MEP9.~MMS8A~MAB9W*s1UhTveeZHpm*flxKey"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "WY-Xfrk18005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "value": "NO8RUR~MWA9VMM~MpB8VW~MpN8AML~MqB9JGP~MDB8NGBK2G@GM~MSN9NT@K~MNP9.~MNW8HLE~M@K9/74/~MBS9GMP~MKF8A~`D~MEP9.~MMS8A~MAB9W*s1UhTveeZHpm*flxKey"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "WY-Xfrk43005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "value": "NO8RUR~MWA9VMM~MpB8VW~MpN8AML~MqB9JGP~MDB8QAL1H?~MRO8OSAJ~MMQ8/~MOV9?CR~M?L88773~MAT8HLQ~MLE9@~`C~MDQ8/~MNR9@~M@C8X*s1UhTveeZHpm*flxKey"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "WY-Xfrk46005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "value": "NO8RUR~MWA9VMM~MpB8VW~MpN8AML~MqB9JGP~MDB8QAL1H?BF~MRO8OSAJ~MMQ8/~MOV9AML~M?L86283~MAT8HLQ~MLE9@~`C~MDQ8/~MNR9@~M@C8X*s1UhTveeZHpm*flxKey"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "WY-Xfrk49005f0356ed5",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "value": "NO8RUR~MWA9VMM~MpB8VW~MpN8AML~MqB9JGP~MDB8QAL1H?HL~MRO8OSAJ~MMQ8/~MOV9GMD~M?L80783~MAT8HLQ~MLE9@~`C~MDQ8/~MNR9@~M@C8X*s1UhTveeZHpm*flxKey"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-PC-Yz7oScxhH8QkP0lNCm2e",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "java.util.HashMap",
+                        "value": "{\"LHR-BOM\":\"Economy Comfort\"}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-PC-79Xlayf8z0aoD1QmgEig",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "java.util.HashMap",
+                        "value": "{\"BOM-LHR\":\"Economy Comfort\"}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-AIRLINE-SRID",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "type": "java.util.HashMap",
+                        "value": "eyJXWSI6IlhDRkQ2QzBCOC1DN0MyLTQ2ODgtOTMyQyJ9"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-PR-dWJ4KE59Qu4ToDcWeDpw",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
+                        "value": "mcxuonwetsG/dr2S/Z7uAvKNzHh4a+4UFYf9jnCohDTyCC4ZCe+JM5tJvJA0BlwnkIkAg7o8k+NB16X/O6Biqt73D93dZTtsoaHwE2fW5LdYCij3ea7Q4z/NN2naohOxXqwP071pJwHG9k2+t0NXrIcnRwmUMRf+dh6JftsnGRwHbqKxaWGaFlWGUjBx8ZN4FAbqehFyuYnoWsbc1qpOjO/0yPqKKIFdt6cMCjCVZHwWzBftq8qMnoOvRPq6Jm6xeryrNLfNRWXBlxtZqSLzjsDFELxqKPecxJjGIE3qyGfPp99PtUroQ+WeNkEGhpNts6Oamx9Lkm4qW2LrfZ+IIrj2fP48t6A0dIWcRbytYqLEI6mVhbjR4x7vIVpzpRb8zUE+Wm6UYzSRHh/jR0sZo5n/UuF+MCpcLvrJQWXO4WiOLGeRrccPGFsENXIRbKDpvmnssebIzfOzycHK8zsnnSnhdX2p63U/lgTOYIDFz/hg6ej+L9ROUa3bbJFKLYkIo2ntsO/q+V3EgxZvpXzsZ5SrX4iziQ683wp2tDlzP48PQw5VRbVwSvf9ho63Oy0a0TtIl7sqFTVVsBUJvS8C9GMnfUNg1hsMCIu7TyPAJbCNAZA1V8rmmBMpl6+PlL56VKcc+TikrCHFL1AUs1iG5RQbPLth6kXnamq5SubHU9QjNV3ygbQJNtzdPJlffK6HKx98C+Bb7uLxzaZNqywR4CeYQVzewBDhCWfBqFoT+yXLEF3iPdS1ONctwmJuUz9JEZ5rcYgLgMw+P3NQrZ55Ry0EvTnmW2zT9p3vlJVVoaOiI0P26+bq/YkZzcYXONIwAgeTmdseFvGXnTxVFJdLEbJDcN7DHcby7CPKLvU2pBJYM1ZUQ4E/Iz7B"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

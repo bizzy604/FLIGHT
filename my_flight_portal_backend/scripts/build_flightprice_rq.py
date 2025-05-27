@@ -1,10 +1,9 @@
 # --- START OF FILE build_flightpriceRQ.py ---
 
 import json
-# Ensure other necessary imports like sys, Path are handled if you run this standalone via main()
-# For just the functions, json is the main one.
+from typing import Dict, Any, List, Set, Optional, Union
 
-def filter_price_metadata(price_metadatas_container, all_offer_refs_set):
+def filter_price_metadata(price_metadatas_container: Dict[str, Any], all_offer_refs_set: Set[str]) -> Dict[str, Any]:
     """
     Filter PriceMetadatas to only include those whose MetadataKey is *exactly* present
     in the all_offer_refs_set.
@@ -21,7 +20,7 @@ def filter_price_metadata(price_metadatas_container, all_offer_refs_set):
               or an empty equivalent if no matches.
     """
     if not price_metadatas_container or not all_offer_refs_set:
-        return {"PriceMetadatas": {"PriceMetadata": []}} # Return valid empty structure
+        return {"PriceMetadatas": {"PriceMetadata": []}}  # Return valid empty structure
 
     price_metadata_section = price_metadatas_container.get("PriceMetadatas", {})
     if not isinstance(price_metadata_section, dict):
@@ -52,7 +51,7 @@ def filter_price_metadata(price_metadatas_container, all_offer_refs_set):
     return {"PriceMetadatas": {"PriceMetadata": filtered_items}}
 
 
-def build_flight_price_request(airshopping_response, selected_offer_index=0):
+def build_flight_price_request(airshopping_response: Dict[str, Any], selected_offer_index: int = 0) -> Dict[str, Any]:
     """
     Generate a complete FlightPrice request from the AirShopping response.
     
@@ -74,7 +73,7 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0):
         if not airline_offers_list_container or not isinstance(airline_offers_list_container, list):
             raise ValueError("No AirlineOffers found or invalid format in AirShoppingRS")
         
-        selected_airline_offers_node = airline_offers_list_container[0] # Assuming primary offers are in the first AirlineOffers entry
+        selected_airline_offers_node = airline_offers_list_container[0]  # Assuming primary offers are in the first AirlineOffers entry
         actual_airline_offers = selected_airline_offers_node.get("AirlineOffer", [])
         
         if not actual_airline_offers or not isinstance(actual_airline_offers, list) or selected_offer_index >= len(actual_airline_offers):
@@ -149,6 +148,8 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0):
                 "FareBasisCode": fare_group_item.get("FareBasisCode", {}),
                 "refs": fare_group_item.get("refs", [])
             }
+            if "Fare" in fare_group_item:
+                 new_fare_group_for_rq["Fare"] = fare_group_item["Fare"]
             fare_list_for_rq.append(new_fare_group_for_rq)
 
     query_offer_id_node = selected_offer.get("OfferID", {})
@@ -197,155 +198,102 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0):
 
     # Populate od_groups_map only once, as the OD structure is the same across OfferPrice items for the same PricedOffer
     if offer_prices_from_priced_offer:
-        first_offer_price_item = offer_prices_from_priced_offer[0]
-        requested_date_node = first_offer_price_item.get("RequestedDate", {})
-        associations_list = requested_date_node.get("Associations", [])
-        if not isinstance(associations_list, list):
-            associations_list = [associations_list] if associations_list else []
-
-        for assoc in associations_list:
-            applicable_flight_node = assoc.get("ApplicableFlight", {})
-            od_refs_list = applicable_flight_node.get("OriginDestinationReferences", [])
-            if not isinstance(od_refs_list, list):
-                od_refs_list = [od_refs_list] if od_refs_list else []
-            
-            seg_refs_list = applicable_flight_node.get("FlightSegmentReference", [])
-            if not isinstance(seg_refs_list, list):
-                seg_refs_list = [seg_refs_list] if seg_refs_list else []
-
-            for od_ref_str in od_refs_list:
-                if od_ref_str not in od_groups_map:
-                    od_groups_map[od_ref_str] = []
-                for seg_ref_obj in seg_refs_list:
-                    if isinstance(seg_ref_obj, dict) and "ref" in seg_ref_obj:
-                        if seg_ref_obj["ref"] not in od_groups_map[od_ref_str]:
-                            od_groups_map[od_ref_str].append(seg_ref_obj["ref"])
-            
-    all_segments_from_datalists = data_lists.get("FlightSegmentList", {}).get("FlightSegment", [])
-    if not isinstance(all_segments_from_datalists, list):
-        all_segments_from_datalists = [all_segments_from_datalists] if all_segments_from_datalists else []
+        for od_ref in offer_prices_from_priced_offer[0].get("OriginDestinationReferences", []):
+            od_key = od_ref.get("OriginDestinationKey")
+            if od_key and od_key not in od_groups_map:
+                od_groups_map[od_key] = {
+                    "OriginDestinationKey": od_key,
+                    "FlightReferences": {"FlightRef": []}
+                }
     
-    segment_details_map = {s.get("SegmentKey"): s for s in all_segments_from_datalists}
-
-    for od_ref_key_sorted in sorted(od_groups_map.keys()): # Sort OD keys for consistent output
-        segment_key_list = od_groups_map[od_ref_key_sorted]
-        od_flights = []
-        for seg_key in segment_key_list:
-            segment_detail = segment_details_map.get(seg_key)
-            if segment_detail:
-                od_flights.append(segment_detail)
-        if od_flights:
-            origin_destinations_for_rq.append({"Flight": od_flights})
-
-    travelers_for_rq = []
-    anonymous_travelers_list_asrs = data_lists.get("AnonymousTravelerList", {}).get("AnonymousTraveler", [])
-    if not isinstance(anonymous_travelers_list_asrs, list):
-        anonymous_travelers_list_asrs = [anonymous_travelers_list_asrs] if anonymous_travelers_list_asrs else []
-    for traveler in anonymous_travelers_list_asrs: # Use the list from AirShoppingRS DataLists
-        if isinstance(traveler, dict) and "PTC" in traveler:
-             # Construct the format expected in FlightPriceRQ.Travelers.Traveler
-            travelers_for_rq.append({"AnonymousTraveler": [{"PTC": traveler.get("PTC", [])}]})
-
-
-    shopping_response_id_node = airshopping_response.get("ShoppingResponseID", {}) # From top level of AirShoppingRS
-    if not (isinstance(shopping_response_id_node, dict) and \
-            shopping_response_id_node.get("ResponseID", {}).get("value") and \
-            shopping_response_id_node.get("Owner")):
-        print("Warning: Top-level ShoppingResponseID from AirShoppingRS is incomplete or missing. Attempting fallback.")
-        # Fallback logic (simplified for brevity, ensure robustness in production)
-        shopping_response_id_node = {} # Reset
-        try:
-            sr_id_val = airshopping_response["Metadata"]["Other"]["OtherMetadata"][0]["DescriptionMetadatas"]["DescriptionMetadata"][0]["AugmentationPoint"]["AugPoint"][0]["Key"]
-            sr_owner_val = airshopping_response["Metadata"]["Other"]["OtherMetadata"][0]["DescriptionMetadatas"]["DescriptionMetadata"][0]["AugmentationPoint"]["AugPoint"][0]["Owner"]
-            shopping_response_id_node = {"Owner": sr_owner_val, "ResponseID": {"value": sr_id_val}}
-        except (KeyError, IndexError, TypeError):
-            print("Critical Warning: ShoppingResponseID could not be determined for FlightPriceRQ from any source.")
-            # Depending on requirements, either raise error or set to None/empty and let Verteil handle it
-            shopping_response_id_node = None
-
-
-    all_price_metadatas_container = {}
-    try:
-        other_metadata_list_meta = airshopping_response.get("Metadata", {}).get("Other", {}).get("OtherMetadata", [])
-        if other_metadata_list_meta and isinstance(other_metadata_list_meta, list) and len(other_metadata_list_meta) > 0:
-            first_other_meta_item = other_metadata_list_meta[0]
-            if isinstance(first_other_meta_item, dict) and "PriceMetadatas" in first_other_meta_item:
-                 all_price_metadatas_container = {"PriceMetadatas": first_other_meta_item["PriceMetadatas"]}
-            else: # Handle case where PriceMetadatas might not be in the first item or not exist
-                all_price_metadatas_container = {"PriceMetadatas": {"PriceMetadata": []}}
-        else:
-            all_price_metadatas_container = {"PriceMetadatas": {"PriceMetadata": []}}
-    except Exception as e:
-        print(f"Warning: Could not extract PriceMetadatas from AirShoppingRS for filtering: {e}")
-        all_price_metadatas_container = {"PriceMetadatas": {"PriceMetadata": []}}
+    # Process each offer price to collect flight references per OD
+    for offer_price_item in offer_prices_from_priced_offer:
+        for od_ref in offer_price_item.get("OriginDestinationReferences", []):
+            od_key = od_ref.get("OriginDestinationKey")
+            flight_refs = od_ref.get("FlightReferences", {}).get("FlightRef", [])
+            if not isinstance(flight_refs, list):
+                flight_refs = [flight_refs] if flight_refs else []
+            
+            if od_key in od_groups_map:
+                existing_refs = {ref.get("value") for ref in od_groups_map[od_key]["FlightReferences"]["FlightRef"]}
+                for flight_ref in flight_refs:
+                    if isinstance(flight_ref, dict) and flight_ref.get("value") not in existing_refs:
+                        od_groups_map[od_key]["FlightReferences"]["FlightRef"].append(flight_ref)
     
-    filtered_price_metadata_section = filter_price_metadata(
-        all_price_metadatas_container,
-        all_offer_refs_for_metadata_filtering
-    )
+    # Convert the map to a list for the final request
+    origin_destinations_for_rq = list(od_groups_map.values())
 
-    flight_price_request = {
-        "DataLists": {
-            "FareGroup": fare_list_for_rq,
-            "AnonymousTravelerList": data_lists.get("AnonymousTravelerList", {}) # From AirShoppingRS DataLists
-        },
-        "Query": {
-            "OriginDestination": origin_destinations_for_rq,
-            "Offers": {
-                "Offer": [query_offer]
-            }
-        },
-        "ShoppingResponseID": shopping_response_id_node,
-        "Travelers": {"Traveler": travelers_for_rq} if travelers_for_rq else {}, # Ensure structure if empty
-        "Metadata": {
-            "Other": {
-                "OtherMetadata": [
-                    filtered_price_metadata_section 
-                ]
+    # Build the final request
+    flight_price_rq = {
+        "FlightPriceRQ": {
+            "Query": {
+                "ShoppingResponseIDs": {
+                    "ResponseID": airshopping_response.get("ShoppingResponseID", {})
+                },
+                "OriginDestinations": {
+                    "OriginDestination": origin_destinations_for_rq
+                },
+                "Offer": query_offer
             }
         }
     }
-    
-    return flight_price_request
 
+    # Add FareList if we have fare groups
+    if fare_list_for_rq:
+        flight_price_rq["FlightPriceRQ"]["Query"]["DataLists"] = {
+            "FareList": {
+                "FareGroup": fare_list_for_rq
+            }
+        }
+
+    # Add filtered PriceMetadatas if available
+    price_metadatas = data_lists.get("PriceMetadatas")
+    if price_metadatas and all_offer_refs_for_metadata_filtering:
+        filtered_metadata = filter_price_metadata(
+            {"PriceMetadatas": price_metadatas},
+            all_offer_refs_for_metadata_filtering
+        )
+        if filtered_metadata.get("PriceMetadatas", {}).get("PriceMetadata"):
+            if "DataLists" not in flight_price_rq["FlightPriceRQ"]["Query"]:
+                flight_price_rq["FlightPriceRQ"]["Query"]["DataLists"] = {}
+            flight_price_rq["FlightPriceRQ"]["Query"]["DataLists"]["PriceMetadatas"] = filtered_metadata["PriceMetadatas"]
+
+    return flight_price_rq
 
 def main():
+    """Main function to test the FlightPrice request builder."""
     import sys
-    from pathlib import Path
-
-    # Determine the correct input file name based on your previous uploads
-    # It seems AirShoppingRS.txt was the source for the selected offer.
-    input_file_name = "airshoping_response.json" 
-    input_file_path = Path(input_file_name)
-    output_file_path = Path("flightprice_request_generated.json")
-
-    if not input_file_path.exists():
-        print(f"Error: Input file '{input_file_path}' not found. Please ensure it's in the same directory or provide the correct path.")
+    import os
+    
+    if len(sys.argv) < 2:
+        print("Usage: python build_flightprice_rq.py <airshopping_response.json> [offer_index]")
         sys.exit(1)
-
+    
+    input_file = sys.argv[1]
+    offer_index = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+    
     try:
-        with open(input_file_path, "r", encoding="utf-8") as f:
-            airshopping_response_content = json.load(f)
-    except json.JSONDecodeError as e:
-        print(f"Error: Invalid JSON in input file '{input_file_path}': {e}")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Error loading input file '{input_file_path}': {e}")
-        sys.exit(1)
-
-    try:
-        # Assuming you want to process the first offer (index 0)
-        flight_price_rq_payload = build_flight_price_request(airshopping_response_content, selected_offer_index=0)
+        with open(input_file, 'r', encoding='utf-8') as f:
+            airshopping_response = json.load(f)
         
-        with open(output_file_path, "w", encoding="utf-8") as f:
-            json.dump(flight_price_rq_payload, f, indent=2, ensure_ascii=False)
-        print(f"FlightPriceRQ successfully generated and saved to '{output_file_path}'")
-            
-    except ValueError as ve:
-        print(f"ValueError during request generation: {ve}")
-        sys.exit(1)
+        flight_price_rq = build_flight_price_request(airshopping_response, offer_index)
+        
+        # Create output directory if it doesn't exist
+        output_dir = "generated_rqs"
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Generate output filename
+        base_name = os.path.splitext(os.path.basename(input_file))[0]
+        output_file = os.path.join(output_dir, f"{base_name}_FlightPriceRQ_{offer_index}.json")
+        
+        # Save the request
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(flight_price_rq, f, indent=2, ensure_ascii=False)
+        
+        print(f"FlightPrice request saved to {output_file}")
+        
     except Exception as e:
-        print(f"An unexpected error occurred during request generation: {e}")
+        print(f"Error: {str(e)}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

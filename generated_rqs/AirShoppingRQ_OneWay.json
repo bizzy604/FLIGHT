@@ -1,0 +1,76 @@
+{
+  "Preference": {
+    "CabinPreferences": {
+      "CabinType": [
+        {
+          "Code": "Y",
+          "OriginDestinationReferences": [
+            "OD1"
+          ]
+        }
+      ]
+    },
+    "FarePreferences": {
+      "Types": {
+        "Type": [
+          {
+            "Code": "PUBL"
+          }
+        ]
+      }
+    },
+    "PricingMethodPreference": {
+      "BestPricingOption": "Y"
+    }
+  },
+  "ResponseParameters": {
+    "SortOrder": [
+      {
+        "Order": "ASCENDING",
+        "Parameter": "PRICE"
+      },
+      {
+        "Order": "ASCENDING",
+        "Parameter": "STOP"
+      },
+      {
+        "Order": "ASCENDING",
+        "Parameter": "DEPARTURE_TIME"
+      }
+    ],
+    "ShopResultPreference": "FULL"
+  },
+  "Travelers": {
+    "Traveler": [
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "CoreQuery": {
+    "OriginDestinations": {
+      "OriginDestination": [
+        {
+          "OriginDestinationKey": "OD1",
+          "Departure": {
+            "AirportCode": {
+              "value": "DXB"
+            },
+            "Date": "2025-07-10"
+          },
+          "Arrival": {
+            "AirportCode": {
+              "value": "LHR"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

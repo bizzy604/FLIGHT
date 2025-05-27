@@ -1,0 +1,70 @@
+{
+  "Preference": {
+    "FarePreferences": {
+      "Types": {
+        "Type": [
+          {
+            "Code": "PUBL"
+          }
+        ]
+      }
+    },
+    "PricingMethodPreference": {
+      "BestPricingOption": "Y"
+    },
+    "CabinPreferences": {
+      "CabinType": [
+        {
+          "Code": "Y",
+          "OriginDestinationReferences": [
+            "OD1"
+          ]
+        }
+      ]
+    }
+  },
+  "ResponseParameters": {
+    "SortOrder": [
+      {
+        "Order": "ASCENDING",
+        "Parameter": "PRICE"
+      },
+      {
+        "Order": "ASCENDING",
+        "Parameter": "STOP"
+      },
+      {
+        "Order": "ASCENDING",
+        "Parameter": "DEPARTURE_TIME"
+      }
+    ],
+    "ShopResultPreference": "FULL"
+  },
+  "Travelers": {
+    "Traveler": [
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": "ADT"
+          }
+        ]
+      }
+    ]
+  },
+  "CoreQuery": {
+    "OriginDestinations": {
+      "OriginDestination": [
+        {
+          "Departure": {
+            "AirportCode": "BOM",
+            "Date": "2025-06-03"
+          },
+          "Arrival": {
+            "AirportCode": "DEL"
+          },
+          "OriginDestinationKey": "OD1"
+        }
+      ]
+    }
+  }
+}

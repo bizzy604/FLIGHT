@@ -1,0 +1,106 @@
+{
+  "Preference": {
+    "FarePreferences": {
+      "Types": {
+        "Type": [
+          {
+            "Code": "PUBL"
+          }
+        ]
+      }
+    },
+    "PricingMethodPreference": {
+      "BestPricingOption": "Y"
+    },
+    "CabinPreferences": {
+      "CabinType": [
+        {
+          "Code": "C",
+          "OriginDestinationReferences": [
+            "OD1",
+            "OD2",
+            "OD3"
+          ]
+        }
+      ]
+    }
+  },
+  "ResponseParameters": {
+    "SortOrder": [
+      {
+        "Order": "ASCENDING",
+        "Parameter": "PRICE"
+      },
+      {
+        "Order": "ASCENDING",
+        "Parameter": "STOP"
+      },
+      {
+        "Order": "ASCENDING",
+        "Parameter": "DEPARTURE_TIME"
+      }
+    ],
+    "ShopResultPreference": "FULL"
+  },
+  "Travelers": {
+    "Traveler": [
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": "ADT"
+          }
+        ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": "ADT"
+          }
+        ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": "INF"
+          }
+        ]
+      }
+    ]
+  },
+  "CoreQuery": {
+    "OriginDestinations": {
+      "OriginDestination": [
+        {
+          "Departure": {
+            "AirportCode": "BOM",
+            "Date": "2025-06-03"
+          },
+          "Arrival": {
+            "AirportCode": "DEL"
+          },
+          "OriginDestinationKey": "OD1"
+        },
+        {
+          "Departure": {
+            "AirportCode": "DEL",
+            "Date": "2025-06-10"
+          },
+          "Arrival": {
+            "AirportCode": "BLR"
+          },
+          "OriginDestinationKey": "OD2"
+        },
+        {
+          "Departure": {
+            "AirportCode": "BLR",
+            "Date": "2025-06-17"
+          },
+          "Arrival": {
+            "AirportCode": "BOM"
+          },
+          "OriginDestinationKey": "OD3"
+        }
+      ]
+    }
+  }
+}

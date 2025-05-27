@@ -1,0 +1,123 @@
+{
+  "Preference": {
+    "CabinPreferences": {
+      "CabinType": [
+        {
+          "Code": "Y",
+          "OriginDestinationReferences": [
+            "OD1"
+          ]
+        },
+        {
+          "Code": "Y",
+          "OriginDestinationReferences": [
+            "OD2"
+          ]
+        }
+      ]
+    },
+    "FarePreferences": {
+      "Types": {
+        "Type": [
+          {
+            "Code": "PUBL"
+          }
+        ]
+      }
+    },
+    "PricingMethodPreference": {
+      "BestPricingOption": "Y"
+    }
+  },
+  "ResponseParameters": {
+    "SortOrder": [
+      {
+        "Order": "ASCENDING",
+        "Parameter": "PRICE"
+      },
+      {
+        "Order": "ASCENDING",
+        "Parameter": "STOP"
+      },
+      {
+        "Order": "ASCENDING",
+        "Parameter": "DEPARTURE_TIME"
+      }
+    ],
+    "ShopResultPreference": "FULL"
+  },
+  "Travelers": {
+    "Traveler": [
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "CHD"
+            }
+          }
+        ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "INF"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "CoreQuery": {
+    "OriginDestinations": {
+      "OriginDestination": [
+        {
+          "OriginDestinationKey": "OD1",
+          "Departure": {
+            "AirportCode": {
+              "value": "BOM"
+            },
+            "Date": "2025-05-29"
+          },
+          "Arrival": {
+            "AirportCode": {
+              "value": "LHR"
+            }
+          }
+        },
+        {
+          "OriginDestinationKey": "OD2",
+          "Departure": {
+            "AirportCode": {
+              "value": "LHR"
+            },
+            "Date": "2025-06-02"
+          },
+          "Arrival": {
+            "AirportCode": {
+              "value": "BOM"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "Preference": {
+    "CabinPreferences": {
+      "CabinType": [
+        {
+          "Code": "Y",
+          "OriginDestinationReferences": [
+            "OD1"
+          ]
+        },
+        {
+          "Code": "Y",
+          "OriginDestinationReferences": [
+            "OD2"
+          ]
+        },
+        {
+          "Code": "Y",
+          "OriginDestinationReferences": [
+            "OD3"
+          ]
+        }
+      ]
+    },
+    "FarePreferences": {
+      "Types": {
+        "Type": [
+          {
+            "Code": "PUBL"
+          }
+        ]
+      }
+    },
+    "PricingMethodPreference": {
+      "BestPricingOption": "Y"
+    }
+  },
+  "ResponseParameters": {
+    "SortOrder": [
+      {
+        "Order": "ASCENDING",
+        "Parameter": "PRICE"
+      },
+      {
+        "Order": "ASCENDING",
+        "Parameter": "STOP"
+      },
+      {
+        "Order": "ASCENDING",
+        "Parameter": "DEPARTURE_TIME"
+      }
+    ],
+    "ShopResultPreference": "FULL"
+  },
+  "Travelers": {
+    "Traveler": [
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "CoreQuery": {
+    "OriginDestinations": {
+      "OriginDestination": [
+        {
+          "OriginDestinationKey": "OD1",
+          "Departure": {
+            "AirportCode": {
+              "value": "JFK"
+            },
+            "Date": "2025-08-01"
+          },
+          "Arrival": {
+            "AirportCode": {
+              "value": "LHR"
+            }
+          }
+        },
+        {
+          "OriginDestinationKey": "OD2",
+          "Departure": {
+            "AirportCode": {
+              "value": "LHR"
+            },
+            "Date": "2025-08-05"
+          },
+          "Arrival": {
+            "AirportCode": {
+              "value": "CDG"
+            }
+          }
+        },
+        {
+          "OriginDestinationKey": "OD3",
+          "Departure": {
+            "AirportCode": {
+              "value": "CDG"
+            },
+            "Date": "2025-08-10"
+          },
+          "Arrival": {
+            "AirportCode": {
+              "value": "JFK"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
