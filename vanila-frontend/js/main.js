@@ -1,393 +1,459 @@
 // js/main.js
 document.addEventListener('DOMContentLoaded', function () {
     const flightSearchForm = document.getElementById('flightSearchForm');
-    const tripTypeRadios = document.querySelectorAll('input[name="tripType"]');
+    const tripTypeOptions = document.querySelectorAll('.trip-type-option'); // Use labels for click
     const odSegmentsContainer = document.getElementById('od-segments-container');
-    const returnSegmentContainer = document.getElementById('return-segment-container'); // Specifically the return date part for round trip
     const addMultiCityLegBtn = document.getElementById('addMultiCityLegBtn');
-    const loadingIndicator = document.getElementById('loading-indicator');
-    const searchErrorMessage = document.getElementById('search-error-message');
+    const loadingIndicator = document.getElementById('loadingIndicator'); // Corrected ID
+    const errorMessage = document.getElementById('errorMessage'); // Corrected ID
     
-    // Set min date for date inputs to today
-    const today = new Date().toISOString().split('T')[0];
-    document.querySelectorAll('input[type="date"]').forEach(dateInput => {
-        dateInput.setAttribute('min', today);
-    });
+    // Passenger Selector Elements
+    const passengerSelectorBtn = document.getElementById('passenger-selector-btn');
+    const passengerSelectorDropdown = document.getElementById('passenger-selector-dropdown');
+    const passengerDoneBtn = document.getElementById('passenger-done-btn');
+    const cabinClassSelect = document.getElementById('cabin-class-dropdown');
 
-    // --- Airport Autocomplete/Suggestion Logic ---
-    function setupAirportInput(originInputId, originDatalistId, destInputId, destDatalistId) {
-        const originInput = document.getElementById(originInputId);
-        const destInput = document.getElementById(destInputId);
+    // Mobile Nav
+    const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
+    const mainNav = document.querySelector('.main-nav');
 
-        if (originInput) {
-            originInput.addEventListener('input', function(e) {
-                populateAirportSuggestions(originInputId, originDatalistId, e.target.value);
-            });
-        }
-        if (destInput) {
-            destInput.addEventListener('input', function(e) {
-                populateAirportSuggestions(destInputId, destDatalistId, e.target.value);
-            });
-        }
+    let legCounter = 0; // Start with leg 0 already in HTML
+
+    // --- Utility Functions ---
+    function getSelectedTripType() {
+        const selectedRadio = document.querySelector('input[name="tripType"]:checked');
+        return selectedRadio ? selectedRadio.value : 'one-way'; // Default to one-way
     }
-    
-        // Initialize variables
-    let legCounter = 1; // Start with 1 because leg 0 is always there
-    
-    // Initialize the form when the DOM is fully loaded
-    function initializeForm() {
-        try {
-            // Set up the first leg
-            setupAirportInput('origin-0', 'airport-suggestions-origin-0', 'destination-0', 'airport-suggestions-destination-0');
-            
-            // Set initial trip type
-            const initialTripType = document.querySelector('input[name="tripType"]:checked');
-            if (initialTripType) {
-                initialTripType.checked = true;
-            } else if (tripTypeRadios.length > 0) {
-                // If no trip type is selected, select the first one
-                tripTypeRadios[0].checked = true;
+
+    function updatePassengerButtonText() {
+        if (!passengerSelectorBtn) return;
+
+        const adults = parseInt(document.getElementById('adults-count-display').textContent);
+        const children = parseInt(document.getElementById('children-count-display').textContent);
+        const infants = parseInt(document.getElementById('infants-count-display').textContent);
+        const cabin = cabinClassSelect.options[cabinClassSelect.selectedIndex].text;
+
+        let text = `${adults} Adult`;
+        if (adults > 1) text = `${adults} Adults`;
+        
+        if (children > 0) {
+            text += `, ${children} Child${children > 1 ? 'ren' : ''}`;
+        }
+        if (infants > 0) {
+            text += `, ${infants} Infant${infants > 1 ? 's' : ''}`;
+        }
+        text += `, ${cabin}`;
+        passengerSelectorBtn.textContent = text;
+    }
+
+
+    // --- Airport Autocomplete/Suggestion Logic (Simplified) ---
+    function setupAirportInput(inputId) {
+        const inputElement = document.getElementById(inputId);
+        const suggestionsContainerId = `${inputId}-suggestions`;
+        let suggestionsContainer = document.getElementById(suggestionsContainerId);
+
+        if (inputElement) {
+            if (!suggestionsContainer) {
+                suggestionsContainer = document.createElement('div');
+                suggestionsContainer.id = suggestionsContainerId;
+                suggestionsContainer.classList.add('autocomplete-suggestions');
+                inputElement.parentNode.appendChild(suggestionsContainer);
             }
             
-            // Initialize the form based on the selected trip type
-            handleTripTypeChange();
-        } catch (error) {
-            console.error('Error initializing form:', error);
-        }
-    }
-    
-    // Set up the form initialization
-    function setupForm() {
-        // Remove any existing listeners to prevent duplicates
-        document.removeEventListener('DOMContentLoaded', setupForm);
-        
-        // Initialize the form
-        initializeForm();
-        
-        // Set up trip type change listeners
-        if (tripTypeRadios && tripTypeRadios.length > 0) {
-            tripTypeRadios.forEach(radio => {
-                radio.removeEventListener('change', handleTripTypeChange);
-                radio.addEventListener('change', handleTripTypeChange);
+            inputElement.addEventListener('input', function(e) {
+                const value = e.target.value.toLowerCase();
+                suggestionsContainer.innerHTML = '';
+                if (value.length < 2) { // Start suggesting after 2 characters
+                    suggestionsContainer.classList.remove('active');
+                    return;
+                }
+
+                const filteredAirports = airports_data.filter(airport => 
+                    airport.name.toLowerCase().includes(value) || 
+                    airport.iata_code.toLowerCase().includes(value) ||
+                    airport.city.toLowerCase().includes(value)
+                ).slice(0, 7); // Limit suggestions
+
+                if (filteredAirports.length > 0) {
+                    filteredAirports.forEach(airport => {
+                        const div = document.createElement('div');
+                        div.textContent = `${airport.name} (${airport.iata_code}) - ${airport.city}`;
+                        div.addEventListener('click', () => {
+                            inputElement.value = `${airport.city} (${airport.iata_code})`;
+                            suggestionsContainer.innerHTML = '';
+                            suggestionsContainer.classList.remove('active');
+                        });
+                        suggestionsContainer.appendChild(div);
+                    });
+                    suggestionsContainer.classList.add('active');
+                } else {
+                    suggestionsContainer.classList.remove('active');
+                }
+            });
+            
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!inputElement.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                    suggestionsContainer.classList.remove('active');
+                }
             });
         }
-    }
-    
-    // Start the initialization
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', setupForm);
-    } else {
-        setupForm();
     }
     
     // --- Trip Type Change Handler ---
-
     function handleTripTypeChange() {
-        const selectedTripType = document.querySelector('input[name="tripType"]:checked').value;
-        
-        // Safety check
-        if (!odSegmentsContainer) {
-            console.error('odSegmentsContainer not found');
-            return;
-        }
+        const selectedTripType = getSelectedTripType();
+        const firstSegment = document.getElementById('od-segment-0');
+        const returnDateGroup = document.getElementById('return-date-group-0');
 
-        // Clear dynamic segments first, keeping the first one
-        let maxIterations = 10; // Prevent infinite loops
-        while (odSegmentsContainer.children.length > 1 && maxIterations-- > 0) {
-            const lastChild = odSegmentsContainer.lastChild;
-            
-            // Skip if this is the return segment container in round trip mode
-            if (lastChild.id === 'return-segment-container' && selectedTripType === "ROUND_TRIP") {
-                break;
+        // Update active class on labels
+        tripTypeOptions.forEach(opt => {
+            if (opt.htmlFor === document.querySelector('input[name="tripType"]:checked').id) {
+                opt.classList.add('active');
+            } else {
+                opt.classList.remove('active');
             }
-            
-            // For one-way trips, keep only the first segment
-            if (selectedTripType === "ONE_WAY" && odSegmentsContainer.children.length > 1) {
-                if (lastChild.dataset.legIndex !== "0") {
-                    odSegmentsContainer.removeChild(lastChild);
-                } else {
-                    break;
-                }
-            } 
-            // For round trip, keep first segment and return segment
-            else if (selectedTripType === "ROUND_TRIP" && odSegmentsContainer.children.length > 2) {
-                if (lastChild.id !== 'return-segment-container' && lastChild.dataset.legIndex !== "0") {
-                    odSegmentsContainer.removeChild(lastChild);
-                } else {
-                    break;
-                }
-            } 
-            // For multi-city, keep all segments
-            else {
-                break;
+        });
+
+        // Remove all but the first segment
+        while (odSegmentsContainer.children.length > 1) {
+            if (odSegmentsContainer.lastChild.id !== 'od-segment-0') { // Ensure we don't remove the first segment
+                 odSegmentsContainer.removeChild(odSegmentsContainer.lastChild);
+            } else {
+                break; // Should not happen if logic is correct
             }
         }
-        
-        if (maxIterations <= 0) {
-            console.error('Exceeded maximum iterations in handleTripTypeChange');
+        legCounter = 0; // Reset leg counter as we only have leg 0 now
+
+        if (selectedTripType === "one-way") {
+            if (returnDateGroup) returnDateGroup.classList.add('hidden');
+            if (firstSegment) firstSegment.classList.add('one-way-layout');
+            if (addMultiCityLegBtn) addMultiCityLegBtn.classList.add('hidden');
+        } else if (selectedTripType === "round-trip") {
+            if (returnDateGroup) returnDateGroup.classList.remove('hidden');
+            if (firstSegment) firstSegment.classList.remove('one-way-layout');
+            if (addMultiCityLegBtn) addMultiCityLegBtn.classList.add('hidden');
+        } else if (selectedTripType === "multi-city") {
+            if (returnDateGroup) returnDateGroup.classList.add('hidden'); // No single return date for multi-city
+            if (firstSegment) firstSegment.classList.remove('one-way-layout');
+            if (addMultiCityLegBtn) addMultiCityLegBtn.classList.remove('hidden');
+            // Ensure at least two legs for multi-city start
+            if (odSegmentsContainer.children.length < 2) {
+                addLegElement();
+            }
+            // Make remove button visible for the first leg in multi-city
+            const firstLegRemoveBtn = document.getElementById('remove-leg-btn-0');
+            if(firstLegRemoveBtn) firstLegRemoveBtn.classList.remove('hidden');
         }
-        legCounter = odSegmentsContainer.children.length -1;
 
-
-        if (selectedTripType === "ONE_WAY") {
-            if (returnSegmentContainer) returnSegmentContainer.style.display = 'none';
-            if (addMultiCityLegBtn) addMultiCityLegBtn.style.display = 'none';
-            // Ensure only one OD segment is visible and inputs are correct
-            document.querySelectorAll('.od-segment').forEach((seg, index) => {
-                seg.style.display = index === 0 ? 'grid' : 'none';
-            });
-        } else if (selectedTripType === "ROUND_TRIP") {
-            if (returnSegmentContainer) {
-                returnSegmentContainer.style.display = 'grid'; // Show return date input
-                // Ensure only date input is visible in return segment container
-                const returnSegChildren = returnSegmentContainer.children;
-                for(let i=0; i < returnSegChildren.length; i++) {
-                    if(!returnSegChildren[i].querySelector('input[type="date"]')) {
-                        returnSegChildren[i].style.display = 'none';
-                    } else {
-                        returnSegChildren[i].style.display = 'flex'; // or 'block'
-                    }
-                }
-            }
-            if (addMultiCityLegBtn) addMultiCityLegBtn.style.display = 'none';
-             document.querySelectorAll('.od-segment').forEach((seg, index) => {
-                if (index === 0) seg.style.display = 'grid';
-                else if (index === 1 && seg.id === 'return-segment-container') seg.style.display = 'grid';
-                else seg.style.display = 'none';
-            });
-
-        } else if (selectedTripType === "MULTI_CITY") {
-            if (returnSegmentContainer) returnSegmentContainer.style.display = 'none'; // Hide simple return
-            if (addMultiCityLegBtn) addMultiCityLegBtn.style.display = 'block';
-            // Ensure at least two full OD segments are visible, and allow adding more
-            document.querySelectorAll('.od-segment').forEach((seg, index) => {
-                seg.style.display = 'grid'; // Show all existing segments
-                // Make sure all inputs are visible for multi-city segments
-                const children = seg.children;
-                for(let i=0; i<children.length; i++) {
-                    children[i].style.display = 'flex'; // or 'block'
-                }
-            });
-            if (odSegmentsContainer.children.length < 2) { // Ensure at least 2 for multi-city start
-                addLegElement(); 
-            }
+        // Hide remove button for first leg if not multi-city
+        if (selectedTripType !== "multi-city") {
+            const firstLegRemoveBtn = document.getElementById('remove-leg-btn-0');
+            if(firstLegRemoveBtn) firstLegRemoveBtn.classList.add('hidden');
         }
     }
 
-    tripTypeRadios.forEach(radio => radio.addEventListener('change', handleTripTypeChange));
+    tripTypeOptions.forEach(optionLabel => {
+        optionLabel.addEventListener('click', function() {
+            // Manually check the radio button associated with this label
+            const radioId = this.htmlFor;
+            const radioInput = document.getElementById(radioId);
+            if (radioInput && !radioInput.checked) {
+                radioInput.checked = true;
+                // Dispatch change event if needed, or call handler directly
+                handleTripTypeChange();
+            }
+        });
+    });
     
     // --- Multi-City Leg Management ---
     function addLegElement() {
-        if (legCounter >= 4) { // Max 5 legs total (0 to 4)
-            alert("Maximum of 5 legs for multi-city search.");
+        if (legCounter >= 4) { // Max 5 legs (0 to 4)
+            alert("Maximum of 5 flight legs allowed for multi-city search.");
             return;
         }
         legCounter++;
         const newSegment = document.createElement('div');
         newSegment.classList.add('od-segment');
-        newSegment.setAttribute('data-leg-index', legCounter);
+        newSegment.id = `od-segment-${legCounter}`;
+        // Note: For multi-city, return date is not applicable per leg in this simplified UI
         newSegment.innerHTML = `
-            <div class="form-group">
-                <label for="origin-${legCounter}">From (Leg ${legCounter + 1})</label>
-                <input type="text" id="origin-${legCounter}" name="origin-${legCounter}" placeholder="Origin" required list="airport-suggestions-origin-${legCounter}">
-                <datalist id="airport-suggestions-origin-${legCounter}"></datalist>
+            <div class="form-group form-group-origin">
+                <label for="origin-${legCounter}"><svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path></svg> Origin</label>
+                <input type="text" id="origin-${legCounter}" name="origin-${legCounter}" placeholder="City or Airport" required>
+                <div class="autocomplete-suggestions" id="origin-${legCounter}-suggestions"></div>
             </div>
-            <div class="form-group">
-                <label for="destination-${legCounter}">To (Leg ${legCounter + 1})</label>
-                <input type="text" id="destination-${legCounter}" name="destination-${legCounter}" placeholder="Destination" required list="airport-suggestions-destination-${legCounter}">
-                <datalist id="airport-suggestions-destination-${legCounter}"></datalist>
+            <button type="button" class="swap-od-btn" id="swap-od-btn-${legCounter}" aria-label="Swap origin and destination">
+                <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"></path></svg>
+            </button>
+            <div class="form-group form-group-destination">
+                <label for="destination-${legCounter}"><svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"></path></svg> Destination</label>
+                <input type="text" id="destination-${legCounter}" name="destination-${legCounter}" placeholder="City or Airport" required>
+                <div class="autocomplete-suggestions" id="destination-${legCounter}-suggestions"></div>
             </div>
-            <div class="form-group">
-                <label for="departureDate-${legCounter}">Depart (Leg ${legCounter + 1})</label>
-                <input type="date" id="departureDate-${legCounter}" name="departureDate-${legCounter}" required min="${today}">
+            <div class="form-group form-group-date" id="departure-date-group-${legCounter}">
+                <label for="departure-date-${legCounter}"><svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M17 13h-5v5h5v-5zM16 2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-1V2h-2zm3 18H5V9h14v11z"></path></svg> Departure Date</label>
+                <input type="date" id="departure-date-${legCounter}" name="departure-date-${legCounter}" required>
             </div>
-            <button type="button" class="remove-leg-btn" data-remove-index="${legCounter}">Remove Leg</button>
+            <div class="form-group form-group-date hidden" id="return-date-group-${legCounter}"> {/* Hidden for multi-city */}
+                 <label for="return-date-${legCounter}">Return Date</label>
+                 <input type="date" id="return-date-${legCounter}" name="return-date-${legCounter}">
+            </div>
+            <button type="button" class="remove-leg-btn" id="remove-leg-btn-${legCounter}" aria-label="Remove this leg">
+                <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+            </button>
         `;
         odSegmentsContainer.appendChild(newSegment);
-        setupAirportInput(`origin-${legCounter}`, `airport-suggestions-origin-${legCounter}`, `destination-${legCounter}`, `airport-suggestions-destination-${legCounter}`);
+        setupAirportInput(`origin-${legCounter}`);
+        setupAirportInput(`destination-${legCounter}`);
+        newSegment.querySelector(`#departure-date-${legCounter}`).setAttribute('min', getTodayDateString());
         
-        // Add event listener for the new remove button
         newSegment.querySelector('.remove-leg-btn').addEventListener('click', function() {
             odSegmentsContainer.removeChild(newSegment);
-            // Renumber subsequent legs if needed, or adjust legCounter (simpler to just remove)
-            // For robust re-numbering, you'd iterate and update IDs/names.
-            // For now, we just decrement legCounter if the removed was the last one dynamically added.
-            // A more robust solution would be to manage segments in a JS array and re-render.
-            // This simple removal can lead to gaps in legCounter if not careful.
+            // No need to decrement legCounter here as it's used for adding new, not tracking current count
+            // If we were re-indexing, that would be different.
+        });
+        newSegment.querySelector(`#swap-od-btn-${legCounter}`).addEventListener('click', function() {
+            const originInput = document.getElementById(`origin-${legCounter}`);
+            const destInput = document.getElementById(`destination-${legCounter}`);
+            const temp = originInput.value;
+            originInput.value = destInput.value;
+            destInput.value = temp;
         });
     }
 
     if (addMultiCityLegBtn) {
         addMultiCityLegBtn.addEventListener('click', addLegElement);
     }
-    // Initial call to set form based on default checked radio
-    handleTripTypeChange(); 
+    
+    // --- Passenger Selector Logic ---
+    if (passengerSelectorBtn && passengerSelectorDropdown) {
+        passengerSelectorBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent click from closing immediately
+            passengerSelectorDropdown.classList.toggle('hidden');
+        });
 
+        document.addEventListener('click', (e) => { // Close dropdown if clicked outside
+            if (!passengerSelectorDropdown.classList.contains('hidden') && 
+                !passengerSelectorDropdown.contains(e.target) &&
+                !passengerSelectorBtn.contains(e.target)) {
+                passengerSelectorDropdown.classList.add('hidden');
+            }
+        });
+    }
+
+    if (passengerDoneBtn) {
+        passengerDoneBtn.addEventListener('click', () => {
+            passengerSelectorDropdown.classList.add('hidden');
+        });
+    }
+    
+    document.querySelectorAll('.counter-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const type = this.dataset.type;
+            const action = this.classList.contains('plus') ? 'increment' : 'decrement';
+            const displaySpan = document.getElementById(`${type}-count-display`);
+            let currentValue = parseInt(displaySpan.textContent);
+
+            if (action === 'increment') {
+                if (type === 'adults' && currentValue < 9) currentValue++;
+                else if (type === 'children' && currentValue < 9) currentValue++;
+                else if (type === 'infants' && currentValue < parseInt(document.getElementById('adults-count-display').textContent) && currentValue < 9) currentValue++; // Infants <= Adults
+            } else { // decrement
+                if (type === 'adults' && currentValue > 1) currentValue--;
+                else if (type === 'children' && currentValue > 0) currentValue--;
+                else if (type === 'infants' && currentValue > 0) currentValue--;
+            }
+            displaySpan.textContent = currentValue;
+            updatePassengerButtonText();
+            validatePassengerCounts(); // Validate after each change
+        });
+    });
+
+    if(cabinClassSelect) {
+        cabinClassSelect.addEventListener('change', updatePassengerButtonText);
+    }
+
+    function validatePassengerCounts() {
+        const adults = parseInt(document.getElementById('adults-count-display').textContent);
+        const infants = parseInt(document.getElementById('infants-count-display').textContent);
+        const infantPlusBtn = document.querySelector('.counter-btn.plus[data-type="infants"]');
+        
+        if (infantPlusBtn) {
+            infantPlusBtn.disabled = (infants >= adults);
+        }
+        // Add more validation rules if needed
+    }
 
     // --- Form Submission ---
     if (flightSearchForm) {
         flightSearchForm.addEventListener('submit', async function (event) {
             event.preventDefault();
-            console.log('Form submission started');
-            if (loadingIndicator) loadingIndicator.style.display = 'block';
-            if (searchErrorMessage) searchErrorMessage.style.display = 'none';
+            if (loadingIndicator) loadingIndicator.classList.remove('hidden');
+            if (errorMessage) errorMessage.classList.add('hidden');
             
-            // Debug: Log form data
-            const formData = new FormData(flightSearchForm);
-            console.log('Form data:', Object.fromEntries(formData.entries()));
+            const selectedTripType = getSelectedTripType();
+            const segmentsData = [];
+            const allSegments = odSegmentsContainer.querySelectorAll('.od-segment');
 
-            const tripType = formData.get('tripType');
-            
-            const odSegmentsData = [];
-            const numSegments = tripType === "ONE_WAY" ? 1 : 
-                                (tripType === "ROUND_TRIP" ? 2 : 
-                                 document.querySelectorAll('#od-segments-container .od-segment').length);
+            for (let i = 0; i < allSegments.length; i++) {
+                const segmentDiv = allSegments[i];
+                if (selectedTripType === 'one-way' && i > 0) continue;
+                if (selectedTripType === 'round-trip' && i > 0) continue; // Handled separately for return date
 
-            for (let i = 0; i < numSegments; i++) {
-                const origin = formData.get(`origin-${i}`)?.toString().toUpperCase();
-                const destination = formData.get(`destination-${i}`)?.toString().toUpperCase();
-                const departureDate = formData.get(`departureDate-${i}`);
+                const origin = document.getElementById(`origin-${i}`)?.value.trim();
+                const destination = document.getElementById(`destination-${i}`)?.value.trim();
+                const departureDate = document.getElementById(`departure-date-${i}`)?.value;
 
-                if (tripType === "ROUND_TRIP" && i === 1) { // Return leg for round trip
-                    if (departureDate) { // Only date is needed
-                        odSegmentsData.push({ DepartureDate: departureDate });
-                    } else {
-                        if (loadingIndicator) loadingIndicator.style.display = 'none';
-                        if (searchErrorMessage) {
-                            searchErrorMessage.textContent = "Return date is required for round trip.";
-                            searchErrorMessage.style.display = 'block';
-                        }
-                        return;
+                if (!origin || !destination || !departureDate) {
+                    if (errorMessage) {
+                        errorMessage.textContent = `Please fill all fields for Leg ${i + 1}.`;
+                        errorMessage.classList.remove('hidden');
                     }
-                } else if (origin && destination && departureDate) {
-                    odSegmentsData.push({
-                        Origin: origin,
-                        Destination: destination,
-                        DepartureDate: departureDate
-                    });
-                } else if (tripType === "MULTI_CITY" && i < odSegmentsContainer.children.length) { 
-                    // For multi-city, all fields are required for active segments
-                    if (loadingIndicator) loadingIndicator.style.display = 'none';
-                    if (searchErrorMessage) {
-                         searchErrorMessage.textContent = `Please fill all fields for Leg ${i + 1}.`;
-                         searchErrorMessage.style.display = 'block';
-                    }
+                    if (loadingIndicator) loadingIndicator.classList.add('hidden');
                     return;
                 }
-            }
-            if (tripType === "ONE_WAY" && odSegmentsData.length === 0) {
-                if (loadingIndicator) loadingIndicator.style.display = 'none';
-                if (searchErrorMessage) { searchErrorMessage.textContent = "Please fill in flight details."; searchErrorMessage.style.display = 'block';}
-                return;
+                segmentsData.push({ Origin: origin, Destination: destination, DepartureDate: departureDate });
             }
 
+            if (selectedTripType === 'round-trip') {
+                const returnDate = document.getElementById('return-date-0')?.value;
+                if (!returnDate) {
+                     if (errorMessage) {
+                        errorMessage.textContent = "Return date is required for round trip.";
+                        errorMessage.classList.remove('hidden');
+                    }
+                    if (loadingIndicator) loadingIndicator.classList.add('hidden');
+                    return;
+                }
+                // For round trip, the second "segment" is just the return date from the first segment's inputs
+                segmentsData.push({ 
+                    Origin: segmentsData[0].Destination, // Return origin is first leg's destination
+                    Destination: segmentsData[0].Origin,   // Return destination is first leg's origin
+                    DepartureDate: returnDate 
+                });
+            }
+            
+            const numAdults = parseInt(document.getElementById('adults-count-display').textContent);
+            const numChildren = parseInt(document.getElementById('children-count-display').textContent);
+            const numInfants = parseInt(document.getElementById('infants-count-display').textContent);
+            const cabinPreference = cabinClassSelect.value;
+
+            if (numInfants > numAdults && numAdults > 0) {
+                 if (errorMessage) {
+                    errorMessage.textContent = "Number of infants cannot exceed adults.";
+                    errorMessage.classList.remove('hidden');
+                }
+                if (loadingIndicator) loadingIndicator.classList.add('hidden');
+                return;
+            }
+            if (numAdults === 0 && (numChildren > 0 || numInfants > 0)) {
+                 if (errorMessage) {
+                    errorMessage.textContent = "Children or infants must travel with at least one adult.";
+                    errorMessage.classList.remove('hidden');
+                 }
+                if (loadingIndicator) loadingIndicator.classList.add('hidden');
+                return;
+            }
 
             const searchCriteria = {
-                tripType: tripType,
-                odSegments: odSegmentsData,
-                numAdults: parseInt(formData.get('numAdults')),
-                numChildren: parseInt(formData.get('numChildren')),
-                numInfants: parseInt(formData.get('numInfants')),
-                cabinPreference: formData.get('cabinPreference')
+                tripType: selectedTripType.toUpperCase().replace('-', '_'), // e.g., ONE_WAY
+                odSegments: segmentsData,
+                numAdults: numAdults,
+                numChildren: numChildren,
+                numInfants: numInfants,
+                cabinPreference: cabinPreference
             };
-
-            // Basic client-side validation
-            if (searchCriteria.numInfants > searchCriteria.numAdults && searchCriteria.numAdults > 0) {
-                if (loadingIndicator) loadingIndicator.style.display = 'none';
-                if (searchErrorMessage) {
-                    searchErrorMessage.textContent = "Number of infants cannot exceed adults.";
-                    searchErrorMessage.style.display = 'block';
-                }
-                return;
-            }
-            if (searchCriteria.numAdults === 0 && (searchCriteria.numChildren > 0 || searchCriteria.numInfants > 0)) {
-                 if (loadingIndicator) loadingIndicator.style.display = 'none';
-                 if (searchErrorMessage) {
-                    searchErrorMessage.textContent = "Children or infants must travel with an adult.";
-                    searchErrorMessage.style.display = 'block';
-                 }
-                return;
-            }
-            console.log("Sending request to backend with data:", searchCriteria);
+            
+            console.log("Sending request to backend with data:", JSON.stringify(searchCriteria, null, 2));
             try {
-                console.log('Making API call to:', 'http://localhost:5000/api/verteil/air-shopping');
                 const response = await fetch('http://localhost:5000/api/verteil/air-shopping', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(searchCriteria),
-                    mode: 'cors',
-                    credentials: 'same-origin'
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(searchCriteria)
                 });
 
-                console.log('Response status:', response.status);
-                
-                if (loadingIndicator) loadingIndicator.style.display = 'none';
+                if (loadingIndicator) loadingIndicator.classList.add('hidden');
 
                 if (!response.ok) {
-                    console.error('Response not OK, status:', response.status);
-                    let errorData;
-                    try {
-                        errorData = await response.json();
-                        console.error('Error response:', errorData);
-                    } catch (e) {
-                        console.error('Could not parse error response as JSON');
-                        errorData = { error: `HTTP error! status: ${response.status}` };
-                    }
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                    const errorData = await response.json().catch(() => ({ error: `HTTP error! Status: ${response.status}` }));
+                    throw new Error(errorData.error || `Server error: ${response.status}`);
                 }
 
                 const results = await response.json();
-                console.log('Received results:', results);
-                
-                // Store results in session storage for the results page
-                // The backend now returns the offers array directly
-                sessionStorage.setItem('flightSearchResults', JSON.stringify(Array.isArray(results) ? results : []));
+                sessionStorage.setItem('flightSearchResults', JSON.stringify(results.offers || [])); // Assuming backend sends { offers: [...] }
                 sessionStorage.setItem('searchCriteria', JSON.stringify(searchCriteria));
                 
-                // Store additional metadata if available (for backward compatibility)
-                if (results.shoppingResponseId) {
-                    sessionStorage.setItem('shoppingResponseId', results.shoppingResponseId);
-                }
-                if (results.owner) {
-                    sessionStorage.setItem('shoppingOwner', results.owner);
-                }
-
-                // Build URL parameters for the results page
+                // Build query params for results page (simplified)
                 const queryParams = new URLSearchParams({
                     origin: searchCriteria.odSegments[0].Origin,
                     destination: searchCriteria.odSegments[0].Destination,
                     departureDate: searchCriteria.odSegments[0].DepartureDate,
-                    adults: searchCriteria.numAdults,
-                    children: searchCriteria.numChildren,
-                    infants: searchCriteria.numInfants,
-                    cabin: searchCriteria.cabinPreference,
-                    tripType: searchCriteria.tripType
+                    tripType: searchCriteria.tripType,
+                    pax: `${numAdults}A-${numChildren}C-${numInfants}I`
                 });
-                
-                // Add return date for round trips
-                if (searchCriteria.tripType === "ROUND_TRIP" && searchCriteria.odSegments[1]) {
+                if (searchCriteria.tripType === 'ROUND_TRIP' && searchCriteria.odSegments[1]) {
                     queryParams.set("returnDate", searchCriteria.odSegments[1].DepartureDate);
                 }
-                
-                // Store the full search criteria in session storage for reference
-                sessionStorage.setItem('fullSearchCriteria', JSON.stringify(searchCriteria));
-                
-                // Redirect to the results page
                 window.location.href = `results.html?${queryParams.toString()}`;
 
             } catch (error) {
                 console.error('Search Error:', error);
-                if (loadingIndicator) loadingIndicator.style.display = 'none';
-                if (searchErrorMessage) {
-                    searchErrorMessage.textContent = error.message || "Failed to fetch flights. Please try again.";
-                    searchErrorMessage.style.display = 'block';
+                if (loadingIndicator) loadingIndicator.classList.add('hidden');
+                if (errorMessage) {
+                    errorMessage.textContent = error.message || "Failed to fetch flights. Please try again.";
+                    errorMessage.classList.remove('hidden');
                 }
             }
         });
     }
+
+    // --- Mobile Navigation Toggle ---
+    if (mobileNavToggle && mainNav) {
+        mobileNavToggle.addEventListener('click', () => {
+            const isExpanded = mobileNavToggle.getAttribute('aria-expanded') === 'true' || false;
+            mobileNavToggle.setAttribute('aria-expanded', !isExpanded);
+            mobileNavToggle.classList.toggle('active');
+            mainNav.classList.toggle('active');
+        });
+    }
+    
+    // --- Initialize Form Elements ---
+    function getTodayDateString() {
+        return new Date().toISOString().split('T')[0];
+    }
+
+    document.querySelectorAll('input[type="date"]').forEach(dateInput => {
+        dateInput.setAttribute('min', getTodayDateString());
+    });
+    
+    // Setup for initial leg 0
+    setupAirportInput('origin-0');
+    setupAirportInput('destination-0');
+    const swapBtn0 = document.getElementById('swap-od-btn-0');
+    if(swapBtn0) {
+        swapBtn0.addEventListener('click', function() {
+            const originInput = document.getElementById(`origin-0`);
+            const destInput = document.getElementById(`destination-0`);
+            const temp = originInput.value;
+            originInput.value = destInput.value;
+            destInput.value = temp;
+        });
+    }
+    // Remove button for leg 0 is initially hidden, shown for multi-city
+    const removeBtn0 = document.getElementById('remove-leg-btn-0');
+    if(removeBtn0) {
+        removeBtn0.addEventListener('click', function() {
+            alert("Cannot remove the first leg. Change trip type if you need fewer legs.");
+        });
+    }
+
+
+    // Initial setup
+    handleTripTypeChange(); // Set form based on default checked radio
+    updatePassengerButtonText(); // Set initial passenger button text
+    validatePassengerCounts(); // Initial validation for passenger counts
 
     // Set current year in footer
     const currentYearSpan = document.getElementById('currentYear');

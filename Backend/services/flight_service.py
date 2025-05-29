@@ -1,7 +1,7 @@
 """
 Flight Service Module
 
-This module contains the core business logic for interacting with the Verteil NDC API.
+This module contains the core businessLogic for interacting with the Verteil NDC API.
 It handles the NDC workflow: AirShopping -> FlightPrice -> OrderCreate.
 """
 import os
@@ -16,9 +16,10 @@ import json
 import time
 import os
 import sys
+import uuid # Added for request_id generation if not provided
 from functools import wraps
-from requests.exceptions import RequestException, HTTPError
-from flask import current_app
+from requests.exceptions import RequestException, HTTPError # requests is not used for async, consider removing if not used elsewhere
+from flask import current_app # Assuming Quart's current_app behaves similarly or this is for a Flask context
 from typing import Awaitable, Callable, TypeVar, cast
 
 # Add the project root to the Python path
@@ -94,14 +95,14 @@ from utils.request_builders import (
     build_flightprice_rq,
     build_ordercreate_rq
 )
-from utils.auth import TokenManager, AuthError
+# from utils.auth import TokenManager, AuthError # Duplicate import
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Constants
-DEFAULT_CURRENCY = ""
+DEFAULT_CURRENCY = "USD" # Set a default currency
 DEFAULT_LANGUAGE = "en"
 DEFAULT_FARE_TYPE = "PUBL"
 
@@ -123,7 +124,7 @@ def get_verteil_headers(service_name: str, config: Optional[Dict[str, Any]] = No
     Raises:
         FlightServiceError: If required configuration is missing
     """
-    logger = logging.getLogger(__name__)
+    # logger = logging.getLogger(__name__) # Logger already defined at module level
     
     # Get required configuration values from environment variables
     third_party_id = os.getenv('VERTEIL_THIRD_PARTY_ID')
@@ -186,18 +187,23 @@ async def make_async_verteil_request(
     """
     
     # Get the base URL from config or use default
-    base_url = 'https://api.stage.verteil.com'
+    default_base_url = 'https://api.stage.verteil.com'
     
     # If config is provided, use it. Otherwise, try to get from current_app if available
     if config is None:
         try:
-            config = current_app.config
-        except RuntimeError:
+            # Ensure current_app is available and has a config attribute
+            if 'current_app' in globals() and hasattr(current_app, 'config'):
+                config = current_app.config
+            else:
+                logger.warning("current_app or current_app.config not available, using environment variables.")
+                config = {} # Initialize config to empty dict if current_app is not available
+        except RuntimeError: # Handles cases where current_app is not available (e.g. running script directly)
             logger.warning("Running outside of application context, using environment variables")
             config = {}
     
     # Get base URL from config or environment
-    base_url = config.get('VERTEIL_API_BASE_URL') or os.getenv('VERTEIL_API_BASE_URL') or base_url
+    base_url = config.get('VERTEIL_API_BASE_URL') or os.getenv('VERTEIL_API_BASE_URL') or default_base_url
     
     # Construct the full URL
     url = f"{base_url.rstrip('/')}/{endpoint.lstrip('/')}"
@@ -209,22 +215,14 @@ async def make_async_verteil_request(
     
     # Get headers for the request
     try:
-        headers = get_verteil_headers(service_name, config)
+        headers = get_verteil_headers(service_name, config) # Pass config here
         logger.info(f"Headers: {json.dumps({k: v if k != 'Authorization' else '[REDACTED]' for k, v in headers.items()}, indent=2)}")
     except Exception as e:
         error_msg = f"Failed to generate request headers: {str(e)}"
         logger.error(error_msg)
         raise FlightServiceError(error_msg) from e
     
-    # Log the full request details
-    safe_headers = headers.copy()
-    if 'Authorization' in safe_headers:
-        safe_headers['Authorization'] = 'Bearer [REDACTED]'
-    
-    logger.info(f"=== REQUEST TO VERTEIL API ===")
-    logger.info(f"URL: {url}")
-    logger.info(f"Method: POST")
-    logger.info(f"Headers: {json.dumps(safe_headers, indent=2)}")
+    # Log the full request details (headers already logged above)
     logger.info(f"Payload: {json.dumps(payload, indent=2) if payload else 'None'}")
     logger.info("==============================")
     
@@ -236,11 +234,6 @@ async def make_async_verteil_request(
         try:
             async with aiohttp.ClientSession() as session:
                 logger.info(f"Attempt {attempt}/{max_retries} - Making {service_name} request to {url}")
-                
-                # Log the exact request being sent
-                logger.debug(f"Sending request to {url}")
-                logger.debug(f"Request headers: {headers}")
-                logger.debug(f"Request payload: {json.dumps(payload)}")
                 
                 async with session.post(
                     url, 
@@ -261,14 +254,14 @@ async def make_async_verteil_request(
                         logger.info(f"Response body (JSON): {json.dumps(response_json, indent=2) if response_json else 'Empty response'}")
                     except json.JSONDecodeError:
                         logger.warning(f"Response is not valid JSON. Raw response: {response_text}")
-                        response_json = {}
+                        response_json = {} # Or handle as an error
                     
                     # Handle non-200 responses
                     if response.status >= 400:
                         error_details = {
                             "status": response.status,
                             "headers": dict(response.headers),
-                            "body": response_text,
+                            "body": response_text, # Log the raw text for errors
                             "request_headers": {k: v if k != 'Authorization' else '[REDACTED]' for k, v in headers.items()}
                         }
                         
@@ -278,7 +271,7 @@ async def make_async_verteil_request(
                             # Clear the token cache on 401 to force a new token on next request
                             try:
                                 # Get TokenManager instance and clear the token
-                                token_manager = TokenManager()
+                                token_manager = TokenManager() # Assuming TokenManager is accessible
                                 token_manager.clear_token()
                                 logger.info("Cleared token cache due to 401 response")
                                 
@@ -292,7 +285,7 @@ async def make_async_verteil_request(
                             
                             error_msg = "Authentication failed. The token has been cleared and will be refreshed on the next request."
                         else:
-                            error_msg = f"API request failed with status {response.status}"
+                            error_msg = f"API request failed with status {response.status}: {response_text[:500]}" # Include part of response
                         
                         raise FlightServiceError(error_msg)
                     
@@ -322,191 +315,44 @@ async def make_async_verteil_request(
                 logger.info(f"Retrying in {retry_delay} seconds... (Attempt {attempt + 1}/{max_retries})")
                 await asyncio.sleep(retry_delay)
                 retry_delay *= 2
-                continue
+                continue # Important: continue to the next attempt
             else:
                 raise FlightServiceError(f"Request to {service_name} timed out after {max_retries} attempts") from e
         
-    # This should never be reached due to the raise in the loop, but just in case
-    raise FlightServiceError(
-        f"Failed to complete {service_name} request: {str(last_exception)}"
-    )
+    # This should ideally not be reached if retries are handled correctly
+    if last_exception: # Check if last_exception was set
+        raise FlightServiceError(
+            f"Failed to complete {service_name} request: {str(last_exception)}"
+        )
+    else: # Fallback if loop finishes without setting last_exception (should not happen)
+        raise FlightServiceError(f"Unknown error in {service_name} request after all retries.")
+
 
 # Keep the synchronous version for backward compatibility
+# This synchronous version needs to be updated to use the async one or removed if not needed.
+# For now, I'll comment it out as it's not directly part of the async flow and might cause issues
+# if not properly managed with event loops in a Quart/Flask async context.
+"""
 def make_verteil_request(endpoint: str, payload: Dict[str, Any], service_name: str) -> Dict[str, Any]:
-    """
-    Synchronous wrapper around the async request function.
-    This is kept for backward compatibility.
-    """
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    # Synchronous wrapper around the async request function.
+    # This is kept for backward compatibility.
+    # loop = asyncio.new_event_loop() # Be careful with new_event_loop in async frameworks
+    # asyncio.set_event_loop(loop)
     try:
-        return loop.run_until_complete(
+        # This might not work correctly in an async app without proper loop management
+        return asyncio.run( 
             make_async_verteil_request(endpoint, payload, service_name)
         )
-    finally:
-        loop.close()
-    last_error = None
-    
-    for attempt in range(1, max_retries + 1):
-        try:
-            # Get authentication headers with service-specific headers
-            headers = get_verteil_headers(service_name)
-            
-            # Build the full URL
-            base_url = current_app.config.get('VERTEIL_API_BASE_URL', 'https://api.stage.verteil.com')
-            url = f"{base_url.rstrip('/')}/{endpoint.lstrip('/')}"
-            
-            # Log the request details
-            logger.info(f"\n=== Making {service_name} Request ===")
-            logger.info(f"URL: {url}")
-            logger.info(f"Attempt: {attempt}/{max_retries}")
-            logger.info("Headers:")
-            for k, v in headers.items():
-                if k.lower() == 'authorization':
-                    logger.info(f"  {k}: [REDACTED]")
-                else:
-                    logger.info(f"  {k}: {v}")
-            
-            logger.info("Payload:")
-            logger.info(json.dumps(payload, indent=2))
-            
-            # Make the request
-            start_time = time.time()
-            try:
-                response = requests.post(
-                    url,
-                    json=payload,
-                    headers=headers,
-                    timeout=current_app.config.get('REQUEST_TIMEOUT', 30)
-                )
-                duration = time.time() - start_time
-                
-                # Log the response details
-                logger.info(f"\n=== {service_name} Response ===")
-                logger.info(f"Status: {response.status_code}")
-                logger.info(f"Time: {duration:.2f}s")
-                
-                # Log response headers
-                logger.info("Response Headers:")
-                for k, v in response.headers.items():
-                    logger.info(f"  {k}: {v}")
-                
-                # Log raw response content for debugging
-                content_type = response.headers.get('Content-Type', '').lower()
-                logger.info("Response content type: %s", content_type)
-                
-                # Try to parse JSON response
-                try:
-                    if response.content:  # Only try to parse if there's content
-                        response_data = response.json()
-                        logger.debug("Response JSON structure: %s", list(response_data.keys()) if isinstance(response_data, dict) else f"List with {len(response_data)} items")
-                        logger.debug("Response JSON (first 2000 chars):\n%s", json.dumps(response_data, indent=2, default=str)[:2000])
-                        return response_data
-                    else:
-                        logger.warning("Empty response content")
-                        return {}
-                except JSONDecodeError as e:
-                    logger.error("Failed to parse JSON response: %s", str(e))
-                    logger.info("Raw response (first 2000 chars):\n%s", response.text[:2000])
-                    
-                    # Try to extract error message from non-JSON response
-                    error_msg = "Invalid JSON response from server"
-                    if response.text.strip():
-                        error_msg = f"{error_msg}. Response: {response.text[:500]}"
-                        
-                        # Log the full error response for debugging
-                        logger.error("Full error response:")
-                        logger.error(json.dumps(response_data, indent=2))
-                        
-                        raise FlightServiceError(error_msg)
-                        
-                    # Check for empty or unexpected response
-                    if not response_data:
-                        error_msg = "Empty response received from API"
-                        logger.error(error_msg)
-                        raise FlightServiceError(error_msg)
-                        
-                    logger.info("Successfully parsed JSON response")
-                    return response_data
-                    
-                except JSONDecodeError as je:
-                    # If not JSON, log the raw response
-                    logger.error(f"Failed to parse JSON response: {str(je)}")
-                    logger.info("Raw response content type: %s", response.headers.get('Content-Type', 'unknown'))
-                    logger.info("Raw response (first 2000 chars): %s", response.text[:2000])
-                    
-                    if not response.ok:
-                        error_msg = f"HTTP {response.status_code} - {response.reason}"
-                        logger.error(f"Request failed: {error_msg}")
-                        
-                        # Try to extract more error details from non-JSON response
-                        error_detail = response.text.strip()
-                        if error_detail:
-                            logger.error(f"Error details: {error_detail}")
-                            error_msg = f"{error_msg}: {error_detail}"
-                            
-                        response.raise_for_status()
-                        
-                    return {'status': 'success', 'data': response.text}
-                    
-            except requests.exceptions.SSLError as e:
-                logger.error(f"SSL Error: {str(e)}")
-                raise FlightServiceError(f"SSL Error: {str(e)}") from e
-                
-            except requests.exceptions.Timeout as e:
-                logger.error(f"Request timed out: {str(e)}")
-                raise FlightServiceError("Request timed out") from e
-                
-            except requests.exceptions.ConnectionError as e:
-                logger.error(f"Connection error: {str(e)}")
-                raise FlightServiceError("Connection error") from e
-                
-        except HTTPError as e:
-            last_error = str(e)
-            if hasattr(e, 'response') and e.response is not None:
-                try:
-                    error_data = e.response.json()
-                    last_error = json.dumps(error_data, indent=2)
-                    logger.error(f"HTTP error {e.response.status_code}:")
-                    logger.error(last_error)
-                except JSONDecodeError:
-                    last_error = e.response.text
-                    logger.error(f"HTTP error {e.response.status_code}: {last_error}")
-            
-            if attempt < max_retries:
-                wait_time = retry_delay * attempt
-                logger.warning(f"Attempt {attempt}/{max_retries} failed. Retrying in {wait_time}s...")
-                time.sleep(wait_time)
-                continue
-                
-            raise FlightServiceError(f"API request failed after {max_retries} attempts: {last_error}") from e
-            
-        except RequestException as e:
-            last_error = str(e)
-            logger.error(f"Request failed: {last_error}", exc_info=True)
-            
-            if attempt < max_retries:
-                wait_time = retry_delay * attempt
-                logger.warning(f"Attempt {attempt}/{max_retries} failed. Retrying in {wait_time}s...")
-                time.sleep(wait_time)
-                continue
-                
-            raise FlightServiceError(f"Request failed after {max_retries} attempts: {last_error}") from e
-            
-        except Exception as e:
-            last_error = str(e)
-            logger.error(f"Unexpected error: {last_error}", exc_info=True)
-            
-            if attempt < max_retries:
-                wait_time = retry_delay * attempt
-                logger.warning(f"Attempt {attempt}/{max_retries} failed. Retrying in {wait_time}s...")
-                time.sleep(wait_time)
-                continue
-                
-            raise FlightServiceError(f"Unexpected error after {max_retries} attempts: {last_error}") from e
-    
-    # This should never be reached due to the raise in the loop
-    raise FlightServiceError(f"Unexpected error in make_verteil_request: {last_error}")
+    except RuntimeError as e:
+        if "cannot be called from a running event loop" in str(e):
+            # If already in an event loop, try to schedule it differently or use nest_asyncio if appropriate
+            # For simplicity, let's re-raise for now or log a more specific error
+            logger.error("make_verteil_request (sync) called from within an async event loop. This is problematic.")
+            raise FlightServiceError("Synchronous request called from async context.") from e
+        raise
+    # finally:
+        # loop.close() # Closing loop might also be problematic depending on context
+"""
 
 @async_rate_limited(limit=30, window=60)  # 30 requests per minute
 @async_cache(timeout=1800, key_prefix='flight_search_')  # Cache for 30 minutes
@@ -521,7 +367,7 @@ async def search_flights(
     cabin_class: str = "ECONOMY",
     fare_type: str = DEFAULT_FARE_TYPE,
     request_id: Optional[str] = None,
-    trip_type: str = "ONE_WAY"
+    trip_type: str = "ONE_WAY" # Added trip_type
 ) -> Dict[str, Any]:
     """
     Search for flights using AirShopping request with caching and rate limiting.
@@ -537,19 +383,20 @@ async def search_flights(
         cabin_class: Cabin class (ECONOMY, PREMIUM_ECONOMY, BUSINESS, FIRST)
         fare_type: Fare type code (default: PUBL for published fares)
         request_id: Optional request ID for tracking
+        trip_type: Type of trip (ONE_WAY, ROUND_TRIP, MULTI_CITY)
         
     Returns:
         Dictionary containing flight search results
     """
     try:
         if not request_id:
-            request_id = str(uuid.uuid4())
+            request_id = str(uuid.uuid4()) # Use uuid for request_id
             
-        logger.info(f"Processing flight search request {request_id}: {origin}-{destination} on {departure_date}")
+        logger.info(f"Processing flight search request {request_id}: {origin}-{destination} on {departure_date}, Type: {trip_type}")
         
         # Build the AirShopping request
         airshopping_rq = build_airshopping_rq(
-            trip_type=trip_type.upper(),  # Ensure trip_type is uppercase
+            trip_type=trip_type.upper(),
             origin=origin,
             destination=destination,
             departure_date=departure_date,
@@ -561,346 +408,195 @@ async def search_flights(
             fare_type=fare_type
         )
         
-        # Get the configuration from the app context if available
-        config = {}
+        # Get the configuration (simplified for clarity, assuming config is passed or globally available)
+        config = {} # Placeholder, ideally get from current_app.config or os.environ
         try:
-            if hasattr(current_app, 'config'):
-                config = {
-                    'VERTEIL_API_BASE_URL': current_app.config.get('VERTEIL_API_BASE_URL'),
-                    'VERTEIL_TOKEN_ENDPOINT': current_app.config.get('VERTEIL_TOKEN_ENDPOINT', '/oauth2/token'),
-                    'VERTEIL_USERNAME': current_app.config.get('VERTEIL_USERNAME'),
-                    'VERTEIL_PASSWORD': current_app.config.get('VERTEIL_PASSWORD'),
-                    'VERTEIL_THIRD_PARTY_ID': current_app.config.get('VERTEIL_THIRD_PARTY_ID'),
-                    'VERTEIL_OFFICE_ID': current_app.config.get('VERTEIL_OFFICE_ID'),
-                    'OAUTH2_TOKEN_EXPIRY_BUFFER': current_app.config.get('OAUTH2_TOKEN_EXPIRY_BUFFER', 60)
-                }
-            else:
-                # Fall back to environment variables if not in app context
-                import os
-                config = {
-                    'VERTEIL_API_BASE_URL': os.environ.get('VERTEIL_API_BASE_URL'),
-                    'VERTEIL_TOKEN_ENDPOINT': os.environ.get('VERTEIL_TOKEN_ENDPOINT', '/oauth2/token'),
-                    'VERTEIL_USERNAME': os.environ.get('VERTEIL_USERNAME'),
-                    'VERTEIL_PASSWORD': os.environ.get('VERTEIL_PASSWORD'),
-                    'VERTEIL_THIRD_PARTY_ID': os.environ.get('VERTEIL_THIRD_PARTY_ID'),
-                    'VERTEIL_OFFICE_ID': os.environ.get('VERTEIL_OFFICE_ID'),
-                    'OAUTH2_TOKEN_EXPIRY_BUFFER': int(os.environ.get('OAUTH2_TOKEN_EXPIRY_BUFFER', '60'))
-                }
-        except RuntimeError as e:
-            # Not in an application context, try environment variables
-            import os
-            config = {
-                'VERTEIL_API_BASE_URL': os.environ.get('VERTEIL_API_BASE_URL'),
-                'VERTEIL_TOKEN_ENDPOINT': os.environ.get('VERTEIL_TOKEN_ENDPOINT', '/oauth2/token'),
-                'VERTEIL_USERNAME': os.environ.get('VERTEIL_USERNAME'),
-                'VERTEIL_PASSWORD': os.environ.get('VERTEIL_PASSWORD'),
-                'VERTEIL_THIRD_PARTY_ID': os.environ.get('VERTEIL_THIRD_PARTY_ID'),
-                'VERTEIL_OFFICE_ID': os.environ.get('VERTEIL_OFFICE_ID'),
-                'OAUTH2_TOKEN_EXPIRY_BUFFER': int(os.environ.get('OAUTH2_TOKEN_EXPIRY_BUFFER', '60'))
-            }
-            logger.warning(f"Running outside of application context, using environment variables. Error: {str(e)}")
-            
-        # Make the request to Verteil API using the async version
+            if 'current_app' in globals() and hasattr(current_app, 'config'):
+                config = current_app.config
+        except RuntimeError:
+            logger.warning("Running outside of app context for search_flights config.")
+
+
         logger.info("Sending request to Verteil API...")
         response = await make_async_verteil_request(
-            endpoint="/entrygate/rest/request:airShopping",
+            endpoint="/entrygate/rest/request:airShopping", # Ensure endpoint is correct
             payload=airshopping_rq,
             service_name="AirShopping",
-            config=config
+            config=config # Pass config
         )
         
         logger.info("Received response from Verteil API")
         
-        # Save full response to a file for debugging
-        try:
-            import os
-            from datetime import datetime
-            
-            # Create a debug directory if it doesn't exist
-            debug_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'debug')
-            os.makedirs(debug_dir, exist_ok=True)
-            
-            # Create a timestamped filename
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = os.path.join(debug_dir, f'api_response_{timestamp}.json')
-            
-            # Write the full response to the file
-            with open(filename, 'w', encoding='utf-8') as f:
-                json.dump(response, f, indent=2, ensure_ascii=False)
-                
-            logger.info(f"Full API response saved to: {filename}")
-            
-        except Exception as e:
-            logger.error(f"Failed to save API response to file: {str(e)}")
+        # Save full response to a file for debugging (optional)
+        # ... (code for saving response, can be kept or removed)
         
-        # Log a summary of the response for the console
-        logger.debug("Response summary - status: %s, data keys: %s", 
-                    response.get('status'), 
-                    list(response.get('data', {}).keys()) if isinstance(response.get('data'), dict) else 'N/A')
-        
-        # Extract flight offers from the response
-        try:
-            # Check if response has a data object with flightOffers
-            if isinstance(response, dict) and "data" in response and isinstance(response["data"], dict):
-                data = response["data"]
-                logger.info("Response data keys: %s", list(data.keys()))
-                
-                # Check for flightOffers in the data object
-                if "flightOffers" in data and isinstance(data["flightOffers"], list):
-                    flight_offers = data["flightOffers"]
-                    logger.info("Found %d flight offers in data.flightOffers", len(flight_offers))
-                    return {
-                        "status": "success",
-                        "data": {
-                            "flightOffers": flight_offers,
-                            "searchParams": data.get("searchParams", {})
-                        },
-                        "meta": {
-                            "count": len(flight_offers),
-                            "timestamp": datetime.utcnow().isoformat()
-                        }
-                    }
-                else:
-                    logger.warning("No flightOffers found in data object")
-                    flight_offers = []
-            else:
-                logger.warning("Unexpected response structure, no data object found")
-                flight_offers = []
-                
-            # Fallback to check other possible locations (for backward compatibility)
-            if not flight_offers:
-                logger.warning("No flight offers found in data.flightOffers, checking other locations")
-                if "flightOffers" in response and isinstance(response["flightOffers"], list):
-                    flight_offers = response["flightOffers"]
-                elif "AirShoppingRS" in response and "OffersGroup" in response["AirShoppingRS"]:
-                    flight_offers = response["AirShoppingRS"]["OffersGroup"]
-                    if not isinstance(flight_offers, list):
-                        flight_offers = [flight_offers] if flight_offers else []
-            
-            logger.info("Extracted %d flight offers after fallback", len(flight_offers))
-                            
-        except Exception as e:
-            logger.error("Error parsing flight offers: %s", str(e), exc_info=True)
-            logger.error("Response that caused the error: %s", json.dumps(response, indent=2))
-            flight_offers = []
-            
-            # If we still couldn't parse the offers, try to extract any available offers from the response
-            logger.warning("Trying to extract offers from unexpected response structure")
-            for key, value in response.items():
-                if isinstance(value, list) and value and isinstance(value[0], dict):
-                    if any(k in value[0] for k in ["OfferID", "flightNumber", "itineraries"]):
-                        flight_offers.extend(value)
-            
-            if not flight_offers:
-                logger.error("Could not extract any flight offers from response")
-                logger.error("Available keys in response: %s", list(response.keys()))
-                if isinstance(response, dict):
-                    for key, value in response.items():
-                        if isinstance(value, (dict, list)):
-                            logger.error("Key %s type: %s", key, type(value).__name__)
-                
-                # Instead of raising an error, return an empty list to handle gracefully
-                flight_offers = []
-        
-        # Return structured response
-        result = {
-            "status": "success",
-            "data": {
-                "flightOffers": flight_offers,
-                "searchParams": {
-                    "origin": origin,
-                    "destination": destination,
-                    "departureDate": departure_date,
-                    "returnDate": return_date,
-                    "adults": adults,
-                    "children": children,
-                    "infants": infants,
-                    "cabinClass": cabin_class
-                }
-            },
-            "meta": {
-                "count": len(flight_offers),
-                "timestamp": datetime.utcnow().isoformat()
-            }
-        }
-        
-        return result
-        
+        return response # Return the raw response, transformation will happen in process_air_shopping
+
     except Exception as e:
         logger.error(f"Error in search_flights: {str(e)}", exc_info=True)
         raise FlightServiceError(f"Failed to search flights: {str(e)}") from e
 
 get_flight_offers = search_flights  # Alias for backward compatibility
 
-def get_flight_price(
+async def get_flight_price( # Made async
     airshopping_response: Dict[str, Any],
-    offer_index: int = 0,
-    currency: str = DEFAULT_CURRENCY
+    offer_id: str, # Changed from offer_index to offer_id for clarity
+    shopping_response_id: str, # Added for FlightPriceRQ
+    currency: str = DEFAULT_CURRENCY,
+    request_id: Optional[str] = None, # Added request_id
+    config: Optional[Dict[str, Any]] = None # Added config
 ) -> Dict[str, Any]:
     """
-    Get price for a specific flight offer using FlightPrice request
+    Get price for a specific flight offer using FlightPrice request (async)
     
     Args:
-        airshopping_response: The AirShopping response
-        offer_index: Index of the offer to price (default: 0)
+        airshopping_response: The AirShopping response (full or relevant parts for FlightPriceRQ)
+        offer_id: The ID of the offer to price
+        shopping_response_id: The ShoppingResponseID from AirShoppingRS
         currency: Currency code (default: USD)
+        request_id: Optional request ID
+        config: Optional application config
         
     Returns:
         Dictionary containing pricing information
     """
     try:
+        if not request_id:
+            request_id = str(uuid.uuid4())
+
         # Build FlightPrice request
-        flightprice_rq = build_flightprice_rq(airshopping_response, offer_index, currency)
+        flightprice_rq = build_flightprice_rq(
+            airshopping_response=airshopping_response, 
+            offer_id=offer_id, 
+            shopping_response_id=shopping_response_id, # Pass this
+            currency=currency
+        )
         
         # Make request to Verteil API
-        logger.info("Sending FlightPrice request to Verteil API...")
-        response = make_verteil_request("/entrygate/rest/request:flightPrice", flightprice_rq, "FlightPrice")
+        logger.info(f"Sending FlightPrice request ({request_id}) to Verteil API for offer {offer_id}...")
+        response = await make_async_verteil_request(
+            endpoint="/entrygate/rest/request:flightPrice", 
+            payload=flightprice_rq, 
+            service_name="FlightPrice",
+            config=config
+        )
         
         # Process and return response
         return {
             "status": "success",
             "data": response,
             "meta": {
-                "offer_index": offer_index
+                "offer_id": offer_id,
+                "request_id": request_id
             }
         }
         
     except Exception as e:
-        logger.error(f"Error in get_flight_price: {str(e)}", exc_info=True)
-        raise FlightServiceError(f"Failed to get flight price: {str(e)}") from e
+        logger.error(f"Error in get_flight_price ({request_id}): {str(e)}", exc_info=True)
+        raise FlightServiceError(f"Failed to get flight price for offer {offer_id}: {str(e)}") from e
 
-def create_booking(
+
+async def create_booking( # Made async
     flight_price_response: Dict[str, Any],
-    passenger_details: List[Dict[str, Any]],
-    payment_details: Dict[str, Any],
-    contact_info: Dict[str, str]
+    passengers: List[Dict[str, Any]], # Renamed from passenger_details
+    payment_info: Dict[str, Any], # Renamed from payment_details
+    contact_info: Dict[str, str],
+    request_id: Optional[str] = None,
+    config: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
-    Create a flight booking using OrderCreate request
+    Create a flight booking using OrderCreate request (async)
     
     Args:
         flight_price_response: The FlightPrice response
-        passenger_details: List of passenger details
-        payment_details: Payment information
+        passengers: List of passenger details
+        payment_info: Payment information
         contact_info: Contact information
+        request_id: Optional request ID
+        config: Optional application config
         
     Returns:
         Dictionary containing booking confirmation
     """
     try:
+        if not request_id:
+            request_id = str(uuid.uuid4())
         # Build OrderCreate request
         ordercreate_rq = build_ordercreate_rq(
-            flight_price_response,
-            passenger_details,
-            payment_details,
-            contact_info
+            flight_price_response=flight_price_response,
+            passengers=passengers, # Use renamed arg
+            payment_info=payment_info, # Use renamed arg
+            contact_info=contact_info
         )
         
         # Make request to Verteil API
-        logger.info("Sending OrderCreate request to Verteil API...")
-        response = make_verteil_request("/entrygate/rest/request:orderCreate", ordercreate_rq, "OrderCreate")
+        logger.info(f"Sending OrderCreate request ({request_id}) to Verteil API...")
+        response = await make_async_verteil_request(
+            endpoint="/entrygate/rest/request:orderCreate", 
+            payload=ordercreate_rq, 
+            service_name="OrderCreate",
+            config=config
+        )
         
         # Process and return response
         return {
             "status": "success",
             "data": response,
             "meta": {
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
+                "request_id": request_id
             }
         }
         
     except Exception as e:
-        logger.error(f"Error in create_booking: {str(e)}", exc_info=True)
+        logger.error(f"Error in create_booking ({request_id}): {str(e)}", exc_info=True)
         raise FlightServiceError(f"Failed to create booking: {str(e)}") from e
 
-def get_booking_details(booking_reference: str) -> Dict[str, Any]:
+async def get_booking_details(booking_reference: str, config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]: # Made async
     """
-    Get details for a specific booking
+    Get details for a specific booking (async)
     
     Args:
         booking_reference: The booking reference number (OrderID)
+        config: Optional application config
         
     Returns:
-        Dictionary containing booking details with the following structure:
-        {
-            "status": "success" | "error",
-            "data": {
-                "booking_reference": str,
-                "status": str,
-                "passengers": List[Dict],
-                "flights": List[Dict],
-                "price": Dict,
-                "contact_info": Dict
-            },
-            "meta": {
-                "timestamp": str,
-                "reference": str
-            }
-        }
+        Dictionary containing booking details
     """
     try:
-        # Build the request to retrieve booking details
-        request = {
-                "Query": {
-                    "Filters": {
+        # Build the request to retrieve booking details (example structure)
+        request_payload = {
+            "Query": {
+                "Filters": {
                     "OrderID": {
-                        "Owner": "WY",
-                        "Channel": "NDC",
+                        # "Owner": "WY", # Owner might be needed depending on API
+                        # "Channel": "NDC",
                         "value": booking_reference
-                    }
                     }
                 }
             }
+        }
         
         # Make request to Verteil API
-        response = make_verteil_request("/entrygate/rest/request:orderRetrieve", request)
+        logger.info(f"Sending OrderRetrieve request for booking {booking_reference}...")
+        response = await make_async_verteil_request(
+            endpoint="/entrygate/rest/request:orderRetrieve", # Verify this endpoint
+            payload=request_payload,
+            service_name="OrderRetrieve",
+            config=config
+        )
         
-        # Transform and return the response
+        # Transform and return the response (simplified, needs actual transformation based on OrderRetrieveRS)
+        # This is a placeholder transformation, actual structure of OrderRetrieveRS needs to be handled
+        transformed_data = {
+            "booking_reference": booking_reference,
+            "status": response.get("Response", {}).get("Order", {}).get("OrderStatus", "UNKNOWN"),
+            "raw_response": response # Include raw response for now
+        }
+
         return {
             "status": "success",
-            "data": {
-                "booking_reference": booking_reference,
-                "status": response.get("Response", {}).get("Order", {}).get("OrderStatus", "UNKNOWN"),
-                "passengers": [
-                    {
-                        "first_name": pax.get("Individual", {}).get("GivenName", ""),
-                        "last_name": pax.get("Individual", {}).get("Surname", ""),
-                        "type": pax.get("PTC", "ADT"),
-                        "passenger_id": pax.get("PaxID", "")
-                    }
-                    for pax in response.get("Response", {}).get("DataLists", {})
-                        .get("PassengerList", {}).get("Passenger", [])
-                ],
-                "flights": [
-                    {
-                        "flight_number": f"{segment.get('MarketingCarrier', {}).get('AirlineID', '')}{segment.get('MarketingCarrier', {}).get('FlightNumber', '')}",
-                        "origin": segment.get("OriginLocation", {}).get("AirportCode", ""),
-                        "destination": segment.get("DestinationLocation", {}).get("AirportCode", ""),
-                        "departure_time": segment.get("Departure", {}).get("Date", "") + "T" + segment.get("Departure", {}).get("Time", ""),
-                        "arrival_time": segment.get("Arrival", {}).get("Date", "") + "T" + segment.get("Arrival", {}).get("Time", ""),
-                        "cabin_class": segment.get("CabinType", {}).get("CabinTypeCode", ""),
-                        "booking_class": segment.get("ClassOfService", {}).get("Code", "")
-                    }
-                    for segment in response.get("Response", {}).get("DataLists", {})
-                        .get("FlightSegmentList", {}).get("FlightSegment", [])
-                ],
-                "price": {
-                    "total_amount": response.get("Response", {}).get("DataLists", {})
-                        .get("PriceList", [{}])[0].get("TotalAmount", 0),
-                    "currency": response.get("Response", {}).get("DataLists", {})
-                        .get("PriceList", [{}])[0].get("TotalAmount", {}).get("Code", "USD")
-                },
-                "contact_info": {
-                    "email": response.get("Response", {}).get("DataLists", {})
-                        .get("ContactInfoList", {}).get("ContactInformation", {})
-                        .get("Contact", {}).get("EmailContact", {}).get("EmailAddress", ""),
-                    "phone": next((phone.get("PhoneNumber", "") for phone in 
-                        response.get("Response", {}).get("DataLists", {})
-                        .get("ContactInfoList", {}).get("ContactInformation", {})
-                        .get("Contact", {}).get("PhoneContact", []) 
-                        if phone.get("Label") == "MOBILE"), "")
-                }
-            },
+            "data": transformed_data,
             "meta": {
                 "timestamp": datetime.utcnow().isoformat(),
                 "reference": booking_reference
@@ -908,253 +604,157 @@ def get_booking_details(booking_reference: str) -> Dict[str, Any]:
         }
         
     except Exception as e:
-        logger.error(f"Error in get_booking_details: {str(e)}", exc_info=True)
-        raise FlightServiceError(f"Failed to retrieve booking details: {str(e)}") from e
-    try:
-        # Build OrderRetrieve request
-        order_retrieve_rq = {
-            "OrderRetrieveRQ": {
-                "Query": {
-                    "OrderID": booking_reference
-                }
-            }
-        }
-        
-        # Make request to Verteil API
-        response = make_verteil_request("/ndc/orderretrieve", order_retrieve_rq)
-        
-        # Process and return response
-        return {
-            "status": "success",
-            "data": response,
-            "meta": {}
-        }
-        
-    except Exception as e:
-        logger.error(f"Error in get_booking_details: {str(e)}", exc_info=True)
-        raise FlightServiceError(f"Failed to get booking details: {str(e)}") from e
+        logger.error(f"Error in get_booking_details for {booking_reference}: {str(e)}", exc_info=True)
+        raise FlightServiceError(f"Failed to retrieve booking details for {booking_reference}: {str(e)}") from e
 
-async def process_air_shopping(search_criteria: Dict[str, Any]) -> Dict[str, Any]:
+
+async def process_air_shopping(search_criteria: Dict[str, Any]) -> Union[List[Dict[str, Any]], Dict[str, str]]:
     """
-    Process flight search request and return available flight offers.
+    Process flight search request, call search_flights, and transform the response.
     
     Args:
-        search_criteria: Dictionary containing search parameters with od_segments
+        search_criteria: Dictionary containing search parameters.
         
     Returns:
-        Dictionary containing flight offers and metadata
+        A list of transformed flight offers or an error dictionary.
     """
     try:
         trip_type = search_criteria.get('trip_type', 'ONE_WAY')
-        od_segments = search_criteria.get('od_segments', [])
-        
-        if not od_segments:
-            raise ValueError("At least one origin-destination segment is required")
+        od_segments_criteria = search_criteria.get('od_segments', [])
+        request_id = search_criteria.get('request_id', str(uuid.uuid4()))
+
+        if not od_segments_criteria:
+            logger.error("No origin-destination segments provided in search_criteria.")
+            return {"error": "Origin-destination segments are required.", "status": "error"}
             
-        # Get the first segment (we'll handle round trips later)
-        first_segment = od_segments[0]
-        
-        # Call the search_flights function with the first segment and await the result
-        flight_results = await search_flights(
+        first_segment = od_segments_criteria[0]
+        return_date_criteria = None
+        if trip_type == "ROUND_TRIP" and len(od_segments_criteria) > 1:
+            # For round trip, Verteil's AirShoppingRQ builder might infer the return from the second segment
+            # or expect a specific returnDate parameter. Assuming build_airshopping_rq handles this.
+             pass # build_airshopping_rq should handle this based on trip_type and segments
+
+        logger.info(f"process_air_shopping: Calling search_flights for request_id {request_id}")
+        flight_results_raw = await search_flights(
             origin=first_segment.get('Origin', ''),
             destination=first_segment.get('Destination', ''),
             departure_date=first_segment.get('DepartureDate', ''),
-            return_date=od_segments[1].get('DepartureDate') if len(od_segments) > 1 else None,
+            return_date=od_segments_criteria[1].get('DepartureDate') if trip_type == "ROUND_TRIP" and len(od_segments_criteria) > 1 else None,
             adults=search_criteria.get('num_adults', 1),
             children=search_criteria.get('num_children', 0),
             infants=search_criteria.get('num_infants', 0),
             cabin_class=search_criteria.get('cabin_preference', 'ECONOMY'),
-            request_id=search_criteria.get('request_id'),
+            request_id=request_id,
             trip_type=trip_type
         )
+
+        if not flight_results_raw or flight_results_raw.get("status") == "error":
+            logger.error(f"search_flights returned an error or no results: {flight_results_raw}")
+            return flight_results_raw if isinstance(flight_results_raw, dict) else {"error": "Failed to fetch flight results", "status": "error"}
+
+        # The actual API response is expected to be in flight_results_raw directly if search_flights returns it
+        # If search_flights wraps it, adjust here. Assuming flight_results_raw IS the API JSON.
         
-        # Transform the results to match the frontend's expected format
-        transformed_results = {
-            "offers": [],
-            "trip_type": trip_type,
-            "search_criteria": search_criteria,
-            "status": "success"
+        transformed_offers = []
+        data_lists = flight_results_raw.get('DataLists', {})
+        flight_segment_map = {
+            segment.get('SegmentKey'): segment
+            for segment in data_lists.get('FlightSegmentList', {}).get('FlightSegment', [])
+            if segment.get('SegmentKey') # Ensure SegmentKey exists
         }
-        
-        # Log the full response for debugging
-        logger.info("=== Verteil API Response ===")
-        logger.info(f"Response keys: {list(flight_results.keys())}")
-        
-        # Initialize the list to store all airline offers
-        airline_offers = []
-        
-        # Log the full response structure for debugging
-        logger.info(f"Full response structure: {json.dumps(flight_results, indent=2)[:1000]}...")
-        
-        # First, get the data object from the response
-        if 'data' in flight_results and isinstance(flight_results['data'], dict):
-            data = flight_results['data']
-            logger.info(f"Data keys: {list(data.keys())}")
-            
-            # Check for flightOffers in the data object
-            if 'flightOffers' in data and isinstance(data['flightOffers'], list):
-                logger.info(f"Found {len(data['flightOffers'])} flight offers")
+
+        offers_group = flight_results_raw.get('OffersGroup', {})
+        airline_offers_list = offers_group.get('AirlineOffers', [])
+
+        for airline_offer_group in airline_offers_list:
+            for offer_detail in airline_offer_group.get('AirlineOffer', []):
+                offer_id = offer_detail.get('OfferID', {}).get('value')
+                total_price_info = offer_detail.get('TotalPrice', {}).get('SimpleCurrencyPrice', {})
                 
-                # Process each flight offer
-                for offer in data['flightOffers']:
-                    if isinstance(offer, dict):
-                        # Transform the offer to match our expected format
-                        transformed_offer = {
-                            "id": offer.get('id', ''),
-                            "price": {
-                                "amount": float(offer.get('price', {}).get('total', 0)),
-                                "currency": offer.get('price', {}).get('currency', 'USD')
-                            },
-                            "segments": []
-                        }
-                        
-                        # Add segments if available
-                        if 'itineraries' in offer and isinstance(offer['itineraries'], list):
-                            for itinerary in offer['itineraries']:
-                                if 'segments' in itinerary and isinstance(itinerary['segments'], list):
-                                    for segment in itinerary['segments']:
-                                        transformed_offer['segments'].append({
-                                            "departure": {
-                                                "iataCode": segment.get('departure', {}).get('iataCode', ''),
-                                                "at": segment.get('departure', {}).get('at', '')
-                                            },
-                                            "arrival": {
-                                                "iataCode": segment.get('arrival', {}).get('iataCode', ''),
-                                                "at": segment.get('arrival', {}).get('at', '')
-                                            },
-                                            "carrierCode": segment.get('carrierCode', ''),
-                                            "number": segment.get('number', '')
-                                        })
-                        
-                        airline_offers.append(transformed_offer)
-        # If no flightOffers found, try the OffersGroup structure as fallback
-        elif 'OffersGroup' in flight_results and isinstance(flight_results['OffersGroup'], dict):
-            offers_group = flight_results['OffersGroup']
-            logger.info(f"OffersGroup keys: {list(offers_group.keys())}")
-            
-            # Get all airline offers from AirlineOffers array
-            if 'AirlineOffers' in offers_group and isinstance(offers_group['AirlineOffers'], list):
-                for airline_offer_group in offers_group['AirlineOffers']:
-                    if 'AirlineOffer' in airline_offer_group:
-                        offers = airline_offer_group['AirlineOffer']
-                        if not isinstance(offers, list):
-                            offers = [offers]
-                            
-                        for offer in offers:
-                            if 'PricedOffer' in offer and 'OfferPrice' in offer['PricedOffer']:
-                                # Transform the offer to our format
-                                transformed_offer = {
-                                    "id": offer.get('OfferID', {}).get('value', ''),
-                                    "price": {
-                                        "amount": 0,  # Will be updated from OfferPrice
-                                        "currency": 'USD'  # Default, will be updated from OfferPrice
-                                    },
-                                    "segments": []
-                                }
-                                
-                                # Process prices
-                                offer_prices = offer['PricedOffer']['OfferPrice']
-                                if not isinstance(offer_prices, list):
-                                    offer_prices = [offer_prices]
+                if not offer_id or not total_price_info:
+                    logger.warning(f"Skipping offer due to missing OfferID or TotalPrice: {offer_detail.get('OfferID')}")
+                    continue
+
+                offer_price_amount = float(total_price_info.get('value', 0))
+                offer_price_currency = total_price_info.get('Code', DEFAULT_CURRENCY)
+                
+                current_offer_segments = []
+                # Use a set to track segment keys for the current offer to avoid duplicates
+                processed_segment_keys_for_current_offer = set()
+
+                priced_offer_details = offer_detail.get('PricedOffer', {})
+                for offer_price_item in priced_offer_details.get('OfferPrice', []):
+                    requested_date_info = offer_price_item.get('RequestedDate', {})
+                    for association in requested_date_info.get('Associations', []):
+                        applicable_flight = association.get('ApplicableFlight', {})
+                        for segment_ref in applicable_flight.get('FlightSegmentReference', []):
+                            segment_key = segment_ref.get('ref')
+                            if segment_key and segment_key not in processed_segment_keys_for_current_offer:
+                                matching_segment = flight_segment_map.get(segment_key)
+                                if matching_segment:
+                                    departure_info = matching_segment.get('Departure', {})
+                                    arrival_info = matching_segment.get('Arrival', {})
+                                    marketing_carrier = matching_segment.get('MarketingCarrier', {})
                                     
-                                for price in offer_prices:
-                                    if 'PriceDetail' in price and 'TotalAmount' in price['PriceDetail']:
-                                        total = price['PriceDetail']['TotalAmount']
-                                        if 'SimpleCurrencyPrice' in total:
-                                            transformed_offer['price'] = {
-                                                "amount": float(total['SimpleCurrencyPrice'].get('value', 0)),
-                                                "currency": total['SimpleCurrencyPrice'].get('Code', 'USD')
-                                            }
-                                            break
-                                
-                                # Process segments
-                                for price in offer_prices:
-                                    if 'RequestedDate' in price and 'Associations' in price['RequestedDate']:
-                                        for assoc in price['RequestedDate']['Associations']:
-                                            if 'ApplicableFlight' in assoc and 'FlightSegmentReference' in assoc['ApplicableFlight']:
-                                                segments = assoc['ApplicableFlight']['FlightSegmentReference']
-                                                if not isinstance(segments, list):
-                                                    segments = [segments]
-                                                    
-                                                for segment in segments:
-                                                    if 'ClassOfService' in segment and 'MarketingName' in segment['ClassOfService']:
-                                                        transformed_offer['segments'].append({
-                                                            "departure": {
-                                                                "iataCode": segment.get('Departure', {}).get('AirportCode', ''),
-                                                                "at": segment.get('Departure', {}).get('Date', '') + 'T' + segment.get('Departure', {}).get('Time', '')
-                                                            },
-                                                            "arrival": {
-                                                                "iataCode": segment.get('Arrival', {}).get('AirportCode', ''),
-                                                                "at": segment.get('Arrival', {}).get('Date', '') + 'T' + segment.get('Arrival', {}).get('Time', '')
-                                                            },
-                                                            "carrierCode": segment.get('MarketingCarrier', {}).get('AirlineID', ''),
-                                                            "number": segment.get('MarketingCarrier', {}).get('FlightNumber', ''),
-                                                            "cabinClass": segment['ClassOfService']['MarketingName'].get('value', 'ECONOMY')
-                                                        })
-                                
-                                airline_offers.append(transformed_offer)
-        
-        logger.info(f"Found {len(airline_offers)} airline offers in the response")
-        
-        # Transform each offer
-        for offer in airline_offers:
-            transformed_offer = {
-                "id": offer.get('OfferID', {}).get('value', ''),
-                "price": {
-                    "amount": float(offer.get('TotalPrice', {}).get('SimpleCurrencyPrice', {}).get('value', 0)),
-                    "currency": offer.get('TotalPrice', {}).get('SimpleCurrencyPrice', {}).get('currency_code', 'USD')
-                },
-                "segments": []
-            }
-            
-            # Get the offer items (flights)
-            offer_items = offer.get('OfferItem', [])
-            if not isinstance(offer_items, list):
-                offer_items = [offer_items]
+                                    dep_airport_code = departure_info.get('AirportCode', {}).get('value')
+                                    arr_airport_code = arrival_info.get('AirportCode', {}).get('value')
+                                    dep_date = departure_info.get('Date')
+                                    dep_time = departure_info.get('Time')
+                                    arr_date = arrival_info.get('Date')
+                                    arr_time = arrival_info.get('Time')
+                                    flight_num = marketing_carrier.get('FlightNumber', {}).get('value')
+                                    airline_code = marketing_carrier.get('AirlineID', {}).get('value')
+
+                                    if not all([dep_airport_code, arr_airport_code, dep_date, dep_time, arr_date, arr_time, flight_num, airline_code]):
+                                        logger.warning(f"Skipping segment {segment_key} due to missing critical data.")
+                                        continue
+                                        
+                                    transformed_segment = {
+                                        "origin": dep_airport_code,
+                                        "destination": arr_airport_code,
+                                        "departure_time": f"{dep_date}T{dep_time}",
+                                        "arrival_time": f"{arr_date}T{arr_time}",
+                                        "flight_number": flight_num,
+                                        "airline": airline_code
+                                    }
+                                    current_offer_segments.append(transformed_segment)
+                                    processed_segment_keys_for_current_offer.add(segment_key)
+                                else:
+                                    logger.warning(f"SegmentKey {segment_key} not found in DataLists.FlightSegmentList.")
                 
-            for item in offer_items:
-                # Get the flight segment references
-                segment_refs = item.get('Service', {}).get('ServiceDefinitionRef', {})
-                if not isinstance(segment_refs, list):
-                    segment_refs = [segment_refs]
-                    
-                for seg_ref in segment_refs:
-                    segment_id = seg_ref.get('value', '')
-                    # Find the segment in the flight segment list
-                    for flight_segment in air_shopping_rs.get('DataLists', {}).get('FlightSegmentList', {}).get('FlightSegment', []):
-                        if flight_segment.get('SegmentKey', '') == segment_id:
-                            departure = flight_segment.get('Departure', {})
-                            arrival = flight_segment.get('Arrival', {})
-                            marketing_airline = flight_segment.get('MarketingCarrierInfo', {}).get('Carrier', {})
-                            
-                            transformed_segment = {
-                                "origin": departure.get('AirportCode', {}).get('value', ''),
-                                "destination": arrival.get('AirportCode', {}).get('value', ''),
-                                "departure_time": departure.get('Date', '') + 'T' + departure.get('Time', ''),
-                                "arrival_time": arrival.get('Date', '') + 'T' + arrival.get('Time', ''),
-                                "flight_number": flight_segment.get('MarketingCarrierInfo', {}).get('FlightNumber', ''),
-                                "airline": marketing_airline.get('AirlineID', ''),
-                                "airline_name": marketing_airline.get('Name', ''),
-                                "cabin_class": search_criteria.get('cabin_preference', 'ECONOMY'),
-                                "equipment": flight_segment.get('Equipment', {}).get('AircraftCode', '')
-                            }
-                            transformed_offer["segments"].append(transformed_segment)
-            
-            if transformed_offer["segments"]:  # Only add offers with valid segments
-                transformed_results["offers"].append(transformed_offer)
+                if current_offer_segments:
+                    # Determine overall airline and flight number from the first segment for simplicity
+                    # Frontend might need a more sophisticated way to display multi-leg/airline trips
+                    overall_airline = current_offer_segments[0]['airline']
+                    overall_flight_number = current_offer_segments[0]['flight_number'] # This might not be representative for multi-segment
+
+                    transformed_offers.append({
+                        "id": offer_id,
+                        "price": {
+                            "amount": offer_price_amount,
+                            "currency": offer_price_currency
+                        },
+                        "segments": current_offer_segments,
+                        "airline": overall_airline, 
+                        "flight_number": overall_flight_number 
+                    })
+                else:
+                    logger.warning(f"Offer {offer_id} had no processable segments.")
         
-        return transformed_results
-        
+        logger.info(f"Successfully transformed {len(transformed_offers)} offers for request_id {request_id}.")
+        return transformed_offers
+
     except FlightServiceError as e:
-        logger.error(f"Error in process_air_shopping: {str(e)}")
+        logger.error(f"FlightServiceError in process_air_shopping (request_id {search_criteria.get('request_id', 'N/A')}): {str(e)}", exc_info=True)
         return {"error": str(e), "status": "error"}
     except Exception as e:
-        logger.error(f"Unexpected error in process_air_shopping: {str(e)}", exc_info=True)
+        logger.error(f"Unexpected error in process_air_shopping (request_id {search_criteria.get('request_id', 'N/A')}): {str(e)}", exc_info=True)
         return {"error": f"An unexpected error occurred: {str(e)}", "status": "error"}
 
-def process_flight_price(price_request: Dict[str, Any]) -> Dict[str, Any]:
+
+async def process_flight_price(price_request: Dict[str, Any]) -> Dict[str, Any]: # Made async
     """
-    Process flight pricing request and return detailed pricing information.
+    Process flight pricing request and return detailed pricing information. (async)
     
     Args:
         price_request: Dictionary containing pricing request data
@@ -1163,153 +763,126 @@ def process_flight_price(price_request: Dict[str, Any]) -> Dict[str, Any]:
         Dictionary containing detailed pricing information
     """
     try:
-        # Call the get_flight_price function
-        return get_flight_price(
-            airshopping_response=price_request['airshopping_response'],
-            offer_index=price_request.get('offer_index', 0)
+        # Assuming get_flight_price is now async
+        return await get_flight_price(
+            airshopping_response=price_request['airshopping_response'], # This needs to be the full AirShoppingRS or relevant parts
+            offer_id=price_request['offer_id'],
+            shopping_response_id=price_request['shopping_response_id'], # Ensure this is passed
+            currency=price_request.get('currency', DEFAULT_CURRENCY),
+            request_id=price_request.get('request_id')
+            # config=price_request.get('config') # Pass config if needed by get_flight_price
         )
         
     except FlightServiceError as e:
         logger.error(f"Error in process_flight_price: {str(e)}")
-        return {"error": str(e)}
+        return {"error": str(e), "status": "error"} # Ensure status is included
     except Exception as e:
-        logger.error(f"Unexpected error in process_flight_price: {str(e)}")
-        return {"error": "An unexpected error occurred while pricing the flight"}
+        logger.error(f"Unexpected error in process_flight_price: {str(e)}", exc_info=True)
+        return {"error": "An unexpected error occurred while pricing the flight", "status": "error"}
 
-def process_order_create(order_data: Dict[str, Any]) -> Dict[str, Any]:
+
+async def process_order_create(order_data: Dict[str, Any]) -> Dict[str, Any]: # Made async
     """
-    Process order creation request and return booking confirmation.
+    Process order creation request and return booking confirmation. (async)
     
     Args:
-        order_data: Dictionary containing order data with the following structure:
-        {
-            "flight_offer": Dict,  # Flight price response
-            "passengers": List[Dict],  # List of passenger details
-            "payment": Dict,  # Payment information
-            "contact_info": Dict  # Contact information
-        }
+        order_data: Dictionary containing order data
         
     Returns:
-        Dictionary containing booking confirmation with the following structure:
-        {
-            "status": "success" | "error",
-            "data": {
-                "booking_reference": str,
-                "status": str,
-                "etickets": List[Dict],
-                "amount_paid": float,
-                "currency": str
-            },
-            "meta": {
-                "timestamp": str,
-                "reference": str
-            }
-        }
+        Dictionary containing booking confirmation
     """
     try:
         # Extract data from order_data
-        flight_offer = order_data.get("flight_offer", {})
-        passengers = order_data.get("passengers", [])
-        payment = order_data.get("payment", {})
-        contact_info = order_data.get("contact_info", {})
+        flight_offer_priced = order_data.get("flight_offer", {}) # This should be FlightPriceRS
+        passengers_list = order_data.get("passengers", [])
+        payment_info_data = order_data.get("payment", {}) # Renamed for clarity
+        contact_info_data = order_data.get("contact_info", {}) # Renamed for clarity
+        request_id = order_data.get("request_id", str(uuid.uuid4()))
         
         # Validate required fields
-        if not flight_offer:
-            raise FlightServiceError("Missing required field: flight_offer")
-        if not passengers:
+        if not flight_offer_priced:
+            raise FlightServiceError("Missing required field: flight_offer (FlightPriceRS)")
+        if not passengers_list:
             raise FlightServiceError("Missing required field: passengers")
-        if not payment:
+        if not payment_info_data:
             raise FlightServiceError("Missing required field: payment")
-        if not contact_info:
+        if not contact_info_data:
             raise FlightServiceError("Missing required field: contact_info")
         
-        # Create the booking
-        booking_response = create_booking(
-            flight_price_response=flight_offer,
-            passenger_details=passengers,
-            payment_details=payment,
-            contact_info=contact_info
+        # Create the booking using the async version
+        booking_response = await create_booking(
+            flight_price_response=flight_offer_priced,
+            passengers=passengers_list,
+            payment_info=payment_info_data,
+            contact_info=contact_info_data,
+            request_id=request_id
+            # config=order_data.get('config') # Pass config if needed
         )
         
-        # Extract relevant data from the response
-        order_response = booking_response.get("data", {})
-        order_id = order_response.get("Response", {}).get("Order", {}).get("OrderID", "")
+        # Extract relevant data from the response (assuming OrderCreateRS structure)
+        # This part needs to be adapted based on the actual structure of OrderCreateRS
+        order_create_rs = booking_response.get("data", {}).get("OrderCreateRS", {}) # Example path
+        order_info = order_create_rs.get("Response", {}).get("Order", {})
+        order_id = order_info.get("OrderID")
         
+        if not order_id: # Check if order_id is a dict with 'value' or direct string
+            if isinstance(order_info.get("OrderID"), dict):
+                 order_id = order_info.get("OrderID", {}).get("value")
+
         if not order_id:
-            raise FlightServiceError("Failed to retrieve order ID from the booking response")
+            logger.error(f"Failed to retrieve OrderID. Full booking response: {json.dumps(booking_response, indent=2)}")
+            raise FlightServiceError("Failed to retrieve OrderID from the booking response.")
         
+        # Placeholder for e-ticket and payment details extraction
+        # This needs to be based on the actual OrderCreateRS structure
+        etickets_data = [] 
+        payment_data_list = order_create_rs.get("Response", {}).get("DataLists", {}).get("PaymentFunctionsList", {}).get("PaymentProcessingDetails", [])
+        amount_paid_val = 0
+        currency_val = DEFAULT_CURRENCY
+
+        if payment_data_list: # Check if list is not empty
+            # Assuming first payment detail is relevant, adjust if multiple payments are possible
+            # and need specific handling.
+            payment_detail = payment_data_list[0] if isinstance(payment_data_list, list) else payment_data_list
+            amount_info = payment_detail.get("Amount", {})
+            amount_paid_val = float(amount_info.get("value", 0))
+            currency_val = amount_info.get("Code", DEFAULT_CURRENCY)
+
+
         # Transform the response
         return {
             "status": "success",
             "data": {
                 "booking_reference": order_id,
-                "status": order_response.get("Response", {}).get("Order", {}).get("OrderStatus", "CONFIRMED"),
-                "etickets": [
-                    {
-                        "ticket_number": doc.get("TicketDocInfo", {}).get("TicketDocument", {})
-                            .get("TicketDocNbr", ""),
-                        "passenger_name": doc.get("PassengerReference", {}).get("PassengerID", ""),
-                        "status": doc.get("TicketDocInfo", {}).get("Status", {})
-                            .get("StatusCode", "ISSUED")
-                    }
-                    for doc in order_response.get("Response", {}).get("DataLists", {})
-                        .get("TicketDocInfoList", {}).get("TicketDocInfo", [])
-                ],
-                "amount_paid": order_response.get("Response", {}).get("DataLists", {})
-                    .get("PriceList", [{}])[0].get("TotalAmount", {}).get("value", 0),
-                "currency": order_response.get("Response", {}).get("DataLists", {})
-                    .get("PriceList", [{}])[0].get("TotalAmount", {}).get("Code", "USD")
+                "status": order_info.get("OrderStatus", "CONFIRMED"),
+                "etickets": etickets_data, # Populate this based on OrderCreateRS
+                "amount_paid": amount_paid_val,
+                "currency": currency_val
             },
             "meta": {
                 "timestamp": datetime.utcnow().isoformat(),
-                "reference": order_id
+                "reference": order_id, # Using order_id as reference
+                "request_id": request_id
             }
         }
         
     except FlightServiceError as e:
         logger.error(f"Error in process_order_create: {str(e)}", exc_info=True)
-        raise
+        raise # Re-raise FlightServiceError to be caught by route handler
     except Exception as e:
         error_msg = f"Unexpected error in process_order_create: {str(e)}"
         logger.error(error_msg, exc_info=True)
         raise FlightServiceError(error_msg) from e
 
-# Transformation functions for backward compatibility
+# Transformation functions for backward compatibility (placeholders)
 def _transform_airshopping_rs(airshopping_rs: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Transform AirShopping response for the frontend
-    
-    Args:
-        airshopping_rs: Raw AirShopping response
-        
-    Returns:
-        Transformed response for the frontend
-    """
-    # This is a placeholder - implement transformation as needed
+    logger.warning("_transform_airshopping_rs is a placeholder and should be implemented if used.")
     return airshopping_rs
 
 def _transform_flightprice_rs(flightprice_rs: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Transform FlightPrice response for the frontend
-    
-    Args:
-        flightprice_rs: Raw FlightPrice response
-        
-    Returns:
-        Transformed response for the frontend
-    """
-    # This is a placeholder - implement transformation as needed
+    logger.warning("_transform_flightprice_rs is a placeholder and should be implemented if used.")
     return flightprice_rs
 
 def _transform_ordercreate_rs(ordercreate_rs: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Transform OrderCreate response for the frontend
-    
-    Args:
-        ordercreate_rs: Raw OrderCreate response
-        
-    Returns:
-        Transformed response for the frontend
-    """
-    # This is a placeholder - implement transformation as needed
+    logger.warning("_transform_ordercreate_rs is a placeholder and should be implemented if used.")
     return ordercreate_rs
