@@ -95,7 +95,7 @@ async def air_shopping():
             current_app.logger.info(f"Search results: {search_results}")
             
             # Check if we have valid results
-            if 'error' in search_results:
+            if isinstance(search_results, dict) and 'error' in search_results:
                 current_app.logger.error(f"Error in search results: {search_results['error']}")
                 return jsonify({
                     "status": "error",
@@ -103,8 +103,8 @@ async def air_shopping():
                     "request_id": request_id
                 }), 400
                 
-            # Get the offers from the search results
-            offers = search_results.get('offers', [])
+            # search_results is already the list of offers
+            offers = search_results if isinstance(search_results, list) else []
             
             # Log the offers for debugging
             current_app.logger.info(f"Returning {len(offers)} offers")

@@ -450,8 +450,8 @@ ul, ol {
 /* Passenger and Cabin Selection */
 .passenger-cabin-wrapper {
     display: grid;
-    grid-template-columns: 1fr; /* Single column for the button */
-    gap: 1rem; 
+    grid-template-columns: repeat(2, 1fr); /* Two columns for passenger and cabin selectors */
+    gap: 1rem;
     align-items: flex-end; /* Align items to the bottom of the grid cell */
 }
 
@@ -475,7 +475,7 @@ ul, ol {
     position: absolute;
     top: calc(100% + 0.5rem); /* Position below the button */
     left: 0;
-    width: 100%;
+    width: auto; /* Allow dropdown to size based on content */
     max-width: 350px; /* Max width for the dropdown */
     background: var(--glass-bg); /* Glassmorphic background */
     backdrop-filter: var(--glass-blur);
@@ -545,29 +545,6 @@ ul, ol {
     font-weight: 500;
 }
 
-.cabin-selector-dropdown-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    margin-top: 0.5rem;
-}
-/* Ensure select inside dropdown is styled for dark bg */
-.passenger-selector-dropdown select {
-    background-color: rgba(0, 0, 0, 0.3); /* Darker transparent background */
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: var(--text-on-dark-primary);
-    padding: 0.6rem 0.8rem;
-    border-radius: var(--border-radius-sm);
-}
-.passenger-selector-dropdown select option {
-    background-color: #333; /* Dark background for options */
-    color: var(--text-on-dark-primary);
-}
-.passenger-selector-dropdown select:focus {
-    border-color: var(--surface-color);
-    background-color: rgba(0, 0, 0, 0.4);
-}
-
 .passenger-done-btn {
     background: var(--primary-color);
     color: var(--text-on-dark-primary);
@@ -583,6 +560,90 @@ ul, ol {
 }
 .passenger-done-btn:hover {
     background: var(--primary-color-dark);
+}
+
+/* Cabin Selector Styles (mirroring passenger selector) */
+.cabin-selector-group {
+    position: relative;
+}
+
+.cabin-selector-btn {
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0.75rem 1rem; 
+    font-size: 1rem;
+    background-color: rgba(255, 255, 255, 0.2); 
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--border-radius-md);
+    color: var(--text-on-dark-primary); 
+    transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth), background-color var(--transition-smooth);
+}
+.cabin-selector-btn::after { /* Dropdown arrow */
+    content: '▼';
+    font-size: 0.7em;
+    opacity: 0.7;
+}
+.cabin-selector-btn:focus {
+    outline: none;
+    border-color: var(--surface-color); 
+    background-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+}
+
+.cabin-selector-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    width: 100%;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-lg);
+    padding: 1rem;
+    z-index: 100;
+    color: var(--text-on-dark-primary);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; /* Space between cabin options */
+}
+
+.cabin-option { /* Similar to trip-type-option */
+    display: flex; /* To align radio and span if needed, though radio is hidden */
+    padding: 0.6rem 1rem;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+    color: var(--text-on-dark-secondary);
+}
+.cabin-option input[type="radio"] {
+    display: none;
+}
+.cabin-option:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-on-dark-primary);
+}
+.cabin-option.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: var(--text-on-dark-primary);
+    font-weight: 500;
+}
+
+.cabin-done-btn {
+    background: var(--primary-color);
+    color: var(--text-on-dark-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: background-color var(--transition-smooth);
+    margin-top: 0.5rem;
 }
 
 
@@ -1060,8 +1121,10 @@ ul, ol {
     .od-segment.one-way-layout #return-date-group-0 { display: none; } /* Ensure it's hidden */
     .od-segment.one-way-layout .remove-leg-btn { grid-column: 1 / -1; grid-row: 4 / 5; }
 
-
-    .passenger-cabin-wrapper { grid-template-columns: 1fr; }
+    /* Passenger and Cabin selectors stack on smaller tablets */
+    .passenger-cabin-wrapper { 
+        grid-template-columns: 1fr; 
+    }
 
     .results-layout { flex-direction: column; }
     .filters-sidebar { width: 100%; margin-bottom: 1.5rem; }
@@ -1123,6 +1186,10 @@ ul, ol {
 
     .passenger-selector-dropdown {
         max-width: calc(100vw - 3rem); /* Ensure dropdown fits mobile screen */
+    }
+    .cabin-selector-dropdown {
+        max-width: calc(100vw - 3rem); /* Ensure dropdown fits mobile screen */
+        width: auto; /* Let it shrink if content is smaller */
     }
 
     .flight-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
