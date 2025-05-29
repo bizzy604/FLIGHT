@@ -141,9 +141,9 @@ def main():
         os.makedirs(output_dir)
 
     # Example common passenger details
-    adults = 1
-    children = 0
-    infants = 0
+    adults = 2
+    children = 2
+    infants = 2
     cabin = "Y"
 
     # --- Example 1: One-Way ---
@@ -167,16 +167,16 @@ def main():
     # (Matches your original sample more closely in terms of structure)
     try:
         round_trip_segments = [
-            {"Origin": "BOM", "Destination": "LHR", "DepartureDate": "2025-05-29"}, # Outbound
-            {"Origin": "LHR", "Destination": "BOM", "DepartureDate": "2025-06-02"}  # Return segment with its own date
+            {"Origin": "BOM", "Destination": "LHR", "DepartureDate": "2025-06-01"}, # Outbound
+            {"Origin": "LHR", "Destination": "BOM", "DepartureDate": "2025-06-07"}  # Return segment with its own date
         ] # Note: For roundtrip, the second segment's Origin/Destination are derived from the first
           # only the DepartureDate is critical from the second segment here.
 
         request_payload_rt = build_airshopping_request(
             trip_type="ROUND_TRIP",
             od_segments=round_trip_segments, # Provide both segments with dates
-            num_adults=2, num_children=1, num_infants=1,
-            cabin_preference_code="Y"
+            num_adults=adults, num_children=children, num_infants=infants,
+            cabin_preference_code=cabin
         )
         with open(os.path.join(output_dir, "AirShoppingRQ_RoundTrip.json"), "w", encoding="utf-8") as f:
             json.dump(request_payload_rt, f, indent=2, ensure_ascii=False)

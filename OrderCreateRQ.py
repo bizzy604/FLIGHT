@@ -429,8 +429,8 @@ def process_payments_for_order_create(
 
 
 def main():
-    input_fprs_file = 'FlightPriceRS.txt'
-    output_ocrq_file = 'OrderCreateRQ_generated.json'
+    input_fprs_file = 'FlightPriceResponse.json'
+    output_ocrq_file = 'OrderCreateRQ.json'
     
     try:
         with open(input_fprs_file, 'r', encoding='utf-8') as f:

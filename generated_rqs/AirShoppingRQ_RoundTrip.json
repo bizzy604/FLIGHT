@@ -79,6 +79,24 @@
         "AnonymousTraveler": [
           {
             "PTC": {
+              "value": "CHD"
+            }
+          }
+        ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "INF"
+            }
+          }
+        ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
               "value": "INF"
             }
           }
@@ -95,7 +113,7 @@
             "AirportCode": {
               "value": "BOM"
             },
-            "Date": "2025-05-29"
+            "Date": "2025-06-01"
           },
           "Arrival": {
             "AirportCode": {
@@ -109,7 +127,7 @@
             "AirportCode": {
               "value": "LHR"
             },
-            "Date": "2025-06-02"
+            "Date": "2025-06-07"
           },
           "Arrival": {
             "AirportCode": {

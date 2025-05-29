@@ -50,6 +50,51 @@
             }
           }
         ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "CHD"
+            }
+          }
+        ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "CHD"
+            }
+          }
+        ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "INF"
+            }
+          }
+        ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "INF"
+            }
+          }
+        ]
       }
     ]
   },

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Search Results - Rea Travel</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Search Summary */
+        .search-summary {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid #eaecef;
+        }
+        
+        .search-summary h2 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        /* Flight Cards */
+        .flight-card {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #eaecef;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .flight-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .flight-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f2f5;
+            cursor: pointer;
+        }
+        
+        .airline-logo {
+            width: 40px;
+            height: 40px;
+            margin-right: 12px;
+            border-radius: 4px;
+            object-fit: contain;
+        }
+        
+        .price-section {
+            text-align: right;
+        }
+        
+        .price {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            line-height: 1.2;
+        }
+        
+        .price-details {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin: 4px 0 8px;
+        }
+        
+        .flight-segments {
+            padding: 15px 20px;
+        }
+        
+        .segment {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        .segment:not(:last-child) {
+            border-bottom: 1px dashed #eaecef;
+        }
+        
+        .departure, .arrival {
+            flex: 1;
+        }
+        
+        .time {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        .location {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        .duration {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            padding: 0 10px;
+        }
+        
+        /* Buttons */
+        .select-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .select-btn:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .select-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 60px 0;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 20px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* No Results */
+        .no-flights {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .no-flights h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+            font-size: 1.5rem;
+        }
+        
+        .no-flights p {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+        
+        /* Back to Search Link */
+        .back-to-search {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+            padding: 8px 0;
+        }
+        
+        .back-to-search:hover {
+            color: #2980b9;
+            text-decoration: underline;
+        }
+        
+        /* Filters Panel */
+        .filters-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid #eaecef;
+        }
+        
+        .filters-panel h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 1.2rem;
+        }
+        
+        .filter-section {
+            margin-bottom: 20px;
+        }
+        
+        .filter-section h4 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .filter-option {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        
+        .filter-option input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        
+        /* Results Controls */
+        .results-controls {
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .filter-toggle {
+            cursor: pointer;
+            color: #3498db;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .filter-toggle:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+        
+        .sort-options {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sort-options label {
+            font-size: 0.95rem;
+            color: #2c3e50;
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .flight-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .price-section {
+                margin-top: 15px;
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .price {
+                font-size: 1.3rem;
+            }
+            
+            .segment {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .duration {
+                margin: 8px 0;
+                padding-left: 0;
+                text-align: left;
+                width: 100%;
+            }
+            
+            .results-controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .sort-options {
+                width: 100%;
+                margin-top: 10px;
+            }
+            
+            #sort-results {
+                flex: 1;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <div class="logo">
+                <img src="assets/images/logo.png" alt="Rea Travel Logo" height="40">
+                <h1>Rea Travel</h1>
+            </div>
+            <ul>
+                <li><a href="index.html">Search Flights</a></li>
+                <li><a href="#" class="active">Flight Results</a></li>
+                <li><a href="#">Manage Booking</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <a href="index.html" class="back-to-search">← Back to Search</a>
+        
+        <div id="search-summary" class="search-summary">
+            <!-- Will be populated by JavaScript -->
+            <h2>Searching for flights...</h2>
+            <div id="search-params"></div>
+        </div>
+        
+        <div class="results-controls" style="margin: 20px 0; display: flex; justify-content: space-between; align-items: center;">
+            <div class="filter-toggle" style="cursor: pointer; color: #3498db;">
+                <span>✚ Filters</span>
+            </div>
+            <div class="sort-options">
+                <label for="sort-results">Sort by: </label>
+                <select id="sort-results" class="form-control" style="padding: 5px; border-radius: 4px; border: 1px solid #ced4da;">
+                    <option value="price-asc">Price (Lowest First)</option>
+                    <option value="price-desc">Price (Highest First)</option>
+                    <option value="duration-asc">Duration (Shortest First)</option>
+                    <option value="departure-asc">Departure (Earliest First)</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="filters-panel" style="display: none; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px;">
+            <h3 style="margin-top: 0;">Filters</h3>
+            
+            <div style="margin-bottom: 15px;">
+                <div style="font-weight: bold; margin-bottom: 8px;">Stops</div>
+                <div>
+                    <label style="display: block; margin: 5px 0;">
+                        <input type="checkbox" name="stops" value="0" checked> Non-stop
+                    </label>
+                    <label style="display: block; margin: 5px 0;">
+                        <input type="checkbox" name="stops" value="1" checked> 1 Stop
+                    </label>
+                    <label style="display: block; margin: 5px 0;">
+                        <input type="checkbox" name="stops" value="2" checked> 2+ Stops
+                    </label>
+                </div>
+            </div>
+            
+            <div>
+                <div style="font-weight: bold; margin-bottom: 8px;">Airlines</div>
+                <div id="airline-filters">
+                    <!-- Will be populated by JavaScript -->
+                    <p>Loading airlines...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="results-container" class="results-container">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>Finding the best flights for you...</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© <span id="currentYear"></span> Rea Travel. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Include the results JavaScript -->
+    <script src="js/results.js"></script>
+    
+    <script>
+        // Toggle filters panel
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterToggle = document.querySelector('.filter-toggle');
+            const filtersPanel = document.querySelector('.filters-panel');
+            
+            if (filterToggle && filtersPanel) {
+                filterToggle.addEventListener('click', function() {
+                    filtersPanel.style.display = filtersPanel.style.display === 'none' ? 'block' : 'none';
+                    this.querySelector('span').textContent = 
+                        filtersPanel.style.display === 'none' ? '✚ Filters' : '− Filters';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

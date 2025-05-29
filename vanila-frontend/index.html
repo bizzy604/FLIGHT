@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rea Travel - Search Flights</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- You might want a more modern CSS reset or base stylesheet -->
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <div class="logo">
+                <img src="assets/images/logo.png" alt="Rea Travel Logo" height="40">
+                <h1>Rea Travel</h1>
+            </div>
+            <ul>
+                <li><a href="index.html" class="active">Search Flights</a></li>
+                <li><a href="#">Manage Booking</a></li>
+                <li><a href="#">Deals</a></li>
+                <li><a href="#">Support</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="hero-section">
+            <div class="hero-content container">
+                <h2>Find Your Next Adventure</h2>
+                <p>Search and book cheap flights to anywhere in the world.</p>
+                
+                <div id="flight-search-container" class="flight-search-box">
+                    <h3>Search Flights</h3>
+                    <form id="flightSearchForm">
+                        <div class="trip-type-selector">
+                            <label><input type="radio" name="tripType" value="ROUND_TRIP" checked> Round Trip</label>
+                            <label><input type="radio" name="tripType" value="ONE_WAY"> One Way</label>
+                            <label><input type="radio" name="tripType" value="MULTI_CITY"> Multi-City</label>
+                        </div>
+
+                        <div id="od-segments-container">
+                            <!-- Segment 1 (Outbound or First Leg) -->
+                            <div class="od-segment" data-leg-index="0">
+                                <div class="form-group">
+                                    <label for="origin-0">From</label>
+                                    <input type="text" id="origin-0" name="origin-0" placeholder="Origin (e.g., BOM)" required list="airport-suggestions-origin-0">
+                                    <datalist id="airport-suggestions-origin-0"></datalist>
+                                </div>
+                                <div class="form-group">
+                                    <label for="destination-0">To</label>
+                                    <input type="text" id="destination-0" name="destination-0" placeholder="Destination (e.g., LHR)" required list="airport-suggestions-destination-0">
+                                    <datalist id="airport-suggestions-destination-0"></datalist>
+                                </div>
+                                <div class="form-group">
+                                    <label for="departureDate-0">Depart</label>
+                                    <input type="date" id="departureDate-0" name="departureDate-0" required>
+                                </div>
+                            </div>
+                            <!-- Segment 2 (Return or Second Leg) - Initially shown for Round Trip -->
+                            <div class="od-segment" id="return-segment-container" data-leg-index="1">
+                                <div class="form-group">
+                                    <label for="departureDate-1">Return</label>
+                                    <input type="date" id="departureDate-1" name="departureDate-1">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="addMultiCityLegBtn" style="display:none;">+ Add Another Leg</button>
+
+                        <div class="passenger-cabin-row">
+                            <div class="form-group">
+                                <label for="numAdults">Adults (12+)</label>
+                                <select id="numAdults" name="numAdults">
+                                    <option value="1" selected>1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <!-- Add more as needed -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="numChildren">Children (2-11)</label>
+                                <select id="numChildren" name="numChildren">
+                                    <option value="0" selected>0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <!-- Add more as needed -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="numInfants">Infants (<2)</label>
+                                <select id="numInfants" name="numInfants">
+                                    <option value="0" selected>0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <!-- Add more as needed -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="cabinPreference">Cabin</label>
+                                <select id="cabinPreference" name="cabinPreference">
+                                    <option value="Y" selected>Economy</option>
+                                    <option value="W">Premium Economy</option>
+                                    <option value="C">Business</option>
+                                    <option value="F">First</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="search-button">Search Flights</button>
+                    </form>
+                    <div id="search-error-message" class="error-message" style="display:none;"></div>
+                    <div id="loading-indicator" style="display:none; text-align:center; padding: 20px;">
+                        <img src="assets/images/loading-spinner.gif" alt="Loading..." width="50">
+                        <p>Searching for flights...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Other sections like popular destinations, deals etc. -->
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© <span id="currentYear"></span> Rea Travel. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/airports_data.js"></script> <!-- For airport suggestions -->
+    <script src="js/main.js"></script>
+</body>
+</html>

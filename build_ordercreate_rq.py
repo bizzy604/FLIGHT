@@ -1,716 +1,603 @@
+# --- START OF FILE build_ordercreate_rq.py (Consolidated) ---
 import json
 from typing import Dict, Any, List
-from datetime import datetime
+from datetime import datetime # Keep for potential future use, e.g. logging
 
-def generate_order_create_rq(flight_price_response: Dict[str, Any]) -> Dict[str, Any]:
+def generate_order_create_rq(
+    flight_price_response: Dict[str, Any],
+    passengers_data: List[Dict[str, Any]], 
+    payment_input_info: Dict[str, Any]     
+) -> Dict[str, Any]:
     """
-    Generate OrderCreateRQ from FlightPriceResponse with dynamic extraction of values.
+    Generate OrderCreateRQ from FlightPriceResponse with dynamic passenger (including documents) 
+    and payment data.
     
     Args:
-        flight_price_response: The FlightPriceResponse JSON as a Python dictionary
+        flight_price_response: The FlightPriceResponse JSON as a Python dictionary.
+        passengers_data: A list of dictionaries, where each dictionary contains
+                         details for one passenger.
+        payment_input_info: A dictionary containing payment details.
         
     Returns:
-        dict: The generated OrderCreateRQ as a Python dictionary
+        dict: The generated OrderCreateRQ as a Python dictionary.
     """
-    # Extract key information from FlightPriceResponse
-    shopping_response_id = flight_price_response.get('ShoppingResponseID', {}).get('ResponseID', {}).get('value', '')
+    # --- 1. Extract Key Information from FlightPriceResponse ---
+    fpr_shopping_response_id_node = flight_price_response.get('ShoppingResponseID', {})
+    fpr_response_id_value = fpr_shopping_response_id_node.get('ResponseID', {}).get('value')
+
+    if not fpr_response_id_value:
+        raise ValueError("ShoppingResponseID (value) missing from FlightPriceResponse")
+
+    priced_flight_offers = flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
+    if not priced_flight_offers or not isinstance(priced_flight_offers, list) or not priced_flight_offers[0]:
+        raise ValueError("No PricedFlightOffer found or empty in FlightPriceResponse")
     
-    # Get the first priced offer
-    priced_offers = flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
-    if not priced_offers:
-        raise ValueError("No PricedFlightOffer found in the response")
-    
-    offer = priced_offers[0]
-    offer_id = offer.get('OfferID', {})
-    
-    # Initialize the OrderCreateRQ structure
+    selected_priced_offer = priced_flight_offers[0]
+    selected_offer_id_node = selected_priced_offer.get('OfferID', {})
+    selected_offer_id_value = selected_offer_id_node.get('value')
+    selected_offer_owner = selected_offer_id_node.get('Owner')
+    selected_offer_channel = selected_offer_id_node.get('Channel')
+
+    if not selected_offer_id_value or not selected_offer_owner:
+        raise ValueError("OfferID (value or Owner) missing from selected PricedFlightOffer in FlightPriceResponse")
+
+    # --- 2. Initialize OrderCreateRQ Structure ---
     order_create_rq = {
         "Query": {
             "OrderItems": {
                 "ShoppingResponse": {
-                    "Owner": offer_id.get('Owner'),
-                    "ResponseID": {
-                        "value": shopping_response_id
-                    },
+                    "Owner": selected_offer_owner,
+                    "ResponseID": {"value": fpr_response_id_value},
                     "Offers": {
-                        "Offer": []
+                        "Offer": [{
+                            "OfferID": {
+                                "ObjectKey": selected_offer_id_value,
+                                "value": selected_offer_id_value,
+                                "Owner": selected_offer_owner,
+                                "Channel": selected_offer_channel
+                            },
+                            "OfferItems": {"OfferItem": []} 
+                        }]
                     }
                 },
-                "OfferItem": []
+                "OfferItem": [] 
             },
             "DataLists": {
                 "FareList": {
-                    "FareGroup": []
+                    "FareGroup": [
+                        {
+                            "ListKey": fare_group_node.get("ListKey"),
+                            "Fare": {
+                                "FareCode": fare_group_node.get("Fare", {}).get("FareCode"),
+                            },
+                            "FareBasisCode": fare_group_node.get("FareBasisCode"),
+                            "refs": fare_group_node.get("refs")
+                        }
+                        for fare_group_node in flight_price_response.get("DataLists", {}).get("FareList", {}).get("FareGroup", [])
+                    ]
                 }
+                # Add other DataLists if Verteil requires them (e.g., PenaltyList, ServiceList)
+                # For example, your OrderCreateRS shows Penalties, so they might be needed here or are implicit.
             },
-            "Passengers": {
-                "Passenger": []
-            },
-            "Payments": {
-                "Payment": []
-            },
-            "Metadata": {
-                "Other": {
-                    "OtherMetadata": []
-                }
-            }
+            "Passengers": {"Passenger": []},
+            "Payments": {"Payment": []},
+            "Metadata": flight_price_response.get("Metadata", {"Other": {"OtherMetadata": []}})
         }
     }
+
+    # --- 3. Process OfferItems and link to ShoppingResponse.Offers ---
+    offer_price_list_fprs = selected_priced_offer.get('OfferPrice', [])
+    if not isinstance(offer_price_list_fprs, list):
+        offer_price_list_fprs = [offer_price_list_fprs] if offer_price_list_fprs else []
+
+    if not offer_price_list_fprs:
+        raise ValueError("No OfferPrice entries found in the selected PricedFlightOffer")
+
+    all_created_offer_item_ids_for_shopping_response = []
+
+    for offer_price_entry_fprs in offer_price_list_fprs:
+        fprs_offer_item_id_value = offer_price_entry_fprs.get("OfferItemID")
+        if not fprs_offer_item_id_value:
+            print(f"Warning: Missing OfferItemID in an OfferPrice entry: {offer_price_entry_fprs}")
+            continue
+
+        all_created_offer_item_ids_for_shopping_response.append({
+            "OfferItemID": {
+                "Owner": selected_offer_owner,
+                "value": fprs_offer_item_id_value
+            }
+        })
+        
+        build_detailed_offer_item(
+            flight_price_response, 
+            offer_price_entry_fprs, 
+            fprs_offer_item_id_value,
+            selected_offer_owner,
+            order_create_rq["Query"]["OrderItems"]["OfferItem"]
+        )
     
-    # Process offers and build the structure
-    process_offer(flight_price_response, offer, order_create_rq)
-    process_data_lists(flight_price_response, order_create_rq)
-    process_passengers(flight_price_response, order_create_rq)
-    process_payments(flight_price_response, order_create_rq)
-    process_metadata(flight_price_response, order_create_rq)
+    order_create_rq["Query"]["OrderItems"]["ShoppingResponse"]["Offers"]["Offer"][0]["OfferItems"]["OfferItem"] = \
+        all_created_offer_item_ids_for_shopping_response
+
+    # --- 4. Process Other Sections ---
+    process_passengers_for_order_create(passengers_data, order_create_rq["Query"]["Passengers"]["Passenger"])
+    process_payments_for_order_create(payment_input_info, order_create_rq["Query"]["Payments"]["Payment"], flight_price_response)
     
     return order_create_rq
 
-def process_offer(flight_price_response: Dict[str, Any], offer: Dict[str, Any], order_create_rq: Dict[str, Any]) -> None:
-    """Process the offer and add to OrderCreateRQ."""
-    # Get offer details
-    offer_id = offer.get('OfferID', {})
-    offer_id_value = offer_id.get('value')
+def build_detailed_offer_item(
+    flight_price_response: Dict[str, Any], 
+    offer_price_entry_fprs: Dict[str, Any], 
+    exact_offer_item_id: str,
+    offer_owner: str,
+    order_item_list_to_append_to: List[Dict[str, Any]]
+):
+    """Builds a single detailed OfferItem for OrderCreateRQ.Query.OrderItems.OfferItem[]"""
     
-    # Create offer item references
-    offer_prices = offer.get('OfferPrice', [])
-    if not isinstance(offer_prices, list):
-        offer_prices = [offer_prices]
+    requested_date_fprs = offer_price_entry_fprs.get("RequestedDate", {})
+    price_detail_fprs = requested_date_fprs.get("PriceDetail", {})
+    base_amount_fprs = price_detail_fprs.get("BaseAmount", {})
+    taxes_total_fprs = price_detail_fprs.get("Taxes", {}).get("Total", {})
+
+    current_traveler_refs_for_this_item = set()
+    associations_fprs = requested_date_fprs.get("Associations", [])
+    if not isinstance(associations_fprs, list):
+        associations_fprs = [associations_fprs] if associations_fprs else []
     
-    offer_item_refs = []
-    for i, price in enumerate(offer_prices, 1):
-        item_id = f"{offer_id_value}-{i}"
-        offer_item_refs.append({
-            "OfferItemID": {
-                "Owner": offer_id.get('Owner'),
-                "value": item_id
-            }
-        })
-    
-    # Add offer to main structure
-    order_create_rq['Query']['OrderItems']['ShoppingResponse']['Offers']['Offer'].append({
-        "OfferID": {
-            "ObjectKey": offer_id_value,
-            "value": offer_id_value,
-            "Owner": offer_id.get('Owner'),
-            "Channel": offer_id.get('Channel')
+    for assoc_fprs in associations_fprs:
+        assoc_traveler_fprs = assoc_fprs.get("AssociatedTraveler", {})
+        p_refs = assoc_traveler_fprs.get("TravelerReferences", [])
+        if not isinstance(p_refs, list): p_refs = [p_refs] if p_refs else []
+        for p_ref_val in p_refs:
+            if p_ref_val: current_traveler_refs_for_this_item.add(p_ref_val)
+
+    if not current_traveler_refs_for_this_item:
+        print(f"Warning: No TravelerReferences for OfferItemID {exact_offer_item_id}. Skipping OfferItem detail.")
+        return
+
+    detailed_flight_item = {
+        "Price": {
+            "BaseAmount": base_amount_fprs,
+            "Taxes": {"Total": taxes_total_fprs}
         },
-        "OfferItems": {
-            "OfferItem": offer_item_refs
-        }
+        "OriginDestination": [],
+        "refs": sorted(list(current_traveler_refs_for_this_item))
+    }
+
+    fprs_data_lists = flight_price_response.get("DataLists", {})
+    fprs_od_list = fprs_data_lists.get("OriginDestinationList", {}).get("OriginDestination", [])
+    if not isinstance(fprs_od_list, list): fprs_od_list = [fprs_od_list] if fprs_od_list else []
+    
+    fprs_segment_list = fprs_data_lists.get("FlightSegmentList", {}).get("FlightSegment", [])
+    if not isinstance(fprs_segment_list, list): fprs_segment_list = [fprs_segment_list] if fprs_segment_list else []
+    segment_map_fprs = {s.get("SegmentKey"): s for s in fprs_segment_list}
+
+    # Determine if this is the first "type" of OfferItem being added (e.g., first ADT group, then CHD, etc.)
+    # This helps decide whether to add OriginDestinationKey
+    is_first_passenger_group_offer_item = not any(
+        oi.get("OfferItemType", {}).get("DetailedFlightItem", [{}])[0].get("OriginDestination", [{}])[0].get("OriginDestinationKey")
+        for oi in order_item_list_to_append_to
+    )
+
+
+    # The associations_fprs are for a specific PTC's price from FlightPriceRS.
+    # Each association within that usually corresponds to an OD (e.g., outbound, inbound).
+    for assoc_idx, assoc_fprs in enumerate(associations_fprs):
+        applicable_flight_fprs = assoc_fprs.get("ApplicableFlight", {})
+        flight_segment_refs_in_assoc = applicable_flight_fprs.get("FlightSegmentReference", [])
+        if not isinstance(flight_segment_refs_in_assoc, list):
+            flight_segment_refs_in_assoc = [flight_segment_refs_in_assoc] if flight_segment_refs_in_assoc else []
+
+        od_flight_segments_for_order = []
+        for seg_ref_obj_fprs in flight_segment_refs_in_assoc:
+            seg_key = seg_ref_obj_fprs.get("ref")
+            segment_detail_fprs = segment_map_fprs.get(seg_key)
+            if segment_detail_fprs:
+                flight_for_order = {
+                    "Departure": segment_detail_fprs.get("Departure"),
+                    "Arrival": segment_detail_fprs.get("Arrival"),
+                    "ClassOfService": seg_ref_obj_fprs.get("ClassOfService"),
+                    "MarketingCarrier": segment_detail_fprs.get("MarketingCarrier"),
+                    "Equipment": segment_detail_fprs.get("Equipment"),
+                    "FlightDetail": segment_detail_fprs.get("FlightDetail")
+                }
+                if is_first_passenger_group_offer_item: # Only add SegmentKey to the first flight segment
+                    flight_for_order["SegmentKey"] = seg_key
+                od_flight_segments_for_order.append(flight_for_order)
+        
+        if od_flight_segments_for_order:
+            od_entry_for_order = {"Flight": od_flight_segments_for_order}
+            if is_first_passenger_group_offer_item:
+                # Try to find the corresponding OD key from FlightPriceRS DataLists
+                assoc_od_ref_keys = applicable_flight_fprs.get("OriginDestinationReferences", [])
+                if not isinstance(assoc_od_ref_keys, list): assoc_od_ref_keys = [assoc_od_ref_keys]
+                
+                if assoc_od_ref_keys and assoc_od_ref_keys[0]:
+                    # Find this OD in fprs_od_list to use its key
+                    # Your sample OrderCreateRQ uses OD1, OD2. These might align with the order from FlightPriceRS.
+                    # A more robust way is to map using the actual keys if possible,
+                    # but for now, we'll try to use the key from FlightPriceRS or assign sequentially.
+                    matched_fprs_od = next((od for od in fprs_od_list if od.get("OriginDestinationKey") == assoc_od_ref_keys[0]), None)
+                    if matched_fprs_od and matched_fprs_od.get("OriginDestinationKey"):
+                         od_entry_for_order["OriginDestinationKey"] = matched_fprs_od.get("OriginDestinationKey")
+                    else: # Fallback if not found by direct key match (e.g. if FlightPriceRS doesn't have OD1/OD2 keys)
+                         od_entry_for_order["OriginDestinationKey"] = f"OD{assoc_idx + 1}" # e.g. OD1, OD2
+
+            detailed_flight_item["OriginDestination"].append(od_entry_for_order)
+
+    order_item_list_to_append_to.append({
+        "OfferItemID": {"Owner": offer_owner, "value": exact_offer_item_id},
+        "OfferItemType": {"DetailedFlightItem": [detailed_flight_item]}
     })
-    
-    # Process each offer price to create offer items
-    for i, price in enumerate(offer_prices, 1):
-        process_offer_item(flight_price_response, offer, price, i, order_create_rq)
 
-def process_offer_item(flight_price_response: Dict[str, Any], offer: Dict[str, Any], price: Dict[str, Any], index: int, order_create_rq: Dict[str, Any]) -> None:
-    """Process each offer price and create detailed flight items."""
-    offer_id = offer.get('OfferID', {})
-    offer_id_value = offer_id.get('value')
-    item_id = f"{offer_id_value}-{index}"
-    
-    # Get price details
-    requested_date = price.get('RequestedDate', {})
-    price_detail = requested_date.get('PriceDetail', {})
-    
-    # Get base amount and taxes
-    base_amount = price_detail.get('BaseAmount', {})
-    taxes = price_detail.get('Taxes', {}).get('Total', {})
-    
-    # Get traveler references
-    associations = requested_date.get('Associations', [])
-    if not isinstance(associations, list):
-        associations = [associations]
-    
-    traveler_refs = set()  # Use a set to ensure uniqueness
-    for assoc in associations:
-        assoc_traveler = assoc.get('AssociatedTraveler', {})
-        refs = assoc_traveler.get('TravelerReferences', [])
-        if isinstance(refs, str):
-            traveler_refs.add(refs)
-        else:
-            for ref in refs:
-                traveler_refs.add(ref)
-    
-    traveler_refs = list(traveler_refs)  # Convert back to list
-    
-    # Create flight item structure
-    offer_item = {
-        "OfferItemID": {
-            "Owner": offer_id.get('Owner'),
-            "value": item_id
-        },
-        "OfferItemType": {
-            "DetailedFlightItem": [
-                {
-                    "Price": {
-                        "BaseAmount": {
-                            "value": base_amount.get('value'),
-                            "Code": base_amount.get('Code')
-                        },
-                        "Taxes": {
-                            "Total": {
-                                "value": taxes.get('value'),
-                                "Code": taxes.get('Code')
-                            }
-                        }
-                    },
-                    "OriginDestination": [],
-                    "refs": traveler_refs
-                }
-            ]
-        }
-    }
-    
-    # Process origin-destination for the first passenger (with OD keys and segment keys)
-    # For other passengers, we don't need OD keys
-    is_first_passenger = index == 1  # First offer price is for the first passenger
-    
-    # Process each association (each OD)
-    for od_idx, assoc in enumerate(associations, 1):
-        applicable_flight = assoc.get('ApplicableFlight', {})
-        flight_segment_refs = applicable_flight.get('FlightSegmentReference', [])
-        if not isinstance(flight_segment_refs, list):
-            flight_segment_refs = [flight_segment_refs]
-        
-        # For first passenger, add OD keys and segment keys
-        if is_first_passenger:
-            od = {
-                "OriginDestinationKey": f"OD{od_idx}",
-                "Flight": []
-            }
-            
-            # Process each flight segment in this OD
-            process_flight_segments(flight_price_response, flight_segment_refs, od['Flight'], True)
-            
-            # Add OD to offer item
-            offer_item['OfferItemType']['DetailedFlightItem'][0]['OriginDestination'].append(od)
-        else:
-            # For other passengers, just add flights without OD keys
-            od = {
-                "Flight": []
-            }
-            
-            # Process each flight segment in this OD
-            process_flight_segments(flight_price_response, flight_segment_refs, od['Flight'], False)
-            
-            # Add OD to offer item
-            offer_item['OfferItemType']['DetailedFlightItem'][0]['OriginDestination'].append(od)
-    
-    # Add offer item to OrderCreateRQ
-    order_create_rq['Query']['OrderItems']['OfferItem'].append(offer_item)
 
-def process_flight_segments(flight_price_response: Dict[str, Any], flight_segment_refs: List[Dict[str, Any]], flight_list: List, include_segment_keys: bool) -> None:
-    """Process flight segments and add to flight list."""
-    # Get flight segments from DataLists
-    data_lists = flight_price_response.get('DataLists', {})
-    flight_segment_list = data_lists.get('FlightSegmentList', {}).get('FlightSegment', [])
-    if not isinstance(flight_segment_list, list):
-        flight_segment_list = [flight_segment_list]
-    
-    # Create a mapping of segment keys to flight segments for quick lookup
-    segment_map = {segment.get('SegmentKey'): segment for segment in flight_segment_list}
-    
-    # Process each flight segment reference
-    for segment_ref in flight_segment_refs:
-        # Get segment reference and class of service details
-        ref = segment_ref.get('ref')
-        class_of_service = segment_ref.get('ClassOfService', {})
-        class_code = class_of_service.get('Code', {}).get('value')
-        class_refs = class_of_service.get('refs', [])
-        if isinstance(class_refs, str):
-            class_refs = [class_refs]
-        
-        # Get the segment details from the mapping
-        segment = segment_map.get(ref, {})
-        if not segment:
-            continue
-        
-        # Create flight structure
-        flight = {
-            "Departure": {
-                "AirportCode": {
-                    "value": segment.get('Departure', {}).get('AirportCode', {}).get('value')
-                },
-                "Date": segment.get('Departure', {}).get('Date'),
-                "Time": segment.get('Departure', {}).get('Time'),
-                "AirportName": segment.get('Departure', {}).get('AirportName')
-            },
-            "Arrival": {
-                "AirportCode": {
-                    "value": segment.get('Arrival', {}).get('AirportCode', {}).get('value')
-                },
-                "Date": segment.get('Arrival', {}).get('Date'),
-                "Time": segment.get('Arrival', {}).get('Time'),
-                "AirportName": segment.get('Arrival', {}).get('AirportName')
-            },
-            "ClassOfService": {
-                "Code": {
-                    "value": class_code
-                },
-                "refs": class_refs
-            },
-            "MarketingCarrier": {
-                "AirlineID": {
-                    "value": segment.get('MarketingCarrier', {}).get('AirlineID', {}).get('value')
-                },
-                "Name": segment.get('MarketingCarrier', {}).get('Name'),
-                "FlightNumber": {
-                    "value": segment.get('MarketingCarrier', {}).get('FlightNumber', {}).get('value')
-                }
-            },
-            "Equipment": {
-                "Name": segment.get('Equipment', {}).get('Name'),
-                "AircraftCode": {
-                    "value": segment.get('Equipment', {}).get('AircraftCode', {}).get('value')
-                }
-            },
-            "FlightDetail": {
-                "FlightDuration": segment.get('FlightDetail', {}).get('FlightDuration', {})
-            }
-        }
-        
-        # Add SegmentKey for first passenger only
-        if include_segment_keys:
-            flight['SegmentKey'] = ref
-        
-        # Add terminal information if available
-        if 'Terminal' in segment.get('Departure', {}):
-            flight['Departure']['Terminal'] = segment['Departure']['Terminal']
-        if 'Terminal' in segment.get('Arrival', {}):
-            flight['Arrival']['Terminal'] = segment['Arrival']['Terminal']
-        
-        # Add flight to list
-        flight_list.append(flight)
+def process_passengers_for_order_create(
+    passengers_input_data: List[Dict[str, Any]], 
+    order_rq_passenger_list: List[Dict[str, Any]]
+):
+    if not passengers_input_data:
+        print("Warning: No passenger data provided for OrderCreateRQ.")
+        return
 
-def process_data_lists(flight_price_response: Dict[str, Any], order_create_rq: Dict[str, Any]) -> None:
-    """Process fare data lists."""
-    # Get fare list from FlightPriceResponse
-    data_lists = flight_price_response.get('DataLists', {})
-    fare_list = data_lists.get('FareList', {}).get('FareGroup', [])
-    if not isinstance(fare_list, list):
-        fare_list = [fare_list]
-    
-    # Add fare groups to OrderCreateRQ
-    for fare_group in fare_list:
-        order_create_rq['Query']['DataLists']['FareList']['FareGroup'].append({
-            "ListKey": fare_group.get('ListKey'),
-            "Fare": {
-                "FareCode": {
-                    "Code": fare_group.get('Fare', {}).get('FareCode', {}).get('Code')
-                }
-            },
-            "FareBasisCode": {
-                "Code": fare_group.get('FareBasisCode', {}).get('Code')
-            },
-            "refs": fare_group.get('refs', [])
-        })
-    
-def process_passengers(flight_price_response: Dict[str, Any], order_create_rq: Dict[str, Any]) -> None:
-    """
-    Process passenger information.
-    
-    Extracts passenger references from the FlightPriceResponse and creates the passenger entries
-    with correct titles based on gender and passenger type.
-    """
-    # Extract traveler references from PricedFlightOffers
-    traveler_refs = extract_traveler_references(flight_price_response)
-    
-    # Get travelers from AnonymousTravelerList or IdentifiedTravelerList
-    data_lists = flight_price_response.get('DataLists', {})
-    traveler_list = data_lists.get('AnonymousTravelerList', {}).get('AnonymousTraveler', [])
-    if not traveler_list:
-        traveler_list = data_lists.get('IdentifiedTravelerList', {}).get('IdentifiedTraveler', [])
-    
-    if not isinstance(traveler_list, list):
-        traveler_list = [traveler_list]
-    
-    # Create a map of travelers by ObjectKey
-    traveler_map = {}
-    for traveler in traveler_list:
-        if isinstance(traveler, dict) and 'ObjectKey' in traveler:
-            traveler_map[traveler['ObjectKey']] = traveler
-    
-    # Sample passenger data for contact information (only applied to first adult)
-    contact_info = {
-        "Contact": [
-            {
-                "PhoneContact": {
-                    "Number": [
-                        {
-                            "CountryCode": "254",
-                            "value": "0700000000"
-                        }
-                    ],
-                    "Application": "Home"
-                },
-                "EmailContact": {
-                    "Address": {
-                        "value": "kevinamoni20@gmail.com"
-                    }
-                },
-                "AddressContact": {
-                    "Street": [
-                        "Nairobi, Kenya 30500"
-                    ],
-                    "PostalCode": "301",
-                    "CityName": "Nairobi",
-                    "CountryCode": {
-                        "value": "254"
-                    }
-                }
-            }
-        ]
-    }
-    
-    # Sample passenger names - we'd need a separate function to get real names in a production system
-    sample_names = {
-        'ADT_Male': {'Given': 'Amoni', 'Surname': 'Kevin'},
-        'ADT_Female': {'Given': 'Egole', 'Surname': 'David'},  # Note: Normally this would be a female name
-        'CHD_Male': {'Given': 'Egole', 'Surname': 'David'},
-        'CHD_Female': {'Given': 'Linda', 'Surname': 'Smith'},
-        'INF_Male': {'Given': 'Egole', 'Surname': 'Bizzy'},
-        'INF_Female': {'Given': 'Anna', 'Surname': 'Bizzy'}
-    }
-    
-    # Define title mapping for passenger types and genders
-    title_mapping = {
-        'ADT': {'Male': 'Mr', 'Female': 'Ms'},  # Adult titles
-        'CHD': {'Male': 'Mstr', 'Female': 'Miss'},  # Child titles
-        'INF': {'Male': 'Mstr', 'Female': 'Miss'}   # Infant titles
-    }
-    
-    # Process passengers based on extracted references
-    passengers = []
-    adult_refs = {}  # To store refs of adults for infant associations
-    
-    # First pass to identify adults for infant associations
-    for ref in traveler_refs:
-        ptc = get_ptc_from_ref(ref, traveler_map)
-        if ptc == 'ADT':
-            adult_refs[ref] = True
-    
-    # Default adult reference for infants if no adult is found
-    default_adult_ref = next(iter(adult_refs)) if adult_refs else None
-    
-    # Create passenger entries
-    for ref in traveler_refs:
-        ptc = get_ptc_from_ref(ref, traveler_map)
-        gender = get_gender_for_passenger(ptc)  # In a real system, this would come from data
-        
-        # Get appropriate title based on PTC and gender
-        title = title_mapping.get(ptc, {}).get(gender, 'Mr')  # Default to Mr if mapping not found
-        
-        # Get sample name based on PTC and gender
-        name_key = f"{ptc}_{gender}"
-        name_data = sample_names.get(name_key, sample_names.get('ADT_Male'))  # Default if not found
-        
-        passenger = {
-            "ObjectKey": ref,
-            "Gender": {
-                "value": gender
-            },
-            "PTC": {
-                "value": ptc
-            },
+    for pax_data in passengers_input_data:
+        passenger_name_node = pax_data.get("Name", {})
+        given_names_list = []
+        given_names_input = passenger_name_node.get("Given", [])
+        if isinstance(given_names_input, list):
+            for gn in given_names_input:
+                if isinstance(gn, str): given_names_list.append({"value": gn})
+                elif isinstance(gn, dict) and "value" in gn: given_names_list.append(gn)
+        elif isinstance(given_names_input, str): given_names_list.append({"value": given_names_input})
+
+        passenger_entry = {
+            "ObjectKey": pax_data.get("ObjectKey"),
+            "PTC": {"value": pax_data.get("PTC")},
             "Name": {
-                "Given": [
-                    {
-                        "value": name_data['Given']
-                    }
-                ],
-                "Title": title,
-                "Surname": {
-                    "value": name_data['Surname']
-                }
-            }
-        }
-        
-        # Add contact info only to the first adult
-        if ptc == 'ADT' and not any(p.get('Contacts') for p in passengers):
-            passenger["Contacts"] = contact_info
-        
-        # For infants, add PassengerAssociation to an adult
-        if ptc == 'INF':
-            # For infant associations, parse the object key to find parent (e.g., T1.1 associated with T1)
-            # Otherwise default to first adult found
-            parts = ref.split('.')
-            if len(parts) > 1 and parts[0] in adult_refs:
-                passenger["PassengerAssociation"] = parts[0]
-            elif default_adult_ref:
-                passenger["PassengerAssociation"] = default_adult_ref
-            
-            # Add birth date for infants
-            passenger["Age"] = {
-                "BirthDate": {
-                    "value": "2024-05-25"  # Sample date, would be dynamic in production
-                }
-            }
-        
-        passengers.append(passenger)
-    
-    # Add passengers to OrderCreateRQ
-    order_create_rq['Query']['Passengers']['Passenger'] = passengers
-
-def extract_traveler_references(flight_price_response: Dict[str, Any]) -> List[str]:
-    """
-    Extract traveler references from the FlightPriceResponse.
-    
-    Path: PricedFlightOffers.PricedFlightOffer[x].OfferPrice[x].RequestedDate.Associations[x].AssociatedTraveler.TravelerReferences[x]
-    
-    Returns:
-        List of traveler reference strings (e.g., ['T1', 'T2', 'T3', 'T1.1'])
-    """
-    traveler_refs = set()
-    priced_offers = flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
-    
-    if not isinstance(priced_offers, list):
-        priced_offers = [priced_offers] if priced_offers else []
-    
-    for offer in priced_offers:
-        offer_prices = offer.get('OfferPrice', [])
-        if not isinstance(offer_prices, list):
-            offer_prices = [offer_prices] if offer_prices else []
-        
-        for price in offer_prices:
-            requested_date = price.get('RequestedDate', {})
-            associations = requested_date.get('Associations', [])
-            
-            if not isinstance(associations, list):
-                associations = [associations] if associations else []
-            
-            for assoc in associations:
-                associated_traveler = assoc.get('AssociatedTraveler', {})
-                traveler_references = associated_traveler.get('TravelerReferences', [])
-                
-                if not isinstance(traveler_references, list):
-                    traveler_references = [traveler_references] if traveler_references else []
-                
-                for ref in traveler_references:
-                    if ref:
-                        traveler_refs.add(ref)
-    
-    return list(traveler_refs)
-
-def get_ptc_from_ref(ref: str, traveler_map: Dict[str, Any]) -> str:
-    """
-    Get the Passenger Type Code (PTC) for a traveler reference.
-    
-    If the reference contains a dot (e.g., 'T1.1'), it's an infant.
-    Otherwise, check the traveler map or default to 'ADT'.
-    
-    Args:
-        ref: Traveler reference string (e.g., 'T1', 'T1.1')
-        traveler_map: Map of traveler data by ObjectKey
-        
-    Returns:
-        PTC string ('ADT', 'CHD', or 'INF')
-    """
-    # If reference contains a dot, it's likely an infant (e.g., T1.1)
-    if '.' in ref:
-        return 'INF'
-    
-    # Check if we have PTC info in the traveler map
-    if ref in traveler_map:
-        ptc_data = traveler_map[ref].get('PTC', {})
-        if isinstance(ptc_data, dict) and 'value' in ptc_data:
-            return ptc_data['value']
-    
-    # Based on conventional patterns (T1, T2 are adults, T3, T4 are often children)
-    if ref in ['T1', 'T2']:
-        return 'ADT'
-    elif ref in ['T3', 'T4']:
-        return 'CHD'
-    
-    # Default to adult if we can't determine
-    return 'ADT'
-
-def get_gender_for_passenger(ptc: str) -> str:
-    """
-    Return a gender for the passenger based on PTC.
-    In a real system, this would come from actual passenger data.
-    
-    Args:
-        ptc: Passenger Type Code ('ADT', 'CHD', or 'INF')
-        
-    Returns:
-        Gender string ('Male' or 'Female')
-    """
-    # For demo purposes - in reality this would come from actual passenger data
-    gender_map = {
-        'ADT': ['Male', 'Female'],  # First adult male, second female
-        'CHD': ['Male', 'Female'],  # First child male, second female
-        'INF': ['Male', 'Female']   # First infant male, second female
-    }
-    
-    # Use deterministic but arbitrary gender assignment based on hash of PTC
-    index = hash(ptc) % 2  # Either 0 or 1
-    return gender_map.get(ptc, ['Male', 'Female'])[index]
-
-
-def process_payments(flight_price_response: Dict[str, Any], order_create_rq: Dict[str, Any]) -> None:
-    """Process payment information."""
-    # Calculate total amount from all offer prices
-    total_amount = 0
-    currency_code = "INR"  # Default currency code
-    
-    offer_prices = []
-    for offer in flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', []):
-        prices = offer.get('OfferPrice', [])
-        if not isinstance(prices, list):
-            prices = [prices]
-        offer_prices.extend(prices)
-    
-    for price in offer_prices:
-        requested_date = price.get('RequestedDate', {})
-        price_detail = requested_date.get('PriceDetail', {})
-        
-        # Get total amount from TotalAmount.SimpleCurrencyPrice as requested
-        total_price_detail = price_detail.get('TotalAmount', {}).get('SimpleCurrencyPrice', {})
-        if not total_price_detail:
-            # Fallback to calculating from base + tax if TotalAmount not available
-            base_amount = price_detail.get('BaseAmount', {})
-            taxes = price_detail.get('Taxes', {}).get('Total', {})
-            
-            price_value = base_amount.get('value', 0)
-            tax_value = taxes.get('value', 0)
-            
-            if isinstance(price_value, str):
-                price_value = float(price_value)
-            if isinstance(tax_value, str):
-                tax_value = float(tax_value)
-                
-            price_amount = price_value + tax_value
-            
-            # Get currency from base amount
-            if not currency_code and base_amount.get('Code'):
-                currency_code = base_amount.get('Code')
-        else:
-            # Get amount directly from TotalAmount
-            price_amount = total_price_detail.get('value', 0)
-            if isinstance(price_amount, str):
-                price_amount = float(price_amount)
-                
-            # Get currency from TotalAmount
-            if not currency_code and total_price_detail.get('Code'):
-                currency_code = total_price_detail.get('Code')
-        
-        # Get associated passenger count to multiply the amount
-        passenger_count = 1  # Default to 1 if we can't determine count
-        associations = requested_date.get('Associations', [])
-        if not isinstance(associations, list):
-            associations = [associations]
-            
-        # Count unique passengers for this price
-        passenger_refs = set()
-        for assoc in associations:
-            assoc_traveler = assoc.get('AssociatedTraveler', {})
-            refs = assoc_traveler.get('TravelerReferences', [])
-            if isinstance(refs, str):
-                passenger_refs.add(refs)
-            else:
-                for ref in refs:
-                    passenger_refs.add(ref)
-                    
-        if passenger_refs:
-            passenger_count = len(passenger_refs)
-        
-        # Add to total after multiplying by passenger count
-        total_amount += price_amount * passenger_count
-    
-    # Add payment to OrderCreateRQ
-    order_create_rq['Query']['Payments']['Payment'] = [
-        {
-            "Amount": {
-                "Code": currency_code,
-                "value": round(total_amount, 2)  # Round to 2 decimal places
+                "Title": passenger_name_node.get("Title"),
+                "Given": given_names_list,
+                "Surname": {"value": passenger_name_node.get("Surname")}
             },
-            "Method": {
-                "Cash": {
-                    "CashInd": True
+            "Gender": {"value": pax_data.get("Gender")},
+            "Age": {"BirthDate": {"value": pax_data.get("BirthDate")}}
+        }
+
+        if "Contacts" in pax_data and pax_data["Contacts"]:
+            passenger_entry["Contacts"] = pax_data["Contacts"]
+        
+        if pax_data.get("PTC") == "INF" and "PassengerAssociation" in pax_data:
+            passenger_entry["PassengerAssociation"] = pax_data["PassengerAssociation"]
+            if not passenger_entry["Name"].get("Title"):
+                 passenger_entry["Name"]["Title"] = "Mstr" if pax_data.get("Gender", "").lower() == "male" else "Miss"
+        
+        passenger_documents_input = pax_data.get("Documents", [])
+        if passenger_documents_input:
+            formatted_documents = []
+            for doc_data in passenger_documents_input:
+                doc_entry = {
+                    "Type": doc_data.get("Type"),
+                    "ID": doc_data.get("ID")
                 }
-            }
+                doc_type_upper = str(doc_data.get("Type", "")).upper()
+
+                if doc_type_upper in ["PT", "NI"]:
+                    if not doc_data.get("DateOfExpiration"):
+                        raise ValueError(f"DateOfExpiration is mandatory for doc type {doc_type_upper} for pax {pax_data.get('ObjectKey')}")
+                    if not doc_data.get("CountryOfIssuance"):
+                        raise ValueError(f"CountryOfIssuance is mandatory for doc type {doc_type_upper} for pax {pax_data.get('ObjectKey')}")
+                
+                if doc_type_upper == "ID" and not doc_data.get("CountryOfIssuance"):
+                     raise ValueError(f"CountryOfIssuance is mandatory for doc type ID for pax {pax_data.get('ObjectKey')}")
+
+                # Add fields if they exist in doc_data
+                for field_key in ["DateOfExpiration", "CountryOfIssuance", "DateOfIssue", "CountryOfResidence"]:
+                    if field_key in doc_data and doc_data[field_key] is not None:
+                        doc_entry[field_key] = doc_data[field_key]
+                
+                formatted_documents.append(doc_entry)
+            
+            if formatted_documents:
+                passenger_entry["PassengerIDInfo"] = {"PassengerDocument": formatted_documents}
+                # AllowDocumentInd is not explicitly added as its role needs clarification from Verteil schema/usage
+
+        order_rq_passenger_list.append(passenger_entry)
+
+
+def process_payments_for_order_create(
+    payment_input_info: Dict[str, Any], 
+    order_rq_payment_list: List[Dict[str, Any]],
+    flight_price_response: Dict[str, Any] 
+):
+    if not payment_input_info:
+        print("Warning: No payment info for OrderCreateRQ. Defaulting to Cash for testing.")
+        order_rq_payment_list.append({"Amount": {"Code": "USD", "value": 0}, "Method": {"Cash": {"CashInd": True}}})
+        return
+
+    method_type = payment_input_info.get("MethodType", "Cash").upper()
+    payment_details_input = payment_input_info.get("Details", {})
+    
+    # Initialize total amount
+    total_amount = 0.0
+    currency_code = None
+    
+    # Get all offer prices from the flight price response
+    offer_prices = flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [{}])[0].get('OfferPrice', [])
+    
+    # Calculate total amount from each offer item
+    for offer in offer_prices:
+        # Get price detail and total amount
+        price_detail = offer.get('RequestedDate', {}).get('PriceDetail', {})
+        total_amount_obj = price_detail.get('TotalAmount', {})
+        simple_price = total_amount_obj.get('SimpleCurrencyPrice', {})
+        
+        # Get passenger count from associations
+        passenger_count = 1  # Default to 1 if no associations found
+        associations = offer.get('RequestedDate', {}).get('Associations', [])
+        if associations and isinstance(associations, list):
+            first_association = associations[0]
+            traveler_refs = first_association.get('AssociatedTraveler', {}).get('TravelerReferences', [])
+            if isinstance(traveler_refs, list):
+                passenger_count = len(traveler_refs)
+        
+        # Calculate amount for this offer
+        if 'value' in simple_price:
+            amount = float(simple_price['value']) * passenger_count
+            total_amount += amount
+            
+            # Set currency from the first valid offer
+            if currency_code is None and 'Code' in simple_price:
+                currency_code = simple_price['Code']
+    
+    # Create payment amount object with the calculated total
+    payment_amount_for_rq = {"Code": currency_code, "value": round(total_amount, 2)}
+
+    payment_method_object = {}
+    if method_type == "CASH":
+        payment_method_object = {"Cash": {"CashInd": payment_details_input.get("CashInd", True)}}
+    elif method_type == "PAYMENTCARD":
+        card_input_details = payment_details_input
+        payment_card_node = {}
+
+        # CardNumber (Token) - Schema says integer, but tokens are usually strings.
+        # **CRITICAL CLARIFICATION POINT WITH VERTEIL**
+        if "CardNumberToken" not in card_input_details: raise ValueError("CardNumberToken mandatory for PaymentCard.")
+        card_num_input = card_input_details["CardNumberToken"]
+        try:
+            # Attempt conversion to int if Verteil schema strictly demands it for certain types of values.
+            # For typical alphanumeric payment tokens, this will fail and string should be used.
+            # payment_card_node["CardNumber"] = {"value": int(card_num_input)}
+            payment_card_node["CardNumber"] = {"value": str(card_num_input)} # Safer default for tokens
+        except ValueError:
+            payment_card_node["CardNumber"] = {"value": str(card_num_input)} # Fallback to string if not purely numeric
+            print(f"Warning: CardNumber.value for PaymentCard is documented as integer, but value '{card_num_input}' is not purely numeric. Sending as string.")
+
+
+        if not card_input_details.get("EffectiveExpireDate", {}).get("Expiration"): raise ValueError("EffectiveExpireDate.Expiration (MMYY) mandatory.")
+        payment_card_node["EffectiveExpireDate"] = {"Expiration": card_input_details["EffectiveExpireDate"]["Expiration"]}
+        if card_input_details.get("EffectiveExpireDate", {}).get("Effective"):
+            payment_card_node["EffectiveExpireDate"]["Effective"] = card_input_details["EffectiveExpireDate"]["Effective"]
+
+        if "CardType" not in card_input_details: raise ValueError("CardType mandatory.")
+        payment_card_node["CardType"] = card_input_details["CardType"]
+
+        payment_card_node["Amount"] = {"value": round(total_amount, 2), "Code": currency_code}
+
+        if "CardCode" not in card_input_details: raise ValueError("CardCode mandatory.")
+        payment_card_node["CardCode"] = card_input_details["CardCode"]
+        
+        if "CardHolderName" not in card_input_details or not card_input_details.get("CardHolderName", {}).get("value"):
+            raise ValueError("CardHolderName.value is mandatory for PaymentCard (or use refs if payer is passenger).")
+        # Schema: "CardHolderName": { "refs": [], "value": "string" }
+        ch_name_node = {"value": card_input_details["CardHolderName"].get("value")}
+        if "refs" in card_input_details["CardHolderName"]: # If refs are provided (e.g. passenger ref)
+            ch_name_node["refs"] = card_input_details["CardHolderName"]["refs"]
+        else: # Default to empty refs list if not provided, as per schema example
+            ch_name_node["refs"] = []
+        payment_card_node["CardHolderName"] = ch_name_node
+
+
+        if "CardHolderBillingAddress" in card_input_details:
+            addr = card_input_details["CardHolderBillingAddress"]
+            if not all(k in addr for k in ["Street", "PostalCode", "CityName"]) or \
+               not addr.get("CountryCode", {}).get("value"):
+                raise ValueError("If CardHolderBillingAddress provided, Street, PostalCode, CityName, CountryCode.value are mandatory.")
+            
+            # Ensure Street is a list of strings, not list of objects for OrderCreateRQ
+            street_input = addr["Street"]
+            if isinstance(street_input, list) and all(isinstance(s, str) for s in street_input):
+                addr["Street"] = street_input # Already a list of strings
+            elif isinstance(street_input, str):
+                 addr["Street"] = [street_input]
+            else: # If it's list of objects, extract values or adjust as per exact need
+                 addr["Street"] = [s.get("value") for s in street_input if isinstance(s, dict) and "value" in s]
+            
+            payment_card_node["CardHolderBillingAddress"] = addr
+
+
+        if "SeriesCode" in card_input_details and card_input_details["SeriesCode"].get("value"):
+            payment_card_node["SeriesCode"] = {"value": str(card_input_details["SeriesCode"]["value"])}
+
+        if "SecurePaymentVersion2" in card_input_details:
+            payment_card_node["SecurePaymentVersion2"] = card_input_details["SecurePaymentVersion2"]
+        
+        if "ProductTypeCode" in card_input_details: # Schema shows [...], implies list or optional
+            payment_card_node["ProductTypeCode"] = card_input_details["ProductTypeCode"]
+            
+        payment_method_object = {"PaymentCard": payment_card_node}
+
+    elif method_type == "EASYPAY":
+        ep_details = payment_details_input
+        if "AccountNumber" not in ep_details or "ExpirationDate" not in ep_details:
+            raise ValueError("AccountNumber and ExpirationDate are mandatory for EasyPay.")
+        payment_method_object = {"EasyPay": {
+            "AccountNumber": str(ep_details["AccountNumber"]),
+            "ExpirationDate": ep_details["ExpirationDate"]
+        }}
+    elif method_type == "OTHER":
+        remarks_input = payment_details_input.get("Remarks", [])
+        formatted_remarks = []
+        if isinstance(remarks_input, list):
+            for r_item in remarks_input:
+                if isinstance(r_item, str): formatted_remarks.append({"value": r_item})
+                elif isinstance(r_item, dict) and "value" in r_item: formatted_remarks.append(r_item)
+        elif isinstance(remarks_input, str): # Single remark string
+            formatted_remarks.append({"value": remarks_input})
+        
+        payment_method_object = {"Other": {"Remarks": {"Remark": formatted_remarks}}} if formatted_remarks else {"Other": {}}
+    else:
+        print(f"Warning: Unknown Payment.MethodType '{method_type}'. Defaulting to Cash.")
+        payment_method_object = {"Cash": {"CashInd": True}}
+
+    payment_entry = {"Amount": payment_amount_for_rq, "Method": payment_method_object}
+    order_rq_payment_list.append(payment_entry)
+
+
+def main():
+    input_fprs_file = 'FlightPriceResponse.json'
+    output_ocrq_file = 'OrderCreateRQ_generated.json'
+    
+    try:
+        with open(input_fprs_file, 'r', encoding='utf-8') as f:
+            flight_price_response_data = json.load(f)
+    except FileNotFoundError:
+        print(f"Error: Input file '{input_fprs_file}' not found.")
+        return
+    except json.JSONDecodeError:
+        print(f"Error: Input file '{input_fprs_file}' is not valid JSON.")
+        return
+
+    # --- Example Dynamic Passenger Data ---
+    passengers_input = [
+        {
+            "ObjectKey": "T1", 
+            "PTC": "ADT",
+            "Name": {"Title": "Mr", "Given": ["AMONI"], "Surname": "KEVIN"},
+            "Gender": "Male",
+            "BirthDate": "1980-05-25",
+            "Contacts": { 
+                "Contact": [{
+                    "PhoneContact": {"Number": [{"CountryCode": "254", "value": "0700000000"}], "Application": "Home"},
+                    "EmailContact": {"Address": {"value": "kevinamoni20@example.com"}},
+                    "AddressContact": {"Street": ["Nairobi, Kenya 30500"],"PostalCode": "301","CityName": "Nairobi","CountryCode": {"value": "KE"}}
+                }]
+            },
+            "Documents": [{
+                "Type": "PT", "ID": "A12345678", "DateOfExpiration": "2030-12-31", 
+                "CountryOfIssuance": "KE", "DateOfIssue": "2020-01-15", "CountryOfResidence": "KE"
+            }]
+        },
+        {
+            "ObjectKey": "T2", "PTC": "ADT",
+            "Name": {"Title": "Mrs", "Given": ["REBECCA"], "Surname": "MIANO"},
+            "Gender": "Female", "BirthDate": "1998-05-25",
+            "Documents": [{"Type": "PT", "ID": "B87654321", "DateOfExpiration": "2028-11-20", "CountryOfIssuance": "GB"}]
+        },
+        {
+            "ObjectKey": "T3", "PTC": "CHD",
+            "Name": {"Title": "Mstr", "Given": ["EGOLE"], "Surname": "DAVID"},
+            "Gender": "Male", "BirthDate": "2014-05-25",
+            "Documents": [{"Type": "PT", "ID": "C24681357", "DateOfExpiration": "2027-06-10", "CountryOfIssuance": "KE"}]
+        },
+        {
+            "ObjectKey": "T1.1", "PTC": "INF",
+            "Name": {"Title": "Mstr", "Given": ["EGOLE"], "Surname": "BIZZY"},
+            "Gender": "Male", "BirthDate": "2024-05-25", "PassengerAssociation": "T1",
+            "Documents": [{"Type": "PT", "ID": "D97531024", "DateOfExpiration": "2029-05-24", "CountryOfIssuance": "KE"}]
         }
     ]
 
-def process_metadata(flight_price_response: Dict[str, Any], order_create_rq: Dict[str, Any]) -> None:
-    """Process metadata information."""
-    # Get metadata from FlightPriceResponse
-    metadata = flight_price_response.get('Metadata', {})
-    
-    # Extract price metadata if available
-    price_metadata = []
-    other_metadata = metadata.get('Other', {}).get('OtherMetadata', [])
-    if not isinstance(other_metadata, list):
-        other_metadata = [other_metadata]
-    
-    for item in other_metadata:
-        if 'PriceMetadatas' in item:
-            price_metadatas = item.get('PriceMetadatas', {}).get('PriceMetadata', [])
-            if not isinstance(price_metadatas, list):
-                price_metadatas = [price_metadatas]
-            price_metadata.extend(price_metadatas)
-    
-    # Add metadata to OrderCreateRQ if available
-    if price_metadata:
-        order_create_rq['Query']['Metadata']['Other']['OtherMetadata'].append({
-            "PriceMetadatas": {
-                "PriceMetadata": price_metadata
+    # --- Example Dynamic Payment Info ---
+    total_order_price_from_fprs = 0
+    currency_from_fprs = "INR" 
+    surcharge_details_from_fprs = None
+
+    try: # Safely extract total price and surcharge
+        first_priced_offer_fprs = flight_price_response_data.get('PricedFlightOffers', {}).get('PricedFlightOffer', [{}])[0]
+        if first_priced_offer_fprs: # Check if it's not an empty dict
+            # Get total price (this is usually inclusive of surcharge in FlightPriceRS.TotalPrice)
+            total_price_node = first_priced_offer_fprs.get('TotalPrice', {}).get('SimpleCurrencyPrice', {})
+            total_price_with_surcharge_fprs = float(total_price_node.get('value', 0))
+            currency_from_fprs = total_price_node.get('Code', "INR")
+
+            # Attempt to find explicit surcharge to deduct it for OrderTotalBeforeSurcharge
+            # This logic needs to be robust based on how Verteil returns surcharge
+            # For this example, we'll assume if surcharge exists, it's already in TotalPrice
+            # and we might need to find the explicit surcharge value if it's itemized.
+            # For now, we'll assume TotalPrice from FPRS IS the OrderTotalBeforeSurcharge for simplicity,
+            # and any surcharge info will be passed separately if it needs to be *added again* explicitly
+            # in OrderCreateRQ. This part is tricky without seeing an FPRS with explicit surcharge.
+            
+            # A more robust approach: sum base amounts and taxes of all OfferPrice items
+            calculated_base_plus_tax = 0
+            temp_currency = currency_from_fprs
+            for op_item in first_priced_offer_fprs.get('OfferPrice', []):
+                pd_item = op_item.get('RequestedDate', {}).get('PriceDetail', {})
+                base_val = float(pd_item.get('BaseAmount', {}).get('value', 0))
+                tax_val = float(pd_item.get('Taxes', {}).get('Total', {}).get('value', 0))
+                calculated_base_plus_tax += (base_val + tax_val)
+                if not temp_currency and pd_item.get('BaseAmount', {}).get('Code'):
+                    temp_currency = pd_item.get('BaseAmount', {}).get('Code')
+            
+            order_total_before_surcharge_val = calculated_base_plus_tax
+            currency_from_fprs = temp_currency
+
+            # Example: IF a surcharge was explicitly returned and itemized in FlightPriceRS
+            # surcharge_details_from_fprs = {"value": 20.00, "Code": "INR"} # Fictional
+            
+            # This example uses the CASH method as per your OrderCreateRQ.txt
+            payment_input = {
+                "OrderTotalBeforeSurcharge": order_total_before_surcharge_val,
+                "Currency": currency_from_fprs,
+                "MethodType": "Cash", 
+                "Details": {"CashInd": True}
             }
-        })
-    else:
-        # Use sample metadata from template
-        order_create_rq['Query']['Metadata']['Other']['OtherMetadata'] = []
-    
-    return order_create_rq
+            if surcharge_details_from_fprs: # If we had a surcharge to explicitly add
+                 payment_input["Surcharge"] = surcharge_details_from_fprs
+
+            # To test PaymentCard:
+            # payment_input = {
+            #     "OrderTotalBeforeSurcharge": order_total_before_surcharge_val,
+            #     "Currency": currency_from_fprs,
+            #     "MethodType": "PaymentCard", 
+            #     "Details": {
+            #         "CardCode": "VI",
+            #         "CardNumberToken": "tok_simulated_token_1234", 
+            #         "CardHolderName": {"value": "Amoni Kevin", "refs": []}, # refs can be passenger ObjectKey
+            #         "EffectiveExpireDate": {"Expiration": "1228"}, 
+            #         "CardType": "Credit",
+            #         # "SeriesCode": {"value":"123"}, # Optional, usually not sent with tokens
+            #         # "CardHolderBillingAddress": { ... } 
+            #     }
+            # }
+            # if surcharge_details_from_fprs:
+            #      payment_input["Surcharge"] = surcharge_details_from_fprs
 
 
+    except (IndexError, KeyError, TypeError, AttributeError) as e:
+        print(f"Error extracting price/surcharge details from FlightPriceRS: {e}. Using defaults.")
+        payment_input = { # Fallback
+            "OrderTotalBeforeSurcharge": 0, "Currency": "INR",
+            "MethodType": "Cash", "Details": {"CashInd": True}
+        }
 
-def save_order_create_rq(order_create_rq: Dict[str, Any], output_file: str = None) -> None:
-    """
-    Save OrderCreateRQ to a JSON file.
-    
-    Args:
-        order_create_rq: The OrderCreateRQ dictionary
-        output_file: Output file path (default: OrderCreateRQ_<timestamp>.json)
-    """
-    if output_file is None:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_file = f"OrderCreateRQ_{timestamp}.json"
-    
-    with open(output_file, 'w') as f:
-        json.dump(order_create_rq, f, indent=2)
-    
-    print(f"OrderCreateRQ saved to {output_file}")
 
-def main():
-    """Main function to run the script."""
-    # Set file paths
-    input_file = 'FlightPriceResponse.json'
-    output_file = 'OrderCreateRQ.json'
-    
     try:
-        # Load the FlightPriceResponse
-        with open(input_file, 'r') as f:
-            flight_price_response = json.load(f)
+        order_create_payload = generate_order_create_rq(
+            flight_price_response_data, 
+            passengers_input, 
+            payment_input
+        )
         
-        # Generate OrderCreateRQ
-        order_create_rq = generate_order_create_rq(flight_price_response)
-        
-        # Save to file
-        save_order_create_rq(order_create_rq, output_file)
-        
-        print("OrderCreateRQ generation completed successfully!")
-        
-    except FileNotFoundError:
-        print(f"Error: {input_file} not found.")
-    except json.JSONDecodeError:
-        print(f"Error: {input_file} is not a valid JSON file.")
+        with open(output_ocrq_file, 'w', encoding='utf-8') as f:
+            json.dump(order_create_payload, f, indent=2, ensure_ascii=False)
+        print(f"OrderCreateRQ successfully generated and saved to '{output_ocrq_file}'")
+            
+    except ValueError as ve:
+        print(f"ValueError during OrderCreateRQ generation: {ve}")
     except Exception as e:
-        print(f"An error occurred: {str(e)}")
+        print(f"An unexpected error occurred: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     main()
-
-
+# --- END OF FILE build_ordercreate_rq.py (Consolidated) ---

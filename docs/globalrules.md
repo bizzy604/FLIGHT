@@ -1,9 +1,3 @@
-Alright, excellent! We have a solid plan. Now, let's transition into the role of a Senior Developer guiding an AI assistant (like yourself, in a way!) to build this Flight Booking Portal.
-
-Here's a comprehensive guide with instructions, best practices, and key concerns:
-
----
-
 **Project Genesis: Modern Flight Booking Portal with Verteil NDC Integration**
 
 **Objective:**
@@ -88,7 +82,6 @@ Develop a sleek, modern, and performant flight booking portal that allows users 
     *   **Data Transformation Logic:** This is complex. Focus on correctly de-referencing IDs from `DataLists` in RS messages. Start with essential fields and add more iteratively.
     *   **Error Propagation:** Ensure errors from Verteil or internal processing are clearly communicated back.
     *   **Verteil API Specifics:** Pay close attention to Verteil's exact endpoint names and authentication scheme.
-    *   **Payment Surcharge Logic:** The top-level `Payment.Amount` in `OrderCreateRQ` must be inclusive of any surcharge. Your logic needs to correctly identify surcharge from `FlightPriceRS` and apply it.
 
 **AI Assistant Task 1.4: Implement Flask API Routes (`routes/verteil_flights.py`)**
 
@@ -142,7 +135,6 @@ Develop a sleek, modern, and performant flight booking portal that allows users 
     2.  Read search parameters from `searchParams`.
     3.  **Data Fetching:**
         *   **Option A (Server Action):** Create a Server Action in `lib/actions.ts` that internally calls the Flask `/api/verteil/air-shopping` endpoint. The page component awaits this action.
-        *   **Option B (Direct API Route Call):** The page component can directly `fetch` from your Flask `/api/verteil/air-shopping` endpoint (ensure `NEXT_PUBLIC_FLASK_API_BASE_URL` is set).
     4.  Display loading states (e.g., using Suspense if fetching is done in child components).
     5.  Render `FlightOfferCard.tsx` for each offer received from the Flask backend.
     6.  Implement basic client-side `Filters.tsx` and `SortOptions.tsx` components (can be enhanced later).
