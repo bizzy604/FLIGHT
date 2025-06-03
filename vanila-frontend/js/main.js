@@ -394,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             console.log("Sending request to backend with data:", JSON.stringify(searchCriteria, null, 2));
             try {
-                const response = await fetch('http://localhost:5000/api/verteil/air-shopping', {
+                const response = await fetch(`${API_BASE_URL}/api/verteil/air-shopping`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify(searchCriteria)

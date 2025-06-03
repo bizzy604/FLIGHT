@@ -59,7 +59,7 @@ def create_app(test_config=None):
         pass
     
     # Import and register blueprints
-    from Backend.routes import verteil_flights, debug
+    from routes import verteil_flights, debug
     
     # Register the blueprints with their respective URL prefixes
     app.register_blueprint(verteil_flights.bp)  # Uses the URL prefix defined in the blueprint

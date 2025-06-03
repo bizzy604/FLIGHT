@@ -71,7 +71,7 @@ def generate_order_create_rq(
                                 "FareCode": fare_group_node.get("Fare", {}).get("FareCode"),
                             },
                             "FareBasisCode": fare_group_node.get("FareBasisCode"),
-                            "refs": fare_group_node.get("refs")
+                            **({} if fare_group_node.get("refs") is None else {"refs": fare_group_node["refs"]})
                         }
                         for fare_group_node in flight_price_response.get("DataLists", {}).get("FareList", {}).get("FareGroup", [])
                     ]
@@ -81,7 +81,7 @@ def generate_order_create_rq(
             },
             "Passengers": {"Passenger": []},
             "Payments": {"Payment": []},
-            "Metadata": flight_price_response.get("Metadata", {"Other": {"OtherMetadata": []}})
+            **({"Metadata": flight_price_response["Metadata"]} if "Metadata" in flight_price_response and flight_price_response["Metadata"] is not None else {})
         }
     }
 

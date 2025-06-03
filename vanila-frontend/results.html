@@ -47,9 +47,9 @@
 
                     <div class="filter-section">
                         <h3>Price Range</h3>
-                        <input type="range" id="price-range" name="price-range" min="0" max="2000" step="50" class="price-range-slider">
+                        <input type="range" id="price-range" name="price-range" min="0" max="500000" step="5000" class="price-range-slider" value="500000">
                         <div class="price-range-values">
-                            <span id="min-price-display">$0</span> - <span id="max-price-display">$2000</span>
+                            <span id="min-price-display">₹0</span> - <span id="max-price-display">₹500,000</span>
                         </div>
                     </div>
 
@@ -110,17 +110,17 @@
 
                 <div id="results-container" class="results-list">
                     {/* Flight cards will be populated by JS */}
-                    <div class="loading-results-placeholder">
+                    <div class="loading-results-placeholder"> {/* This will be hidden by JS once results load or if no results */}
                         <div class="spinner"></div>
                         <p>Searching for the best flights...</p>
                     </div>
                    {/* 
                     Example of how a no-results message might look (handled by JS):
-                    <div class="no-flights-found">
+                    <div class="no-flights-found hidden">
                         <img src="assets/images/no-results-icon.svg" alt="No flights found" class="no-results-icon">
                         <h3>No Flights Found</h3>
                         <p>We couldn't find any flights matching your criteria. Try adjusting your search or filters.</p>
-                        <button class="primary-button" onclick="window.location.href='index.html'">Modify Search</button>
+                        <button class="primary-button" id="modify-search-from-no-results">Modify Search</button>
                     </div>
                     */}
                 </div>
@@ -142,6 +142,7 @@
         </div>
     </footer>
 
+    <script src="js/config.js"></script>
     <script src="js/airports_data.js"></script>
     <script src="js/results.js"></script>
 </body>

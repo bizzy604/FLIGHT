@@ -9,20 +9,18 @@ import json
 from typing import Dict, Any, List, Optional, Union
 from datetime import datetime
 
-# Add parent directory to path to allow importing the request builder files
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 # Import the request builder functions
-from scripts.build_airshopping_rq import build_airshopping_request
-from scripts.build_flightprice_rq import build_flight_price_request
-from scripts.build_ordercreate_rq import generate_order_create_rq
+from ..scripts.build_airshopping_rq import build_airshopping_request
+from ..scripts.build_flightprice_rq import build_flight_price_request
+from ..scripts.build_ordercreate_rq import generate_order_create_rq
 
 
 def build_airshopping_rq(
     trip_type: str,
-    origin: str,
-    destination: str,
-    departure_date: str,
+    od_segments: List[Dict[str, str]] = None,
+    origin: str = None,
+    destination: str = None,
+    departure_date: str = None,
     return_date: Optional[str] = None,
     adults: int = 1,
     children: int = 0,
@@ -35,10 +33,11 @@ def build_airshopping_rq(
     
     Args:
         trip_type: Type of trip ("ONE_WAY", "ROUND_TRIP", "MULTI_CITY")
-        origin: Origin airport code
-        destination: Destination airport code
-        departure_date: Departure date in YYYY-MM-DD format
-        return_date: Return date in YYYY-MM-DD format (for round trips)
+        od_segments: List of origin-destination segments with "Origin", "Destination", "DepartureDate"
+        origin: Origin airport code (deprecated, use od_segments)
+        destination: Destination airport code (deprecated, use od_segments)
+        departure_date: Departure date in YYYY-MM-DD format (deprecated, use od_segments)
+        return_date: Return date in YYYY-MM-DD format (deprecated, use od_segments)
         adults: Number of adult passengers
         children: Number of child passengers
         infants: Number of infant passengers
@@ -56,35 +55,37 @@ def build_airshopping_rq(
         "FIRST": "F"
     }
     
+    # Convert cabin class to IATA code, default to Economy
     cabin_code = cabin_map.get(cabin_class.upper(), "Y")
     
-    # Prepare segments
-    segments = [{
-        "Origin": origin,
-        "Destination": destination,
-        "DepartureDate": departure_date
-    }]
+    # If od_segments is not provided, create it from the legacy parameters
+    if od_segments is None:
+        if not all([origin, destination, departure_date]):
+            raise ValueError("Either od_segments or origin/destination/departure_date must be provided")
+            
+        od_segments = [{
+            "Origin": origin,
+            "Destination": destination,
+            "DepartureDate": departure_date
+        }]
+        
+        if trip_type == "ROUND_TRIP" and return_date:
+            od_segments.append({
+                "Origin": destination,
+                "Destination": origin,
+                "DepartureDate": return_date
+            })
     
-    # Add return segment for round trips
-    if trip_type.upper() == "ROUND_TRIP" and return_date:
-        segments.append({
-            "Origin": destination,
-            "Destination": origin,
-            "DepartureDate": return_date
-        })
-    
-    # Build the request
-    request = build_airshopping_request(
+    # Call the actual request builder
+    return build_airshopping_request(
         trip_type=trip_type.upper(),
-        od_segments=segments,
+        od_segments=od_segments,
         num_adults=adults,
         num_children=children,
         num_infants=infants,
         cabin_preference_code=cabin_code,
         fare_type_code=fare_type
     )
-    
-    return request
 
 
 def build_flightprice_rq(

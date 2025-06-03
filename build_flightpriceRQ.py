@@ -147,7 +147,7 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0):
             new_fare_group_for_rq = {
                 "ListKey": list_key,
                 "FareBasisCode": fare_group_item.get("FareBasisCode", {}),
-                "refs": fare_group_item.get("refs", [])
+                **({"refs": fare_group_item["refs"]} if "refs" in fare_group_item and fare_group_item["refs"] else {})
             }
             fare_list_for_rq.append(new_fare_group_for_rq)
 
@@ -248,20 +248,14 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0):
 
 
     shopping_response_id_node = airshopping_response.get("ShoppingResponseID", {}) # From top level of AirShoppingRS
-    if not (isinstance(shopping_response_id_node, dict) and \
-            shopping_response_id_node.get("ResponseID", {}).get("value") and \
-            shopping_response_id_node.get("Owner")):
-        print("Warning: Top-level ShoppingResponseID from AirShoppingRS is incomplete or missing. Attempting fallback.")
-        # Fallback logic (simplified for brevity, ensure robustness in production)
-        shopping_response_id_node = {} # Reset
-        try:
-            sr_id_val = airshopping_response["Metadata"]["Other"]["OtherMetadata"][0]["DescriptionMetadatas"]["DescriptionMetadata"][0]["AugmentationPoint"]["AugPoint"][0]["Key"]
-            sr_owner_val = airshopping_response["Metadata"]["Other"]["OtherMetadata"][0]["DescriptionMetadatas"]["DescriptionMetadata"][0]["AugmentationPoint"]["AugPoint"][0]["Owner"]
-            shopping_response_id_node = {"Owner": sr_owner_val, "ResponseID": {"value": sr_id_val}}
-        except (KeyError, IndexError, TypeError):
-            print("Critical Warning: ShoppingResponseID could not be determined for FlightPriceRQ from any source.")
-            # Depending on requirements, either raise error or set to None/empty and let Verteil handle it
-            shopping_response_id_node = None
+    try:
+        sr_id_val = airshopping_response["Metadata"]["Other"]["OtherMetadata"][0]["DescriptionMetadatas"]["DescriptionMetadata"][0]["AugmentationPoint"]["AugPoint"][0]["Key"]
+        sr_owner_val = airshopping_response["Metadata"]["Other"]["OtherMetadata"][0]["DescriptionMetadatas"]["DescriptionMetadata"][0]["AugmentationPoint"]["AugPoint"][0]["Owner"]            
+        shopping_response_id_node = {"Owner": sr_owner_val, "ResponseID": {"value": sr_id_val}}
+    except (KeyError, IndexError, TypeError):
+        print("Critical Warning: ShoppingResponseID could not be determined for FlightPriceRQ from any source.")
+        # Depending on requirements, either raise error or set to None/empty and let Verteil handle it
+        shopping_response_id_node = None
 
 
     all_price_metadatas_container = {}
@@ -297,13 +291,11 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0):
         },
         "ShoppingResponseID": shopping_response_id_node,
         "Travelers": {"Traveler": travelers_for_rq} if travelers_for_rq else {}, # Ensure structure if empty
-        "Metadata": {
+        **({"Metadata": {
             "Other": {
-                "OtherMetadata": [
-                    filtered_price_metadata_section 
-                ]
+                "OtherMetadata": [filtered_price_metadata_section]
             }
-        }
+        }} if filtered_price_metadata_section else {})
     }
     
     return flight_price_request

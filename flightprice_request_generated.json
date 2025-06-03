@@ -2,94 +2,34 @@
   "DataLists": {
     "FareGroup": [
       {
-        "ListKey": "EK-Xfbc1600712382ad7",
+        "ListKey": "AF-FG-HGL6BBLA-70J",
         "FareBasisCode": {
-          "Code": "LLWAPIN1CH"
-        },
-        "refs": [
-          "EK-Xfrk1500712382ad7"
-        ]
-      },
-      {
-        "ListKey": "EK-Xfbc4901712382ad7",
-        "FareBasisCode": {
-          "Code": "TLWAPIN1IN"
-        },
-        "refs": [
-          "EK-Xfrk4801712382ad7"
-        ]
-      },
-      {
-        "ListKey": "EK-Xfbc0700712382ad7",
-        "FareBasisCode": {
-          "Code": "LLWAPIN1IN"
-        },
-        "refs": [
-          "EK-Xfrk0600712382ad7"
-        ]
-      },
-      {
-        "ListKey": "EK-Xfbc1b00712382ad7",
-        "FareBasisCode": {
-          "Code": "LLWAPIN1"
-        },
-        "refs": [
-          "EK-Xfrk1a00712382ad7"
-        ]
-      },
-      {
-        "ListKey": "EK-Xfbc4f01712382ad7",
-        "FareBasisCode": {
-          "Code": "TLWAPIN1"
-        },
-        "refs": [
-          "EK-Xfrk4e01712382ad7"
-        ]
-      },
-      {
-        "ListKey": "EK-Xfbc4c01712382ad7",
-        "FareBasisCode": {
-          "Code": "TLWAPIN1CH"
-        },
-        "refs": [
-          "EK-Xfrk4b01712382ad7"
-        ]
+          "Code": "HGL6BBLA"
+        }
       }
     ],
     "AnonymousTravelerList": {
       "AnonymousTraveler": [
         {
-          "ObjectKey": "EK-T1",
+          "ObjectKey": "AF-PAX1",
           "PTC": {
             "value": "ADT"
           }
         },
         {
-          "ObjectKey": "EK-T2",
+          "ObjectKey": "AF-PAX2",
           "PTC": {
             "value": "ADT"
           }
         },
         {
-          "ObjectKey": "EK-T3",
+          "ObjectKey": "AF-PAX3",
           "PTC": {
             "value": "CHD"
           }
         },
         {
-          "ObjectKey": "EK-T4",
-          "PTC": {
-            "value": "CHD"
-          }
-        },
-        {
-          "ObjectKey": "EK-T1.1",
-          "PTC": {
-            "value": "INF"
-          }
-        },
-        {
-          "ObjectKey": "EK-T2.1",
+          "ObjectKey": "AF-PAX4",
           "PTC": {
             "value": "INF"
           }
@@ -102,214 +42,82 @@
       {
         "Flight": [
           {
-            "SegmentKey": "EK-Isgm0200712382ad7",
+            "SegmentKey": "AF-SEG1",
             "Departure": {
               "AirportCode": {
-                "value": "BOM"
+                "value": "BLR"
               },
-              "Date": "2025-06-01T00:00:00.000",
-              "Time": "04:25",
-              "AirportName": "Mumbai, IN",
+              "Date": "2025-06-10T00:00:00.000",
+              "Time": "01:10",
               "Terminal": {
                 "Name": "2"
               }
             },
             "Arrival": {
               "AirportCode": {
-                "value": "DXB"
+                "value": "AMS"
               },
-              "Date": "2025-06-01T00:00:00.000",
-              "Time": "06:00",
-              "ChangeOfDay": 0,
-              "AirportName": "Dubai International, AE",
-              "Terminal": {
-                "Name": "3"
-              }
+              "Date": "2025-06-10T00:00:00.000",
+              "Time": "07:45",
+              "Terminal": {}
             },
             "MarketingCarrier": {
               "AirlineID": {
-                "value": "EK"
+                "value": "KL"
               },
-              "Name": "Emirates",
               "FlightNumber": {
-                "value": "501"
+                "value": "880"
               }
             },
             "OperatingCarrier": {
               "AirlineID": {
-                "value": "EK"
+                "value": "KL"
               },
-              "Name": "Emirates"
+              "Name": "KLM"
             },
             "Equipment": {
-              "Name": "Airbus A380-800 Passenger",
               "AircraftCode": {
-                "value": "388"
-              }
-            },
-            "FlightDetail": {
-              "FlightDuration": {
-                "Value": "PT3H5M"
+                "value": "772"
               }
             }
           },
           {
-            "SegmentKey": "EK-Isgm0300712382ad7",
+            "SegmentKey": "AF-SEG2",
             "Departure": {
               "AirportCode": {
-                "value": "DXB"
+                "value": "AMS"
               },
-              "Date": "2025-06-01T00:00:00.000",
-              "Time": "09:40",
-              "AirportName": "Dubai International, AE",
-              "Terminal": {
-                "Name": "3"
-              }
+              "Date": "2025-06-10T00:00:00.000",
+              "Time": "10:20",
+              "Terminal": {}
             },
             "Arrival": {
               "AirportCode": {
                 "value": "LHR"
               },
-              "Date": "2025-06-01T00:00:00.000",
-              "Time": "14:25",
-              "ChangeOfDay": 0,
-              "AirportName": "London Heathrow Apt, GB",
+              "Date": "2025-06-10T00:00:00.000",
+              "Time": "10:45",
               "Terminal": {
-                "Name": "3"
+                "Name": "4"
               }
             },
             "MarketingCarrier": {
               "AirlineID": {
-                "value": "EK"
+                "value": "KL"
               },
-              "Name": "Emirates",
               "FlightNumber": {
-                "value": "29"
+                "value": "1005"
               }
             },
             "OperatingCarrier": {
               "AirlineID": {
-                "value": "EK"
+                "value": "KL"
               },
-              "Name": "Emirates"
+              "Name": "KLM"
             },
             "Equipment": {
-              "Name": "Airbus A380-800 Passenger",
               "AircraftCode": {
-                "value": "388"
-              }
-            },
-            "FlightDetail": {
-              "FlightDuration": {
-                "Value": "PT7H45M"
-              }
-            }
-          }
-        ]
-      },
-      {
-        "Flight": [
-          {
-            "SegmentKey": "EK-Isgm4401712382ad7",
-            "Departure": {
-              "AirportCode": {
-                "value": "LHR"
-              },
-              "Date": "2025-06-07T00:00:00.000",
-              "Time": "09:05",
-              "AirportName": "London Heathrow Apt, GB",
-              "Terminal": {
-                "Name": "3"
-              }
-            },
-            "Arrival": {
-              "AirportCode": {
-                "value": "DXB"
-              },
-              "Date": "2025-06-07T00:00:00.000",
-              "Time": "19:10",
-              "ChangeOfDay": 0,
-              "AirportName": "Dubai International, AE",
-              "Terminal": {
-                "Name": "3"
-              }
-            },
-            "MarketingCarrier": {
-              "AirlineID": {
-                "value": "EK"
-              },
-              "Name": "Emirates",
-              "FlightNumber": {
-                "value": "8"
-              }
-            },
-            "OperatingCarrier": {
-              "AirlineID": {
-                "value": "EK"
-              },
-              "Name": "Emirates"
-            },
-            "Equipment": {
-              "Name": "Airbus A380-800 Passenger",
-              "AircraftCode": {
-                "value": "388"
-              }
-            },
-            "FlightDetail": {
-              "FlightDuration": {
-                "Value": "PT7H5M"
-              }
-            }
-          },
-          {
-            "SegmentKey": "EK-Isgm4501712382ad7",
-            "Departure": {
-              "AirportCode": {
-                "value": "DXB"
-              },
-              "Date": "2025-06-07T00:00:00.000",
-              "Time": "23:00",
-              "AirportName": "Dubai International, AE",
-              "Terminal": {
-                "Name": "3"
-              }
-            },
-            "Arrival": {
-              "AirportCode": {
-                "value": "BOM"
-              },
-              "Date": "2025-06-08T00:00:00.000",
-              "Time": "02:25",
-              "ChangeOfDay": 1,
-              "AirportName": "Mumbai, IN",
-              "Terminal": {
-                "Name": "2"
-              }
-            },
-            "MarketingCarrier": {
-              "AirlineID": {
-                "value": "EK"
-              },
-              "Name": "Emirates",
-              "FlightNumber": {
-                "value": "500"
-              }
-            },
-            "OperatingCarrier": {
-              "AirlineID": {
-                "value": "EK"
-              },
-              "Name": "Emirates"
-            },
-            "Equipment": {
-              "Name": "Airbus A380-800 Passenger",
-              "AircraftCode": {
-                "value": "388"
-              }
-            },
-            "FlightDetail": {
-              "FlightDuration": {
-                "Value": "PT1H55M"
+                "value": "32Q"
               }
             }
           }
@@ -320,41 +128,42 @@
       "Offer": [
         {
           "OfferID": {
-            "value": "X4CDA0075-F3E-4E82-BBCB-1:X4CDA0075-F3E-4E82-BBCB-76",
-            "Owner": "EK",
+            "value": "ca2c3a89-c283-46dd-ac3a-89c283b60001",
+            "Owner": "AF",
             "Channel": "NDC"
           },
           "OfferItemIDs": {
             "OfferItemID": [
               {
-                "value": "X4CDA0075-F3E-4E82-BBCB-1-1:X4CDA0075-F3E-4E82-BBCB-76-1",
+                "value": "ca41c006-34a4-4955-81c0-0634a4795519",
                 "refs": [
-                  "EK-T1.1",
-                  "EK-T2.1"
+                  "AF-PAX1",
+                  "AF-PAX2"
                 ]
               },
               {
-                "value": "X4CDA0075-F3E-4E82-BBCB-1-2:X4CDA0075-F3E-4E82-BBCB-76-2",
+                "value": "e9cdcda4-3345-4fb2-8dcd-a43345ffb29f",
                 "refs": [
-                  "EK-T3",
-                  "EK-T4"
+                  "AF-PAX3"
                 ]
               },
               {
-                "value": "X4CDA0075-F3E-4E82-BBCB-1-3:X4CDA0075-F3E-4E82-BBCB-76-3",
+                "value": "a91c6945-43d4-47f8-9c69-4543d4a7f810",
                 "refs": [
-                  "EK-T1",
-                  "EK-T2"
+                  "AF-PAX4"
                 ]
               }
             ]
           },
           "refs": [
             {
+              "Ref": "VDC-UPSELL"
+            },
+            {
               "Ref": "VDC-AIRLINE-SRID"
             },
             {
-              "Ref": "VDC-PR-J2Tkjt9MoLpLrwBrMIWO"
+              "Ref": "VDC-PR-ZQvCeUMlwsKydnxFBjeh"
             }
           ]
         }
@@ -362,9 +171,9 @@
     }
   },
   "ShoppingResponseID": {
-    "Owner": "EK",
+    "Owner": "AF",
     "ResponseID": {
-      "value": "MiinRf-05u7BjW8aIzWW9rCbGlQUmQ5s-ng-D2GC970-EK"
+      "value": "N75z-wrA3O5h9QRuUTSCWlgoaDkNMKzmwlsU19EiFTg-AF"
     }
   },
   "Travelers": {
@@ -400,24 +209,6 @@
         "AnonymousTraveler": [
           {
             "PTC": {
-              "value": "CHD"
-            }
-          }
-        ]
-      },
-      {
-        "AnonymousTraveler": [
-          {
-            "PTC": {
-              "value": "INF"
-            }
-          }
-        ]
-      },
-      {
-        "AnonymousTraveler": [
-          {
-            "PTC": {
               "value": "INF"
             }
           }
@@ -432,72 +223,12 @@
           "PriceMetadatas": {
             "PriceMetadata": [
               {
-                "MetadataKey": "EK-Xfrk0600712382ad7",
+                "MetadataKey": "VDC-UPSELL",
                 "AugmentationPoint": {
                   "AugPoint": [
                     {
                       "any": {
-                        "value": "NO8OPNQ~MVB8WLN~MqA9CJ~MqM9@NK~MpC8KMM~MSN9NT@K~MNP9.~MNW8HLE~M@K9.~MDQ8/~MNR9@~MDJ8/~DAML~A~A~DKMM~A~A~DDI~A~DKJV?OGM/~D./2~D./0~D././7~D51./~D1~D5M~DD~D~MAD9JKU@NHL0~MEA9JKU@NHL0*selOz6whmm1D*flxKey"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "MetadataKey": "EK-Xfrk1500712382ad7",
-                "AugmentationPoint": {
-                  "AugPoint": [
-                    {
-                      "any": {
-                        "value": "NO8OPNQ~MVB8WLN~MqA9CJ~MqM9@NK~MpC8KMM~MSN9NT@K~MNP9.~MNW8BFC~M@K9.~MDQ8/~MNR9@~MDJ8/~DAML~A~A~DKMM~A~A~DDI~A~DKJV?OGM/~D./2~D./0~D././7~D51./~D1~D5M~DD~D~MAD9JKU@NHL0~MEA9JKU@NHL0*selOz6whmm1D*flxKey"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "MetadataKey": "EK-Xfrk1a00712382ad7",
-                "AugmentationPoint": {
-                  "AugPoint": [
-                    {
-                      "any": {
-                        "value": "NO8OPNQ~MVB8WLN~MqA9CJ~MqM9@NK~MpC8KMM~MSN9NT@K~MNP9.~MNW8@BS~M@K9.~MDQ8/~MNR9@~MDJ8/~DAML~A~A~DKMM~A~A~DDI~A~DKJV?OGM/~D./2~D./0~D././7~D51./~D1~D5M~DD~D~MAD9JKU@NHL0~MEA9JKU@NHL0*selOz6whmm1D*flxKey"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "MetadataKey": "EK-Xfrk4801712382ad7",
-                "AugmentationPoint": {
-                  "AugPoint": [
-                    {
-                      "any": {
-                        "value": "NO8OPNQ~MVB8WLN~MqA9CJ~MqM9@NK~MpC8KMM~MSN9NT@K~MNP9.~MNW8HLE~M@K9.~MDQ8/~MNR9@~MDJ8/~DAML~A~A~DKMM~A~A~DDI~A~DSJV?OGM/~D./2~D.//~D././2~D51./~D1~D5M~DD~D~MAD9RKU@NHL0~MEA9RKU@NHL0*selOz6whmm1D*flxKey"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "MetadataKey": "EK-Xfrk4b01712382ad7",
-                "AugmentationPoint": {
-                  "AugPoint": [
-                    {
-                      "any": {
-                        "value": "NO8OPNQ~MVB8WLN~MqA9CJ~MqM9@NK~MpC8KMM~MSN9NT@K~MNP9.~MNW8BFC~M@K9.~MDQ8/~MNR9@~MDJ8/~DAML~A~A~DKMM~A~A~DDI~A~DSJV?OGM/~D./2~D.//~D././2~D51./~D1~D5M~DD~D~MAD9RKU@NHL0~MEA9RKU@NHL0*selOz6whmm1D*flxKey"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "MetadataKey": "EK-Xfrk4e01712382ad7",
-                "AugmentationPoint": {
-                  "AugPoint": [
-                    {
-                      "any": {
-                        "value": "NO8OPNQ~MVB8WLN~MqA9CJ~MqM9@NK~MpC8KMM~MSN9NT@K~MNP9.~MNW8@BS~M@K9.~MDQ8/~MNR9@~MDJ8/~DAML~A~A~DKMM~A~A~DDI~A~DSJV?OGM/~D./2~D.//~D././2~D51./~D1~D5M~DD~D~MAD9RKU@NHL0~MEA9RKU@NHL0*selOz6whmm1D*flxKey"
+                        "value": "true"
                       }
                     }
                   ]
@@ -510,20 +241,20 @@
                     {
                       "any": {
                         "type": "java.util.HashMap",
-                        "value": "eyJFSyI6Ilg0Q0RBMDA3NS1GM0UtNEU4Mi1CQkNCIn0="
+                        "value": "eyJBRiI6ImREMWMydDJjTHZJaTNRR1RaNHowIn0="
                       }
                     }
                   ]
                 }
               },
               {
-                "MetadataKey": "VDC-PR-J2Tkjt9MoLpLrwBrMIWO",
+                "MetadataKey": "VDC-PR-ZQvCeUMlwsKydnxFBjeh",
                 "AugmentationPoint": {
                   "AugPoint": [
                     {
                       "any": {
                         "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
-                        "value": "Mb1f1kwftDNqxSDVbHUioMh98CPa4BN06qV3gMhdLm/ETJk60hERPuDg7sjaU7Bh0PCPCudnm/V6l/uj7iJrXPG8vLceFcLSoTZ71iZSgPMcrDXO2Lx6PqZmD77PgXy9lLO6ylALghs3wBqo9f/cnDvhRjdGj55rMWrduGm1OSILKBfPtqiTxCtfBm6rxu1ubeiAHonoIFdahgmyKbXg3a7y8dpSvM3hv3nw47ZXkjypVCZJeCry6dOF7IX6QJnE/jPWX5Y9olpjQOZQ0OhG1yvcMkwGarL7OgJ2vN9R4REvkIKoDqVDi9J9xCzdzSaUBwhgxxBI4KoCg54CzkcsT2uOioJRc8Cvn4fJVL1kFSFLSqUMEdn50Io3sFqaxsEcU2uuPXyNnhFCQWDhbKw39WqhTlbBnguoB9h4+4WAMOK1TOAeZeTojY61zQH48vHDjx2lEYjjhf+iDk1F5TSLZKkIfU7guJi7xL8GSyNr6HvNUNn0SKE0Wo9eRwUZWhVQ5PJX6on3SN7UClvh/8QCIY10aabeBI8dEfDfoPJ/kswDdnbOEoRjWnSpn3yxnzUlmzvYU5S25zOl/IjdyPKiiVKGErcPF0SmtecxQQAy8pYLabiuejdJmq/j+0JSBFojoRT0j01x8wIwJTR53Q3KtMlrj7kpip9ERuigkCmS8z5KjGKeJo23ItskO7MUb40m5tIFcO+QPZUysPTUsk6EWGOO5t1yhSBjo8phh8+ywR3LihzFJN7vP4MnyNywxozvJcOecK41fIyHWZ9y6Q8A8pZCWlHLTCx5GXxPOQn9xacqoHuXCSWkkI9pZxztVvg1TwWdbW1OHLHSZXEyTResZcPpQroU9zkLENZplM12zc3S"
+                        "value": "Mb1f1kwftDNqxSDVbHUioMh98CPa4BN06qV3gMhdLm/ETJk60hERPtu1n++oArhvyL77AZFnm4YmwfuAz1JIXPi/h7FlYuHUoTF+ykJN56pHnWyQpYxRHoFpArrfmGv4zOnrlixbiA0gkEX0pb7PkiuEKgYR0c5hOW/B6BrjFQEYf1ye+/Su2nt5FG2j9dF9e6fzIdDwbVJd10qYbeC7ufnkqswnvLeQy2T45eBK+T/aSiZtdC/mnqT3l4rnT9if3lPsa7IvqE8XKfRBuecA53+LVmo3C8qNL2YOwbhM8lN8yov9XLQOxZFYyweQlGqSUF4ytkQP9L5pkeB14GNuGxjRx6oTJZb63tKSI+AlUH8TSutaUMv1zptn6R/Rt5wOCn74cCDaw1c7GSf4RLA39X70QQPY0RTrXJMtrcP8abO+Z7YRZ6LT3eCQuAL78fGIr0zSBdqEke//LXdS3mnfa6EQZjLn3vWphv1fAyw83nTDTsOUMK8zKPxBQhFpRBUIqfZX/pzjV86YRFuYgbMWOp4oLPqXb4kPQK/F789fsP0QfXDNAO5/VjD2xz+pvyBo1GeeR56z/jqjuIiEiPy3inaZNLYEDi/4pu4rEAkvs9RTJa+5fTAcmLuq4F9IRgUm8l+Qzx0oiQImfiFH0X++19V5yO18mNVxDv7filLx914l7D3aZ9vEHpxFRakGDe9fjqUHB/CGJYEi6dnikGDoAjrWu4t8nWU17qo2x5q82V3rvS2mZZPoJJtgu4333IaaN6HnHp9lNZyPSfVq5Utf+6pT49PRrK9X4ya7pwbTp1vXaw=="
                       }
                     }
                   ]
