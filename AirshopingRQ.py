@@ -141,15 +141,15 @@ def main():
         os.makedirs(output_dir)
 
     # Example common passenger details
-    adults = 1
+    adults = 2
     children = 1
     infants = 1
-    cabin = "Y"
+    cabin = "C"
 
     # --- Example 1: One-Way ---
     try:
         one_way_segments = [
-            {"Origin": "NBO", "Destination": "ARN", "DepartureDate": "2025-06-10"}
+            {"Origin": "NBO", "Destination": "CDG", "DepartureDate": "2025-06-10"}
         ]
         one_way_rq = build_airshopping_request(
             trip_type="ONE_WAY",
@@ -167,8 +167,8 @@ def main():
     # (Matches your original sample more closely in terms of structure)
     try:
         round_trip_segments = [
-            {"Origin": "NBO", "Destination": "ARN", "DepartureDate": "2025-06-01"}, # Outbound
-            {"Origin": "ARN", "Destination": "NBO", "DepartureDate": "2025-06-07"}  # Return segment with its own date
+            {"Origin": "NBO", "Destination": "CDG", "DepartureDate": "2025-06-06"}, # Outbound
+            {"Origin": "CDG", "Destination": "NBO", "DepartureDate": "2025-06-12"}  # Return segment with its own date
         ] # Note: For roundtrip, the second segment's Origin/Destination are derived from the first
           # only the DepartureDate is critical from the second segment here.
 
@@ -188,9 +188,9 @@ def main():
     # --- Example 3: Multi-City ---
     try:
         multi_city_segments = [
-            {"Origin": "NBO", "Destination": "ARN", "DepartureDate": "2025-06-01"},
-            {"Origin": "ARN", "Destination": "NBO", "DepartureDate": "2025-06-07"},
-            {"Origin": "NBO", "Destination": "ARN", "DepartureDate": "2025-06-14"}
+            {"Origin": "NBO", "Destination": "CDG", "DepartureDate": "2025-06-06"},
+            {"Origin": "CDG", "Destination": "NBO", "DepartureDate": "2025-06-12"},
+            {"Origin": "NBO", "Destination": "CDG", "DepartureDate": "2025-06-18"}
         ]
         multi_city_rq = build_airshopping_request(
             trip_type="MULTI_CITY",

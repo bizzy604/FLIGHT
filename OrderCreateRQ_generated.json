@@ -2,37 +2,37 @@
   "Query": {
     "OrderItems": {
       "ShoppingResponse": {
-        "Owner": "AF",
+        "Owner": "EK",
         "ResponseID": {
-          "value": "N75z-wrA3O5h9QRuUTSCWlgoaDkNMKzmwlsU19EiFTg-AF"
+          "value": "OF5Yi36HX217xfUAwO45D-F-Ji-Oz7212A63tJXzf8-EK"
         },
         "Offers": {
           "Offer": [
             {
               "OfferID": {
-                "ObjectKey": "ca2c3a89-c283-46dd-ac3a-89c283b60001",
-                "value": "ca2c3a89-c283-46dd-ac3a-89c283b60001",
-                "Owner": "AF",
+                "ObjectKey": "P28AF912A-1CD2-478C-847Cjqgffowuv80r2-1",
+                "value": "P28AF912A-1CD2-478C-847Cjqgffowuv80r2-1",
+                "Owner": "EK",
                 "Channel": "NDC"
               },
               "OfferItems": {
                 "OfferItem": [
                   {
                     "OfferItemID": {
-                      "Owner": "AF",
-                      "value": "ca41c006-34a4-4955-81c0-0634a4795519"
+                      "Owner": "EK",
+                      "value": "P28AF912A-1CD2-478C-847Cjqgffowuv80r2-1-1"
                     }
                   },
                   {
                     "OfferItemID": {
-                      "Owner": "AF",
-                      "value": "e9cdcda4-3345-4fb2-8dcd-a43345ffb29f"
+                      "Owner": "EK",
+                      "value": "P28AF912A-1CD2-478C-847Cjqgffowuv80r2-1-2"
                     }
                   },
                   {
                     "OfferItemID": {
-                      "Owner": "AF",
-                      "value": "a91c6945-43d4-47f8-9c69-4543d4a7f810"
+                      "Owner": "EK",
+                      "value": "P28AF912A-1CD2-478C-847Cjqgffowuv80r2-1-3"
                     }
                   }
                 ]
@@ -44,20 +44,20 @@
       "OfferItem": [
         {
           "OfferItemID": {
-            "Owner": "AF",
-            "value": "ca41c006-34a4-4955-81c0-0634a4795519"
+            "Owner": "EK",
+            "value": "P28AF912A-1CD2-478C-847Cjqgffowuv80r2-1-1"
           },
           "OfferItemType": {
             "DetailedFlightItem": [
               {
                 "Price": {
                   "BaseAmount": {
-                    "value": 54760.0,
+                    "value": 14300,
                     "Code": "INR"
                   },
                   "Taxes": {
                     "Total": {
-                      "value": 23286.0,
+                      "value": 44581,
                       "Code": "INR"
                     }
                   }
@@ -68,110 +68,243 @@
                       {
                         "Departure": {
                           "AirportCode": {
-                            "value": "BLR"
+                            "value": "BOM"
                           },
-                          "Date": "2025-06-10T01:10:00.000",
-                          "Time": "01:10",
+                          "Date": "2025-06-03T00:00:00.000",
+                          "Time": "04:15",
+                          "AirportName": "Mumbai, IN",
                           "Terminal": {
                             "Name": "2"
                           }
                         },
                         "Arrival": {
                           "AirportCode": {
-                            "value": "AMS"
+                            "value": "DXB"
                           },
-                          "Date": "2025-06-10T07:45:00.000",
-                          "Time": "07:45"
+                          "Date": "2025-06-03T00:00:00.000",
+                          "Time": "06:05",
+                          "AirportName": "Dubai International, AE",
+                          "Terminal": {
+                            "Name": "3"
+                          }
                         },
                         "ClassOfService": {
                           "Code": {
-                            "value": "H"
+                            "value": "T"
                           },
                           "MarketingName": {
                             "value": "ECONOMY",
                             "CabinDesignator": "Y"
                           },
                           "refs": [
-                            "FG-SEG1"
+                            "Pfcpmsgi4s4qmpv6e"
                           ]
                         },
                         "MarketingCarrier": {
                           "AirlineID": {
-                            "value": "KL"
+                            "value": "EK"
                           },
+                          "Name": "Emirates",
                           "FlightNumber": {
-                            "value": "880"
+                            "value": "501"
                           }
                         },
                         "Equipment": {
+                          "Name": "Airbus A380-800 Passenger",
                           "AircraftCode": {
-                            "value": "772"
+                            "value": "388"
                           }
                         },
                         "FlightDetail": {
                           "FlightDuration": {
-                            "Value": "PT14H5M"
+                            "Value": "PT3H20M"
                           }
                         },
-                        "SegmentKey": "SEG1"
+                        "SegmentKey": "Isgm020028539c5fb"
                       },
                       {
                         "Departure": {
                           "AirportCode": {
-                            "value": "AMS"
+                            "value": "DXB"
                           },
-                          "Date": "2025-06-10T10:20:00.000",
-                          "Time": "10:20"
+                          "Date": "2025-06-03T00:00:00.000",
+                          "Time": "09:40",
+                          "AirportName": "Dubai International, AE",
+                          "Terminal": {
+                            "Name": "3"
+                          }
                         },
                         "Arrival": {
                           "AirportCode": {
                             "value": "LHR"
                           },
-                          "Date": "2025-06-10T10:45:00.000",
-                          "Time": "10:45",
+                          "Date": "2025-06-03T00:00:00.000",
+                          "Time": "14:25",
+                          "AirportName": "London Heathrow Apt, GB",
                           "Terminal": {
-                            "Name": "4"
+                            "Name": "3"
                           }
                         },
                         "ClassOfService": {
                           "Code": {
-                            "value": "K"
+                            "value": "T"
                           },
                           "MarketingName": {
                             "value": "ECONOMY",
                             "CabinDesignator": "Y"
                           },
                           "refs": [
-                            "FG-SEG1"
+                            "Pfcpmsgi4s4qmpv6e"
                           ]
                         },
                         "MarketingCarrier": {
                           "AirlineID": {
-                            "value": "KL"
+                            "value": "EK"
                           },
+                          "Name": "Emirates",
                           "FlightNumber": {
-                            "value": "1005"
+                            "value": "29"
                           }
                         },
                         "Equipment": {
+                          "Name": "Airbus A380-800 Passenger",
                           "AircraftCode": {
-                            "value": "32Q"
+                            "value": "388"
                           }
                         },
                         "FlightDetail": {
                           "FlightDuration": {
-                            "Value": "PT14H5M"
+                            "Value": "PT7H45M"
                           }
                         },
-                        "SegmentKey": "SEG2"
+                        "SegmentKey": "Isgm030028539c5fb"
                       }
                     ],
-                    "OriginDestinationKey": "OD1"
+                    "OriginDestinationKey": "Iodad7rv90roo4md"
+                  },
+                  {
+                    "Flight": [
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "LHR"
+                          },
+                          "Date": "2025-06-09T00:00:00.000",
+                          "Time": "14:25",
+                          "AirportName": "London Heathrow Apt, GB",
+                          "Terminal": {
+                            "Name": "3"
+                          }
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "DXB"
+                          },
+                          "Date": "2025-06-10T00:00:00.000",
+                          "Time": "00:25",
+                          "AirportName": "Dubai International, AE",
+                          "Terminal": {
+                            "Name": "3"
+                          }
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "T"
+                          },
+                          "MarketingName": {
+                            "value": "ECONOMY",
+                            "CabinDesignator": "Y"
+                          },
+                          "refs": [
+                            "Pfcpmsgi4s4qmpv6e"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "EK"
+                          },
+                          "Name": "Emirates",
+                          "FlightNumber": {
+                            "value": "2"
+                          }
+                        },
+                        "Equipment": {
+                          "Name": "Airbus A380-800 Passenger",
+                          "AircraftCode": {
+                            "value": "388"
+                          }
+                        },
+                        "FlightDetail": {
+                          "FlightDuration": {
+                            "Value": "PT7H0M"
+                          }
+                        },
+                        "SegmentKey": "Isgm750128539c5fb"
+                      },
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "DXB"
+                          },
+                          "Date": "2025-06-10T00:00:00.000",
+                          "Time": "05:30",
+                          "AirportName": "Dubai International, AE",
+                          "Terminal": {
+                            "Name": "3"
+                          }
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "BOM"
+                          },
+                          "Date": "2025-06-10T00:00:00.000",
+                          "Time": "13:45",
+                          "AirportName": "Mumbai, IN",
+                          "Terminal": {
+                            "Name": "2"
+                          }
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "T"
+                          },
+                          "MarketingName": {
+                            "value": "ECONOMY",
+                            "CabinDesignator": "Y"
+                          },
+                          "refs": [
+                            "Pfcpmsgi4s4qmpv6e"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "EK"
+                          },
+                          "Name": "Emirates",
+                          "FlightNumber": {
+                            "value": "504"
+                          }
+                        },
+                        "Equipment": {
+                          "Name": "Boeing 777-200LR",
+                          "AircraftCode": {
+                            "value": "77L"
+                          }
+                        },
+                        "FlightDetail": {
+                          "FlightDuration": {
+                            "Value": "PT6H45M"
+                          }
+                        },
+                        "SegmentKey": "Isgm760128539c5fb"
+                      }
+                    ],
+                    "OriginDestinationKey": "Iody1524akk7jhhz"
                   }
                 ],
                 "refs": [
-                  "PAX1",
-                  "PAX2"
+                  "T1",
+                  "T2"
                 ]
               }
             ]
@@ -179,20 +312,20 @@
         },
         {
           "OfferItemID": {
-            "Owner": "AF",
-            "value": "e9cdcda4-3345-4fb2-8dcd-a43345ffb29f"
+            "Owner": "EK",
+            "value": "P28AF912A-1CD2-478C-847Cjqgffowuv80r2-1-2"
           },
           "OfferItemType": {
             "DetailedFlightItem": [
               {
                 "Price": {
                   "BaseAmount": {
-                    "value": 41070.0,
+                    "value": 10725,
                     "Code": "INR"
                   },
                   "Taxes": {
                     "Total": {
-                      "value": 22601.0,
+                      "value": 34035,
                       "Code": "INR"
                     }
                   }
@@ -203,98 +336,228 @@
                       {
                         "Departure": {
                           "AirportCode": {
-                            "value": "BLR"
+                            "value": "BOM"
                           },
-                          "Date": "2025-06-10T01:10:00.000",
-                          "Time": "01:10",
+                          "Date": "2025-06-03T00:00:00.000",
+                          "Time": "04:15",
+                          "AirportName": "Mumbai, IN",
                           "Terminal": {
                             "Name": "2"
                           }
                         },
                         "Arrival": {
                           "AirportCode": {
-                            "value": "AMS"
+                            "value": "DXB"
                           },
-                          "Date": "2025-06-10T07:45:00.000",
-                          "Time": "07:45"
+                          "Date": "2025-06-03T00:00:00.000",
+                          "Time": "06:05",
+                          "AirportName": "Dubai International, AE",
+                          "Terminal": {
+                            "Name": "3"
+                          }
                         },
                         "ClassOfService": {
                           "Code": {
-                            "value": "H"
+                            "value": "T"
                           },
                           "MarketingName": {
                             "value": "ECONOMY",
                             "CabinDesignator": "Y"
                           },
                           "refs": [
-                            "FG-SEG1"
+                            "Pfcpeazia3bketcvx"
                           ]
                         },
                         "MarketingCarrier": {
                           "AirlineID": {
-                            "value": "KL"
+                            "value": "EK"
                           },
+                          "Name": "Emirates",
                           "FlightNumber": {
-                            "value": "880"
+                            "value": "501"
                           }
                         },
                         "Equipment": {
+                          "Name": "Airbus A380-800 Passenger",
                           "AircraftCode": {
-                            "value": "772"
+                            "value": "388"
                           }
                         },
                         "FlightDetail": {
                           "FlightDuration": {
-                            "Value": "PT14H5M"
+                            "Value": "PT3H20M"
                           }
                         }
                       },
                       {
                         "Departure": {
                           "AirportCode": {
-                            "value": "AMS"
+                            "value": "DXB"
                           },
-                          "Date": "2025-06-10T10:20:00.000",
-                          "Time": "10:20"
+                          "Date": "2025-06-03T00:00:00.000",
+                          "Time": "09:40",
+                          "AirportName": "Dubai International, AE",
+                          "Terminal": {
+                            "Name": "3"
+                          }
                         },
                         "Arrival": {
                           "AirportCode": {
                             "value": "LHR"
                           },
-                          "Date": "2025-06-10T10:45:00.000",
-                          "Time": "10:45",
+                          "Date": "2025-06-03T00:00:00.000",
+                          "Time": "14:25",
+                          "AirportName": "London Heathrow Apt, GB",
                           "Terminal": {
-                            "Name": "4"
+                            "Name": "3"
                           }
                         },
                         "ClassOfService": {
                           "Code": {
-                            "value": "K"
+                            "value": "T"
                           },
                           "MarketingName": {
                             "value": "ECONOMY",
                             "CabinDesignator": "Y"
                           },
                           "refs": [
-                            "FG-SEG1"
+                            "Pfcpeazia3bketcvx"
                           ]
                         },
                         "MarketingCarrier": {
                           "AirlineID": {
-                            "value": "KL"
+                            "value": "EK"
                           },
+                          "Name": "Emirates",
                           "FlightNumber": {
-                            "value": "1005"
+                            "value": "29"
                           }
                         },
                         "Equipment": {
+                          "Name": "Airbus A380-800 Passenger",
                           "AircraftCode": {
-                            "value": "32Q"
+                            "value": "388"
                           }
                         },
                         "FlightDetail": {
                           "FlightDuration": {
-                            "Value": "PT14H5M"
+                            "Value": "PT7H45M"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "Flight": [
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "LHR"
+                          },
+                          "Date": "2025-06-09T00:00:00.000",
+                          "Time": "14:25",
+                          "AirportName": "London Heathrow Apt, GB",
+                          "Terminal": {
+                            "Name": "3"
+                          }
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "DXB"
+                          },
+                          "Date": "2025-06-10T00:00:00.000",
+                          "Time": "00:25",
+                          "AirportName": "Dubai International, AE",
+                          "Terminal": {
+                            "Name": "3"
+                          }
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "T"
+                          },
+                          "MarketingName": {
+                            "value": "ECONOMY",
+                            "CabinDesignator": "Y"
+                          },
+                          "refs": [
+                            "Pfcpeazia3bketcvx"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "EK"
+                          },
+                          "Name": "Emirates",
+                          "FlightNumber": {
+                            "value": "2"
+                          }
+                        },
+                        "Equipment": {
+                          "Name": "Airbus A380-800 Passenger",
+                          "AircraftCode": {
+                            "value": "388"
+                          }
+                        },
+                        "FlightDetail": {
+                          "FlightDuration": {
+                            "Value": "PT7H0M"
+                          }
+                        }
+                      },
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "DXB"
+                          },
+                          "Date": "2025-06-10T00:00:00.000",
+                          "Time": "05:30",
+                          "AirportName": "Dubai International, AE",
+                          "Terminal": {
+                            "Name": "3"
+                          }
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "BOM"
+                          },
+                          "Date": "2025-06-10T00:00:00.000",
+                          "Time": "13:45",
+                          "AirportName": "Mumbai, IN",
+                          "Terminal": {
+                            "Name": "2"
+                          }
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "T"
+                          },
+                          "MarketingName": {
+                            "value": "ECONOMY",
+                            "CabinDesignator": "Y"
+                          },
+                          "refs": [
+                            "Pfcpeazia3bketcvx"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "EK"
+                          },
+                          "Name": "Emirates",
+                          "FlightNumber": {
+                            "value": "504"
+                          }
+                        },
+                        "Equipment": {
+                          "Name": "Boeing 777-200LR",
+                          "AircraftCode": {
+                            "value": "77L"
+                          }
+                        },
+                        "FlightDetail": {
+                          "FlightDuration": {
+                            "Value": "PT6H45M"
                           }
                         }
                       }
@@ -302,7 +565,8 @@
                   }
                 ],
                 "refs": [
-                  "PAX3"
+                  "T3",
+                  "T4"
                 ]
               }
             ]
@@ -310,20 +574,20 @@
         },
         {
           "OfferItemID": {
-            "Owner": "AF",
-            "value": "a91c6945-43d4-47f8-9c69-4543d4a7f810"
+            "Owner": "EK",
+            "value": "P28AF912A-1CD2-478C-847Cjqgffowuv80r2-1-3"
           },
           "OfferItemType": {
             "DetailedFlightItem": [
               {
                 "Price": {
                   "BaseAmount": {
-                    "value": 5480.0,
+                    "value": 1430,
                     "Code": "INR"
                   },
                   "Taxes": {
                     "Total": {
-                      "value": 274.0,
+                      "value": 6029,
                       "Code": "INR"
                     }
                   }
@@ -334,98 +598,228 @@
                       {
                         "Departure": {
                           "AirportCode": {
-                            "value": "BLR"
+                            "value": "BOM"
                           },
-                          "Date": "2025-06-10T01:10:00.000",
-                          "Time": "01:10",
+                          "Date": "2025-06-03T00:00:00.000",
+                          "Time": "04:15",
+                          "AirportName": "Mumbai, IN",
                           "Terminal": {
                             "Name": "2"
                           }
                         },
                         "Arrival": {
                           "AirportCode": {
-                            "value": "AMS"
+                            "value": "DXB"
                           },
-                          "Date": "2025-06-10T07:45:00.000",
-                          "Time": "07:45"
+                          "Date": "2025-06-03T00:00:00.000",
+                          "Time": "06:05",
+                          "AirportName": "Dubai International, AE",
+                          "Terminal": {
+                            "Name": "3"
+                          }
                         },
                         "ClassOfService": {
                           "Code": {
-                            "value": "H"
+                            "value": "T"
                           },
                           "MarketingName": {
                             "value": "ECONOMY",
                             "CabinDesignator": "Y"
                           },
                           "refs": [
-                            "FG-SEG1"
+                            "Pfcprpzcjre6sfh2p"
                           ]
                         },
                         "MarketingCarrier": {
                           "AirlineID": {
-                            "value": "KL"
+                            "value": "EK"
                           },
+                          "Name": "Emirates",
                           "FlightNumber": {
-                            "value": "880"
+                            "value": "501"
                           }
                         },
                         "Equipment": {
+                          "Name": "Airbus A380-800 Passenger",
                           "AircraftCode": {
-                            "value": "772"
+                            "value": "388"
                           }
                         },
                         "FlightDetail": {
                           "FlightDuration": {
-                            "Value": "PT14H5M"
+                            "Value": "PT3H20M"
                           }
                         }
                       },
                       {
                         "Departure": {
                           "AirportCode": {
-                            "value": "AMS"
+                            "value": "DXB"
                           },
-                          "Date": "2025-06-10T10:20:00.000",
-                          "Time": "10:20"
+                          "Date": "2025-06-03T00:00:00.000",
+                          "Time": "09:40",
+                          "AirportName": "Dubai International, AE",
+                          "Terminal": {
+                            "Name": "3"
+                          }
                         },
                         "Arrival": {
                           "AirportCode": {
                             "value": "LHR"
                           },
-                          "Date": "2025-06-10T10:45:00.000",
-                          "Time": "10:45",
+                          "Date": "2025-06-03T00:00:00.000",
+                          "Time": "14:25",
+                          "AirportName": "London Heathrow Apt, GB",
                           "Terminal": {
-                            "Name": "4"
+                            "Name": "3"
                           }
                         },
                         "ClassOfService": {
                           "Code": {
-                            "value": "K"
+                            "value": "T"
                           },
                           "MarketingName": {
                             "value": "ECONOMY",
                             "CabinDesignator": "Y"
                           },
                           "refs": [
-                            "FG-SEG1"
+                            "Pfcprpzcjre6sfh2p"
                           ]
                         },
                         "MarketingCarrier": {
                           "AirlineID": {
-                            "value": "KL"
+                            "value": "EK"
                           },
+                          "Name": "Emirates",
                           "FlightNumber": {
-                            "value": "1005"
+                            "value": "29"
                           }
                         },
                         "Equipment": {
+                          "Name": "Airbus A380-800 Passenger",
                           "AircraftCode": {
-                            "value": "32Q"
+                            "value": "388"
                           }
                         },
                         "FlightDetail": {
                           "FlightDuration": {
-                            "Value": "PT14H5M"
+                            "Value": "PT7H45M"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "Flight": [
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "LHR"
+                          },
+                          "Date": "2025-06-09T00:00:00.000",
+                          "Time": "14:25",
+                          "AirportName": "London Heathrow Apt, GB",
+                          "Terminal": {
+                            "Name": "3"
+                          }
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "DXB"
+                          },
+                          "Date": "2025-06-10T00:00:00.000",
+                          "Time": "00:25",
+                          "AirportName": "Dubai International, AE",
+                          "Terminal": {
+                            "Name": "3"
+                          }
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "T"
+                          },
+                          "MarketingName": {
+                            "value": "ECONOMY",
+                            "CabinDesignator": "Y"
+                          },
+                          "refs": [
+                            "Pfcprpzcjre6sfh2p"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "EK"
+                          },
+                          "Name": "Emirates",
+                          "FlightNumber": {
+                            "value": "2"
+                          }
+                        },
+                        "Equipment": {
+                          "Name": "Airbus A380-800 Passenger",
+                          "AircraftCode": {
+                            "value": "388"
+                          }
+                        },
+                        "FlightDetail": {
+                          "FlightDuration": {
+                            "Value": "PT7H0M"
+                          }
+                        }
+                      },
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "DXB"
+                          },
+                          "Date": "2025-06-10T00:00:00.000",
+                          "Time": "05:30",
+                          "AirportName": "Dubai International, AE",
+                          "Terminal": {
+                            "Name": "3"
+                          }
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "BOM"
+                          },
+                          "Date": "2025-06-10T00:00:00.000",
+                          "Time": "13:45",
+                          "AirportName": "Mumbai, IN",
+                          "Terminal": {
+                            "Name": "2"
+                          }
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "T"
+                          },
+                          "MarketingName": {
+                            "value": "ECONOMY",
+                            "CabinDesignator": "Y"
+                          },
+                          "refs": [
+                            "Pfcprpzcjre6sfh2p"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "EK"
+                          },
+                          "Name": "Emirates",
+                          "FlightNumber": {
+                            "value": "504"
+                          }
+                        },
+                        "Equipment": {
+                          "Name": "Boeing 777-200LR",
+                          "AircraftCode": {
+                            "value": "77L"
+                          }
+                        },
+                        "FlightDetail": {
+                          "FlightDuration": {
+                            "Value": "PT6H45M"
                           }
                         }
                       }
@@ -433,7 +827,8 @@
                   }
                 ],
                 "refs": [
-                  "PAX4"
+                  "T1.1",
+                  "T2.1"
                 ]
               }
             ]
@@ -445,37 +840,46 @@
       "FareList": {
         "FareGroup": [
           {
-            "ListKey": "FG-SEG1",
+            "ListKey": "Pfcprpzcjre6sfh2p",
             "Fare": {
               "FareCode": {
                 "Code": "70J"
               }
             },
             "FareBasisCode": {
-              "Code": "HGL6BBLA"
-            }
+              "Code": "TLXAPIN1IN"
+            },
+            "refs": [
+              "Pfrkrpzcjre6sfh2p"
+            ]
           },
           {
-            "ListKey": "FG-SEG105",
+            "ListKey": "Pfcpmsgi4s4qmpv6e",
             "Fare": {
               "FareCode": {
                 "Code": "70J"
               }
             },
             "FareBasisCode": {
-              "Code": "SFL6BBLA"
-            }
+              "Code": "TLXAPIN1"
+            },
+            "refs": [
+              "Pfrkmsgi4s4qmpv6e"
+            ]
           },
           {
-            "ListKey": "FG-SEG111",
+            "ListKey": "Pfcpeazia3bketcvx",
             "Fare": {
               "FareCode": {
                 "Code": "70J"
               }
             },
             "FareBasisCode": {
-              "Code": "IGS0BBJA"
-            }
+              "Code": "TLXAPIN1CH"
+            },
+            "refs": [
+              "Pfrkeazia3bketcvx"
+            ]
           }
         ]
       }
@@ -654,6 +1058,42 @@
               }
             ]
           }
+        },
+        {
+          "ObjectKey": "T2.1",
+          "PTC": {
+            "value": "INF"
+          },
+          "Name": {
+            "Title": "Mstr",
+            "Given": [
+              {
+                "value": "EGOLE"
+              }
+            ],
+            "Surname": {
+              "value": "BIZZY"
+            }
+          },
+          "Gender": {
+            "value": "Male"
+          },
+          "Age": {
+            "BirthDate": {
+              "value": "2024-05-25"
+            }
+          },
+          "PassengerAssociation": "T2",
+          "PassengerIDInfo": {
+            "PassengerDocument": [
+              {
+                "Type": "PT",
+                "ID": "D97531024",
+                "DateOfExpiration": "2029-05-24",
+                "CountryOfIssuance": "KE"
+              }
+            ]
+          }
         }
       ]
     },
@@ -662,7 +1102,7 @@
         {
           "Amount": {
             "Code": "INR",
-            "value": 217713.0
+            "value": 219554.0
           },
           "Method": {
             "Cash": {
@@ -671,6 +1111,78 @@
           }
         }
       ]
+    },
+    "Metadata": {
+      "Other": {
+        "OtherMetadata": [
+          {
+            "CurrencyMetadatas": {
+              "CurrencyMetadata": [
+                {
+                  "MetadataKey": "INR",
+                  "Decimals": 0
+                },
+                {
+                  "MetadataKey": "NUC",
+                  "Decimals": 2
+                }
+              ]
+            },
+            "PriceMetadatas": {
+              "PriceMetadata": [
+                {
+                  "MetadataKey": "Pfrkeazia3bketcvx",
+                  "AugmentationPoint": {
+                    "AugPoint": [
+                      {
+                        "any": {
+                          "VdcAugPoint": [
+                            {
+                              "Value": "NO8OPNQ~MVB8OLO~MqA9CJ~MqM9@NK~MpC8KMM~MEA9RKV@NHL0~MAD9RKV@NHL0~MSN9NT@K~MQM9/~MNW8BLM~M@K9+0~MBS9GMP~MDJ8/~DAML~A~A~DKMM~A~A~DDI~A~DSJW?OGM/~D./2~D.//~D././2~D51./~D1~D5M~DD~D*ssAh2woRspLM*flxKey"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "MetadataKey": "Pfrkrpzcjre6sfh2p",
+                  "AugmentationPoint": {
+                    "AugPoint": [
+                      {
+                        "any": {
+                          "VdcAugPoint": [
+                            {
+                              "Value": "NO8OPNQ~MVB8OLO~MqA9CJ~MqM9@NK~MpC8KMM~MEA9RKV@NHL0~MAD9RKV@NHL0~MSN9NT@K~MQM9/~MNW8HLE~M@K9+0~MBS9GMP~MDJ8/~DAML~A~A~DKMM~A~A~DDI~A~DSJW?OGM/~D./2~D.//~D././2~D51./~D1~D5M~DD~D*ssAh2woRspLM*flxKey"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "MetadataKey": "Pfrkmsgi4s4qmpv6e",
+                  "AugmentationPoint": {
+                    "AugPoint": [
+                      {
+                        "any": {
+                          "VdcAugPoint": [
+                            {
+                              "Value": "NO8OPNQ~MVB8OLO~MqA9CJ~MqM9@NK~MpC8KMM~MEA9RKV@NHL0~MAD9RKV@NHL0~MSN9NT@K~MQM9/~MNW8@BS~M@K9+0~MBS9GMP~MDJ8/~DAML~A~A~DKMM~A~A~DDI~A~DSJW?OGM/~D./2~D.//~D././2~D51./~D1~D5M~DD~D*ssAh2woRspLM*flxKey"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
     }
   }
 }

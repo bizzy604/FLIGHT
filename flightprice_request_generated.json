@@ -2,36 +2,48 @@
   "DataLists": {
     "FareGroup": [
       {
-        "ListKey": "AF-FG-HGL6BBLA-70J",
+        "ListKey": "KQ-FG-914080495503691",
         "FareBasisCode": {
-          "Code": "HGL6BBLA"
+          "Code": "ZPRKE"
+        }
+      },
+      {
+        "ListKey": "KQ-FG-914080495538636",
+        "FareBasisCode": {
+          "Code": "ZPRKE"
+        }
+      },
+      {
+        "ListKey": "KQ-FG-914080495530768",
+        "FareBasisCode": {
+          "Code": "ZPRKE"
         }
       }
     ],
     "AnonymousTravelerList": {
       "AnonymousTraveler": [
         {
-          "ObjectKey": "AF-PAX1",
+          "ObjectKey": "KQ-PAX1",
           "PTC": {
             "value": "ADT"
           }
         },
         {
-          "ObjectKey": "AF-PAX2",
-          "PTC": {
-            "value": "ADT"
-          }
-        },
-        {
-          "ObjectKey": "AF-PAX3",
-          "PTC": {
-            "value": "CHD"
-          }
-        },
-        {
-          "ObjectKey": "AF-PAX4",
+          "ObjectKey": "KQ-PAX11",
           "PTC": {
             "value": "INF"
+          }
+        },
+        {
+          "ObjectKey": "KQ-PAX2",
+          "PTC": {
+            "value": "ADT"
+          }
+        },
+        {
+          "ObjectKey": "KQ-PAX3",
+          "PTC": {
+            "value": "CHD"
           }
         }
       ]
@@ -42,82 +54,92 @@
       {
         "Flight": [
           {
-            "SegmentKey": "AF-SEG1",
+            "SegmentKey": "KQ-SEG16",
             "Departure": {
               "AirportCode": {
-                "value": "BLR"
+                "value": "CDG"
               },
-              "Date": "2025-06-10T00:00:00.000",
-              "Time": "01:10",
+              "Date": "2025-06-12T10:55:00.000",
+              "Time": "10:55",
               "Terminal": {
-                "Name": "2"
+                "Name": "2E"
               }
             },
             "Arrival": {
               "AirportCode": {
-                "value": "AMS"
+                "value": "NBO"
               },
-              "Date": "2025-06-10T00:00:00.000",
-              "Time": "07:45",
-              "Terminal": {}
+              "Date": "2025-06-12T20:20:00.000",
+              "Time": "20:20",
+              "Terminal": {
+                "Name": "1A"
+              }
             },
             "MarketingCarrier": {
               "AirlineID": {
-                "value": "KL"
+                "value": "KQ"
               },
+              "Name": "Kenya Airways",
               "FlightNumber": {
-                "value": "880"
+                "value": "113"
               }
             },
             "OperatingCarrier": {
               "AirlineID": {
-                "value": "KL"
+                "value": "KQ"
               },
-              "Name": "KLM"
+              "Name": "Kenya Airways"
             },
-            "Equipment": {
-              "AircraftCode": {
-                "value": "772"
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT8H25M"
               }
             }
-          },
+          }
+        ]
+      },
+      {
+        "Flight": [
           {
-            "SegmentKey": "AF-SEG2",
+            "SegmentKey": "KQ-SEG3",
             "Departure": {
               "AirportCode": {
-                "value": "AMS"
+                "value": "NBO"
               },
-              "Date": "2025-06-10T00:00:00.000",
-              "Time": "10:20",
-              "Terminal": {}
+              "Date": "2025-06-06T23:50:00.000",
+              "Time": "23:50",
+              "Terminal": {
+                "Name": "1A"
+              }
             },
             "Arrival": {
               "AirportCode": {
-                "value": "LHR"
+                "value": "CDG"
               },
-              "Date": "2025-06-10T00:00:00.000",
-              "Time": "10:45",
+              "Date": "2025-06-07T07:30:00.000",
+              "Time": "07:30",
               "Terminal": {
-                "Name": "4"
+                "Name": "2E"
               }
             },
             "MarketingCarrier": {
               "AirlineID": {
-                "value": "KL"
+                "value": "KQ"
               },
+              "Name": "Kenya Airways",
               "FlightNumber": {
-                "value": "1005"
+                "value": "112"
               }
             },
             "OperatingCarrier": {
               "AirlineID": {
-                "value": "KL"
+                "value": "KQ"
               },
-              "Name": "KLM"
+              "Name": "Kenya Airways"
             },
-            "Equipment": {
-              "AircraftCode": {
-                "value": "32Q"
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT8H40M"
               }
             }
           }
@@ -128,42 +150,39 @@
       "Offer": [
         {
           "OfferID": {
-            "value": "ca2c3a89-c283-46dd-ac3a-89c283b60001",
-            "Owner": "AF",
+            "value": "1H1KQZ_BGGAU0E44J9QH7CW6U2VV4S4Q4GG",
+            "Owner": "KQ",
             "Channel": "NDC"
           },
           "OfferItemIDs": {
             "OfferItemID": [
               {
-                "value": "ca41c006-34a4-4955-81c0-0634a4795519",
+                "value": "1H1KQZ_BGGAU0E44J9QH7CW6U2VV4S4Q4GG-1",
                 "refs": [
-                  "AF-PAX1",
-                  "AF-PAX2"
+                  "KQ-PAX11"
                 ]
               },
               {
-                "value": "e9cdcda4-3345-4fb2-8dcd-a43345ffb29f",
+                "value": "1H1KQZ_BGGAU0E44J9QH7CW6U2VV4S4Q4GG-2",
                 "refs": [
-                  "AF-PAX3"
+                  "KQ-PAX1",
+                  "KQ-PAX2"
                 ]
               },
               {
-                "value": "a91c6945-43d4-47f8-9c69-4543d4a7f810",
+                "value": "1H1KQZ_BGGAU0E44J9QH7CW6U2VV4S4Q4GG-3",
                 "refs": [
-                  "AF-PAX4"
+                  "KQ-PAX3"
                 ]
               }
             ]
           },
           "refs": [
             {
-              "Ref": "VDC-UPSELL"
-            },
-            {
               "Ref": "VDC-AIRLINE-SRID"
             },
             {
-              "Ref": "VDC-PR-ZQvCeUMlwsKydnxFBjeh"
+              "Ref": "VDC-PR-0xEDMUqlzIIP1FEbsBK0"
             }
           ]
         }
@@ -171,9 +190,9 @@
     }
   },
   "ShoppingResponseID": {
-    "Owner": "AF",
+    "Owner": "KQ",
     "ResponseID": {
-      "value": "N75z-wrA3O5h9QRuUTSCWlgoaDkNMKzmwlsU19EiFTg-AF"
+      "value": "hQhvzZlOKojvqE7cE0sHg9ltKC7DNhUBc7fkZGXipVM-KQ"
     }
   },
   "Travelers": {
@@ -183,6 +202,15 @@
           {
             "PTC": {
               "value": "ADT"
+            }
+          }
+        ]
+      },
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "INF"
             }
           }
         ]
@@ -204,15 +232,6 @@
             }
           }
         ]
-      },
-      {
-        "AnonymousTraveler": [
-          {
-            "PTC": {
-              "value": "INF"
-            }
-          }
-        ]
       }
     ]
   },
@@ -223,38 +242,26 @@
           "PriceMetadatas": {
             "PriceMetadata": [
               {
-                "MetadataKey": "VDC-UPSELL",
-                "AugmentationPoint": {
-                  "AugPoint": [
-                    {
-                      "any": {
-                        "value": "true"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
                 "MetadataKey": "VDC-AIRLINE-SRID",
                 "AugmentationPoint": {
                   "AugPoint": [
                     {
                       "any": {
                         "type": "java.util.HashMap",
-                        "value": "eyJBRiI6ImREMWMydDJjTHZJaTNRR1RaNHowIn0="
+                        "value": "eyJLUSI6IjFIMUtRWl9YN1JBUkxXN05TRUhRTlM4MTFGOTdWRE5UOVg3In0="
                       }
                     }
                   ]
                 }
               },
               {
-                "MetadataKey": "VDC-PR-ZQvCeUMlwsKydnxFBjeh",
+                "MetadataKey": "VDC-PR-0xEDMUqlzIIP1FEbsBK0",
                 "AugmentationPoint": {
                   "AugPoint": [
                     {
                       "any": {
                         "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
-                        "value": "Mb1f1kwftDNqxSDVbHUioMh98CPa4BN06qV3gMhdLm/ETJk60hERPtu1n++oArhvyL77AZFnm4YmwfuAz1JIXPi/h7FlYuHUoTF+ykJN56pHnWyQpYxRHoFpArrfmGv4zOnrlixbiA0gkEX0pb7PkiuEKgYR0c5hOW/B6BrjFQEYf1ye+/Su2nt5FG2j9dF9e6fzIdDwbVJd10qYbeC7ufnkqswnvLeQy2T45eBK+T/aSiZtdC/mnqT3l4rnT9if3lPsa7IvqE8XKfRBuecA53+LVmo3C8qNL2YOwbhM8lN8yov9XLQOxZFYyweQlGqSUF4ytkQP9L5pkeB14GNuGxjRx6oTJZb63tKSI+AlUH8TSutaUMv1zptn6R/Rt5wOCn74cCDaw1c7GSf4RLA39X70QQPY0RTrXJMtrcP8abO+Z7YRZ6LT3eCQuAL78fGIr0zSBdqEke//LXdS3mnfa6EQZjLn3vWphv1fAyw83nTDTsOUMK8zKPxBQhFpRBUIqfZX/pzjV86YRFuYgbMWOp4oLPqXb4kPQK/F789fsP0QfXDNAO5/VjD2xz+pvyBo1GeeR56z/jqjuIiEiPy3inaZNLYEDi/4pu4rEAkvs9RTJa+5fTAcmLuq4F9IRgUm8l+Qzx0oiQImfiFH0X++19V5yO18mNVxDv7filLx914l7D3aZ9vEHpxFRakGDe9fjqUHB/CGJYEi6dnikGDoAjrWu4t8nWU17qo2x5q82V3rvS2mZZPoJJtgu4333IaaN6HnHp9lNZyPSfVq5Utf+6pT49PRrK9X4ya7pwbTp1vXaw=="
+                        "value": "Mb1f1kwftDNqxSDVbHUioMh98CPa4BN06qV3gMhdLm/ETJk60hERPomcnMfKOd8UopqIbJIPm4QInIepmyJ+R5W0stVpArezpUYJ2UxDsbFciGGsh5dbGMZxDb3ZmGn81+W403ILjhYxmwKg5I6j+ivhRjtVm4l8Fn3B9xLiFx97MGCW+6GTxzxkO3+j6tFtPPCYdLr7BGBmvDm8GpHYpI/k/7Iz2caSvR72gbEsgju/TUM4B1/ymrPqjNiqFfyH1mK3IfVE3Ct0QYIR4KkX23edPTQfC6KDQXFqvM9P4TxiyqK+CqEN8J1b/wSLwz7XRVU9v1gZoPEqxI067XdzCnuGmexKZYHsyZLEbfIxU3sMXuIXU8ugms4wo2CL4sE6QifgPXf0l24jNx3XSpNUmmzUTFT2iyHCX/1JqKL7EtHsVrBta4H3lP/ToBO4pLy6sF6FHoaE/InbbiMk1WzWLNJWVliZp/vZocR2V1Rqn3SkOcOyCpcXdYweH0ZaHBVG97sGp+W9FJmUUQrH9u1PeMFyPvCKftxaAfqooNRLpqsIcnfNBuoyVHvkhHu7uyoDmjDBOMqg6iiijZW0+8mOrlSsPJdRJlKozu1YOQddh9Q/I8zCfVBM/aLZkBRDSRBntAfFr1Fs30QoPVVprWyi14su1OlNqN8jUYfH+k7z9E04/H2NVpKvDoATHp5lMtVmpeAUD/ORTp8ypZq0k23aChTOuoow03I46q4rx5yl1x3+rzDFMsmue9lx/OW+M+2MGYaCKlZFvRGwvUwYjg=="
                       }
                     }
                   ]

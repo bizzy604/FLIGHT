@@ -3,6 +3,75 @@ import json
 from typing import Dict, Any, List
 from datetime import datetime # Keep for potential future use, e.g. logging
 
+def create_passenger_mapping(flight_price_response: Dict[str, Any], passengers_data: List[Dict[str, Any]]) -> Dict[int, str]:
+    """
+    Create a mapping of passenger indices to their corresponding ObjectKeys from the flight price response.
+    
+    Args:
+        flight_price_response: The FlightPriceResponse JSON
+        passengers_data: List of passenger input data
+        
+    Returns:
+        Dict mapping passenger indices to ObjectKeys
+    """
+    # Get all offer items from the flight price response
+    offer_items = []
+    priced_offers = flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
+    if not isinstance(priced_offers, list):
+        priced_offers = [priced_offers] if priced_offers else []
+        
+    for offer in priced_offers:
+        offer_prices = offer.get('OfferPrice', [])
+        if not isinstance(offer_prices, list):
+            offer_prices = [offer_prices] if offer_prices else []
+        for price in offer_prices:
+            if 'OfferItemID' in price:
+                offer_items.append(price)
+    
+    # Create a mapping of PTC to list of ObjectKeys
+    ptc_to_object_keys = {}
+    anonymous_travelers = flight_price_response.get("DataLists", {}).get("AnonymousTravelerList", {}).get("AnonymousTraveler", [])
+    if not isinstance(anonymous_travelers, list):
+        anonymous_travelers = [anonymous_travelers] if anonymous_travelers else []
+    
+    for traveler in anonymous_travelers:
+        ptc = traveler.get("PTC", {}).get("value")
+        object_key = traveler.get("ObjectKey")
+        if ptc and object_key:
+            if ptc not in ptc_to_object_keys:
+                ptc_to_object_keys[ptc] = []
+            ptc_to_object_keys[ptc].append(object_key)
+    
+    # Create mapping of passenger indices to ObjectKeys
+    passenger_mapping = {}
+    used_object_keys = set()
+    
+    # First pass: Try to match by existing ObjectKey
+    for idx, pax in enumerate(passengers_data):
+        pax_ptc = pax.get("PTC")
+        pax_key = pax.get("ObjectKey")
+        
+        if pax_key and pax_key.startswith("PAX") and pax_ptc in ptc_to_object_keys:
+            # If the key is already a PAX key and matches the PTC, keep it
+            if pax_key in ptc_to_object_keys.get(pax_ptc, []):
+                passenger_mapping[idx] = pax_key
+                used_object_keys.add(pax_key)
+    
+    # Second pass: Assign remaining ObjectKeys based on PTC
+    for idx, pax in enumerate(passengers_data):
+        if idx in passenger_mapping:
+            continue
+            
+        pax_ptc = pax.get("PTC")
+        if pax_ptc in ptc_to_object_keys:
+            for key in ptc_to_object_keys[pax_ptc]:
+                if key not in used_object_keys:
+                    passenger_mapping[idx] = key
+                    used_object_keys.add(key)
+                    break
+    
+    return passenger_mapping
+
 def generate_order_create_rq(
     flight_price_response: Dict[str, Any],
     passengers_data: List[Dict[str, Any]], 
@@ -85,7 +154,15 @@ def generate_order_create_rq(
         }
     }
 
-    # --- 3. Process OfferItems and link to ShoppingResponse.Offers ---
+    # --- 3. Create passenger mapping and update passenger data ---
+    passenger_mapping = create_passenger_mapping(flight_price_response, passengers_data)
+    
+    # Update passenger data with the correct ObjectKeys
+    for idx, pax in enumerate(passengers_data):
+        if idx in passenger_mapping:
+            pax["ObjectKey"] = passenger_mapping[idx]
+    
+    # --- 4. Process OfferItems and link to ShoppingResponse.Offers ---
     offer_price_list_fprs = selected_priced_offer.get('OfferPrice', [])
     if not isinstance(offer_price_list_fprs, list):
         offer_price_list_fprs = [offer_price_list_fprs] if offer_price_list_fprs else []
@@ -233,25 +310,45 @@ def build_detailed_offer_item(
 
 def process_passengers_for_order_create(
     passengers_input_data: List[Dict[str, Any]], 
-    order_rq_passenger_list: List[Dict[str, Any]]
+    order_rq_passenger_list: List[Dict[str, Any]],
+    flight_price_response: Dict[str, Any] = None
 ):
     if not passengers_input_data:
         print("Warning: No passenger data provided for OrderCreateRQ.")
         return
 
-    for pax_data in passengers_input_data:
+    # First, count infants and adults
+    infants = [p for p in passengers_input_data if p.get("PTC") == "INF"]
+    adults = [p for p in passengers_input_data if p.get("PTC") == "ADT"]
+    
+    # Validate that there are enough adults for the infants
+    if infants and not adults:
+        raise ValueError("At least one adult is required when traveling with an infant")
+    
+    # Ensure there are at least as many adults as infants
+    if len(infants) > len(adults):
+        raise ValueError(f"Not enough adults for the number of infants. Found {len(adults)} adults but {len(infants)} infants.")
+
+    # Process each passenger
+    for idx, pax_data in enumerate(passengers_input_data):
+        object_key = pax_data.get("ObjectKey")
+        ptc = pax_data.get("PTC")
+
         passenger_name_node = pax_data.get("Name", {})
         given_names_list = []
         given_names_input = passenger_name_node.get("Given", [])
         if isinstance(given_names_input, list):
             for gn in given_names_input:
-                if isinstance(gn, str): given_names_list.append({"value": gn})
-                elif isinstance(gn, dict) and "value" in gn: given_names_list.append(gn)
-        elif isinstance(given_names_input, str): given_names_list.append({"value": given_names_input})
+                if isinstance(gn, str): 
+                    given_names_list.append({"value": gn})
+                elif isinstance(gn, dict) and "value" in gn: 
+                    given_names_list.append(gn)
+        elif isinstance(given_names_input, str): 
+            given_names_list.append({"value": given_names_input})
 
         passenger_entry = {
-            "ObjectKey": pax_data.get("ObjectKey"),
-            "PTC": {"value": pax_data.get("PTC")},
+            "ObjectKey": object_key,
+            "PTC": {"value": ptc},
             "Name": {
                 "Title": passenger_name_node.get("Title"),
                 "Given": given_names_list,
@@ -264,10 +361,23 @@ def process_passengers_for_order_create(
         if "Contacts" in pax_data and pax_data["Contacts"]:
             passenger_entry["Contacts"] = pax_data["Contacts"]
         
-        if pax_data.get("PTC") == "INF" and "PassengerAssociation" in pax_data:
-            passenger_entry["PassengerAssociation"] = pax_data["PassengerAssociation"]
+        # Handle infant passenger association
+        if ptc == "INF":
+            # Find the index of this infant in the list of all infants
+            infant_indices = [i for i, p in enumerate(passengers_input_data) if p.get("PTC") == "INF"]
+            infant_idx = infant_indices.index(idx)
+            
+            # Get the corresponding adult's ObjectKey
+            if infant_idx < len(adults):
+                adult_key = adults[infant_idx].get("ObjectKey")
+                passenger_entry["PassengerAssociation"] = adult_key
+            else:
+                # Fallback to first adult if we have more infants than adults (shouldn't happen due to earlier validation)
+                passenger_entry["PassengerAssociation"] = adults[0].get("ObjectKey")
+            
+            # Set default title if not provided
             if not passenger_entry["Name"].get("Title"):
-                 passenger_entry["Name"]["Title"] = "Mstr" if pax_data.get("Gender", "").lower() == "male" else "Miss"
+                passenger_entry["Name"]["Title"] = "Mstr" if pax_data.get("Gender", "").lower() == "male" else "Miss"
         
         passenger_documents_input = pax_data.get("Documents", [])
         if passenger_documents_input:
@@ -281,12 +391,12 @@ def process_passengers_for_order_create(
 
                 if doc_type_upper in ["PT", "NI"]:
                     if not doc_data.get("DateOfExpiration"):
-                        raise ValueError(f"DateOfExpiration is mandatory for doc type {doc_type_upper} for pax {pax_data.get('ObjectKey')}")
+                        raise ValueError(f"DateOfExpiration is mandatory for doc type {doc_type_upper} for pax {object_key}")
                     if not doc_data.get("CountryOfIssuance"):
-                        raise ValueError(f"CountryOfIssuance is mandatory for doc type {doc_type_upper} for pax {pax_data.get('ObjectKey')}")
+                        raise ValueError(f"CountryOfIssuance is mandatory for doc type {doc_type_upper} for pax {object_key}")
                 
                 if doc_type_upper == "ID" and not doc_data.get("CountryOfIssuance"):
-                     raise ValueError(f"CountryOfIssuance is mandatory for doc type ID for pax {pax_data.get('ObjectKey')}")
+                    raise ValueError(f"CountryOfIssuance is mandatory for doc type ID for pax {object_key}")
 
                 # Add fields if they exist in doc_data
                 for field_key in ["DateOfExpiration", "CountryOfIssuance", "DateOfIssue", "CountryOfResidence"]:
@@ -297,7 +407,6 @@ def process_passengers_for_order_create(
             
             if formatted_documents:
                 passenger_entry["PassengerIDInfo"] = {"PassengerDocument": formatted_documents}
-                # AllowDocumentInd is not explicitly added as its role needs clarification from Verteil schema/usage
 
         order_rq_passenger_list.append(passenger_entry)
 
@@ -493,14 +602,20 @@ def main():
         },
         {
             "ObjectKey": "T3", "PTC": "CHD",
-            "Name": {"Title": "Mstr", "Given": ["EGOLE"], "Surname": "DAVID"},
+            "Name": {"Title": "Mstr", "Given": ["Michael"], "Surname": "Losuru"},
             "Gender": "Male", "BirthDate": "2014-05-25",
             "Documents": [{"Type": "PT", "ID": "C24681357", "DateOfExpiration": "2027-06-10", "CountryOfIssuance": "KE"}]
         },
         {
             "ObjectKey": "T1.1", "PTC": "INF",
-            "Name": {"Title": "Mstr", "Given": ["EGOLE"], "Surname": "BIZZY"},
+            "Name": {"Title": "Mstr", "Given": ["John"], "Surname": "Doe"},
             "Gender": "Male", "BirthDate": "2024-05-25", "PassengerAssociation": "T1",
+            "Documents": [{"Type": "PT", "ID": "D97531024", "DateOfExpiration": "2029-05-24", "CountryOfIssuance": "KE"}]
+        },
+        {
+            "ObjectKey": "T2.1", "PTC": "INF",
+            "Name": {"Title": "Ms", "Given": ["Sally"], "Surname": "Asekon"},
+            "Gender": "Female", "BirthDate": "2025-01-25", "PassengerAssociation": "T2",
             "Documents": [{"Type": "PT", "ID": "D97531024", "DateOfExpiration": "2029-05-24", "CountryOfIssuance": "KE"}]
         }
     ]
