@@ -45,7 +45,7 @@ class FlightSearchService(FlightService):
             
             # Make the API request
             response = await self._make_request(
-                endpoint='airshopping',
+                endpoint='/entrygate/rest/request:airShopping',
                 payload=payload,
                 service_name='AirShopping',
                 request_id=request_id
@@ -74,21 +74,12 @@ class FlightSearchService(FlightService):
             }
     
     def _validate_search_criteria(self, criteria: SearchCriteria) -> None:
-        """
-        Validate the search criteria.
-        
-        Args:
-            criteria: Search criteria to validate
-            
-        Raises:
-            ValidationError: If the criteria are invalid
-        """
-        if not criteria.get('od_segments'):
+        if not criteria.get('odSegments'): # Changed to camelCase
             raise ValidationError("At least one origin-destination segment is required")
             
-        for segment in criteria['od_segments']:
-            if not all(key in segment for key in ['origin', 'destination', 'departure_date']):
-                raise ValidationError("Each segment must include origin, destination, and departure_date")
+        for segment in criteria['odSegments']: # Changed to camelCase
+            if not all(key in segment for key in ['origin', 'destination', 'departureDate']): # Ensure these nested keys are also correct (they seem to be from your logs)
+                raise ValidationError("Each segment must include origin, destination, and departureDate")
     
     def _build_search_payload(self, criteria: SearchCriteria) -> Dict[str, Any]:
         """
@@ -110,14 +101,14 @@ class FlightSearchService(FlightService):
                     'DestinationLocation': {
                         'LocationCode': seg['destination']
                     },
-                    'DepartureDateTime': seg['departure_date']
+                    'DepartureDateTime': seg['departureDate']
                 }
-                for seg in criteria['od_segments']
+                for seg in criteria['odSegments']
             ],
             'TravelPreferences': {
                 'CabinPref': [
                     {
-                        'CabinType': criteria.get('cabin_preference', 'ECONOMY'),
+                        'CabinType': criteria.get('cabinPreference', 'ECONOMY'),
                         'PreferLevel': 'Preferred'
                     }
                 ]
@@ -281,7 +272,22 @@ async def search_flights(
         'request_id': request_id
     }
     
-    async with FlightSearchService(config=config or {}) as service:
+    effective_config = config
+    if effective_config is None:
+        logger.warning("Config not passed to search_flights, attempting to use current_app.config.")
+        try:
+            from quart import current_app
+            effective_config = current_app.config
+        except RuntimeError:
+            logger.error("Cannot access current_app.config in search_flights.")
+            raise FlightServiceError("Configuration not available for FlightSearchService in search_flights.")
+    
+    if not effective_config: # Handle case where config might be an empty dict
+        logger.error("Effective config is empty in search_flights.")
+        raise FlightServiceError("Effective configuration is empty for FlightSearchService in search_flights.")
+
+    logger.info(f"Config for FlightSearchService in search_flights: USERNAME={effective_config.get('VERTEIL_USERNAME')}, PASSWORD_PRESENT={'yes' if effective_config.get('VERTEIL_PASSWORD') else 'no'}")
+    async with FlightSearchService(effective_config) as service:
         return await service.search_flights(criteria)
 
 
@@ -291,6 +297,19 @@ async def process_air_shopping(search_criteria: Dict[str, Any]) -> Dict[str, Any
     
     This is a backward-compatible wrapper around the FlightSearchService.
     """
-    config = search_criteria.pop('config', {})
-    async with FlightSearchService(config=config) as service:
+    effective_config: Optional[Dict[str, Any]] = None
+    logger.warning("Attempting to use current_app.config in process_air_shopping.")
+    try:
+        from quart import current_app
+        effective_config = current_app.config
+    except RuntimeError:
+        logger.error("Cannot access current_app.config in process_air_shopping.")
+        raise FlightServiceError("Configuration not available for FlightSearchService in process_air_shopping.")
+
+    if not effective_config: # Handle case where config might be an empty dict
+        logger.error("Effective config is empty in process_air_shopping.")
+        raise FlightServiceError("Effective configuration is empty for FlightSearchService in process_air_shopping.")
+
+    logger.info(f"Config for FlightSearchService in process_air_shopping: USERNAME={effective_config.get('VERTEIL_USERNAME')}, PASSWORD_PRESENT={'yes' if effective_config.get('VERTEIL_PASSWORD') else 'no'}")
+    async with FlightSearchService(effective_config) as service:
         return await service.search_flights(search_criteria)

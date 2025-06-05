@@ -9,6 +9,7 @@ from quart import Quart, jsonify, request, make_response, current_app
 from quart_cors import cors
 from dotenv import load_dotenv
 import asyncio
+import logging # Added for explicit logger configuration
 
 # Add the project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -52,6 +53,20 @@ def create_app(test_config=None):
         LOG_FORMAT='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     
+    # Configure specific logger for FlightService
+    service_logger = logging.getLogger('services.flight.core')
+    service_logger.setLevel(app.config.get('LOG_LEVEL', 'INFO'))
+    # If Quart's default handler isn't picked up, add one:
+    if not service_logger.hasHandlers() and app.logger.hasHandlers():
+        for handler in app.logger.handlers:
+            service_logger.addHandler(handler)
+    # Configure specific logger for FlightSearchService (search.py)
+    search_service_logger = logging.getLogger('services.flight.search')
+    search_service_logger.setLevel(app.config.get('LOG_LEVEL', 'INFO'))
+    if not search_service_logger.hasHandlers() and app.logger.hasHandlers():
+        for handler in app.logger.handlers:
+            search_service_logger.addHandler(handler)
+
     # Ensure the instance folder exists
     try:
         os.makedirs(app.instance_path, exist_ok=True)

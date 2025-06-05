@@ -1,21 +1,23 @@
-"""
-Core Flight Service Module
-
-This module contains the base functionality for interacting with the Verteil NDC API.
-It handles common operations like making API requests and managing authentication.
-"""
 import os
 import json
 import logging
 import aiohttp
+from aiohttp import BasicAuth
+import time
+import uuid # For X-Request-ID
 from typing import Dict, Any, Optional, List, Union, TypeVar, Generic, Type
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlencode # urlencode might not be needed if aiohttp handles form data correctly
+import asyncio # For asyncio.sleep
 
+# Assuming these paths are correct relative to core.py
+# If 'utils' or 'services.flight' are top-level packages in 'Backend', adjust paths if needed.
+# e.g., from Backend.utils.cache_manager import cache_manager
+# e.g., from Backend.services.flight.decorators import ...
 from utils.cache_manager import cache_manager
 from services.flight.decorators import async_cache, async_rate_limited
 from services.flight.exceptions import (
-    FlightServiceError, 
-    RateLimitExceeded, 
+    FlightServiceError,
+    RateLimitExceeded,
     AuthenticationError,
     APIError
 )
@@ -28,188 +30,210 @@ from services.flight.types import (
     PassengerCounts
 )
 
-# Configure logging
 logger = logging.getLogger(__name__)
 
 class FlightService:
-    """
-    Base class for flight service operations.
-    
-    This class provides common functionality for interacting with the Verteil NDC API,
-    including request handling, authentication, and error management.
-    """
-    
-    # Default configuration values
     DEFAULT_CONFIG = {
-        'VERTEIL_API_BASE_URL': 'https://api.verteil.com/ndc',
-        'VERTEIL_API_KEY': None,
-        'VERTEIL_API_SECRET': None,
-        'VERTEIL_API_TIMEOUT': 30,
-        'VERTEIL_MAX_RETRIES': 3,
-        'VERTEIL_RETRY_DELAY': 1,
-        'CACHE_TIMEOUT': 300,  # 5 minutes
-        'RATE_LIMIT': 100,     # requests
-        'RATE_WINDOW': 60,     # seconds
+        'VERTEIL_API_BASE_URL': 'https://api.stage.verteil.com', # Default, should be overridden by app config
+        'VERTEIL_USERNAME': None,
+        'VERTEIL_PASSWORD': None,
+        'VERTEIL_TOKEN_ENDPOINT_PATH': '/oauth2/token', # Default path for token endpoint
+        'VERTEIL_API_TIMEOUT': 30,  # Default API timeout in seconds
+        'VERTEIL_MAX_RETRIES': 3,   # Default max retries for API calls
+        'VERTEIL_RETRY_DELAY': 1,   # Default base delay for retries in seconds
+        'OAUTH2_TOKEN_EXPIRY_BUFFER': 60,  # Seconds to subtract from token's expires_in for early refresh
+        'CACHE_TIMEOUT': 300,      # Default cache timeout for @async_cache decorator
+        'RATE_LIMIT': 100,         # Default rate limit for @async_rate_limited (requests)
+        'RATE_WINDOW': 60,         # Default rate window for @async_rate_limited (seconds)
     }
-    
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
-        """
-        Initialize the FlightService with configuration.
-        
-        Args:
-            config: Optional configuration dictionary. Will be merged with defaults.
-        """
         self.config = {**self.DEFAULT_CONFIG, **(config or {})}
-        self._session = None
-        self._token_manager = None
-    
+        self._session: Optional[aiohttp.ClientSession] = None
+        self._access_token: Optional[str] = None
+        self._token_expiry_time: float = 0.0  # Stores Unix timestamp of when token expires
+
+        # Validate essential configuration for OAuth
+        # These keys should match what's loaded in Backend/config.py
+        required_oauth_keys = [
+            'VERTEIL_USERNAME', 'VERTEIL_PASSWORD',
+            'VERTEIL_API_BASE_URL', 'VERTEIL_TOKEN_ENDPOINT_PATH'
+        ]
+        missing_keys = [key for key in required_oauth_keys if not self.config.get(key)]
+        if missing_keys:
+            raise FlightServiceError(f"FlightService missing critical OAuth configuration: {', '.join(missing_keys)}")
+        logger.info("FlightService initialized with necessary OAuth configurations.")
+
     async def _get_session(self) -> aiohttp.ClientSession:
-        """Get or create an aiohttp ClientSession."""
         if self._session is None or self._session.closed:
-            timeout = aiohttp.ClientTimeout(total=self.config['VERTEIL_API_TIMEOUT'])
+            timeout_seconds = float(self.config.get('VERTEIL_API_TIMEOUT', 30))
+            timeout = aiohttp.ClientTimeout(total=timeout_seconds)
             self._session = aiohttp.ClientSession(timeout=timeout)
         return self._session
-    
+
     async def close(self):
-        """Close the aiohttp session if it exists."""
         if self._session and not self._session.closed:
             await self._session.close()
-    
+
     async def __aenter__(self):
+        await self._get_session() # Ensure session is created on entry
         return self
-    
+
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.close()
-    
-    def _get_headers(self, service_name: str) -> Dict[str, str]:
-        """
-        Get headers for Verteil API requests.
+
+    async def _get_access_token(self) -> str:
+        current_time = time.time()
+        if self._access_token and current_time < self._token_expiry_time:
+            logger.debug("Using cached Verteil access token.")
+            return self._access_token
+
+        logger.info("Attempting to fetch new Verteil access token.")
+        base_url = str(self.config['VERTEIL_API_BASE_URL']).rstrip('/')
+        token_path = str(self.config['VERTEIL_TOKEN_ENDPOINT_PATH']).lstrip('/')
+        token_url = f"{base_url}/{token_path}"
         
-        Args:
-            service_name: The name of the service (AirShopping, FlightPrice, OrderCreate)
-            
-        Returns:
-            Dictionary containing the necessary headers
-            
-        Raises:
-            AuthenticationError: If required configuration is missing
-        """
-        api_key = self.config.get('VERTEIL_API_KEY')
-        api_secret = self.config.get('VERTEIL_API_SECRET')
+        username = str(self.config['VERTEIL_USERNAME'])
+        password = str(self.config['VERTEIL_PASSWORD'])
+        auth = BasicAuth(username, password)
         
-        if not api_key or not api_secret:
-            raise AuthenticationError("Missing API key or secret in configuration")
-        
+        # Standard OAuth2 client credentials grant uses form data
+        form_payload = {'grant_type': 'client_credentials', 'scope': 'api'}
+
+        try:
+            session = await self._get_session()
+            async with session.post(
+                token_url,
+                auth=auth,
+                data=form_payload, # aiohttp sends this as application/x-www-form-urlencoded
+                headers={'Accept': 'application/json'} # We expect a JSON response
+            ) as response:
+                response_data = await response.json() # Assuming Verteil returns JSON
+                if response.status == 200 and 'access_token' in response_data:
+                    self._access_token = response_data['access_token']
+                    expires_in = int(response_data.get('expires_in', 3600)) # Default to 1 hour
+                    buffer = int(self.config.get('OAUTH2_TOKEN_EXPIRY_BUFFER', 60))
+                    self._token_expiry_time = current_time + expires_in - buffer
+                    logger.info(f"Successfully fetched Verteil access token. Expires in {expires_in}s (adjusted: {self._token_expiry_time - current_time:.0f}s).")
+                    return self._access_token
+                else:
+                    error_detail = response_data.get('error_description') or response_data.get('error') or str(response_data)
+                    logger.error(f"Failed to fetch Verteil access token. Status: {response.status}, URL: {token_url}, Details: {error_detail}")
+                    raise AuthenticationError(f"Failed to fetch access token: {response.status} - {error_detail}")
+        except aiohttp.ClientError as e:
+            logger.error(f"Network error during token fetching from {token_url}: {str(e)}", exc_info=True)
+            raise AuthenticationError(f"Network error during token fetching: {str(e)}")
+        except Exception as e: # Catch other errors like JSONDecodeError
+            logger.error(f"Unexpected error during token fetching from {token_url}: {str(e)}", exc_info=True)
+            raise AuthenticationError(f"Unexpected error during token fetching: {str(e)}")
+
+    async def _get_headers(self, service_name: str) -> Dict[str, str]:
+        access_token = await self._get_access_token()
         return {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'X-API-Key': api_key,
-            'X-API-Secret': api_secret,
-            'X-Service-Name': service_name,
-            'X-Request-ID': str(hash(f"{service_name}_{os.urandom(8).hex()}"))
+            'Authorization': f'Bearer {access_token}',
+            'X-Service-Name': service_name,  # Optional: Keep if Verteil uses/recommends it
+            'X-Request-ID': str(uuid.uuid4()) # Unique ID for this specific API call
         }
-    
-    @async_rate_limited(limit=100, window=60)
-    @async_cache(timeout=300)
+
+    @async_rate_limited(limit=100, window=60) # Decorators from original code
+    @async_cache(timeout=300)                 # Decorators from original code
     async def _make_request(
         self,
         endpoint: str,
         payload: Dict[str, Any],
         service_name: str,
         method: str = 'POST',
-        **kwargs
+        **kwargs # Used to pass request_id from route context
     ) -> Dict[str, Any]:
-        """
-        Make an asynchronous request to the Verteil NDC API.
-        
-        Args:
-            endpoint: API endpoint (e.g., 'airshopping', 'flightprice')
-            payload: Request payload as a dictionary
-            service_name: Name of the service for logging and headers
-            method: HTTP method (default: 'POST')
-            **kwargs: Additional arguments to pass to aiohttp request
-            
-        Returns:
-            API response as a dictionary
-            
-        Raises:
-            APIError: If the request fails after retries
-        """
-        url = urljoin(self.config['VERTEIL_API_BASE_URL'].rstrip('/') + '/', endpoint.lstrip('/'))
-        headers = self._get_headers(service_name)
-        
-        # Add request ID to payload if not present
-        if 'request_id' in kwargs and 'request_id' not in payload:
-            payload['request_id'] = kwargs['request_id']
-        
-        logger.info(f"Making {method} request to {url} with payload: {payload}")
-        
-        max_retries = self.config['VERTEIL_MAX_RETRIES']
-        retry_delay = self.config['VERTEIL_RETRY_DELAY']
-        
+        url = urljoin(str(self.config['VERTEIL_API_BASE_URL']).rstrip('/') + '/', endpoint.lstrip('/'))
+        headers = await self._get_headers(service_name) # _get_headers is now async
+
+        # Propagate request_id from calling context (e.g., route handler) if available
+        # Otherwise, use the one generated in _get_headers or generate a new one for the payload
+        log_request_id = kwargs.get('request_id', headers.get('X-Request-ID', str(uuid.uuid4())))
+        if 'request_id' not in payload: # Ensure payload has a request_id
+             payload['request_id'] = log_request_id
+        else: # If payload already has one, use that for logging consistency
+            log_request_id = payload['request_id']
+
+
+        logger.info(f"Making {method} request to {url} for service {service_name} (ReqID: {log_request_id}).")
+        # logger.debug(f"Payload for ReqID {log_request_id}: {json.dumps(payload)}") # Avoid logging sensitive data in prod
+
+        max_retries = int(self.config.get('VERTEIL_MAX_RETRIES', 3))
+        retry_delay_base = int(self.config.get('VERTEIL_RETRY_DELAY', 1))
+
         for attempt in range(max_retries):
             try:
                 session = await self._get_session()
-                
                 async with session.request(
                     method=method,
                     url=url,
-                    json=payload,
+                    json=payload, # Verteil API endpoints expect JSON body
                     headers=headers,
-                    **kwargs
+                    **{k:v for k,v in kwargs.items() if k != 'request_id'} # Pass other kwargs, but not request_id as it's in payload
                 ) as response:
-                    response_data = await response.json()
-                    
-                    if response.status >= 400:
-                        error_msg = f"API request failed with status {response.status}: {response_data}"
-                        if response.status == 401:
-                            raise AuthenticationError(error_msg)
-                        elif response.status == 429:
-                            raise RateLimitExceeded("Rate limit exceeded. Please try again later.")
+                    # Attempt to get JSON, but handle cases where it might not be (e.g. unexpected HTML error page)
+                    try:
+                        response_data = await response.json()
+                    except aiohttp.ContentTypeError:
+                        response_text = await response.text()
+                        logger.error(f"API request for {service_name} (ReqID: {log_request_id}) failed with status {response.status}. Response was not JSON: {response_text[:500]}")
+                        # If it's a 401, still try to invalidate token
+                        if response.status == 401 and attempt < max_retries -1:
+                             logger.warning(f"Received 401 (Unauthorized) with non-JSON response for {service_name} (ReqID: {log_request_id}). Invalidating local token.")
+                             self._access_token = None
+                             self._token_expiry_time = 0
+                             # Fall through to retry logic
                         else:
-                            raise APIError(
-                                error_msg,
-                                status_code=response.status,
-                                response=response_data
-                            )
+                             raise APIError(f"API request for {service_name} (ReqID: {log_request_id}) failed with status {response.status}. Response was not JSON: {response_text[:200]}", status_code=response.status)
+
+
+                    if response.status >= 400:
+                        error_msg = f"API request for {service_name} (ReqID: {log_request_id}) failed with status {response.status}. Response: {json.dumps(response_data)}"
+                        if response.status == 401: # Unauthorized
+                            logger.warning(f"Received 401 (Unauthorized) for {service_name} (ReqID: {log_request_id}). Invalidating local token.")
+                            self._access_token = None # Invalidate token
+                            self._token_expiry_time = 0
+                            if attempt == max_retries - 1: # Last attempt
+                                raise AuthenticationError(error_msg)
+                            # Fall through to retry logic, will attempt to get new token on next _get_headers call
+                        elif response.status == 429: # Rate limit
+                            raise RateLimitExceeded(f"Rate limit exceeded for {service_name} (ReqID: {log_request_id}). Please try again later.")
+                        else: # Other client/server errors
+                            raise APIError(error_msg, status_code=response.status, response=response_data)
                     
-                    return response_data
-                    
-            except aiohttp.ClientError as e:
-                if attempt == max_retries - 1:  # Last attempt
-                    raise APIError(f"Request failed after {max_retries} attempts: {str(e)}")
-                
-                logger.warning(f"Attempt {attempt + 1} failed: {str(e)}. Retrying in {retry_delay} seconds...")
-                await asyncio.sleep(retry_delay * (attempt + 1))  # Exponential backoff
-    
-    async def search_flights(self, criteria: SearchCriteria) -> FlightSearchResponse:
-        """
-        Search for flights based on the given criteria.
+                    logger.info(f"Successfully received API response for {service_name} (ReqID: {log_request_id}) with status {response.status}. Response snippet: {str(response_data)[:200]}...")
+                    return response_data # Success
+            
+            except aiohttp.ClientError as e: # Includes ClientConnectionError, ClientTimeout etc.
+                logger.warning(f"Attempt {attempt + 1}/{max_retries} for {service_name} (ReqID: {log_request_id}) failed with ClientError: {str(e)}.")
+                if attempt == max_retries - 1:
+                    raise APIError(f"Request for {service_name} (ReqID: {log_request_id}) failed after {max_retries} attempts due to ClientError: {str(e)}")
+            # Catch other exceptions like JSONDecodeError from response.json() if content type is wrong but not caught by ContentTypeError
+            except Exception as e: 
+                logger.error(f"Attempt {attempt + 1}/{max_retries} for {service_name} (ReqID: {log_request_id}) failed with unexpected error: {str(e)}", exc_info=True)
+                if attempt == max_retries - 1:
+                    raise APIError(f"Request for {service_name} (ReqID: {log_request_id}) failed after {max_retries} attempts due to unexpected error: {str(e)}")
+            
+            # If we are here, it means an attempt failed and it's not the last one, so sleep and retry.
+            sleep_duration = retry_delay_base * (2**attempt) # Exponential backoff
+            logger.info(f"Retrying attempt {attempt + 2}/{max_retries} for {service_name} (ReqID: {log_request_id}) in {sleep_duration}s...")
+            await asyncio.sleep(sleep_duration)
         
-        This method should be implemented by subclasses.
-        """
+        # Should not be reached if max_retries > 0, as loop will either return or raise.
+        # Adding for safety in case max_retries is 0 or loop logic changes.
+        raise APIError(f"Request for {service_name} (ReqID: {log_request_id}) failed after all retries.")
+
+
+    # Abstract methods to be implemented by subclasses
+    async def search_flights(self, criteria: SearchCriteria) -> FlightSearchResponse:
         raise NotImplementedError("Subclasses must implement search_flights")
     
     async def get_flight_price(self, request_data: Dict[str, Any]) -> PricingResponse:
-        """
-        Get pricing for a specific flight offer.
-        
-        This method should be implemented by subclasses.
-        """
         raise NotImplementedError("Subclasses must implement get_flight_price")
     
     async def create_booking(self, booking_data: Dict[str, Any]) -> BookingResponse:
-        """
-        Create a new flight booking.
-        
-        This method should be implemented by subclasses.
-        """
         raise NotImplementedError("Subclasses must implement create_booking")
-    
-    async def get_booking_details(self, booking_reference: str) -> Dict[str, Any]:
-        """
-        Retrieve details for a specific booking.
-        
-        This method should be implemented by subclasses.
-        """
-        raise NotImplementedError("Subclasses must implement get_booking_details")

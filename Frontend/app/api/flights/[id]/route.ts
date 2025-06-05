@@ -1,33 +1,42 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { getFlightDetails } from "@/lib/flight-api"
-import { handleApiError, createNotFoundError } from "@/lib/error-handler"
-import { logger } from "@/lib/logger"
+import { NextResponse } from 'next/server';
+import { getFlightDetails } from '@/lib/flight-api';
+import { logger } from '@/lib/logger';
 
-// Cache configuration
-const CACHE_MAX_AGE = 600 // 10 minutes in seconds
-
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const flightId = params.id
-
-    if (!flightId) {
-      throw createNotFoundError("Flight ID is required")
-    }
-
-    // Log request
-    logger.info("Flight details request", { flightId })
-
-    // Get flight details from API
-    const flightDetails = await getFlightDetails(flightId)
-
-    // Return flight details with caching headers
-    return NextResponse.json(flightDetails, {
-      headers: {
-        "Cache-Control": `public, max-age=${CACHE_MAX_AGE}`,
-      },
-    })
-  } catch (error) {
-    return handleApiError(error)
-  }
+interface FlightDetailsParams {
+  id: string;
 }
 
+// Type definition for the error object
+type ErrorWithMessage = {
+  message: string;
+  response?: {
+    data: any;
+    status: number;
+  };
+};
+
+export const dynamic = 'force-dynamic';
+
+export async function GET(
+  request: Request,
+  { params }: { params: FlightDetailsParams }
+) {
+  try {
+    const { id } = params;
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Flight ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const flightDetails = await getFlightDetails(id);
+    return NextResponse.json(flightDetails);
+  } catch (error) {
+    logger.error('Error fetching flight details', { error });
+    return NextResponse.json(
+      { error: 'Failed to fetch flight details' },
+      { status: 500 }
+    );
+  }
+}

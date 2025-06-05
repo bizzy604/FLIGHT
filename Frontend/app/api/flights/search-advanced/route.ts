@@ -1,92 +1,114 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { callVerteilAirShopping, optimizeFlightData } from "@/lib/flight-api"
-import { handleApiError } from "@/lib/error-handler"
-import { logger } from "@/lib/logger"
-import type { FlightSearchRequest, FlightOffer } from "@/types/flight-api"
+// app/api/flights/search-advanced/route.ts
+import { NextResponse } from 'next/server';
+import { callVerteilAirShopping } from '@/lib/flight-api';
+import { logger } from '@/lib/logger';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest) {
+// Define interfaces for the NDC payload
+interface NDCOriginDestination {
+  Departure: {
+    AirportCode: {
+      value: string;
+    };
+    Date: string;
+  };
+  Arrival: {
+    AirportCode: {
+      value: string;
+    };
+  };
+  OriginDestinationKey: string;
+}
+
+interface NDCTraveler {
+  AnonymousTraveler?: Array<{
+    PTC: {
+      value: string;
+    };
+  }>;
+}
+
+interface NDCPayload {
+  CoreQuery?: {
+    OriginDestinations?: {
+      OriginDestination: NDCOriginDestination[];
+    };
+  };
+  Travelers?: {
+    Traveler: NDCTraveler[];
+  };
+  Preference?: {
+    CabinPreferences?: {
+      CabinType: Array<{
+        Code: string;
+      }>;
+    };
+  };
+}
+
+export async function POST(req: Request) {
   try {
-    const payload: FlightSearchRequest = await request.json()
+    const payload: NDCPayload = await req.json();
+    logger.info('Advanced flight search request', { payload: JSON.stringify(payload, null, 2) });
 
-    // Log search request
-    logger.info("Advanced flight search request", { payload })
-
-    // 1. Call flight API to get raw data
-    const rawData = await callVerteilAirShopping(payload);
-
-    // 2. Process data for UI using enhanced optimizeFlightData function
-    const processedData = optimizeFlightData(rawData)
+    // Extract data from the NDC payload
+    const originDestinations = payload.CoreQuery?.OriginDestinations?.OriginDestination || [];
+    const travelers = payload.Travelers?.Traveler || [];
     
-    // 3. Construct response body
-    const responseBody: any = {
-      processed: processedData,
+    // Count passenger types
+    const countPassengers = (type: string): number => 
+      travelers.flatMap((t: NDCTraveler) => t.AnonymousTraveler || [])
+        .filter(t => t.PTC?.value === type)
+        .length;
+    
+    const adults = countPassengers('ADT');
+    const children = countPassengers('CHD');
+    const infants = countPassengers('INF');
+    
+    // Get cabin preference (default to ECONOMY)
+    const cabinPreference = 
+      payload.Preference?.CabinPreferences?.CabinType?.[0]?.Code || 'Y';
+
+    // Map NDC cabin codes to our format
+    const cabinMap: Record<string, string> = {
+      'Y': 'ECONOMY',
+      'W': 'PREMIUM_ECONOMY',
+      'C': 'BUSINESS',
+      'F': 'FIRST'
     };
 
-    // 4. Conditionally include raw data for debugging in development
-    if (process.env.NODE_ENV === 'development') {
-      responseBody.raw = rawData;
-      logger.debug("Including raw API data in development response");
-    }
+    // Transform origin-destination segments
+    const odSegments = originDestinations.map((od: NDCOriginDestination) => ({
+      Origin: od.Departure?.AirportCode?.value || '',
+      Destination: od.Arrival?.AirportCode?.value || '',
+      DepartureDate: od.Departure?.Date || ''
+    }));
 
-    // Return search results (processed, and raw if in dev)
-    logger.info("Advanced flight search successful")
-    return NextResponse.json(responseBody)
+    // Prepare the backend request matching FlightSearchRequest interface with correct property names
+    const backendRequest = {
+      tripType: odSegments.length > 1 ? 'ROUND_TRIP' : 'ONE_WAY',
+      odSegments: odSegments.map(segment => ({
+        origin: segment.Origin,         // Use camelCase 'origin' as expected by backend
+        destination: segment.Destination, // Use camelCase 'destination' as expected by backend
+        departureDate: segment.DepartureDate // Use camelCase 'departureDate' as expected by backend
+      })),
+      numAdults: adults || 1,
+      numChildren: children || 0,
+      numInfants: infants || 0,
+      cabinPreference: cabinMap[cabinPreference] || 'ECONOMY', // Use 'cabinPreference' as expected by backend
+      directOnly: false
+    };
 
+    logger.info('Sending to backend:', JSON.stringify(backendRequest, null, 2));
+    const results = await callVerteilAirShopping(backendRequest);
+    return NextResponse.json(results);
   } catch (error) {
-    logger.error("Error in advanced flight search", { error })
-    return handleApiError(error)
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    logger.error('Error in advanced flight search', { error: errorMessage });
+    return NextResponse.json(
+      { error: errorMessage },
+      { status: 500 }
+    );
   }
-}
-
-// Helper function to parse ISO duration string (PT1H30M) to minutes
-function parseISODuration(duration: string): number {
-  let minutes = 0;
-  const hourMatch = duration.match(/([0-9]+)H/);
-  const minuteMatch = duration.match(/([0-9]+)M/);
-  
-  if (hourMatch && hourMatch[1]) {
-    minutes += parseInt(hourMatch[1], 10) * 60;
-  }
-  
-  if (minuteMatch && minuteMatch[1]) {
-    minutes += parseInt(minuteMatch[1], 10);
-  }
-  
-  return minutes;
-}
-
-// Helper function to get city name from airport code
-function getCity(airportCode: string): string {
-  // Simple mapping - in a real app this would be more comprehensive
-  const airportMap: Record<string, string> = {
-    'JFK': 'New York',
-    'LAX': 'Los Angeles',
-    'LHR': 'London',
-    'CDG': 'Paris',
-    'FRA': 'Frankfurt',
-    'DEL': 'Delhi',
-    'BOM': 'Mumbai',
-    'SIN': 'Singapore',
-    'HKG': 'Hong Kong',
-    'DXB': 'Dubai',
-    'ZRH': 'Zurich',
-    'MUC': 'Munich',
-    'AMS': 'Amsterdam',
-  };
-  
-  return airportMap[airportCode] || airportCode;
-}
-
-// Handle OPTIONS request for CORS
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    },
-  })
 }

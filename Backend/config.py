@@ -25,13 +25,19 @@ class Config:
     VERTEIL_PASSWORD = os.environ.get('VERTEIL_PASSWORD')
     VERTEIL_THIRD_PARTY_ID = os.environ.get('VERTEIL_THIRD_PARTY_ID')
     VERTEIL_OFFICE_ID = os.environ.get('VERTEIL_OFFICE_ID')
+    VERTEIL_TOKEN_ENDPOINT_PATH = os.environ.get('VERTEIL_TOKEN_ENDPOINT', '/oauth2/token') # Path for token endpoint
     
-    # API Endpoints
-    VERTEIL_TOKEN_ENDPOINT = '/entrygate/rest/request:authenticate'
-    VERTEIL_AIR_SHOPPING_ENDPOINT = '/entrygate/rest/request:airShopping'
+    # API Endpoints (Note: VERTEIL_TOKEN_ENDPOINT_PATH is now the source for the token path)
+    # VERTEIL_TOKEN_ENDPOINT = '/entrygate/rest/request:authenticate' # Old, replaced by VERTEIL_TOKEN_ENDPOINT_PATH
+    VERTEIL_AIR_SHOPPING_ENDPOINT = '/entrygate/rest/request:airShopping' # Example, specific endpoints used in services
+
+    # Verteil API Interaction Settings (matching FlightService defaults)
+    VERTEIL_API_TIMEOUT = int(os.environ.get('VERTEIL_API_TIMEOUT', 30))
+    VERTEIL_MAX_RETRIES = int(os.environ.get('VERTEIL_MAX_RETRIES', 3))
+    VERTEIL_RETRY_DELAY = int(os.environ.get('VERTEIL_RETRY_DELAY', 1))
     
-    # Request timeout in seconds
-    REQUEST_TIMEOUT = 30
+    # General request timeout (can be different from specific API timeout)
+    REQUEST_TIMEOUT = int(os.environ.get('REQUEST_TIMEOUT', 30))
     
     # OAuth2 Settings
     OAUTH2_TOKEN_EXPIRY_BUFFER = 60  # seconds before actual expiry to consider token expired
