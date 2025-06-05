@@ -18,7 +18,8 @@ from services.flight import (
     get_flight_price as get_flight_price_service,
     create_booking,
     process_air_shopping,
-    process_order_create
+    process_order_create,
+    process_flight_price
 )
 
 # Configure logging
@@ -221,4 +222,67 @@ async def air_shopping():
         logger.error(f"Unexpected error: {str(e)} - Request ID: {request_id}", exc_info=True)
         return jsonify(_create_error_response("An unexpected error occurred", 500, request_id))
 
-# [Rest of the file remains the same...]
+@bp.route('/flight-price', methods=['POST', 'OPTIONS'])
+async def flight_price():
+    """
+    Handle flight price requests.
+    
+    POST JSON Body:
+    - offer_id: The ID of the offer to price
+    - shopping_response_id: The ShoppingResponseID from AirShoppingRS
+    - air_shopping_rs: The AirShopping response containing offer details
+    - [currency]: Currency code (default: USD)
+    
+    Returns:
+    - Pricing details for the selected flight offer
+    """
+    if request.method == 'OPTIONS':
+        response = await make_response()
+        return _add_cors_headers(response)
+        
+    request_id = _get_request_id()
+    
+    try:
+        data = await request.get_json()
+        logger.info(f"Flight price request received - Request ID: {request_id}")
+        
+        # Validate required fields
+        required_fields = ['offer_id', 'shopping_response_id', 'air_shopping_rs']
+        missing_fields = [f for f in required_fields if f not in data]
+        if missing_fields:
+            error_msg = f"Missing required fields: {', '.join(missing_fields)}"
+            logger.warning(f"{error_msg} - Request ID: {request_id}")
+            return jsonify(_create_error_response(error_msg, 400, request_id))
+        
+        # Prepare request data
+        price_request = {
+            'offer_id': data['offer_id'],
+            'shopping_response_id': data['shopping_response_id'],
+            'air_shopping_response': data['air_shopping_rs'],
+            'currency': data.get('currency', 'USD'),
+            'request_id': request_id
+        }
+        
+        # Process the flight price request
+        result = await process_flight_price(price_request)
+        
+        logger.info(f"Flight price request completed - Request ID: {request_id}")
+        return jsonify({
+            'status': 'success',
+            'data': result,
+            'request_id': request_id
+        })
+        
+    except json.JSONDecodeError:
+        error_msg = "Invalid JSON payload"
+        logger.error(f"{error_msg} - Request ID: {request_id}")
+        return jsonify(_create_error_response(error_msg, 400, request_id))
+    except ValueError as e:
+        logger.error(f"Validation error: {str(e)} - Request ID: {request_id}")
+        return jsonify(_create_error_response(str(e), 400, request_id))
+    except FlightServiceError as e:
+        logger.error(f"Flight service error: {str(e)} - Request ID: {request_id}")
+        return jsonify(_create_error_response(str(e), 500, request_id, e.details if hasattr(e, 'details') else None))
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)} - Request ID: {request_id}", exc_info=True)
+        return jsonify(_create_error_response("An unexpected error occurred", 500, request_id))
