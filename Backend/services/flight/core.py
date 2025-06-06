@@ -29,6 +29,7 @@ from services.flight.types import (
     ODSegment,
     PassengerCounts
 )
+from utils.auth import TokenManager
 
 logger = logging.getLogger(__name__)
 
@@ -50,8 +51,8 @@ class FlightService:
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = {**self.DEFAULT_CONFIG, **(config or {})}
         self._session: Optional[aiohttp.ClientSession] = None
-        self._access_token: Optional[str] = None
-        self._token_expiry_time: float = 0.0  # Stores Unix timestamp of when token expires
+        self._token_manager = TokenManager()
+        self._token_manager.set_config(self.config)
 
         # Validate essential configuration for OAuth
         # These keys should match what's loaded in Backend/config.py
@@ -83,49 +84,17 @@ class FlightService:
         await self.close()
 
     async def _get_access_token(self) -> str:
-        current_time = time.time()
-        if self._access_token and current_time < self._token_expiry_time:
-            logger.debug("Using cached Verteil access token.")
-            return self._access_token
-
-        logger.info("Attempting to fetch new Verteil access token.")
-        base_url = str(self.config['VERTEIL_API_BASE_URL']).rstrip('/')
-        token_path = str(self.config['VERTEIL_TOKEN_ENDPOINT_PATH']).lstrip('/')
-        token_url = f"{base_url}/{token_path}"
-        
-        username = str(self.config['VERTEIL_USERNAME'])
-        password = str(self.config['VERTEIL_PASSWORD'])
-        auth = BasicAuth(username, password)
-        
-        # Standard OAuth2 client credentials grant uses form data
-        form_payload = {'grant_type': 'client_credentials', 'scope': 'api'}
-
+        """Get access token using the centralized TokenManager."""
         try:
-            session = await self._get_session()
-            async with session.post(
-                token_url,
-                auth=auth,
-                data=form_payload, # aiohttp sends this as application/x-www-form-urlencoded
-                headers={'Accept': 'application/json'} # We expect a JSON response
-            ) as response:
-                response_data = await response.json() # Assuming Verteil returns JSON
-                if response.status == 200 and 'access_token' in response_data:
-                    self._access_token = response_data['access_token']
-                    expires_in = int(response_data.get('expires_in', 3600)) # Default to 1 hour
-                    buffer = int(self.config.get('OAUTH2_TOKEN_EXPIRY_BUFFER', 60))
-                    self._token_expiry_time = current_time + expires_in - buffer
-                    logger.info(f"Successfully fetched Verteil access token. Expires in {expires_in}s (adjusted: {self._token_expiry_time - current_time:.0f}s).")
-                    return self._access_token
-                else:
-                    error_detail = response_data.get('error_description') or response_data.get('error') or str(response_data)
-                    logger.error(f"Failed to fetch Verteil access token. Status: {response.status}, URL: {token_url}, Details: {error_detail}")
-                    raise AuthenticationError(f"Failed to fetch access token: {response.status} - {error_detail}")
-        except aiohttp.ClientError as e:
-            logger.error(f"Network error during token fetching from {token_url}: {str(e)}", exc_info=True)
-            raise AuthenticationError(f"Network error during token fetching: {str(e)}")
-        except Exception as e: # Catch other errors like JSONDecodeError
-            logger.error(f"Unexpected error during token fetching from {token_url}: {str(e)}", exc_info=True)
-            raise AuthenticationError(f"Unexpected error during token fetching: {str(e)}")
+            # TokenManager returns the token in 'Bearer <token>' format
+            full_token = self._token_manager.get_token(self.config)
+            # Extract just the token part (remove 'Bearer ' prefix)
+            if full_token.startswith('Bearer '):
+                return full_token[7:]  # Remove 'Bearer ' prefix
+            return full_token
+        except Exception as e:
+            logger.error(f"Failed to get access token from TokenManager: {str(e)}", exc_info=True)
+            raise AuthenticationError(f"Failed to get access token: {str(e)}") from e
 
     async def _get_headers(self, service_name: str) -> Dict[str, str]:
         access_token = await self._get_access_token()

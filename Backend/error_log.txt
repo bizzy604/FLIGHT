@@ -1,0 +1,36 @@
+Error: FlightServiceError: Configuration not available for FlightSearchService in search_flights_sync.
+Traceback (most recent call last):
+  File "C:\Users\User\Desktop\FLIGHT\Backend\services\flight\search.py", line 280, in search_flights
+    effective_config = current_app.config
+                       ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\local.py", line 318, in __get__
+    obj = instance._get_current_object()
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\local.py", line 519, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\User\Desktop\FLIGHT\Backend\debug_test.py", line 15, in <module>
+    result = search_flights(origin='JFK', destination='LAX', departure_date='2024-02-01')
+  File "C:\Users\User\Desktop\FLIGHT\Backend\services\flight\search.py", line 382, in search_flights_sync
+    return loop.run_until_complete(search_flights(
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+        adults=adults,
+        ^^^^^^^^^^^^^^
+    ...<5 lines>...
+        config=effective_config
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ))
+    ^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\User\Desktop\FLIGHT\Backend\services\flight\search.py", line 283, in search_flights
+    raise FlightServiceError("Configuration not available for FlightSearchService in search_flights_sync.")
+services.flight.exceptions.FlightServiceError: Configuration not available for FlightSearchService in search_flights_sync.

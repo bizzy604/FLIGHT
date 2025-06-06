@@ -221,7 +221,7 @@ class TokenManager:
             if current_app:
                 app_config = {
                     'VERTEIL_API_BASE_URL': current_app.config.get('VERTEIL_API_BASE_URL'),
-                    'VERTEIL_TOKEN_ENDPOINT': current_app.config.get('VERTEIL_TOKEN_ENDPOINT', '/api/v1/oauth/token'),
+                    'VERTEIL_TOKEN_ENDPOINT': current_app.config.get('VERTEIL_TOKEN_ENDPOINT', '/oauth2/token'),
                     'VERTEIL_USERNAME': current_app.config.get('VERTEIL_USERNAME'),
                     'VERTEIL_PASSWORD': current_app.config.get('VERTEIL_PASSWORD'),
                     'VERTEIL_THIRD_PARTY_ID': current_app.config.get('VERTEIL_THIRD_PARTY_ID'),
@@ -236,7 +236,7 @@ class TokenManager:
         # Priority 4: Fall back to environment variables
         env_config = {
             'VERTEIL_API_BASE_URL': os.environ.get('VERTEIL_API_BASE_URL'),
-            'VERTEIL_TOKEN_ENDPOINT': os.environ.get('VERTEIL_TOKEN_ENDPOINT', '/api/v1/oauth/token'),
+            'VERTEIL_TOKEN_ENDPOINT': os.environ.get('VERTEIL_TOKEN_ENDPOINT', '/oauth2/token'),
             'VERTEIL_USERNAME': os.environ.get('VERTEIL_USERNAME'),
             'VERTEIL_PASSWORD': os.environ.get('VERTEIL_PASSWORD'),
             'VERTEIL_THIRD_PARTY_ID': os.environ.get('VERTEIL_THIRD_PARTY_ID'),

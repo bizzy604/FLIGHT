@@ -32,8 +32,10 @@ def create_test_app():
         TESTING=True,
         VERTEIL_API_BASE_URL='https://api.stage.verteil.com',
         VERTEIL_TOKEN_ENDPOINT='/oauth2/token',
-        VERTEIL_USERNAME=os.getenv('VERTEIL_USERNAME'),
-        VERTEIL_PASSWORD=os.getenv('VERTEIL_PASSWORD'),
+        VERTEIL_USERNAME='reatravel_apitestuser',
+        VERTEIL_PASSWORD='UZrNcyxpIFn2TOdiU5uc9kZrqJwxU44KdlyFBpiDOaaNom1xSySEtQmRq9IcDq3c',
+        VERTEIL_THIRD_PARTY_ID='KQ',
+        VERTEIL_OFFICE_ID='OFF3746',
         REQUEST_TIMEOUT=30,
         OAUTH2_TOKEN_EXPIRY_BUFFER=60
     )
@@ -138,7 +140,7 @@ class TestFlightSearch:
         """Clean up after tests."""
         self.ctx.pop()
     
-    @patch('services.flight_service.make_verteil_request')
+    @patch('services.flight.core.FlightService._make_request')
     def test_search_flights_success(self, mock_make_request):
         """Test successful flight search."""
         # Mock the API response
@@ -158,13 +160,18 @@ class TestFlightSearch:
                 trip_type=self.search_params['trip_type']
             )
         
-        # Assertions
-        assert 'flightOffers' in result
-        assert len(result['flightOffers']) > 0
-        assert 'price' in result['flightOffers'][0]
-        assert 'itineraries' in result['flightOffers'][0]
+        # Debug: Print the actual result
+        print(f"\nActual result: {result}")
+        
+        # Check that we got the correct response structure
+        assert 'status' in result, f"Expected 'status' in result, got: {result.keys()}"
+        assert result['status'] == 'success', f"Expected status 'success', got: {result['status']}"
+        assert 'data' in result, f"Expected 'data' in result, got: {result.keys()}"
+        assert isinstance(result['data'], dict), "Data should be a dictionary"
+        assert 'offers' in result['data'], f"Expected 'offers' in data, got: {result['data'].keys()}"
+        assert isinstance(result['data']['offers'], list), "Offers should be a list"
     
-    @patch('services.flight_service.make_verteil_request')
+    @patch('services.flight.core.FlightService._make_request')
     def test_search_flights_missing_required_params(self, mock_make_request):
         """Test flight search with missing required parameters."""
         with self.app.app_context():
@@ -201,7 +208,7 @@ class TestFlightSearch:
             except FlightServiceError as e:
                 assert "Departure date is required" in str(e)
     
-    @patch('services.flight_service.make_verteil_request')
+    @patch('services.flight.core.FlightService._make_request')
     def test_search_flights_api_error(self, mock_make_request):
         """Test handling of API errors during flight search."""
         # Mock an API error

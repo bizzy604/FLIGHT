@@ -102,39 +102,57 @@ Each FlightService instance has its own `_get_access_token()` method that genera
 - [ ] Create pull request
 
 ### In Progress
-- [ ] Initial analysis and planning (Planner)
+- [ ] Debugging API service configuration errors
 
 ### Done
 - [x] Identify root cause of token regeneration issue
 - [x] Document affected files and functions
 - [x] Create implementation plan
+- [x] Confirmed duplicate service instances in production logs
 
 ## Current Status / Progress Tracking
 
-**Current Phase**: Planning and Analysis
+**Current Phase**: Debugging API Configuration Errors
 **Last Updated**: 2024-12-19
-**Next Milestone**: Begin implementation after plan approval
+**Next Milestone**: Resolve service configuration errors preventing API responses
 
 ### Recent Progress
 - ✅ Identified that FlightService instances create independent tokens
 - ✅ Located all affected service functions
 - ✅ Confirmed TokenManager singleton exists and works correctly
 - ✅ Analyzed the async context manager pattern causing the issue
+- ✅ Confirmed duplicate service instances in production logs (two simultaneous calls)
+- ✅ Identified API returning service configuration errors instead of flight data
 
 ### Blockers
-- None currently identified
+- API returning "Service configuration error" instead of flight search results
+- Two simultaneous service instances being created per request
 
 ## Executor's Feedback or Assistance Requests
 
+### Current Debugging Priority
+**Issue**: API returning service configuration errors instead of flight data
+**Evidence from logs**:
+- Two simultaneous FlightService instances being created per request
+- Both instances receive "Service configuration error" responses
+- Transaction IDs: menBuM-1749248921744 and H7gP9O-1749248921809
+
+### Immediate Actions Needed
+1. Investigate why API is returning configuration errors
+2. Check if the duplicate service calls are causing rate limiting or conflicts
+3. Verify API credentials and endpoint configuration
+4. Implement the token management optimization to prevent duplicate instances
+
 ### Questions for Planner
-1. Should we maintain the async context manager pattern for FlightService or switch to a different pattern?
-2. Do we need to maintain backward compatibility for the current function signatures?
-3. Should the singleton FlightService be initialized at application startup or lazily?
+1. Should we prioritize fixing the API configuration errors first, or implement token management optimization?
+2. Do we need to contact Verteil API support regarding the service configuration errors?
+3. Should we implement request deduplication to prevent simultaneous calls?
 
 ### Technical Considerations
 - Need to ensure thread safety when sharing FlightService instance
 - TokenManager already handles thread safety, so this should be straightforward
 - Configuration injection needs to be handled properly for the singleton
+- API configuration errors may be related to duplicate simultaneous requests
 
 ## Lessons Learned
 

@@ -1,0 +1,12 @@
+Result: {'status': 'success', 'data': {'offers': [], 'shopping_response_id': None, 'transaction_id': None}, 'request_id': None}
+Result type: <class 'dict'>
+Result keys: ['status', 'data', 'request_id']
+
+Status: success
+Request ID: None
+
+Data type: <class 'dict'>
+Data keys: ['offers', 'shopping_response_id', 'transaction_id']
+
+Offers type: <class 'list'>
+Number of offers: 0

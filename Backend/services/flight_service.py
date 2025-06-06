@@ -32,7 +32,7 @@ warnings.warn(
 try:
     # Import all the main functions and classes
     from .flight import (
-        search_flights,
+        search_flights_sync as search_flights,
         get_flight_price,
         create_booking,
         get_booking_details,
@@ -42,7 +42,6 @@ try:
         FlightServiceError,
         FlightService
     )
-    from .exceptions import FlightServiceError as NewFlightServiceError
     
     # Import any additional types that might be needed for type hints
     from .types import (
@@ -70,9 +69,9 @@ except ImportError as e:
             "Please install the required dependencies or update your imports."
         )
     
-    # Create stubs that raise NotImplementedError
-    search_flights = get_flight_price = create_booking = get_booking_details = _not_implemented
-    process_air_shopping = process_flight_price = process_order_create = _not_implemented
+    # Create stubs that raise NotImplementedError for missing functions only
+    get_flight_price = create_booking = get_booking_details = _not_implemented
+    process_flight_price = process_order_create = _not_implemented
     
     class FlightService:
         """Legacy FlightService class for backward compatibility."""

@@ -263,7 +263,7 @@ async def search_flights(
         
     criteria = {
         'trip_type': trip_type,
-        'od_segments': od_segments,
+        'odSegments': od_segments,
         'num_adults': adults,
         'num_children': children,
         'num_infants': infants,
@@ -274,11 +274,11 @@ async def search_flights(
     
     effective_config = config
     if effective_config is None:
-        logger.warning("Config not passed to search_flights, attempting to use current_app.config.")
+        logger.warning("Config not passed to search_flights_sync, attempting to use current_app.config.")
         try:
             from quart import current_app
             effective_config = current_app.config
-        except RuntimeError:
+        except (RuntimeError, ImportError):
             logger.error("Cannot access current_app.config in search_flights.")
             raise FlightServiceError("Configuration not available for FlightSearchService in search_flights.")
     
@@ -302,7 +302,7 @@ async def process_air_shopping(search_criteria: Dict[str, Any]) -> Dict[str, Any
     try:
         from quart import current_app
         effective_config = current_app.config
-    except RuntimeError:
+    except (RuntimeError, ImportError):
         logger.error("Cannot access current_app.config in process_air_shopping.")
         raise FlightServiceError("Configuration not available for FlightSearchService in process_air_shopping.")
 
@@ -313,3 +313,78 @@ async def process_air_shopping(search_criteria: Dict[str, Any]) -> Dict[str, Any
     logger.info(f"Config for FlightSearchService in process_air_shopping: USERNAME={effective_config.get('VERTEIL_USERNAME')}, PASSWORD_PRESENT={'yes' if effective_config.get('VERTEIL_PASSWORD') else 'no'}")
     async with FlightSearchService(effective_config) as service:
         return await service.search_flights(search_criteria)
+
+
+def search_flights_sync(
+    origin: str,
+    destination: str, 
+    departure_date: str,
+    return_date: Optional[str] = None,
+    adults: int = 1,
+    children: int = 0,
+    infants: int = 0,
+    cabin_class: str = "ECONOMY",
+    trip_type: str = "oneway",
+    config: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """
+    Synchronous wrapper for flight search.
+    
+    This function provides backward compatibility with the old synchronous interface.
+    """
+    import asyncio
+    
+    # Validate required parameters
+    if not origin:
+        raise FlightServiceError("Origin is required")
+    if not destination:
+        raise FlightServiceError("Destination is required") 
+    if not departure_date:
+        raise FlightServiceError("Departure date is required")
+    
+    # Build od_segments
+    od_segments = [{
+        'origin': origin,
+        'destination': destination,
+        'departureDate': departure_date
+    }]
+    
+    if return_date and trip_type.lower() == 'roundtrip':
+        od_segments.append({
+            'origin': destination,
+            'destination': origin,
+            'departureDate': return_date
+        })
+    
+    # Convert trip_type to expected format
+    if trip_type.lower() in ['roundtrip', 'round_trip']:
+        trip_type = 'ROUND_TRIP'
+    else:
+        trip_type = 'ONE_WAY'
+    
+    # Handle config - try to get from Quart app context if not provided
+    effective_config = config
+    if effective_config is None:
+        try:
+            from quart import current_app
+            effective_config = current_app.config
+        except (RuntimeError, ImportError):
+            # If we can't get config, pass None and let the async function handle it
+            effective_config = None
+    
+    # Run the async function
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    
+    return loop.run_until_complete(search_flights(
+        adults=adults,
+        children=children,
+        infants=infants,
+        cabin_class=cabin_class,
+        trip_type=trip_type,
+        od_segments=od_segments,
+        config=effective_config
+    ))
