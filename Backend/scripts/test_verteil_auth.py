@@ -70,7 +70,7 @@ def test_token_manager(app):
             logger.info("Testing TokenManager...")
             
             # Get token using TokenManager
-            token_manager = TokenManager()
+            token_manager = TokenManager.get_instance()
             token = token_manager.get_token()
             
             logger.info("Successfully obtained token using TokenManager")

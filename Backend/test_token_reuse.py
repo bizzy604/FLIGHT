@@ -23,7 +23,7 @@ def test_token_reuse():
     print("=== TokenManager Token Reuse Test ===")
     
     # Create TokenManager instance
-    tm = TokenManager()
+    tm = TokenManager.get_instance()
     
     # Set configuration
     config = {
@@ -84,7 +84,7 @@ def test_token_reuse():
         
         # Test 4: Test multiple TokenManager instances (singleton behavior)
         print("Test 4: Testing singleton behavior...")
-        tm2 = TokenManager()
+        tm2 = TokenManager.get_instance()
         tm3 = TokenManager.get_instance()
         
         print(f"  tm is tm2: {tm is tm2}")

@@ -12,6 +12,16 @@ from .decorators import async_cache, async_rate_limited
 from .exceptions import FlightServiceError, ValidationError, BookingError
 from .types import BookingResponse, SearchCriteria
 
+# Import the OrderCreate request builder
+try:
+    import sys
+    import os
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'scripts'))
+    from build_ordercreate_rq import generate_order_create_rq
+except ImportError as e:
+    logger.error(f"Failed to import build_ordercreate_rq: {e}")
+    generate_order_create_rq = None
+
 logger = logging.getLogger(__name__)
 
 class FlightBookingService(FlightService):
@@ -196,7 +206,99 @@ class FlightBookingService(FlightService):
         request_id: str
     ) -> Dict[str, Any]:
         """
-        Build the OrderCreate request payload.
+        Build the OrderCreate request payload using the request builder.
+        
+        Args:
+            flight_price_response: The FlightPrice response
+            passengers: List of passenger details
+            payment_info: Payment information
+            contact_info: Contact information
+            request_id: Request ID for tracking
+            
+        Returns:
+            Dictionary containing the request payload
+        """
+        try:
+            if generate_order_create_rq is None:
+                # Fallback to manual payload construction if import failed
+                logger.warning("Using fallback payload construction for OrderCreate")
+                return self._build_fallback_payload(
+                    flight_price_response, passengers, payment_info, contact_info, request_id
+                )
+            
+            # Transform passenger data to match the expected format
+            transformed_passengers = []
+            for passenger in passengers:
+                transformed_passenger = {
+                    'type': passenger.get('type', 'ADT'),
+                    'title': passenger.get('title'),
+                    'first_name': passenger.get('first_name'),
+                    'last_name': passenger.get('last_name'),
+                    'date_of_birth': passenger.get('date_of_birth'),
+                    'gender': passenger.get('gender'),
+                    'nationality': passenger.get('nationality')
+                }
+                
+                # Add document information if available
+                if passenger.get('passport_number'):
+                    transformed_passenger['documents'] = [{
+                        'type': 'Passport',
+                        'number': passenger.get('passport_number'),
+                        'expiry_date': passenger.get('passport_expiry'),
+                        'issuing_country': passenger.get('nationality')
+                    }]
+                
+                # Add contact info to first passenger
+                if len(transformed_passengers) == 0:
+                    transformed_passenger['contact'] = {
+                        'email': contact_info.get('email'),
+                        'phone': contact_info.get('phone')
+                    }
+                
+                transformed_passengers.append(transformed_passenger)
+            
+            # Transform payment info to match expected format
+            transformed_payment = {
+                'method': payment_info.get('payment_method', 'PaymentCard'),
+                'currency': payment_info.get('currency', 'USD')
+            }
+            
+            if payment_info.get('payment_method') == 'PaymentCard':
+                transformed_payment['card_info'] = {
+                    'type': payment_info.get('card_type'),
+                    'number': payment_info.get('card_number'),
+                    'expiry_date': payment_info.get('expiry_date'),
+                    'cvv': payment_info.get('cvv'),
+                    'holder_name': payment_info.get('card_holder_name')
+                }
+            
+            # Use the request builder to generate the payload
+            payload = generate_order_create_rq(
+                flight_price_response=flight_price_response,
+                passengers_data=transformed_passengers,
+                payment_input_info=transformed_payment
+            )
+            
+            logger.info(f"Successfully generated OrderCreate payload using request builder")
+            return payload
+            
+        except Exception as e:
+            logger.error(f"Error using OrderCreate request builder: {e}")
+            # Fallback to manual construction
+            return self._build_fallback_payload(
+                flight_price_response, passengers, payment_info, contact_info, request_id
+            )
+    
+    def _build_fallback_payload(
+        self,
+        flight_price_response: Dict[str, Any],
+        passengers: List[Dict[str, Any]],
+        payment_info: Dict[str, Any],
+        contact_info: Dict[str, str],
+        request_id: str
+    ) -> Dict[str, Any]:
+        """
+        Fallback method to build OrderCreate payload manually.
         
         Args:
             flight_price_response: The FlightPrice response
@@ -335,7 +437,9 @@ async def create_booking(
     
     This is a backward-compatible wrapper around the FlightBookingService.
     """
-    async with FlightBookingService(config=config or {}) as service:
+    # Use a single service instance to avoid creating multiple TokenManager instances
+    service = FlightBookingService(config=config or {})
+    try:
         return await service.create_booking(
             flight_price_response=flight_price_response,
             passengers=passengers,
@@ -343,6 +447,8 @@ async def create_booking(
             contact_info=contact_info,
             request_id=request_id
         )
+    finally:
+        await service.close()
 
 
 async def process_order_create(order_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -353,7 +459,9 @@ async def process_order_create(order_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     config = order_data.pop('config', {})
     
-    async with FlightBookingService(config=config) as service:
+    # Use a single service instance to avoid creating multiple TokenManager instances
+    service = FlightBookingService(config=config)
+    try:
         return await service.create_booking(
             flight_price_response=order_data.get('flight_price_response', {}),
             passengers=order_data.get('passengers', []),
@@ -361,6 +469,8 @@ async def process_order_create(order_data: Dict[str, Any]) -> Dict[str, Any]:
             contact_info=order_data.get('contact_info', {}),
             request_id=order_data.get('request_id')
         )
+    finally:
+        await service.close()
 
 
 async def get_booking_details(
@@ -373,8 +483,12 @@ async def get_booking_details(
     
     This is a backward-compatible wrapper around the FlightBookingService.
     """
-    async with FlightBookingService(config=config or {}) as service:
+    # Use a single service instance to avoid creating multiple TokenManager instances
+    service = FlightBookingService(config=config or {})
+    try:
         return await service.get_booking_details(
             booking_reference=booking_reference,
             request_id=request_id
         )
+    finally:
+        await service.close()

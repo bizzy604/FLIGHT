@@ -4,8 +4,15 @@ Flight Search Module
 This module handles flight search operations using the Verteil NDC API.
 """
 import logging
+import time
 from typing import Dict, Any, List, Optional
 import uuid
+import sys
+import os
+
+# Add the scripts directory to the path to import the request builder
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'scripts'))
+from build_airshopping_rq import build_airshopping_request
 
 from .core import FlightService
 from .decorators import async_cache, async_rate_limited
@@ -83,7 +90,7 @@ class FlightSearchService(FlightService):
     
     def _build_search_payload(self, criteria: SearchCriteria) -> Dict[str, Any]:
         """
-        Build the AirShopping request payload from search criteria.
+        Build the AirShopping request payload from search criteria using the request builder.
         
         Args:
             criteria: Search criteria
@@ -91,103 +98,134 @@ class FlightSearchService(FlightService):
         Returns:
             Dictionary containing the request payload
         """
-        # This is a simplified example - adapt based on the actual API requirements
-        payload = {
-            'OriginDestinations': [
-                {
-                    'OriginLocation': {
-                        'LocationCode': seg['origin']
-                    },
-                    'DestinationLocation': {
-                        'LocationCode': seg['destination']
-                    },
-                    'DepartureDateTime': seg['departureDate']
-                }
-                for seg in criteria['odSegments']
-            ],
-            'TravelPreferences': {
-                'CabinPref': [
-                    {
-                        'CabinType': criteria.get('cabinPreference', 'ECONOMY'),
-                        'PreferLevel': 'Preferred'
-                    }
-                ]
-            },
-            'TravelerInfoSummary': {
-                'SeatsRequested': [
-                    {
-                        'Code': 'ADT',
-                        'Quantity': criteria.get('num_adults', 1)
-                    },
-                    {
-                        'Code': 'CHD',
-                        'Quantity': criteria.get('num_children', 0)
-                    },
-                    {
-                        'Code': 'INF',
-                        'Quantity': criteria.get('num_infants', 0)
-                    }
-                ]
+        try:
+            # Extract trip type from criteria, default to ONE_WAY
+            trip_type = criteria.get('trip_type', 'ONE_WAY').upper()
+            
+            # Map trip types to the expected format
+            trip_type_mapping = {
+                'ONEWAY': 'ONE_WAY',
+                'ONE_WAY': 'ONE_WAY',
+                'ROUNDTRIP': 'ROUND_TRIP', 
+                'ROUND_TRIP': 'ROUND_TRIP',
+                'MULTICITY': 'MULTI_CITY',
+                'MULTI_CITY': 'MULTI_CITY'
             }
-        }
-        
-        return payload
+            
+            trip_type = trip_type_mapping.get(trip_type, 'ONE_WAY')
+            
+            # Prepare OD segments for the request builder
+            od_segments = []
+            for seg in criteria['odSegments']:
+                od_segments.append({
+                    'Origin': seg['origin'],
+                    'Destination': seg['destination'],
+                    'DepartureDate': seg['departureDate']
+                })
+            
+            # Map cabin preference to the expected codes
+            cabin_mapping = {
+                'ECONOMY': 'Y',
+                'BUSINESS': 'C', 
+                'FIRST': 'F',
+                'PREMIUM_ECONOMY': 'W'
+            }
+            
+            cabin_preference = criteria.get('cabinPreference', 'ECONOMY')
+            cabin_code = cabin_mapping.get(cabin_preference.upper(), 'Y')
+            
+            # Get passenger counts
+            num_adults = criteria.get('num_adults', 1)
+            num_children = criteria.get('num_children', 0)
+            num_infants = criteria.get('num_infants', 0)
+            
+            # Use the request builder to create the payload
+            payload = build_airshopping_request(
+                trip_type=trip_type,
+                od_segments=od_segments,
+                num_adults=num_adults,
+                num_children=num_children,
+                num_infants=num_infants,
+                cabin_preference_code=cabin_code,
+                fare_type_code="PUBL"
+            )
+            
+            logger.info(f"Built AirShopping payload for {trip_type} with {len(od_segments)} segments")
+            return payload
+            
+        except Exception as e:
+            logger.error(f"Error building AirShopping payload: {str(e)}")
+            raise ValidationError(f"Failed to build search payload: {str(e)}") from e
     
     def _process_search_response(self, response: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Process the AirShopping API response.
+        Process the AirShopping API response with enhanced structure for frontend display.
         
         Args:
             response: Raw API response
             
         Returns:
-            Processed response data with enhanced flight information
+            Processed response data with enhanced flight information and metadata
         """
         processed = {
             'offers': [],
             'shopping_response_id': response.get('ShoppingResponseID'),
-            'transaction_id': response.get('TransactionID')
+            'transaction_id': response.get('TransactionID'),
+            'metadata': {
+                'total_offers': 0,
+                'search_timestamp': time.time(),
+                'currency': 'USD',  # Default currency
+                'search_criteria': response.get('SearchCriteria', {})
+            },
+            'raw_response': response  # Store complete response for pricing requests
         }
         
         # Process offers from the response
         if 'OffersGroup' in response and 'AirlineOffers' in response['OffersGroup']:
-            for offer in response['OffersGroup']['AirlineOffers']:
-                processed_offer = {
-                    'offer_id': offer.get('OfferID'),
-                    'price_info': offer.get('PriceInfo', {}),
-                    'flights': []
-                }
+            airline_offers = response['OffersGroup']['AirlineOffers']
+            if not isinstance(airline_offers, list):
+                airline_offers = [airline_offers]
                 
-                # Add flight segments
-                if 'FlightSegment' in offer:
-                    for segment in offer['FlightSegment']:
-                        departure = segment.get('Departure', {})
-                        arrival = segment.get('Arrival', {})
-                        duration = segment.get('Duration', 'PT0H0M')  # Default to 0h 0m if not provided
+            for airline_offer_group in airline_offers:
+                # Each airline_offer_group contains an AirlineOffer array
+                if 'AirlineOffer' in airline_offer_group:
+                    airline_offers_list = airline_offer_group['AirlineOffer']
+                    if not isinstance(airline_offers_list, list):
+                        airline_offers_list = [airline_offers_list]
+                    
+                    for offer in airline_offers_list:
+                        # Extract OfferID from the offer
+                        offer_id = offer.get('OfferID', {}).get('value', '') if isinstance(offer.get('OfferID'), dict) else offer.get('OfferID', '')
                         
-                        # Process flight segment with enhanced data
-                        processed_segment = {
-                            'departure': {
-                                'airport': departure.get('AirportCode', ''),
-                                'city': self._get_city_name(departure.get('AirportCode', '')),
-                                'time': departure.get('Time', ''),
-                                'date': departure.get('Date', '')
-                            },
-                            'arrival': {
-                                'airport': arrival.get('AirportCode', ''),
-                                'city': self._get_city_name(arrival.get('AirportCode', '')),
-                                'time': arrival.get('Time', ''),
-                                'date': arrival.get('Date', '')
-                            },
-                            'marketing_airline': segment.get('MarketingAirline', {}).get('AirlineID', ''),
-                            'flight_number': segment.get('FlightNumber', ''),
-                            'cabin_class': segment.get('CabinType', 'ECONOMY'),
-                            'duration': self._parse_duration(duration)  # Duration in minutes
+                        processed_offer = {
+                            'id': offer_id,
+                            'offer_id': offer_id,
+                            'price': self._extract_price_info_from_priced_offer(offer.get('PricedOffer', {})),
+                            'flights': [],
+                            'offer_items': offer.get('OfferItem', []),  # Store offer items for pricing
+                            'airline': self._extract_airline_info(airline_offer_group),
+                            'booking_class': offer.get('BookingClass', 'ECONOMY'),
+                            'fare_basis': offer.get('FareBasis', ''),
+                            'refundable': offer.get('Refundable', False),
+                            'changeable': offer.get('Changeable', False),
+                            'total_price': offer.get('TotalPrice', {})
                         }
                         
-                        processed_offer['flights'].append(processed_segment)
-                
-                processed['offers'].append(processed_offer)
+                        # Extract flight segments from PricedOffer structure
+                        self._extract_flight_segments_from_priced_offer(offer.get('PricedOffer', {}), processed_offer, response)
+                        
+                        # Calculate total journey time and stops
+                        if processed_offer['flights']:
+                            processed_offer['total_duration'] = sum(f['duration'] for f in processed_offer['flights'])
+                            processed_offer['total_stops'] = sum(f['stops'] for f in processed_offer['flights'])
+                            processed_offer['is_direct'] = processed_offer['total_stops'] == 0
+                        
+                        processed['offers'].append(processed_offer)
+        
+        processed['metadata']['total_offers'] = len(processed['offers'])
+        
+        # Sort offers by price (lowest first)
+        processed['offers'].sort(key=lambda x: x.get('price', {}).get('total', float('inf')))
         
         return processed
 
@@ -201,16 +239,358 @@ class FlightSearchService(FlightService):
         Returns:
             Duration in minutes
         """
-        minutes = 0
-        hour_match = re.search(r'\\d+', duration_str)
-        minute_match = re.search(r'\\d+', duration_str)
+        import re
         
+        if not duration_str or duration_str == 'PT0H0M':
+            return 0
+            
+        minutes = 0
+        
+        # Extract hours
+        hour_match = re.search(r'(\d+)H', duration_str)
         if hour_match:
             minutes += int(hour_match.group(1)) * 60
+            
+        # Extract minutes
+        minute_match = re.search(r'(\d+)M', duration_str)
         if minute_match:
             minutes += int(minute_match.group(1))
             
         return minutes
+    
+    def _format_duration(self, duration_str: str) -> str:
+        """
+        Format duration string for display (e.g., "1h 30m").
+        
+        Args:
+            duration_str: ISO 8601 duration string
+            
+        Returns:
+            Formatted duration string
+        """
+        total_minutes = self._parse_duration(duration_str)
+        hours = total_minutes // 60
+        minutes = total_minutes % 60
+        
+        if hours > 0 and minutes > 0:
+            return f"{hours}h {minutes}m"
+        elif hours > 0:
+            return f"{hours}h"
+        elif minutes > 0:
+            return f"{minutes}m"
+        else:
+            return "0m"
+    
+    def _extract_price_info(self, price_info: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Extract and structure price information.
+        
+        Args:
+            price_info: Raw price information from API
+            
+        Returns:
+            Structured price information
+        """
+        if not price_info:
+            return {'total': 0, 'currency': 'USD', 'breakdown': {}}
+            
+        # Handle different price structures
+        total_price = 0
+        currency = 'USD'
+        breakdown = {}
+        
+        if 'TotalAmount' in price_info:
+            total_price = float(price_info['TotalAmount'].get('Value', 0))
+            currency = price_info['TotalAmount'].get('Code', 'USD')
+        elif 'BaseAmount' in price_info:
+            total_price = float(price_info['BaseAmount'].get('Value', 0))
+            currency = price_info['BaseAmount'].get('Code', 'USD')
+            
+        # Extract fare breakdown if available
+        if 'FareDetail' in price_info:
+            fare_detail = price_info['FareDetail']
+            breakdown = {
+                'base_fare': fare_detail.get('BaseFare', {}).get('Value', 0),
+                'taxes': fare_detail.get('Taxes', {}).get('Value', 0),
+                'fees': fare_detail.get('Fees', {}).get('Value', 0)
+            }
+            
+        return {
+            'total': total_price,
+            'currency': currency,
+            'breakdown': breakdown,
+            'formatted': f"{currency} {total_price:,.2f}"
+        }
+    
+    def _extract_airline_info(self, offer: Dict[str, Any]) -> Dict[str, str]:
+        """
+        Extract airline information from offer.
+        
+        Args:
+            offer: Flight offer data
+            
+        Returns:
+            Airline information
+        """
+        airline_code = ''
+        
+        # Try to get airline from flight segments
+        if 'FlightSegment' in offer:
+            segments = offer['FlightSegment']
+            if not isinstance(segments, list):
+                segments = [segments]
+            if segments:
+                airline_code = segments[0].get('MarketingAirline', {}).get('AirlineID', '')
+        
+        return {
+            'code': airline_code,
+            'name': self._get_airline_name(airline_code)
+        }
+    
+    def _get_airline_name(self, airline_code: str) -> str:
+        """
+        Get airline name from airline code.
+        
+        Args:
+            airline_code: IATA airline code
+            
+        Returns:
+            Airline name or the airline code if not found
+        """
+        airline_map = {
+            'AA': 'American Airlines',
+            'DL': 'Delta Air Lines',
+            'UA': 'United Airlines',
+            'BA': 'British Airways',
+            'LH': 'Lufthansa',
+            'AF': 'Air France',
+            'KL': 'KLM',
+            'EK': 'Emirates',
+            'QR': 'Qatar Airways',
+            'SQ': 'Singapore Airlines',
+            'CX': 'Cathay Pacific',
+            'TK': 'Turkish Airlines',
+            'LX': 'Swiss International Air Lines',
+            'OS': 'Austrian Airlines',
+            'SN': 'Brussels Airlines',
+            'AI': 'Air India',
+            '6E': 'IndiGo',
+            'UK': 'Vistara',
+            'SG': 'SpiceJet',
+            'AC': 'Air Canada',
+            'VS': 'Virgin Atlantic',
+            'JL': 'Japan Airlines',
+            'NH': 'All Nippon Airways',
+            'QF': 'Qantas',
+            'G8': 'Go Air',
+            'KQ': 'Kenya Airways'
+        }
+        
+        return airline_map.get(airline_code, airline_code)
+    
+    def _extract_price_info_from_priced_offer(self, priced_offer: dict) -> dict:
+        """
+        Extract price information from PricedOffer structure.
+        
+        Args:
+            priced_offer: PricedOffer data from the response
+            
+        Returns:
+            Formatted price information
+        """
+        price_info = {
+            'total': 0,
+            'base': 0,
+            'taxes': 0,
+            'currency': 'USD',
+            'discount': 0
+        }
+        
+        if 'OfferPrice' in priced_offer:
+            offer_prices = priced_offer['OfferPrice']
+            if not isinstance(offer_prices, list):
+                offer_prices = [offer_prices]
+            
+            for offer_price in offer_prices:
+                if 'PriceDetail' in offer_price:
+                    price_detail = offer_price['PriceDetail']
+                    
+                    # Extract total amount
+                    if 'TotalAmount' in price_detail:
+                        total_amount = price_detail['TotalAmount']
+                        if 'SimpleCurrencyPrice' in total_amount:
+                            price_info['total'] = total_amount['SimpleCurrencyPrice'].get('value', 0)
+                            price_info['currency'] = total_amount['SimpleCurrencyPrice'].get('Code', 'USD')
+                    
+                    # Extract base amount
+                    if 'BaseAmount' in price_detail:
+                        base_amount = price_detail['BaseAmount']
+                        price_info['base'] = base_amount.get('value', 0)
+                    
+                    # Extract taxes
+                    if 'Taxes' in price_detail and 'Total' in price_detail['Taxes']:
+                        taxes = price_detail['Taxes']['Total']
+                        price_info['taxes'] = taxes.get('value', 0)
+                    
+                    # Extract discount
+                    if 'Discount' in price_detail:
+                        discounts = price_detail['Discount']
+                        if not isinstance(discounts, list):
+                            discounts = [discounts]
+                        
+                        total_discount = 0
+                        for discount in discounts:
+                            if 'DiscountAmount' in discount:
+                                total_discount += discount['DiscountAmount'].get('value', 0)
+                        price_info['discount'] = total_discount
+        
+        return price_info
+    
+    def _extract_flight_segments_from_priced_offer(self, priced_offer: dict, processed_offer: dict, full_response: dict):
+        """
+        Extract flight segments from PricedOffer structure and add them to processed_offer.
+        
+        Args:
+            priced_offer: PricedOffer data from the response
+            processed_offer: The offer being processed
+            full_response: The complete API response containing DataLists
+        """
+        if 'OfferPrice' in priced_offer:
+            offer_prices = priced_offer['OfferPrice']
+            if not isinstance(offer_prices, list):
+                offer_prices = [offer_prices]
+            
+            for offer_price in offer_prices:
+                if 'RequestedDate' in offer_price and 'Associations' in offer_price['RequestedDate']:
+                    associations = offer_price['RequestedDate']['Associations']
+                    if not isinstance(associations, list):
+                        associations = [associations]
+                    
+                    for association in associations:
+                        if 'ApplicableFlight' in association:
+                            applicable_flight = association['ApplicableFlight']
+                            
+                            # Extract flight segment references
+                            if 'FlightSegmentReference' in applicable_flight:
+                                segment_refs = applicable_flight['FlightSegmentReference']
+                                if not isinstance(segment_refs, list):
+                                    segment_refs = [segment_refs]
+                                
+                                for segment_ref in segment_refs:
+                                    segment_id = segment_ref.get('ref', '')
+                                    
+                                    # Look up actual segment details from DataLists
+                                     segment_details = self._get_flight_segment_details(segment_id, full_response)
+                                     
+                                     if segment_details:
+                                         processed_offer['flights'].append(segment_details)
+    
+    def _get_flight_segment_details(self, segment_id: str, full_response: dict) -> dict:
+        """
+        Get flight segment details from the DataLists section of the response.
+        
+        Args:
+            segment_id: The segment reference ID
+            full_response: The complete API response containing DataLists
+            
+        Returns:
+            Processed flight segment details
+        """
+        # Look up segment in DataLists
+        if 'DataLists' in full_response and 'FlightSegmentList' in full_response['DataLists']:
+            flight_segments = full_response['DataLists']['FlightSegmentList'].get('FlightSegment', [])
+            if not isinstance(flight_segments, list):
+                flight_segments = [flight_segments]
+            
+            for segment in flight_segments:
+                if segment.get('SegmentKey') == segment_id:
+                    # Extract departure information
+                    departure = segment.get('Departure', {})
+                    departure_airport = departure.get('AirportCode', {})
+                    departure_airport_code = departure_airport.get('value', '') if isinstance(departure_airport, dict) else departure_airport
+                    
+                    # Extract arrival information
+                    arrival = segment.get('Arrival', {})
+                    arrival_airport = arrival.get('AirportCode', {})
+                    arrival_airport_code = arrival_airport.get('value', '') if isinstance(arrival_airport, dict) else arrival_airport
+                    
+                    # Extract airline information
+                    marketing_carrier = segment.get('MarketingCarrier', {})
+                    airline_id = marketing_carrier.get('AirlineID', {})
+                    airline_code = airline_id.get('value', '') if isinstance(airline_id, dict) else airline_id
+                    airline_name = marketing_carrier.get('Name', '')
+                    
+                    # Extract flight number
+                    flight_number_obj = marketing_carrier.get('FlightNumber', {})
+                    flight_number = flight_number_obj.get('value', '') if isinstance(flight_number_obj, dict) else flight_number_obj
+                    
+                    # Extract duration
+                    flight_detail = segment.get('FlightDetail', {})
+                    duration_obj = flight_detail.get('FlightDuration', {})
+                    duration_str = duration_obj.get('Value', 'PT0H0M') if isinstance(duration_obj, dict) else duration_obj
+                    
+                    return {
+                        'segment_id': segment_id,
+                        'departure': {
+                            'airport': departure_airport_code,
+                            'city': self._get_city_name(departure_airport_code),
+                            'time': departure.get('Time', ''),
+                            'date': departure.get('Date', ''),
+                            'terminal': departure.get('Terminal', {}).get('Name', '') if isinstance(departure.get('Terminal'), dict) else departure.get('Terminal', '')
+                        },
+                        'arrival': {
+                            'airport': arrival_airport_code,
+                            'city': self._get_city_name(arrival_airport_code),
+                            'time': arrival.get('Time', ''),
+                            'date': arrival.get('Date', ''),
+                            'terminal': arrival.get('Terminal', {}).get('Name', '') if isinstance(arrival.get('Terminal'), dict) else arrival.get('Terminal', '')
+                        },
+                        'airline': {
+                            'code': airline_code,
+                            'name': airline_name or self._get_airline_name(airline_code)
+                        },
+                        'flight_number': flight_number,
+                        'aircraft': segment.get('Equipment', {}).get('AircraftCode', ''),
+                        'cabin_class': 'ECONOMY',  # This would need to be extracted from fare details
+                        'booking_class': '',  # This would need to be extracted from fare details
+                        'duration': self._parse_duration(duration_str),
+                        'duration_formatted': self._format_duration(duration_str),
+                        'stops': 0,  # Direct flight, stops would be calculated based on connections
+                        'meal_service': '',
+                        'baggage_allowance': {}
+                    }
+        
+        # Return basic structure if segment not found
+        return {
+            'segment_id': segment_id,
+            'departure': {
+                'airport': '',
+                'city': '',
+                'time': '',
+                'date': '',
+                'terminal': ''
+            },
+            'arrival': {
+                'airport': '',
+                'city': '',
+                'time': '',
+                'date': '',
+                'terminal': ''
+            },
+            'airline': {
+                'code': '',
+                'name': ''
+            },
+            'flight_number': '',
+            'aircraft': '',
+            'cabin_class': 'ECONOMY',
+            'booking_class': '',
+            'duration': 0,
+            'duration_formatted': '0h 0m',
+            'stops': 0,
+            'meal_service': '',
+            'baggage_allowance': {}
+        }
 
     def _get_city_name(self, airport_code: str) -> str:
         """
@@ -287,18 +667,37 @@ async def search_flights(
         raise FlightServiceError("Effective configuration is empty for FlightSearchService in search_flights.")
 
     logger.info(f"Config for FlightSearchService in search_flights: USERNAME={effective_config.get('VERTEIL_USERNAME')}, PASSWORD_PRESENT={'yes' if effective_config.get('VERTEIL_PASSWORD') else 'no'}")
-    async with FlightSearchService(effective_config) as service:
+    # Use a single service instance to avoid creating multiple TokenManager instances
+    service = FlightSearchService(effective_config)
+    try:
         return await service.search_flights(criteria)
+    finally:
+        await service.close()
 
 
 async def process_air_shopping(search_criteria: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Process air shopping request.
+    Process air shopping request with enhanced response structure and storage.
     
-    This is a backward-compatible wrapper around the FlightSearchService.
+    This function provides enhanced flight search capabilities with:
+    - Structured response data for frontend display
+    - Response caching for subsequent pricing requests
+    - Enhanced error handling and validation
+    - Data transformation from Verteil API to frontend-compatible format
+    
+    Args:
+        search_criteria: Search criteria dictionary
+        
+    Returns:
+        Enhanced flight search response with structured offers
     """
+    import time
+    from utils.cache_manager import cache_manager
+    from utils.data_transformer import transform_verteil_to_frontend
+    
     effective_config: Optional[Dict[str, Any]] = None
-    logger.warning("Attempting to use current_app.config in process_air_shopping.")
+    logger.info("Processing air shopping request with enhanced features")
+    
     try:
         from quart import current_app
         effective_config = current_app.config
@@ -306,13 +705,64 @@ async def process_air_shopping(search_criteria: Dict[str, Any]) -> Dict[str, Any
         logger.error("Cannot access current_app.config in process_air_shopping.")
         raise FlightServiceError("Configuration not available for FlightSearchService in process_air_shopping.")
 
-    if not effective_config: # Handle case where config might be an empty dict
+    if not effective_config:
         logger.error("Effective config is empty in process_air_shopping.")
         raise FlightServiceError("Effective configuration is empty for FlightSearchService in process_air_shopping.")
 
-    logger.info(f"Config for FlightSearchService in process_air_shopping: USERNAME={effective_config.get('VERTEIL_USERNAME')}, PASSWORD_PRESENT={'yes' if effective_config.get('VERTEIL_PASSWORD') else 'no'}")
-    async with FlightSearchService(effective_config) as service:
-        return await service.search_flights(search_criteria)
+    logger.info(f"Config for FlightSearchService: USERNAME={effective_config.get('VERTEIL_USERNAME')}, PASSWORD_PRESENT={'yes' if effective_config.get('VERTEIL_PASSWORD') else 'no'}")
+    
+    # Generate cache key for this search
+    request_id = search_criteria.get('request_id', str(uuid.uuid4()))
+    cache_key = f"air_shopping_response:{request_id}"
+    
+    service = FlightSearchService(effective_config)
+    try:
+        # Perform the search
+        result = await service.search_flights(search_criteria)
+        
+        # If successful, transform data and store the response for subsequent pricing requests
+        if result.get('status') == 'success' and result.get('data'):
+            # Transform Verteil API response to frontend-compatible format
+            raw_response = result['data'].get('response', {})
+            if raw_response:
+                logger.info("Transforming Verteil API response to frontend format")
+                transformed_offers = transform_verteil_to_frontend(raw_response)
+                
+                # Add transformed offers to the result
+                result['data']['offers'] = transformed_offers
+                result['data']['total_offers'] = len(transformed_offers)
+                
+                logger.info(f"Successfully transformed {len(transformed_offers)} flight offers")
+            else:
+                logger.warning("No response data found for transformation")
+                result['data']['offers'] = []
+                result['data']['total_offers'] = 0
+            
+            # Store the complete response for 30 minutes
+            cache_manager.set(cache_key, result['data'], ttl=1800)
+            
+            # Also store with shopping_response_id for easy retrieval
+            shopping_response_id = result['data'].get('shopping_response_id')
+            if shopping_response_id:
+                shopping_cache_key = f"air_shopping_by_id:{shopping_response_id}"
+                cache_manager.set(shopping_cache_key, result['data'], ttl=1800)
+                
+            logger.info(f"Stored air shopping response in cache with keys: {cache_key}, {shopping_cache_key if shopping_response_id else 'N/A'}")
+            
+            # Add cache information to response metadata
+            if 'metadata' not in result['data']:
+                result['data']['metadata'] = {}
+            result['data']['metadata']['cached'] = True
+            result['data']['metadata']['cache_key'] = cache_key
+            result['data']['metadata']['expires_at'] = time.time() + 1800
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in enhanced process_air_shopping: {str(e)}", exc_info=True)
+        raise
+    finally:
+        await service.close()
 
 
 def search_flights_sync(
@@ -379,7 +829,7 @@ def search_flights_sync(
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
     
-    return loop.run_until_complete(search_flights(
+    result = loop.run_until_complete(search_flights(
         adults=adults,
         children=children,
         infants=infants,
@@ -388,3 +838,9 @@ def search_flights_sync(
         od_segments=od_segments,
         config=effective_config
     ))
+    
+    # Check if the result contains an error and raise an exception
+    if isinstance(result, dict) and result.get('status') == 'error':
+        raise FlightServiceError(result.get('error', 'Unknown error occurred'))
+    
+    return result

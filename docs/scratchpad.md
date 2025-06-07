@@ -32,6 +32,37 @@
 - **TokenManager Features**: Thread-safe caching, automatic renewal, expiry buffer handling
 - **Integration Point**: FlightService should use TokenManager instead of implementing its own token logic
 
+### [2025-01-07] Service Configuration Error Resolved
+- **Issue**: Backend logs showed "Service configuration error" from Verteil API with transaction IDs
+- **Root Cause**: Multiple FlightService instances were creating duplicate authentication requests
+- **Evidence**: Logs showed multiple "FlightService initialized" messages per request
+- **Impact**: API requests were failing due to authentication/configuration conflicts
+- **Solution Implemented**: ✅ Modified all wrapper functions to use single service instances instead of `async with Service(...)` pattern
+- **Files Updated**: search.py, booking.py, and pricing.py - eliminated duplicate FlightService instantiation
+
+### [2025-01-07] Critical Frontend-Backend Data Structure Mismatch Identified
+- **Issue**: Frontend expects clean, structured `FlightOffer` objects but backend returns raw Verteil API responses
+- **Root Cause**: No data transformation layer exists between Verteil API responses and frontend expectations
+- **Evidence**: 
+  - Frontend `types/flight-api.ts` defines structured interfaces (FlightOffer, AirlineDetails, etc.)
+  - Backend returns complex nested JSON with airline-specific namespacing (e.g., "KQ-SEG3")
+  - Price data buried in `PriceDetail.TotalAmount.SimpleCurrencyPrice` vs frontend expecting simple `price` field
+- **Impact**: Frontend cannot properly display flight information without significant data transformation
+- **Required Solution**: Create `transform_verteil_to_frontend()` function to map API responses to frontend-compatible format
+- **Priority**: URGENT - Blocks all frontend-backend integration work
+- **Files Affected**: All backend API endpoints, frontend flight display components
+
+## Recent Issues (Resolved)
+
+### Service Configuration Error (RESOLVED)
+- **Status**: ✅ FIXED - No longer occurring
+- **Resolution**: Modified all wrapper functions in search.py, booking.py, and pricing.py to use single service instances instead of `async with Service(...)` pattern
+- **Changes Made**:
+  - Updated `search_flights_sync()` and `process_air_shopping()` in search.py
+  - Updated `create_booking()`, `process_order_create()`, and `get_booking_details()` in booking.py
+  - Updated `get_flight_price()` and `process_flight_price()` in pricing.py
+- **Result**: Eliminated multiple FlightService instances and duplicate authentication requests
+
 ## Project Structure Notes
 
 - **Authentication**: Centralized in `Backend/utils/auth.py` with TokenManager singleton

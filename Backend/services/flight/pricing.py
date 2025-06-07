@@ -6,6 +6,12 @@ This module handles flight pricing operations using the Verteil NDC API.
 import logging
 from typing import Dict, Any, Optional, List
 import uuid
+import sys
+import os
+
+# Add the scripts directory to the path to import the request builder
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'scripts'))
+from build_flightprice_rq import build_flight_price_request
 
 from .core import FlightService
 from .decorators import async_cache, async_rate_limited
@@ -100,7 +106,7 @@ class FlightPricingService(FlightService):
         request_id: str
     ) -> Dict[str, Any]:
         """
-        Build the FlightPrice request payload.
+        Build the FlightPrice request payload using the request builder.
         
         Args:
             airshopping_response: The AirShopping response
@@ -112,22 +118,31 @@ class FlightPricingService(FlightService):
         Returns:
             Dictionary containing the request payload
         """
-        payload = {
-            'ShoppingResponseID': shopping_response_id,
-            'SelectedOffers': [
-                {
-                    'OfferID': offer_id,
-                    'OfferItemIDs': [item['OfferItemID'] for item in airshopping_response.get('OfferItems', []) 
-                                   if item.get('OfferID') == offer_id]
-                }
-            ],
-            'PricingPreferences': {
-                'CurrencyCode': currency
-            },
-            'RequestID': request_id
-        }
-        
-        return payload
+        try:
+            # Find the selected offer index based on offer_id
+            selected_offer_index = 0
+            offers_group = airshopping_response.get('OffersGroup', {})
+            airline_offers_list = offers_group.get('AirlineOffers', [])
+            
+            if airline_offers_list and isinstance(airline_offers_list, list):
+                airline_offers = airline_offers_list[0].get('AirlineOffer', [])
+                for i, offer in enumerate(airline_offers):
+                    if offer.get('OfferID') == offer_id:
+                        selected_offer_index = i
+                        break
+            
+            # Use the request builder to create the payload
+            payload = build_flight_price_request(
+                airshopping_response=airshopping_response,
+                selected_offer_index=selected_offer_index
+            )
+            
+            logger.info(f"Built FlightPrice payload for offer {offer_id} at index {selected_offer_index}")
+            return payload
+            
+        except Exception as e:
+            logger.error(f"Error building FlightPrice payload: {str(e)}")
+            raise ValidationError(f"Failed to build pricing payload: {str(e)}") from e
     
     def _process_pricing_response(self, response: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -170,7 +185,9 @@ async def get_flight_price(
     
     This is a backward-compatible wrapper around the FlightPricingService.
     """
-    async with FlightPricingService(config=config or {}) as service:
+    # Use a single service instance to avoid creating multiple TokenManager instances
+    service = FlightPricingService(config=config or {})
+    try:
         return await service.get_flight_price(
             airshopping_response=airshopping_response,
             offer_id=offer_id,
@@ -178,6 +195,8 @@ async def get_flight_price(
             currency=currency,
             request_id=request_id
         )
+    finally:
+        await service.close()
 
 
 async def process_flight_price(price_request: Dict[str, Any]) -> Dict[str, Any]:
@@ -188,7 +207,9 @@ async def process_flight_price(price_request: Dict[str, Any]) -> Dict[str, Any]:
     """
     config = price_request.pop('config', {})
     
-    async with FlightPricingService(config=config) as service:
+    # Use a single service instance to avoid creating multiple TokenManager instances
+    service = FlightPricingService(config=config)
+    try:
         return await service.get_flight_price(
             airshopping_response=price_request.get('air_shopping_response', {}),
             offer_id=price_request.get('offer_id', ''),
@@ -196,3 +217,5 @@ async def process_flight_price(price_request: Dict[str, Any]) -> Dict[str, Any]:
             currency=price_request.get('currency', 'USD'),
             request_id=price_request.get('request_id')
         )
+    finally:
+        await service.close()

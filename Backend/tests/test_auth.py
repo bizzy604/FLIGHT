@@ -91,8 +91,8 @@ class TestAuth(unittest.TestCase):
 
         # Get two instances of TokenManager
         with self.app.app_context():
-            manager1 = TokenManager()
-            manager2 = TokenManager()
+            manager1 = TokenManager.get_instance()
+            manager2 = TokenManager.get_instance()
             
             # Both should be the same instance
             self.assertIs(manager1, manager2)
@@ -117,7 +117,7 @@ class TestAuth(unittest.TestCase):
         mock_post.return_value = mock_response
 
         with self.app.app_context():
-            manager = TokenManager()
+            manager = TokenManager.get_instance()
             
             # First call - should get a new token
             token1 = manager.get_token()

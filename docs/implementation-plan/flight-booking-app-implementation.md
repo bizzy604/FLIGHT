@@ -71,13 +71,29 @@ Based on the comprehensive analysis of the existing codebase and the user's clar
 
 ### Phase 2: Backend API Endpoints Enhancement
 
+#### Task 2.0: Create Data Transformation Layer (URGENT)
+- **Success Criteria**:
+  - Create `transform_verteil_to_frontend()` function in `Backend/utils/data_transformer.py`
+  - Function converts raw Verteil API responses to frontend-compatible `FlightOffer` objects
+  - Properly maps all required fields: id, airline, departure/arrival, duration, stops, price, etc.
+  - Handles missing/optional fields gracefully with sensible defaults
+  - Unit tests validate transformation accuracy
+  - Integration tests confirm frontend can display transformed data
+- **Files to Create**: 
+  - `Backend/utils/data_transformer.py`
+  - `Backend/tests/test_data_transformer.py`
+- **Files to Modify**: 
+  - `Backend/services/flight/search.py` (integrate transformation)
+  - `Backend/routes/verteil_flights.py` (use transformed data)
+
 #### Task 2.1: Enhance Flight Search Endpoint
 - **Success Criteria**:
-  - `/air-shopping` endpoint returns structured flight offers
+  - `/air-shopping` endpoint returns structured flight offers using data transformation
   - Response includes all necessary data for frontend display
   - Error handling for invalid search parameters
   - Response stored for subsequent pricing requests
 - **Files to Modify**: `Backend/routes/verteil_flights.py`
+- **Dependencies**: Task 2.0 must be completed first
 
 #### Task 2.2: Enhance Flight Pricing Endpoint
 - **Success Criteria**:
@@ -209,10 +225,8 @@ Based on the comprehensive analysis of the existing codebase and the user's clar
 ## Project Status Board
 
 ### To Do
-- [ ] Integrate AirShopping request builder
-- [ ] Integrate FlightPrice request builder
-- [ ] Integrate OrderCreate request builder
-- [ ] Enhance flight search endpoint
+- [ ] **URGENT: Create data transformation layer (Task 2.0)**
+- [ ] Enhance flight search endpoint (Task 2.1) - BLOCKED by Task 2.0
 - [ ] Enhance flight pricing endpoint
 - [ ] Create flight booking endpoint
 - [ ] Implement flight search interface
@@ -226,19 +240,23 @@ Based on the comprehensive analysis of the existing codebase and the user's clar
 - [ ] Prepare for deployment
 
 ### In Progress
-- [ ] Integrate AirShopping request builder (Task 1.2)
+- [ ] **CRITICAL ANALYSIS COMPLETE**: Frontend-Backend data structure mismatch identified
 
 ### Done
 - [x] Analyze existing codebase
 - [x] Understand data flow requirements
 - [x] Create implementation plan
 - [x] Create feature branch
+- [x] **Fix token management anti-pattern** - Eliminated multiple FlightService instances creating duplicate authentication requests
+- [x] **Integrate AirShopping request builder** - FlightSearchService now properly uses build_airshopping_request for payload construction
+- [x] **Integrate FlightPrice request builder** - FlightPricingService now properly uses build_flight_price_request for payload construction
+- [x] **Integrate OrderCreate request builder** - FlightBookingService now properly uses generate_order_create_rq for payload construction
 
 ## Current Status / Progress Tracking
 
-**Current Phase**: Phase 1 - Backend Service Integration
-**Last Updated**: 2024-12-19
-**Next Milestone**: Complete Task 1.2 - Integrate AirShopping Request Builder
+**Current Phase**: Phase 2 - Backend API Endpoints Enhancement
+**Last Updated**: 2025-01-07
+**Next Milestone**: Complete Task 2.0 - Create Data Transformation Layer (URGENT)
 
 ### Recent Progress
 - ✅ Completed comprehensive codebase analysis
@@ -246,20 +264,61 @@ Based on the comprehensive analysis of the existing codebase and the user's clar
 - ✅ Identified integration points for request builders
 - ✅ Created detailed implementation plan
 - ✅ Created feature branch `feature/flight-booking-app`
-- 🔄 Starting Task 1.2: AirShopping request builder integration
+- ✅ **RESOLVED**: Fixed token management anti-pattern - Eliminated multiple FlightService instances creating duplicate authentication requests
+- ✅ **COMPLETED**: Integrated AirShopping request builder - FlightSearchService now uses build_airshopping_request
+- ✅ **COMPLETED**: Integrated FlightPrice request builder - FlightPricingService now uses build_flight_price_request
+- ✅ **COMPLETED**: Integrated OrderCreate request builder - FlightBookingService now uses generate_order_create_rq
+- ✅ **CRITICAL DISCOVERY**: Identified frontend-backend data structure mismatch requiring transformation layer
+- 🔄 **URGENT**: Need to create data transformation layer before proceeding with API enhancements
 
 ### Blockers
-- None currently identified
+- **CRITICAL**: Frontend expects structured `FlightOffer` objects, but backend returns raw Verteil API responses
+- **RESOLUTION**: Must implement Task 2.0 (Data Transformation Layer) before proceeding with other backend enhancements
 
 ## Executor's Feedback or Assistance Requests
 
+### Critical Finding: Frontend-Backend Data Structure Mismatch
+**Date**: 2025-01-07
+**Priority**: HIGH
+
+After examining the frontend code structure and backend API responses, I've identified a critical mismatch:
+
+#### Frontend Expectations (from `types/flight-api.ts` and `enhanced-flight-card.tsx`):
+The frontend expects a clean, structured `FlightOffer` interface with:
+- `id`: string
+- `airline`: AirlineDetails (code, name, logo, flightNumber)
+- `departure`/`arrival`: { airport, datetime, terminal, airportName }
+- `duration`: string
+- `stops`: number
+- `stopDetails`: string[]
+- `price`: number
+- `currency`: string
+- `seatsAvailable`: number | string
+- `baggage`: BaggageAllowance (detailed structure)
+- `fare`: FareDetails (rules, family, description)
+- `aircraft`: AircraftDetails
+- `segments`: FlightSegmentDetails[]
+- `priceBreakdown`: PriceBreakdown (baseFare, taxes, fees, etc.)
+- `additionalServices`: AdditionalServices (meals, wifi, etc.)
+
+#### Current Backend Response:
+The backend currently returns raw Verteil API responses which have a completely different structure:
+- Complex nested JSON with airline-specific namespacing (e.g., "KQ-SEG3", "KQ-FLT1")
+- Price information buried in `PriceDetail.TotalAmount.SimpleCurrencyPrice`
+- Flight segments in `FlightSegmentReference` arrays
+- No direct mapping to frontend-expected fields
+
+#### Required Action:
+**URGENT**: We need to create a data transformation layer that converts Verteil API responses to frontend-compatible `FlightOffer` objects.
+
 ### Questions for Planner
-1. Should we prioritize any specific phase or can we proceed sequentially?
+1. Should we prioritize creating the data transformation layer before proceeding with other tasks?
 2. Are there any specific UI/UX requirements for the frontend components?
 3. Should we implement real payment processing or mock payment for initial version?
 4. Any specific testing frameworks or tools preferred?
 
 ### Technical Considerations
+- **CRITICAL**: Need to create `transform_verteil_to_frontend()` function to map API responses
 - Need to ensure backward compatibility with existing API endpoints
 - Consider implementing progressive enhancement for better user experience
 - Plan for error recovery and retry mechanisms

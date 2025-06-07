@@ -19,7 +19,7 @@ def get_token_manager():
     }
     
     # Create and configure the token manager
-    token_manager = TokenManager()
+    token_manager = TokenManager.get_instance()
     token_manager.set_config(config)
     return token_manager
 

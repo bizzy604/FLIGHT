@@ -51,7 +51,8 @@ class FlightService:
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = {**self.DEFAULT_CONFIG, **(config or {})}
         self._session: Optional[aiohttp.ClientSession] = None
-        self._token_manager = TokenManager()
+        # Use the singleton TokenManager instance instead of creating a new one
+        self._token_manager = TokenManager.get_instance()
         self._token_manager.set_config(self.config)
 
         # Validate essential configuration for OAuth
@@ -100,10 +101,12 @@ class FlightService:
         access_token = await self._get_access_token()
         return {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': f'Bearer {access_token}',
-            'X-Service-Name': service_name,  # Optional: Keep if Verteil uses/recommends it
-            'X-Request-ID': str(uuid.uuid4()) # Unique ID for this specific API call
+            'Accept': '*/*',
+            'Authorization': f'Bearer {access_token}', # Optional: Keep if Verteil uses/recommends it
+            'OfficeId': self.config.get('VERTEIL_OFFICE_ID', ''),
+            'ThirdpartyId': self.config.get('VERTEIL_THIRD_PARTY_ID', ''),
+            'service': service_name,
+            'User-Agent': 'FlightBookingPortal/1.0'
         }
 
     @async_rate_limited(limit=100, window=60) # Decorators from original code
@@ -128,7 +131,12 @@ class FlightService:
             log_request_id = payload['request_id']
 
 
-        logger.info(f"Making {method} request to {url} for service {service_name} (ReqID: {log_request_id}).")
+        logger.info(f"Making {method} request to {url} for service {service_name} (ReqID: {log_request_id}).")       
+        # Log final headers and payload for debugging
+        logger.info(f"Final headers for {service_name} (ReqID: {log_request_id}): {json.dumps(headers, indent=2)}")
+        logger.info(f"Final payload for {service_name} (ReqID: {log_request_id}): {json.dumps(payload, indent=2)}")
+        logger.info(f"Request URL: {url}")
+        logger.info(f"Request method: {method}")
         # logger.debug(f"Payload for ReqID {log_request_id}: {json.dumps(payload)}") # Avoid logging sensitive data in prod
 
         max_retries = int(self.config.get('VERTEIL_MAX_RETRIES', 3))

@@ -5,6 +5,7 @@ import os
 import sys
 import json
 import logging
+import unittest
 from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
 from flask import Flask, jsonify
@@ -13,7 +14,8 @@ from flask import Flask, jsonify
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import after setting up the path
-from services.flight_service import search_flights, FlightServiceError
+from services.flight_service import search_flights
+from services.flight.exceptions import FlightServiceError
 from utils.auth import TokenManager
 
 # Configure logging
@@ -42,10 +44,10 @@ def create_test_app():
     
     return app
 
-class TestFlightSearch:
+class TestFlightSearch(unittest.TestCase):
     """Test cases for flight search functionality."""
     
-    def setup_method(self):
+    def setUp(self):
         """Set up test fixtures."""
         self.app = create_test_app()
         self.ctx = self.app.app_context()
@@ -80,55 +82,16 @@ class TestFlightSearch:
                                     {
                                         'departure': {
                                             'iataCode': 'JFK',
-                                            'at': f"{self.search_params['departure_date']}T10:00:00"
+                                            'at': '2024-02-15T10:00:00'
                                         },
                                         'arrival': {
                                             'iataCode': 'LAX',
-                                            'at': f"{self.search_params['departure_date']}T13:00:00"
+                                            'at': '2024-02-15T13:30:00'
                                         },
                                         'carrierCode': 'AA',
-                                        'number': '123',
-                                        'aircraft': {
-                                            'code': '777'
-                                        },
-                                        'operating': {
-                                            'carrierCode': 'AA'
-                                        },
-                                        'duration': '5h 0m'
+                                        'number': '123'
                                     }
                                 ]
-                            },
-                            {
-                                'segments': [
-                                    {
-                                        'departure': {
-                                            'iataCode': 'LAX',
-                                            'at': f"{self.search_params['return_date']}T14:00:00"
-                                        },
-                                        'arrival': {
-                                            'iataCode': 'JFK',
-                                            'at': f"{self.search_params['return_date']}T22:00:00"
-                                        },
-                                        'carrierCode': 'AA',
-                                        'number': '124',
-                                        'aircraft': {
-                                            'code': '777'
-                                        },
-                                        'operating': {
-                                            'carrierCode': 'AA'
-                                        },
-                                        'duration': '5h 0m'
-                                    }
-                                ]
-                            }
-                        ],
-                        'travelerPricings': [
-                            {
-                                'travelerType': 'ADULT',
-                                'price': {
-                                    'total': '350.00',
-                                    'currency': 'USD'
-                                }
                             }
                         ]
                     }
@@ -136,9 +99,10 @@ class TestFlightSearch:
             }
         }
     
-    def teardown_method(self):
-        """Clean up after tests."""
-        self.ctx.pop()
+    def tearDown(self):
+        """Clean up test fixtures."""
+        if hasattr(self, 'ctx') and self.ctx:
+            self.ctx.pop()
     
     @patch('services.flight.core.FlightService._make_request')
     def test_search_flights_success(self, mock_make_request):
@@ -157,7 +121,8 @@ class TestFlightSearch:
                 children=self.search_params['children'],
                 infants=self.search_params['infants'],
                 cabin_class=self.search_params['cabin_class'],
-                trip_type=self.search_params['trip_type']
+                trip_type=self.search_params['trip_type'],
+                config=self.app.config
             )
         
         # Debug: Print the actual result
@@ -165,7 +130,10 @@ class TestFlightSearch:
         
         # Check that we got the correct response structure
         assert 'status' in result, f"Expected 'status' in result, got: {result.keys()}"
-        assert result['status'] == 'success', f"Expected status 'success', got: {result['status']}"
+        if result['status'] != 'success':
+            print(f"\nError details: {result.get('error', 'No error details')}")
+            print(f"\nFull result: {result}")
+        assert result['status'] == 'success', f"Expected status 'success', got: {result['status']}. Error: {result.get('error', 'No error details')}"
         assert 'data' in result, f"Expected 'data' in result, got: {result.keys()}"
         assert isinstance(result['data'], dict), "Data should be a dictionary"
         assert 'offers' in result['data'], f"Expected 'offers' in data, got: {result['data'].keys()}"
@@ -176,37 +144,34 @@ class TestFlightSearch:
         """Test flight search with missing required parameters."""
         with self.app.app_context():
             # Test with missing origin
-            try:
+            with self.assertRaises(FlightServiceError) as context:
                 search_flights(
                     origin='',
                     destination=self.search_params['destination'],
-                    departure_date=self.search_params['departure_date']
+                    departure_date=self.search_params['departure_date'],
+                    config=self.app.config
                 )
-                assert False, "Expected FlightServiceError for missing origin"
-            except FlightServiceError as e:
-                assert "Origin is required" in str(e)
+            self.assertIn("Origin is required", str(context.exception))
             
             # Test with missing destination
-            try:
+            with self.assertRaises(FlightServiceError) as context:
                 search_flights(
                     origin=self.search_params['origin'],
                     destination='',
-                    departure_date=self.search_params['departure_date']
+                    departure_date=self.search_params['departure_date'],
+                    config=self.app.config
                 )
-                assert False, "Expected FlightServiceError for missing destination"
-            except FlightServiceError as e:
-                assert "Destination is required" in str(e)
+            self.assertIn("Destination is required", str(context.exception))
             
             # Test with missing departure date
-            try:
+            with self.assertRaises(FlightServiceError) as context:
                 search_flights(
                     origin=self.search_params['origin'],
                     destination=self.search_params['destination'],
-                    departure_date=''
+                    departure_date='',
+                    config=self.app.config
                 )
-                assert False, "Expected FlightServiceError for missing departure date"
-            except FlightServiceError as e:
-                assert "Departure date is required" in str(e)
+            self.assertIn("Departure date is required", str(context.exception))
     
     @patch('services.flight.core.FlightService._make_request')
     def test_search_flights_api_error(self, mock_make_request):
@@ -216,15 +181,14 @@ class TestFlightSearch:
         
         # Call the function and expect an exception
         with self.app.app_context():
-            try:
+            with self.assertRaises(FlightServiceError) as context:
                 search_flights(
                     origin=self.search_params['origin'],
                     destination=self.search_params['destination'],
-                    departure_date=self.search_params['departure_date']
+                    departure_date=self.search_params['departure_date'],
+                    config=self.app.config
                 )
-                assert False, "Expected FlightServiceError for API error"
-            except FlightServiceError as e:
-                assert "API request failed" in str(e)
+            self.assertIn("API request failed", str(context.exception))
 
 def test_flight_search_integration():
     """Integration test for flight search with real API call."""
