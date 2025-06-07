@@ -247,8 +247,20 @@ export default function FlightsPage() {
         const response = await api.searchFlights(flightSearchParams);
         
         // Transform API response to match the expected flight format
-        const apiResponse = response.data as { offers?: any[] } | any[];
-        const apiFlights = Array.isArray(apiResponse) ? apiResponse : apiResponse.offers || [];
+        // Backend returns {status: 'success', data: {offers: [...]}}
+        const apiResponse = response.data;
+        let apiFlights: any[] = [];
+        
+        if (apiResponse.status === 'success' && apiResponse.data) {
+          apiFlights = apiResponse.data.offers || [];
+        } else if (Array.isArray(apiResponse)) {
+          apiFlights = apiResponse;
+        } else if (apiResponse.data && apiResponse.data.offers) {
+          apiFlights = apiResponse.data.offers;
+        }
+        
+        console.log('API Response:', apiResponse);
+        console.log('Extracted flights:', apiFlights.length, 'offers');
         const mappedFlights = apiFlights.map((offer: any) => ({
           id: offer.id,
           airline: {

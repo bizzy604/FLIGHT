@@ -274,6 +274,11 @@ Based on the comprehensive analysis of the existing codebase and the user's clar
   - Integrated transformation into `process_air_shopping` function
   - Fixed indentation error in flight search service
   - Raw Verteil API responses now transformed to frontend-compatible format
+  - ✅ **Enhanced Penalties Section**: Created `_transform_penalties_to_fare_rules()` function
+    - Maps penalty types and applications to structured FareRules format
+    - Calculates refund percentages for cancellation policies
+    - Maintains backward compatibility with original penalties list
+    - Flight offers now include both `penalties` and `fareRules` structures
 
 ### Blockers
 - None currently - ready to proceed with Task 2.1

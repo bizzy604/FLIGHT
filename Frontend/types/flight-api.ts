@@ -402,3 +402,14 @@ export interface FlightOffer {
   priceBreakdown?: PriceBreakdown; // Added price breakdown information
   additionalServices?: AdditionalServices; // Added additional services information
 }
+
+// API Response interfaces
+export interface FlightSearchResponse {
+  status: string;
+  data: {
+    offers: FlightOffer[];
+    total_offers: number;
+    metadata?: any;
+  };
+  request_id: string;
+}

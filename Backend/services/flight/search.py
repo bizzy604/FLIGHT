@@ -3,6 +3,7 @@ Flight Search Module
 
 This module handles flight search operations using the Verteil NDC API.
 """
+import asyncio
 import logging
 import time
 from typing import Dict, Any, List, Optional
@@ -480,9 +481,9 @@ class FlightSearchService(FlightService):
                                     segment_id = segment_ref.get('ref', '')
                                     
                                     # Look up actual segment details from DataLists
-                                     segment_details = self._get_flight_segment_details(segment_id, full_response)
+                                    segment_details = self._get_flight_segment_details(segment_id, full_response)
                                      
-                                     if segment_details:
+                                    if segment_details:
                                          processed_offer['flights'].append(segment_details)
     
     def _get_flight_segment_details(self, segment_id: str, full_response: dict) -> dict:
@@ -723,20 +724,25 @@ async def process_air_shopping(search_criteria: Dict[str, Any]) -> Dict[str, Any
         # If successful, transform data and store the response for subsequent pricing requests
         if result.get('status') == 'success' and result.get('data'):
             # Transform Verteil API response to frontend-compatible format
-            raw_response = result['data'].get('response', {})
+            raw_response = result['data'].get('raw_response', {})
             if raw_response:
                 logger.info("Transforming Verteil API response to frontend format")
                 transformed_offers = transform_verteil_to_frontend(raw_response)
                 
-                # Add transformed offers to the result
-                result['data']['offers'] = transformed_offers
-                result['data']['total_offers'] = len(transformed_offers)
+                # Apply filtering and sorting if specified
+                filtered_offers = _apply_filters_and_sorting(transformed_offers, search_criteria)
                 
-                logger.info(f"Successfully transformed {len(transformed_offers)} flight offers")
+                # Add filtered and sorted offers to the result
+                result['data']['offers'] = filtered_offers
+                result['data']['total_offers'] = len(filtered_offers)
+                result['data']['total_unfiltered_offers'] = len(transformed_offers)
+                
+                logger.info(f"Successfully transformed {len(transformed_offers)} flight offers, {len(filtered_offers)} after filtering")
             else:
                 logger.warning("No response data found for transformation")
                 result['data']['offers'] = []
                 result['data']['total_offers'] = 0
+                result['data']['total_unfiltered_offers'] = 0
             
             # Store the complete response for 30 minutes
             cache_manager.set(cache_key, result['data'], ttl=1800)
@@ -763,6 +769,186 @@ async def process_air_shopping(search_criteria: Dict[str, Any]) -> Dict[str, Any
         raise
     finally:
         await service.close()
+
+
+def _apply_filters_and_sorting(offers: List[Dict[str, Any]], search_criteria: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """
+    Apply filtering and sorting to flight offers based on search criteria.
+    
+    Args:
+        offers: List of transformed flight offers
+        search_criteria: Search criteria containing filters and sorting options
+        
+    Returns:
+        Filtered and sorted list of flight offers
+    """
+    filtered_offers = offers.copy()
+    filters = search_criteria.get('filters', {})
+    
+    # Apply price range filter
+    if 'priceRange' in filters:
+        price_range = filters['priceRange']
+        min_price = price_range.get('min')
+        max_price = price_range.get('max')
+        
+        if min_price is not None or max_price is not None:
+            filtered_offers = [
+                offer for offer in filtered_offers
+                if _price_in_range(offer.get('totalPrice', {}).get('amount', 0), min_price, max_price)
+            ]
+            logger.info(f"Applied price filter: {len(offers)} -> {len(filtered_offers)} offers")
+    
+    # Apply airlines filter
+    if 'airlines' in filters and filters['airlines']:
+        airline_codes = [code.upper() for code in filters['airlines']]
+        filtered_offers = [
+            offer for offer in filtered_offers
+            if any(segment.get('airline', {}).get('code', '').upper() in airline_codes 
+                  for itinerary in offer.get('itineraries', [])
+                  for segment in itinerary.get('segments', []))
+        ]
+        logger.info(f"Applied airlines filter {airline_codes}: {len(offers)} -> {len(filtered_offers)} offers")
+    
+    # Apply max stops filter
+    if 'maxStops' in filters:
+        max_stops = filters['maxStops']
+        filtered_offers = [
+            offer for offer in filtered_offers
+            if all(len(itinerary.get('segments', [])) - 1 <= max_stops 
+                  for itinerary in offer.get('itineraries', []))
+        ]
+        logger.info(f"Applied max stops filter ({max_stops}): {len(offers)} -> {len(filtered_offers)} offers")
+    
+    # Apply departure time range filter
+    if 'departureTimeRange' in filters:
+        time_range = filters['departureTimeRange']
+        min_time = time_range.get('min')
+        max_time = time_range.get('max')
+        
+        if min_time or max_time:
+            filtered_offers = [
+                offer for offer in filtered_offers
+                if _departure_time_in_range(offer, min_time, max_time)
+            ]
+            logger.info(f"Applied departure time filter: {len(offers)} -> {len(filtered_offers)} offers")
+    
+    # Apply sorting
+    sort_by = search_criteria.get('sortBy', 'price')
+    sort_order = search_criteria.get('sortOrder', 'asc')
+    
+    if sort_by and filtered_offers:
+        reverse_order = sort_order == 'desc'
+        
+        if sort_by == 'price':
+            filtered_offers.sort(key=lambda x: x.get('totalPrice', {}).get('amount', 0), reverse=reverse_order)
+        elif sort_by == 'duration':
+            filtered_offers.sort(key=lambda x: _get_total_duration(x), reverse=reverse_order)
+        elif sort_by == 'departure':
+            filtered_offers.sort(key=lambda x: _get_earliest_departure(x), reverse=reverse_order)
+        elif sort_by == 'arrival':
+            filtered_offers.sort(key=lambda x: _get_latest_arrival(x), reverse=reverse_order)
+        elif sort_by == 'stops':
+            filtered_offers.sort(key=lambda x: _get_max_stops(x), reverse=reverse_order)
+        
+        logger.info(f"Applied sorting: {sort_by} {sort_order}")
+    
+    return filtered_offers
+
+
+def _price_in_range(price: float, min_price: Optional[float], max_price: Optional[float]) -> bool:
+    """Check if price is within the specified range."""
+    if min_price is not None and price < min_price:
+        return False
+    if max_price is not None and price > max_price:
+        return False
+    return True
+
+
+def _departure_time_in_range(offer: Dict[str, Any], min_time: Optional[str], max_time: Optional[str]) -> bool:
+    """Check if departure time is within the specified range."""
+    try:
+        for itinerary in offer.get('itineraries', []):
+            segments = itinerary.get('segments', [])
+            if segments:
+                departure_time = segments[0].get('departure', {}).get('time', '')
+                if departure_time:
+                    # Extract time part (HH:MM) from datetime string
+                    time_part = departure_time.split('T')[1][:5] if 'T' in departure_time else departure_time[:5]
+                    
+                    if min_time and time_part < min_time:
+                        return False
+                    if max_time and time_part > max_time:
+                        return False
+        return True
+    except Exception:
+        return True  # If parsing fails, don't filter out
+
+
+def _get_total_duration(offer: Dict[str, Any]) -> int:
+    """Get total duration in minutes for sorting."""
+    total_duration = 0
+    for itinerary in offer.get('itineraries', []):
+        duration_str = itinerary.get('duration', 'PT0M')
+        total_duration += _parse_duration(duration_str)
+    return total_duration
+
+
+def _get_earliest_departure(offer: Dict[str, Any]) -> str:
+    """Get earliest departure time for sorting."""
+    earliest = '9999-12-31T23:59:59'
+    for itinerary in offer.get('itineraries', []):
+        segments = itinerary.get('segments', [])
+        if segments:
+            departure_time = segments[0].get('departure', {}).get('time', '')
+            if departure_time and departure_time < earliest:
+                earliest = departure_time
+    return earliest
+
+
+def _get_latest_arrival(offer: Dict[str, Any]) -> str:
+    """Get latest arrival time for sorting."""
+    latest = '0000-01-01T00:00:00'
+    for itinerary in offer.get('itineraries', []):
+        segments = itinerary.get('segments', [])
+        if segments:
+            arrival_time = segments[-1].get('arrival', {}).get('time', '')
+            if arrival_time and arrival_time > latest:
+                latest = arrival_time
+    return latest
+
+
+def _get_max_stops(offer: Dict[str, Any]) -> int:
+    """Get maximum number of stops for sorting."""
+    max_stops = 0
+    for itinerary in offer.get('itineraries', []):
+        stops = len(itinerary.get('segments', [])) - 1
+        if stops > max_stops:
+            max_stops = stops
+    return max_stops
+
+
+def _parse_duration(duration_str: str) -> int:
+    """Parse ISO 8601 duration string to minutes."""
+    try:
+        # Simple parser for PT1H30M format
+        if not duration_str.startswith('PT'):
+            return 0
+        
+        duration_str = duration_str[2:]  # Remove 'PT'
+        hours = 0
+        minutes = 0
+        
+        if 'H' in duration_str:
+            hours_part, duration_str = duration_str.split('H')
+            hours = int(hours_part)
+        
+        if 'M' in duration_str:
+            minutes_part = duration_str.split('M')[0]
+            minutes = int(minutes_part)
+        
+        return hours * 60 + minutes
+    except Exception:
+        return 0
 
 
 def search_flights_sync(

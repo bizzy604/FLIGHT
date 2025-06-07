@@ -82,7 +82,7 @@ def _create_error_response(
 @bp.route('/air-shopping', methods=['GET', 'POST', 'OPTIONS'])
 async def air_shopping():
     """
-    Handle flight search requests with caching and rate limiting.
+    Handle flight search requests with caching and advanced filtering capabilities.
     
     Accepts both GET and POST requests with different parameter formats:
     
@@ -96,6 +96,12 @@ async def air_shopping():
     - [infants]: Number of infant passengers (0-8, default: 0)
     - [cabinClass]: Cabin class preference (Y, W, C, F)
     - [tripType]: Type of trip ('one-way' or 'round-trip')
+    - [minPrice]: Minimum price filter (optional)
+    - [maxPrice]: Maximum price filter (optional)
+    - [airlines]: Comma-separated airline codes to filter by (optional)
+    - [maxStops]: Maximum number of stops (0, 1, 2+) (optional)
+    - [departTimeMin]: Minimum departure time in HH:MM format (optional)
+    - [departTimeMax]: Maximum departure time in HH:MM format (optional)
     
     POST JSON Body:
     - tripType: Type of trip (ONE_WAY, ROUND_TRIP, MULTI_CITY)
@@ -109,10 +115,20 @@ async def air_shopping():
     - [numInfants]: Number of infant passengers (0-8, default: 0)
     - [cabinPreference]: Cabin class preference (ECONOMY, PREMIUM_ECONOMY, BUSINESS, FIRST)
     - [directOnly]: Boolean to show only direct flights (default: false)
+    - [filters]: Advanced filtering options (optional):
+        - [priceRange]: {min: number, max: number} - Price range filter
+        - [airlines]: string[] - Array of airline codes to include
+        - [maxStops]: number - Maximum number of stops (0 for direct only)
+        - [departureTimeRange]: {min: string, max: string} - Departure time range in HH:MM format
+        - [arrivalTimeRange]: {min: string, max: string} - Arrival time range in HH:MM format
+        - [duration]: {max: number} - Maximum flight duration in minutes
+        - [aircraft]: string[] - Preferred aircraft types
+    - [sortBy]: Sorting preference ('price', 'duration', 'departure', 'arrival', 'stops') (default: 'price')
+    - [sortOrder]: Sort order ('asc' or 'desc') (default: 'asc')
     """
-    if request.method == 'OPTIONS':
-        response = await make_response()
-        return _add_cors_headers(response)
+    # if request.method == 'OPTIONS':
+    #     response = await make_response()
+    #     return _add_cors_headers(response)
         
     request_id = _get_request_id()
     
@@ -155,6 +171,50 @@ async def air_shopping():
                     'departureDate': args['returnDate']
                 })
             
+            # Parse filtering parameters for GET requests
+            filters = {}
+            
+            # Price range filter
+            if args.get('minPrice') or args.get('maxPrice'):
+                price_range = {}
+                if args.get('minPrice'):
+                    try:
+                        price_range['min'] = float(args.get('minPrice'))
+                    except ValueError:
+                        logger.warning(f"Invalid minPrice value: {args.get('minPrice')} - Request ID: {request_id}")
+                if args.get('maxPrice'):
+                    try:
+                        price_range['max'] = float(args.get('maxPrice'))
+                    except ValueError:
+                        logger.warning(f"Invalid maxPrice value: {args.get('maxPrice')} - Request ID: {request_id}")
+                if price_range:
+                    filters['priceRange'] = price_range
+            
+            # Airlines filter
+            if args.get('airlines'):
+                airline_codes = [code.strip().upper() for code in args.get('airlines').split(',') if code.strip()]
+                if airline_codes:
+                    filters['airlines'] = airline_codes
+            
+            # Max stops filter
+            if args.get('maxStops'):
+                try:
+                    max_stops = int(args.get('maxStops'))
+                    if max_stops >= 0:
+                        filters['maxStops'] = max_stops
+                except ValueError:
+                    logger.warning(f"Invalid maxStops value: {args.get('maxStops')} - Request ID: {request_id}")
+            
+            # Departure time range filter
+            if args.get('departTimeMin') or args.get('departTimeMax'):
+                time_range = {}
+                if args.get('departTimeMin'):
+                    time_range['min'] = args.get('departTimeMin')
+                if args.get('departTimeMax'):
+                    time_range['max'] = args.get('departTimeMax')
+                if time_range:
+                    filters['departureTimeRange'] = time_range
+            
             search_criteria = {
                 'tripType': 'ROUND_TRIP' if args.get('tripType', '').lower() == 'round-trip' else 'ONE_WAY',
                 'odSegments': od_segments,
@@ -165,6 +225,10 @@ async def air_shopping():
                 'directOnly': False,
                 'request_id': request_id
             }
+            
+            # Add filters if any were specified
+            if filters:
+                search_criteria['filters'] = filters
         else:  # POST
             data = await request.get_json()
             logger.info(f"Air shopping request received - Request ID: {request_id}")
@@ -199,14 +263,31 @@ async def air_shopping():
                 'directOnly': bool(data.get('directOnly', False)),
                 'request_id': request_id
             }
+            
+            # Add advanced filtering options if provided
+            if 'filters' in data and isinstance(data['filters'], dict):
+                search_criteria['filters'] = data['filters']
+                logger.info(f"Applied filters: {data['filters']} - Request ID: {request_id}")
+            
+            # Add sorting options if provided
+            if 'sortBy' in data:
+                valid_sort_options = ['price', 'duration', 'departure', 'arrival', 'stops']
+                if data['sortBy'] in valid_sort_options:
+                    search_criteria['sortBy'] = data['sortBy']
+                else:
+                    logger.warning(f"Invalid sortBy value: {data['sortBy']} - Request ID: {request_id}")
+            
+            if 'sortOrder' in data:
+                valid_sort_orders = ['asc', 'desc']
+                if data['sortOrder'] in valid_sort_orders:
+                    search_criteria['sortOrder'] = data['sortOrder']
+                else:
+                    logger.warning(f"Invalid sortOrder value: {data['sortOrder']} - Request ID: {request_id}")
         result = await process_air_shopping(search_criteria)
         
         logger.info(f"Air shopping request completed - Request ID: {request_id}")
-        return jsonify({
-            'status': 'success',
-            'data': result,
-            'request_id': request_id
-        })
+        # process_air_shopping already returns the correct structure with status, data, and request_id
+        return jsonify(result)
         
     except json.JSONDecodeError:
         error_msg = "Invalid JSON payload"

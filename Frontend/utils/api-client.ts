@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { logger } from '@/lib/logger';
+import type { FlightSearchResponse } from '@/types/flight-api';
 
 // Get backend URL from environment
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
@@ -103,7 +104,7 @@ export interface FlightOffer {
 export const api = {
     // Flight Search
     searchFlights: async (params: FlightSearchRequest) => {
-        return apiClient.post<FlightOffer[]>('/api/verteil/air-shopping', params);
+        return apiClient.post<FlightSearchResponse>('/api/verteil/air-shopping', params);
     },
 
     // Flight Pricing

@@ -1,0 +1,2026 @@
+{
+  "Document": {
+    "ReferenceVersion": "18.1"
+  },
+  "OffersGroup": {
+    "AirlineOffers": [
+      {
+        "TotalOfferQuantity": 6,
+        "Owner": {
+          "value": "KQ"
+        },
+        "AirlineOffer": [
+          {
+            "PricedOffer": {
+              "OfferPrice": [
+                {
+                  "RequestedDate": {
+                    "Associations": [
+                      {
+                        "AssociatedTraveler": {
+                          "TravelerReferences": [
+                            "KQ-PAX1"
+                          ]
+                        },
+                        "ApplicableFlight": {
+                          "FlightSegmentReference": [
+                            {
+                              "BagDetailAssociation": {
+                                "CheckedBagReferences": [
+                                  "KQ-FBA1-C0C3C1"
+                                ],
+                                "CarryOnReferences": [
+                                  "KQ-BAGGAGEALLOWANCE_CARRYON-1x12kg"
+                                ]
+                              },
+                              "ref": "KQ-SEG2"
+                            },
+                            {
+                              "BagDetailAssociation": {
+                                "CheckedBagReferences": [
+                                  "KQ-FBA1-C0C3C1"
+                                ],
+                                "CarryOnReferences": [
+                                  "KQ-BAGGAGEALLOWANCE_CARRYON-1x12kg"
+                                ]
+                              },
+                              "ref": "KQ-SEG3"
+                            }
+                          ],
+                          "OriginDestinationReferences": [
+                            "KQ-LHRBOM"
+                          ],
+                          "FlightReferences": {
+                            "value": [
+                              "KQ-FLT1"
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "PriceDetail": {
+                      "TotalAmount": {
+                        "SimpleCurrencyPrice": {
+                          "value": 113523,
+                          "Code": "INR"
+                        }
+                      },
+                      "BaseAmount": {
+                        "value": 73915,
+                        "Code": "INR"
+                      },
+                      "Discount": [
+                        {
+                          "DiscountAmount": {
+                            "value": 3696,
+                            "Code": "INR"
+                          },
+                          "DiscountPercent": 5,
+                          "discountOwner": "Magellan Travel Services (P) Ltd.",
+                          "discountCode": "Disc_rea",
+                          "discountName": "ReaDiscount",
+                          "preDiscountedAmount": {
+                            "value": 73915,
+                            "Code": "INR"
+                          }
+                        }
+                      ],
+                      "Taxes": {
+                        "Total": {
+                          "value": 43304,
+                          "Code": "INR"
+                        }
+                      }
+                    }
+                  },
+                  "FareDetail": {
+                    "FareComponent": [
+                      {
+                        "SegmentReference": {
+                          "value": "KQ-SEG2"
+                        },
+                        "FareRules": {
+                          "Penalty": {
+                            "refs": [
+                              "KQ-PEN2",
+                              "KQ-PEN3"
+                            ]
+                          }
+                        },
+                        "refs": [
+                          "KQ-FG-1274595852382122"
+                        ]
+                      },
+                      {
+                        "SegmentReference": {
+                          "value": "KQ-SEG3"
+                        },
+                        "FareRules": {
+                          "Penalty": {
+                            "refs": [
+                              "KQ-PEN2",
+                              "KQ-PEN3"
+                            ]
+                          }
+                        },
+                        "refs": [
+                          "KQ-FG-1274595852382122"
+                        ]
+                      }
+                    ]
+                  },
+                  "OfferItemID": "1H1KQZ_PU1XAPOUYJ8GD21QFXMQH5SZ458Q-1"
+                }
+              ],
+              "Associations": [
+                {
+                  "ApplicableFlight": {
+                    "FlightSegmentReference": [
+                      {
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "U"
+                          },
+                          "MarketingName": {
+                            "value": "ECO",
+                            "CabinDesignator": "Y"
+                          }
+                        },
+                        "ref": "KQ-SEG2"
+                      },
+                      {
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "U"
+                          },
+                          "MarketingName": {
+                            "value": "ECO",
+                            "CabinDesignator": "Y"
+                          }
+                        },
+                        "ref": "KQ-SEG3"
+                      }
+                    ],
+                    "OriginDestinationReferences": [
+                      "KQ-LHRBOM"
+                    ],
+                    "FlightReferences": {
+                      "value": [
+                        "KQ-FLT1"
+                      ]
+                    }
+                  },
+                  "PriceClass": {
+                    "PriceClassReference": "KQ-ECOSPFLXWW"
+                  }
+                }
+              ]
+            },
+            "OfferID": {
+              "value": "1H1KQZ_PU1XAPOUYJ8GD21QFXMQH5SZ458Q",
+              "Owner": "KQ",
+              "Channel": "NDC"
+            },
+            "TimeLimits": {
+              "OfferExpiration": {
+                "DateTime": "2025-06-07T09:31:28.000"
+              }
+            },
+            "TotalPrice": {
+              "SimpleCurrencyPrice": {
+                "value": 113523,
+                "Code": "INR"
+              }
+            },
+            "refs": [
+              {
+                "Ref": "VDC-AIRLINE-SRID"
+              },
+              {
+                "Ref": "VDC-PR-pmiWBERZSdKIfkXynrRw"
+              }
+            ]
+          },
+          {
+            "PricedOffer": {
+              "OfferPrice": [
+                {
+                  "RequestedDate": {
+                    "Associations": [
+                      {
+                        "AssociatedTraveler": {
+                          "TravelerReferences": [
+                            "KQ-PAX1"
+                          ]
+                        },
+                        "ApplicableFlight": {
+                          "FlightSegmentReference": [
+                            {
+                              "BagDetailAssociation": {
+                                "CheckedBagReferences": [
+                                  "KQ-FBA1-C0C3C1"
+                                ],
+                                "CarryOnReferences": [
+                                  "KQ-BAGGAGEALLOWANCE_CARRYON-1x12kg"
+                                ]
+                              },
+                              "ref": "KQ-SEG2"
+                            },
+                            {
+                              "BagDetailAssociation": {
+                                "CheckedBagReferences": [
+                                  "KQ-FBA1-C0C3C1"
+                                ],
+                                "CarryOnReferences": [
+                                  "KQ-BAGGAGEALLOWANCE_CARRYON-1x12kg"
+                                ]
+                              },
+                              "ref": "KQ-SEG4"
+                            }
+                          ],
+                          "OriginDestinationReferences": [
+                            "KQ-LHRBOM"
+                          ],
+                          "FlightReferences": {
+                            "value": [
+                              "KQ-FLT2"
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "PriceDetail": {
+                      "TotalAmount": {
+                        "SimpleCurrencyPrice": {
+                          "value": 113523,
+                          "Code": "INR"
+                        }
+                      },
+                      "BaseAmount": {
+                        "value": 73915,
+                        "Code": "INR"
+                      },
+                      "Discount": [
+                        {
+                          "DiscountAmount": {
+                            "value": 3696,
+                            "Code": "INR"
+                          },
+                          "DiscountPercent": 5,
+                          "discountOwner": "Magellan Travel Services (P) Ltd.",
+                          "discountCode": "Disc_rea",
+                          "discountName": "ReaDiscount",
+                          "preDiscountedAmount": {
+                            "value": 73915,
+                            "Code": "INR"
+                          }
+                        }
+                      ],
+                      "Taxes": {
+                        "Total": {
+                          "value": 43304,
+                          "Code": "INR"
+                        }
+                      }
+                    }
+                  },
+                  "FareDetail": {
+                    "FareComponent": [
+                      {
+                        "SegmentReference": {
+                          "value": "KQ-SEG2"
+                        },
+                        "FareRules": {
+                          "Penalty": {
+                            "refs": [
+                              "KQ-PEN2",
+                              "KQ-PEN3"
+                            ]
+                          }
+                        },
+                        "refs": [
+                          "KQ-FG-1274595852404259"
+                        ]
+                      },
+                      {
+                        "SegmentReference": {
+                          "value": "KQ-SEG4"
+                        },
+                        "FareRules": {
+                          "Penalty": {
+                            "refs": [
+                              "KQ-PEN2",
+                              "KQ-PEN3"
+                            ]
+                          }
+                        },
+                        "refs": [
+                          "KQ-FG-1274595852404259"
+                        ]
+                      }
+                    ]
+                  },
+                  "OfferItemID": "1H1KQZ_1QFYE8BPHN3OQ518EARL3WDJOUAO-1"
+                }
+              ],
+              "Associations": [
+                {
+                  "ApplicableFlight": {
+                    "FlightSegmentReference": [
+                      {
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "U"
+                          },
+                          "MarketingName": {
+                            "value": "ECO",
+                            "CabinDesignator": "Y"
+                          }
+                        },
+                        "ref": "KQ-SEG2"
+                      },
+                      {
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "U"
+                          },
+                          "MarketingName": {
+                            "value": "ECO",
+                            "CabinDesignator": "Y"
+                          }
+                        },
+                        "ref": "KQ-SEG4"
+                      }
+                    ],
+                    "OriginDestinationReferences": [
+                      "KQ-LHRBOM"
+                    ],
+                    "FlightReferences": {
+                      "value": [
+                        "KQ-FLT2"
+                      ]
+                    }
+                  },
+                  "PriceClass": {
+                    "PriceClassReference": "KQ-ECOSPFLXWW"
+                  }
+                }
+              ]
+            },
+            "OfferID": {
+              "value": "1H1KQZ_1QFYE8BPHN3OQ518EARL3WDJOUAO",
+              "Owner": "KQ",
+              "Channel": "NDC"
+            },
+            "TimeLimits": {
+              "OfferExpiration": {
+                "DateTime": "2025-06-07T09:31:28.000"
+              }
+            },
+            "TotalPrice": {
+              "SimpleCurrencyPrice": {
+                "value": 113523,
+                "Code": "INR"
+              }
+            },
+            "refs": [
+              {
+                "Ref": "VDC-AIRLINE-SRID"
+              },
+              {
+                "Ref": "VDC-PR-l9k8pmc32u9X0QVBFSsI"
+              }
+            ]
+          },
+          {
+            "PricedOffer": {
+              "OfferPrice": [
+                {
+                  "RequestedDate": {
+                    "Associations": [
+                      {
+                        "AssociatedTraveler": {
+                          "TravelerReferences": [
+                            "KQ-PAX1"
+                          ]
+                        },
+                        "ApplicableFlight": {
+                          "FlightSegmentReference": [
+                            {
+                              "BagDetailAssociation": {
+                                "CheckedBagReferences": [
+                                  "KQ-FBA2-C0C6C2"
+                                ],
+                                "CarryOnReferences": [
+                                  "KQ-BAGGAGEALLOWANCE_CARRYON-2x9kg"
+                                ]
+                              },
+                              "ref": "KQ-SEG2"
+                            },
+                            {
+                              "BagDetailAssociation": {
+                                "CheckedBagReferences": [
+                                  "KQ-FBA2-C0C6C2"
+                                ],
+                                "CarryOnReferences": [
+                                  "KQ-BAGGAGEALLOWANCE_CARRYON-2x9kg"
+                                ]
+                              },
+                              "ref": "KQ-SEG3"
+                            }
+                          ],
+                          "OriginDestinationReferences": [
+                            "KQ-LHRBOM"
+                          ],
+                          "FlightReferences": {
+                            "value": [
+                              "KQ-FLT1"
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "PriceDetail": {
+                      "TotalAmount": {
+                        "SimpleCurrencyPrice": {
+                          "value": 233123,
+                          "Code": "INR"
+                        }
+                      },
+                      "BaseAmount": {
+                        "value": 174310,
+                        "Code": "INR"
+                      },
+                      "Discount": [
+                        {
+                          "DiscountAmount": {
+                            "value": 8716,
+                            "Code": "INR"
+                          },
+                          "DiscountPercent": 5,
+                          "discountOwner": "Magellan Travel Services (P) Ltd.",
+                          "discountCode": "Disc_rea",
+                          "discountName": "ReaDiscount",
+                          "preDiscountedAmount": {
+                            "value": 174310,
+                            "Code": "INR"
+                          }
+                        }
+                      ],
+                      "Taxes": {
+                        "Total": {
+                          "value": 67529,
+                          "Code": "INR"
+                        }
+                      }
+                    }
+                  },
+                  "FareDetail": {
+                    "FareComponent": [
+                      {
+                        "SegmentReference": {
+                          "value": "KQ-SEG2"
+                        },
+                        "FareRules": {
+                          "Penalty": {
+                            "refs": [
+                              "KQ-PEN2",
+                              "KQ-PEN3"
+                            ]
+                          }
+                        },
+                        "refs": [
+                          "KQ-FG-1274595852409305"
+                        ]
+                      },
+                      {
+                        "SegmentReference": {
+                          "value": "KQ-SEG3"
+                        },
+                        "FareRules": {
+                          "Penalty": {
+                            "refs": [
+                              "KQ-PEN2",
+                              "KQ-PEN3"
+                            ]
+                          }
+                        },
+                        "refs": [
+                          "KQ-FG-1274595852409305"
+                        ]
+                      }
+                    ]
+                  },
+                  "OfferItemID": "1H1KQZ_LO4LFK61HB6M4OLMHZU48S583I20-1"
+                }
+              ],
+              "Associations": [
+                {
+                  "ApplicableFlight": {
+                    "FlightSegmentReference": [
+                      {
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "I"
+                          },
+                          "MarketingName": {
+                            "value": "BUSINESS",
+                            "CabinDesignator": "C"
+                          }
+                        },
+                        "ref": "KQ-SEG2"
+                      },
+                      {
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "I"
+                          },
+                          "MarketingName": {
+                            "value": "BUSINESS",
+                            "CabinDesignator": "C"
+                          }
+                        },
+                        "ref": "KQ-SEG3"
+                      }
+                    ],
+                    "OriginDestinationReferences": [
+                      "KQ-LHRBOM"
+                    ],
+                    "FlightReferences": {
+                      "value": [
+                        "KQ-FLT1"
+                      ]
+                    }
+                  },
+                  "PriceClass": {
+                    "PriceClassReference": "KQ-BIZLITWW"
+                  }
+                }
+              ]
+            },
+            "OfferID": {
+              "value": "1H1KQZ_LO4LFK61HB6M4OLMHZU48S583I20",
+              "Owner": "KQ",
+              "Channel": "NDC"
+            },
+            "TimeLimits": {
+              "OfferExpiration": {
+                "DateTime": "2025-06-07T09:31:28.000"
+              }
+            },
+            "TotalPrice": {
+              "SimpleCurrencyPrice": {
+                "value": 233123,
+                "Code": "INR"
+              }
+            },
+            "refs": [
+              {
+                "Ref": "VDC-AIRLINE-SRID"
+              },
+              {
+                "Ref": "VDC-PR-TtOWc66Y8viUS07Uzpzq"
+              }
+            ]
+          },
+          {
+            "PricedOffer": {
+              "OfferPrice": [
+                {
+                  "RequestedDate": {
+                    "Associations": [
+                      {
+                        "AssociatedTraveler": {
+                          "TravelerReferences": [
+                            "KQ-PAX1"
+                          ]
+                        },
+                        "ApplicableFlight": {
+                          "FlightSegmentReference": [
+                            {
+                              "BagDetailAssociation": {
+                                "CheckedBagReferences": [
+                                  "KQ-FBA2-C0C6C2"
+                                ],
+                                "CarryOnReferences": [
+                                  "KQ-BAGGAGEALLOWANCE_CARRYON-2x9kg"
+                                ]
+                              },
+                              "ref": "KQ-SEG2"
+                            },
+                            {
+                              "BagDetailAssociation": {
+                                "CheckedBagReferences": [
+                                  "KQ-FBA2-C0C6C2"
+                                ],
+                                "CarryOnReferences": [
+                                  "KQ-BAGGAGEALLOWANCE_CARRYON-2x9kg"
+                                ]
+                              },
+                              "ref": "KQ-SEG4"
+                            }
+                          ],
+                          "OriginDestinationReferences": [
+                            "KQ-LHRBOM"
+                          ],
+                          "FlightReferences": {
+                            "value": [
+                              "KQ-FLT2"
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "PriceDetail": {
+                      "TotalAmount": {
+                        "SimpleCurrencyPrice": {
+                          "value": 233123,
+                          "Code": "INR"
+                        }
+                      },
+                      "BaseAmount": {
+                        "value": 174310,
+                        "Code": "INR"
+                      },
+                      "Discount": [
+                        {
+                          "DiscountAmount": {
+                            "value": 8716,
+                            "Code": "INR"
+                          },
+                          "DiscountPercent": 5,
+                          "discountOwner": "Magellan Travel Services (P) Ltd.",
+                          "discountCode": "Disc_rea",
+                          "discountName": "ReaDiscount",
+                          "preDiscountedAmount": {
+                            "value": 174310,
+                            "Code": "INR"
+                          }
+                        }
+                      ],
+                      "Taxes": {
+                        "Total": {
+                          "value": 67529,
+                          "Code": "INR"
+                        }
+                      }
+                    }
+                  },
+                  "FareDetail": {
+                    "FareComponent": [
+                      {
+                        "SegmentReference": {
+                          "value": "KQ-SEG2"
+                        },
+                        "FareRules": {
+                          "Penalty": {
+                            "refs": [
+                              "KQ-PEN2",
+                              "KQ-PEN3"
+                            ]
+                          }
+                        },
+                        "refs": [
+                          "KQ-FG-1274595852415935"
+                        ]
+                      },
+                      {
+                        "SegmentReference": {
+                          "value": "KQ-SEG4"
+                        },
+                        "FareRules": {
+                          "Penalty": {
+                            "refs": [
+                              "KQ-PEN2",
+                              "KQ-PEN3"
+                            ]
+                          }
+                        },
+                        "refs": [
+                          "KQ-FG-1274595852415935"
+                        ]
+                      }
+                    ]
+                  },
+                  "OfferItemID": "1H1KQZ_W4KFBCC7EIY5D4N079NZYCIQEPV1-1"
+                }
+              ],
+              "Associations": [
+                {
+                  "ApplicableFlight": {
+                    "FlightSegmentReference": [
+                      {
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "I"
+                          },
+                          "MarketingName": {
+                            "value": "BUSINESS",
+                            "CabinDesignator": "C"
+                          }
+                        },
+                        "ref": "KQ-SEG2"
+                      },
+                      {
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "I"
+                          },
+                          "MarketingName": {
+                            "value": "BUSINESS",
+                            "CabinDesignator": "C"
+                          }
+                        },
+                        "ref": "KQ-SEG4"
+                      }
+                    ],
+                    "OriginDestinationReferences": [
+                      "KQ-LHRBOM"
+                    ],
+                    "FlightReferences": {
+                      "value": [
+                        "KQ-FLT2"
+                      ]
+                    }
+                  },
+                  "PriceClass": {
+                    "PriceClassReference": "KQ-BIZLITWW"
+                  }
+                }
+              ]
+            },
+            "OfferID": {
+              "value": "1H1KQZ_W4KFBCC7EIY5D4N079NZYCIQEPV1",
+              "Owner": "KQ",
+              "Channel": "NDC"
+            },
+            "TimeLimits": {
+              "OfferExpiration": {
+                "DateTime": "2025-06-07T09:31:28.000"
+              }
+            },
+            "TotalPrice": {
+              "SimpleCurrencyPrice": {
+                "value": 233123,
+                "Code": "INR"
+              }
+            },
+            "refs": [
+              {
+                "Ref": "VDC-AIRLINE-SRID"
+              },
+              {
+                "Ref": "VDC-PR-A7F2ERIWcqqIA5N3S38H"
+              }
+            ]
+          },
+          {
+            "PricedOffer": {
+              "OfferPrice": [
+                {
+                  "RequestedDate": {
+                    "Associations": [
+                      {
+                        "AssociatedTraveler": {
+                          "TravelerReferences": [
+                            "KQ-PAX1"
+                          ]
+                        },
+                        "ApplicableFlight": {
+                          "FlightSegmentReference": [
+                            {
+                              "BagDetailAssociation": {
+                                "CheckedBagReferences": [
+                                  "KQ-FBA2-C0C6C2"
+                                ],
+                                "CarryOnReferences": [
+                                  "KQ-BAGGAGEALLOWANCE_CARRYON-2x9kg"
+                                ]
+                              },
+                              "ref": "KQ-SEG2"
+                            },
+                            {
+                              "BagDetailAssociation": {
+                                "CheckedBagReferences": [
+                                  "KQ-FBA2-C0C6C2"
+                                ],
+                                "CarryOnReferences": [
+                                  "KQ-BAGGAGEALLOWANCE_CARRYON-2x9kg"
+                                ]
+                              },
+                              "ref": "KQ-SEG3"
+                            }
+                          ],
+                          "OriginDestinationReferences": [
+                            "KQ-LHRBOM"
+                          ],
+                          "FlightReferences": {
+                            "value": [
+                              "KQ-FLT1"
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "PriceDetail": {
+                      "TotalAmount": {
+                        "SimpleCurrencyPrice": {
+                          "value": 304107,
+                          "Code": "INR"
+                        }
+                      },
+                      "BaseAmount": {
+                        "value": 249030,
+                        "Code": "INR"
+                      },
+                      "Discount": [
+                        {
+                          "DiscountAmount": {
+                            "value": 12452,
+                            "Code": "INR"
+                          },
+                          "DiscountPercent": 5,
+                          "discountOwner": "Magellan Travel Services (P) Ltd.",
+                          "discountCode": "Disc_rea",
+                          "discountName": "ReaDiscount",
+                          "preDiscountedAmount": {
+                            "value": 249030,
+                            "Code": "INR"
+                          }
+                        }
+                      ],
+                      "Taxes": {
+                        "Total": {
+                          "value": 67529,
+                          "Code": "INR"
+                        }
+                      }
+                    }
+                  },
+                  "FareDetail": {
+                    "FareComponent": [
+                      {
+                        "SegmentReference": {
+                          "value": "KQ-SEG2"
+                        },
+                        "FareRules": {
+                          "Penalty": {
+                            "refs": [
+                              "KQ-PEN2",
+                              "KQ-PEN3"
+                            ]
+                          }
+                        },
+                        "refs": [
+                          "KQ-FG-1274595852421317"
+                        ]
+                      },
+                      {
+                        "SegmentReference": {
+                          "value": "KQ-SEG3"
+                        },
+                        "FareRules": {
+                          "Penalty": {
+                            "refs": [
+                              "KQ-PEN2",
+                              "KQ-PEN3"
+                            ]
+                          }
+                        },
+                        "refs": [
+                          "KQ-FG-1274595852421317"
+                        ]
+                      }
+                    ]
+                  },
+                  "OfferItemID": "1H1KQZ_GMVS364CGAD3RM1008JCCICJ14TS-1"
+                }
+              ],
+              "Associations": [
+                {
+                  "ApplicableFlight": {
+                    "FlightSegmentReference": [
+                      {
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "D"
+                          },
+                          "MarketingName": {
+                            "value": "BUSINESS",
+                            "CabinDesignator": "C"
+                          }
+                        },
+                        "ref": "KQ-SEG2"
+                      },
+                      {
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "D"
+                          },
+                          "MarketingName": {
+                            "value": "BUSINESS",
+                            "CabinDesignator": "C"
+                          }
+                        },
+                        "ref": "KQ-SEG3"
+                      }
+                    ],
+                    "OriginDestinationReferences": [
+                      "KQ-LHRBOM"
+                    ],
+                    "FlightReferences": {
+                      "value": [
+                        "KQ-FLT1"
+                      ]
+                    }
+                  },
+                  "PriceClass": {
+                    "PriceClassReference": "KQ-BIZSPFLXWW"
+                  }
+                }
+              ]
+            },
+            "OfferID": {
+              "value": "1H1KQZ_GMVS364CGAD3RM1008JCCICJ14TS",
+              "Owner": "KQ",
+              "Channel": "NDC"
+            },
+            "TimeLimits": {
+              "OfferExpiration": {
+                "DateTime": "2025-06-07T09:31:28.000"
+              }
+            },
+            "TotalPrice": {
+              "SimpleCurrencyPrice": {
+                "value": 304107,
+                "Code": "INR"
+              }
+            },
+            "refs": [
+              {
+                "Ref": "VDC-AIRLINE-SRID"
+              },
+              {
+                "Ref": "VDC-PR-4XPU6jkgmTzHVYgbmMxj"
+              }
+            ]
+          },
+          {
+            "PricedOffer": {
+              "OfferPrice": [
+                {
+                  "RequestedDate": {
+                    "Associations": [
+                      {
+                        "AssociatedTraveler": {
+                          "TravelerReferences": [
+                            "KQ-PAX1"
+                          ]
+                        },
+                        "ApplicableFlight": {
+                          "FlightSegmentReference": [
+                            {
+                              "BagDetailAssociation": {
+                                "CheckedBagReferences": [
+                                  "KQ-FBA2-C0C6C2"
+                                ],
+                                "CarryOnReferences": [
+                                  "KQ-BAGGAGEALLOWANCE_CARRYON-2x9kg"
+                                ]
+                              },
+                              "ref": "KQ-SEG2"
+                            },
+                            {
+                              "BagDetailAssociation": {
+                                "CheckedBagReferences": [
+                                  "KQ-FBA2-C0C6C2"
+                                ],
+                                "CarryOnReferences": [
+                                  "KQ-BAGGAGEALLOWANCE_CARRYON-2x9kg"
+                                ]
+                              },
+                              "ref": "KQ-SEG4"
+                            }
+                          ],
+                          "OriginDestinationReferences": [
+                            "KQ-LHRBOM"
+                          ],
+                          "FlightReferences": {
+                            "value": [
+                              "KQ-FLT2"
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "PriceDetail": {
+                      "TotalAmount": {
+                        "SimpleCurrencyPrice": {
+                          "value": 304107,
+                          "Code": "INR"
+                        }
+                      },
+                      "BaseAmount": {
+                        "value": 249030,
+                        "Code": "INR"
+                      },
+                      "Discount": [
+                        {
+                          "DiscountAmount": {
+                            "value": 12452,
+                            "Code": "INR"
+                          },
+                          "DiscountPercent": 5,
+                          "discountOwner": "Magellan Travel Services (P) Ltd.",
+                          "discountCode": "Disc_rea",
+                          "discountName": "ReaDiscount",
+                          "preDiscountedAmount": {
+                            "value": 249030,
+                            "Code": "INR"
+                          }
+                        }
+                      ],
+                      "Taxes": {
+                        "Total": {
+                          "value": 67529,
+                          "Code": "INR"
+                        }
+                      }
+                    }
+                  },
+                  "FareDetail": {
+                    "FareComponent": [
+                      {
+                        "SegmentReference": {
+                          "value": "KQ-SEG2"
+                        },
+                        "FareRules": {
+                          "Penalty": {
+                            "refs": [
+                              "KQ-PEN2",
+                              "KQ-PEN3"
+                            ]
+                          }
+                        },
+                        "refs": [
+                          "KQ-FG-1274595852426150"
+                        ]
+                      },
+                      {
+                        "SegmentReference": {
+                          "value": "KQ-SEG4"
+                        },
+                        "FareRules": {
+                          "Penalty": {
+                            "refs": [
+                              "KQ-PEN2",
+                              "KQ-PEN3"
+                            ]
+                          }
+                        },
+                        "refs": [
+                          "KQ-FG-1274595852426150"
+                        ]
+                      }
+                    ]
+                  },
+                  "OfferItemID": "1H1KQZ_MCSCQWL60LVNTLA9P1WZGX841HYQ-1"
+                }
+              ],
+              "Associations": [
+                {
+                  "ApplicableFlight": {
+                    "FlightSegmentReference": [
+                      {
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "D"
+                          },
+                          "MarketingName": {
+                            "value": "BUSINESS",
+                            "CabinDesignator": "C"
+                          }
+                        },
+                        "ref": "KQ-SEG2"
+                      },
+                      {
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "D"
+                          },
+                          "MarketingName": {
+                            "value": "BUSINESS",
+                            "CabinDesignator": "C"
+                          }
+                        },
+                        "ref": "KQ-SEG4"
+                      }
+                    ],
+                    "OriginDestinationReferences": [
+                      "KQ-LHRBOM"
+                    ],
+                    "FlightReferences": {
+                      "value": [
+                        "KQ-FLT2"
+                      ]
+                    }
+                  },
+                  "PriceClass": {
+                    "PriceClassReference": "KQ-BIZSPFLXWW"
+                  }
+                }
+              ]
+            },
+            "OfferID": {
+              "value": "1H1KQZ_MCSCQWL60LVNTLA9P1WZGX841HYQ",
+              "Owner": "KQ",
+              "Channel": "NDC"
+            },
+            "TimeLimits": {
+              "OfferExpiration": {
+                "DateTime": "2025-06-07T09:31:28.000"
+              }
+            },
+            "TotalPrice": {
+              "SimpleCurrencyPrice": {
+                "value": 304107,
+                "Code": "INR"
+              }
+            },
+            "refs": [
+              {
+                "Ref": "VDC-AIRLINE-SRID"
+              },
+              {
+                "Ref": "VDC-PR-eeVZ6oQvg8j5nfeLWMvA"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "DataLists": {
+    "AnonymousTravelerList": {
+      "AnonymousTraveler": [
+        {
+          "ObjectKey": "KQ-PAX1",
+          "PTC": {
+            "value": "ADT"
+          }
+        }
+      ]
+    },
+    "CarryOnAllowanceList": {
+      "CarryOnAllowance": [
+        {
+          "ListKey": "KQ-BAGGAGEALLOWANCE_CARRYON-2x9kg",
+          "AllowanceDescription": {
+            "ApplicableParty": "Traveler",
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "2 x 9 kg"
+                  }
+                }
+              ]
+            }
+          },
+          "PieceAllowance": [
+            {
+              "ApplicableParty": "Traveler",
+              "TotalQuantity": 2,
+              "PieceMeasurements": [
+                {
+                  "Quantity": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ListKey": "KQ-BAGGAGEALLOWANCE_CARRYON-1x12kg",
+          "AllowanceDescription": {
+            "ApplicableParty": "Traveler",
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "1 x 12 kg"
+                  }
+                }
+              ]
+            }
+          },
+          "PieceAllowance": [
+            {
+              "ApplicableParty": "Traveler",
+              "TotalQuantity": 1,
+              "PieceMeasurements": [
+                {
+                  "Quantity": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "CheckedBagAllowanceList": {
+      "CheckedBagAllowance": [
+        {
+          "ListKey": "KQ-FBA2-C0C6C2",
+          "AllowanceDescription": {
+            "ApplicableParty": "Traveler",
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "UPTO70LB 32KG BAGGAGE"
+                  }
+                }
+              ]
+            }
+          },
+          "PieceAllowance": [
+            {
+              "ApplicableParty": "Traveler",
+              "TotalQuantity": 2,
+              "PieceMeasurements": [
+                {
+                  "Quantity": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ListKey": "KQ-FBA1-C0C3C1",
+          "AllowanceDescription": {
+            "ApplicableParty": "Traveler",
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "UPTO50LB 23KG BAGGAGE"
+                  }
+                }
+              ]
+            }
+          },
+          "PieceAllowance": [
+            {
+              "ApplicableParty": "Traveler",
+              "TotalQuantity": 2,
+              "PieceMeasurements": [
+                {
+                  "Quantity": 2
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "FareList": {
+      "FareGroup": [
+        {
+          "ListKey": "KQ-FG-1274595852404259",
+          "Fare": {
+            "FareCode": {
+              "Code": "70J"
+            },
+            "FareDetail": {
+              "Remarks": {
+                "Remark": [
+                  {
+                    "value": "PUBL"
+                  }
+                ]
+              }
+            }
+          },
+          "FareBasisCode": {
+            "Code": "ULSWFGB"
+          }
+        },
+        {
+          "ListKey": "KQ-FG-1274595852426150",
+          "Fare": {
+            "FareCode": {
+              "Code": "70J"
+            },
+            "FareDetail": {
+              "Remarks": {
+                "Remark": [
+                  {
+                    "value": "PUBL"
+                  }
+                ]
+              }
+            }
+          },
+          "FareBasisCode": {
+            "Code": "DFFWGB"
+          }
+        },
+        {
+          "ListKey": "KQ-FG-1274595852382122",
+          "Fare": {
+            "FareCode": {
+              "Code": "70J"
+            },
+            "FareDetail": {
+              "Remarks": {
+                "Remark": [
+                  {
+                    "value": "PUBL"
+                  }
+                ]
+              }
+            }
+          },
+          "FareBasisCode": {
+            "Code": "ULSWFGB"
+          }
+        },
+        {
+          "ListKey": "KQ-FG-1274595852409305",
+          "Fare": {
+            "FareCode": {
+              "Code": "70J"
+            },
+            "FareDetail": {
+              "Remarks": {
+                "Remark": [
+                  {
+                    "value": "PUBL"
+                  }
+                ]
+              }
+            }
+          },
+          "FareBasisCode": {
+            "Code": "IFFWGB"
+          }
+        },
+        {
+          "ListKey": "KQ-FG-1274595852421317",
+          "Fare": {
+            "FareCode": {
+              "Code": "70J"
+            },
+            "FareDetail": {
+              "Remarks": {
+                "Remark": [
+                  {
+                    "value": "PUBL"
+                  }
+                ]
+              }
+            }
+          },
+          "FareBasisCode": {
+            "Code": "DFFWGB"
+          }
+        },
+        {
+          "ListKey": "KQ-FG-1274595852415935",
+          "Fare": {
+            "FareCode": {
+              "Code": "70J"
+            },
+            "FareDetail": {
+              "Remarks": {
+                "Remark": [
+                  {
+                    "value": "PUBL"
+                  }
+                ]
+              }
+            }
+          },
+          "FareBasisCode": {
+            "Code": "IFFWGB"
+          }
+        }
+      ]
+    },
+    "FlightSegmentList": {
+      "FlightSegment": [
+        {
+          "SegmentKey": "KQ-SEG2",
+          "Departure": {
+            "AirportCode": {
+              "value": "LHR"
+            },
+            "Date": "2025-06-10T18:25:00.000",
+            "Time": "18:25",
+            "Terminal": {
+              "Name": "4"
+            }
+          },
+          "Arrival": {
+            "AirportCode": {
+              "value": "NBO"
+            },
+            "Date": "2025-06-11T05:00:00.000",
+            "Time": "05:00",
+            "Terminal": {
+              "Name": "1A"
+            }
+          },
+          "MarketingCarrier": {
+            "AirlineID": {
+              "value": "KQ"
+            },
+            "Name": "Kenya Airways",
+            "FlightNumber": {
+              "value": "101"
+            }
+          },
+          "OperatingCarrier": {
+            "AirlineID": {
+              "value": "KQ"
+            },
+            "Name": "Kenya Airways"
+          },
+          "FlightDetail": {
+            "FlightDuration": {
+              "Value": "PT8H35M"
+            }
+          }
+        },
+        {
+          "SegmentKey": "KQ-SEG3",
+          "Departure": {
+            "AirportCode": {
+              "value": "NBO"
+            },
+            "Date": "2025-06-11T16:45:00.000",
+            "Time": "16:45",
+            "Terminal": {
+              "Name": "1A"
+            }
+          },
+          "Arrival": {
+            "AirportCode": {
+              "value": "BOM"
+            },
+            "Date": "2025-06-12T01:30:00.000",
+            "Time": "01:30",
+            "Terminal": {
+              "Name": "2"
+            }
+          },
+          "MarketingCarrier": {
+            "AirlineID": {
+              "value": "KQ"
+            },
+            "Name": "Kenya Airways",
+            "FlightNumber": {
+              "value": "202"
+            }
+          },
+          "OperatingCarrier": {
+            "AirlineID": {
+              "value": "KQ"
+            },
+            "Name": "Kenya Airways"
+          },
+          "FlightDetail": {
+            "FlightDuration": {
+              "Value": "PT6H15M"
+            }
+          }
+        },
+        {
+          "SegmentKey": "KQ-SEG4",
+          "Departure": {
+            "AirportCode": {
+              "value": "NBO"
+            },
+            "Date": "2025-06-11T20:45:00.000",
+            "Time": "20:45",
+            "Terminal": {
+              "Name": "1A"
+            }
+          },
+          "Arrival": {
+            "AirportCode": {
+              "value": "BOM"
+            },
+            "Date": "2025-06-12T05:35:00.000",
+            "Time": "05:35",
+            "Terminal": {
+              "Name": "2"
+            }
+          },
+          "MarketingCarrier": {
+            "AirlineID": {
+              "value": "KQ"
+            },
+            "Name": "Kenya Airways",
+            "FlightNumber": {
+              "value": "204"
+            }
+          },
+          "OperatingCarrier": {
+            "AirlineID": {
+              "value": "KQ"
+            },
+            "Name": "Kenya Airways"
+          },
+          "Equipment": {
+            "AircraftCode": {
+              "value": "73H"
+            }
+          },
+          "FlightDetail": {
+            "FlightDuration": {
+              "Value": "PT6H20M"
+            }
+          }
+        }
+      ]
+    },
+    "FlightList": {
+      "Flight": [
+        {
+          "FlightKey": "KQ-FLT2",
+          "Journey": {
+            "Time": "P1DT6H40M"
+          },
+          "SegmentReferences": {
+            "value": [
+              "KQ-SEG2",
+              "KQ-SEG4"
+            ]
+          }
+        },
+        {
+          "FlightKey": "KQ-FLT1",
+          "Journey": {
+            "Time": "P1DT2H35M"
+          },
+          "SegmentReferences": {
+            "value": [
+              "KQ-SEG2",
+              "KQ-SEG3"
+            ]
+          }
+        }
+      ]
+    },
+    "OriginDestinationList": {
+      "OriginDestination": [
+        {
+          "OriginDestinationKey": "KQ-LHRBOM",
+          "FlightReferences": {
+            "value": [
+              "KQ-FLT1",
+              "KQ-FLT2"
+            ]
+          },
+          "DepartureCode": {
+            "value": "LHR"
+          },
+          "ArrivalCode": {
+            "value": "BOM"
+          }
+        }
+      ]
+    },
+    "PenaltyList": {
+      "Penalty": [
+        {
+          "ObjectKey": "KQ-PEN3",
+          "Details": {
+            "Detail": [
+              {
+                "Type": "Cancel",
+                "Application": {
+                  "Code": "2"
+                },
+                "Amounts": {
+                  "Amount": [
+                    {
+                      "CurrencyAmountValue": {
+                        "value": 0,
+                        "Code": "INR"
+                      },
+                      "AmountApplication": "MIN",
+                      "ApplicableFeeRemarks": {
+                        "Remark": [
+                          {
+                            "value": "Cancel permitted"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "CurrencyAmountValue": {
+                        "value": 0,
+                        "Code": "INR"
+                      },
+                      "AmountApplication": "MAX",
+                      "ApplicableFeeRemarks": {
+                        "Remark": [
+                          {
+                            "value": "Cancel permitted"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "CancelFeeInd": false,
+          "RefundableInd": true
+        },
+        {
+          "ObjectKey": "KQ-PEN2",
+          "Details": {
+            "Detail": [
+              {
+                "Type": "Change",
+                "Application": {
+                  "Code": "2"
+                },
+                "Amounts": {
+                  "Amount": [
+                    {
+                      "CurrencyAmountValue": {
+                        "value": 0,
+                        "Code": "INR"
+                      },
+                      "AmountApplication": "MIN",
+                      "ApplicableFeeRemarks": {
+                        "Remark": [
+                          {
+                            "value": "Reissue permitted"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "CurrencyAmountValue": {
+                        "value": 0,
+                        "Code": "INR"
+                      },
+                      "AmountApplication": "MAX",
+                      "ApplicableFeeRemarks": {
+                        "Remark": [
+                          {
+                            "value": "Reissue permitted"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "ChangeFeeInd": false,
+          "ChangeAllowedInd": true
+        }
+      ]
+    },
+    "PriceClassList": {
+      "PriceClass": [
+        {
+          "ObjectKey": "KQ-BIZLITWW",
+          "Name": "Business Lite",
+          "Descriptions": {
+            "Description": [
+              {
+                "Category": "CHGCXL_CXL",
+                "Text": {
+                  "value": "CANCEL_BEFOREDEPARTURE-Ticket refundable at a fee"
+                }
+              },
+              {
+                "Category": "CHGCXL_CHG",
+                "Text": {
+                  "value": "CHANGE_BEFOREDEPARTURE-Permitted, conditions apply"
+                }
+              },
+              {
+                "Category": "BAGGAGE_CARRYONALLOWANCE",
+                "Text": {
+                  "value": "BAGGAGEALLOWANCE_CARRYON-2 x 9 kg"
+                }
+              },
+              {
+                "Category": "BAGGAGE_CHECKEDALLOWANCE",
+                "Text": {
+                  "value": "BAGGAGEALLOWANCE_CHECKED-2 x 32 kg"
+                }
+              },
+              {
+                "Category": "SEAT_FREESELECTION",
+                "Text": {
+                  "value": "SEATSELECTION-Included"
+                }
+              },
+              {
+                "Category": "LOUNGE",
+                "Text": {
+                  "value": "LOUNGEACCESS-Included"
+                }
+              },
+              {
+                "Text": {
+                  "value": "PRIORITY_CHECKIN-Included"
+                }
+              },
+              {
+                "Category": "PRIORITY_SECURITY",
+                "Text": {
+                  "value": "PRIORITY_SECURITY-Included, where available"
+                }
+              }
+            ]
+          },
+          "DisplayOrder": "1"
+        },
+        {
+          "ObjectKey": "KQ-BIZSPFLXWW",
+          "Name": "Business Super Flex",
+          "Descriptions": {
+            "Description": [
+              {
+                "Category": "CHGCXL_CXL",
+                "Text": {
+                  "value": "CANCEL_BEFOREDEPARTURE-Ticket refundable at no fee"
+                }
+              },
+              {
+                "Category": "CHGCXL_CHG",
+                "Text": {
+                  "value": "CHANGE_BEFOREDEPARTURE-Permitted, conditions apply"
+                }
+              },
+              {
+                "Category": "BAGGAGE_CARRYONALLOWANCE",
+                "Text": {
+                  "value": "BAGGAGEALLOWANCE_CARRYON-2 x 9 kg"
+                }
+              },
+              {
+                "Category": "BAGGAGE_CHECKEDALLOWANCE",
+                "Text": {
+                  "value": "BAGGAGEALLOWANCE_CHECKED-2 x 32 kg"
+                }
+              },
+              {
+                "Category": "SEAT_FREESELECTION",
+                "Text": {
+                  "value": "SEATSELECTION-Included"
+                }
+              },
+              {
+                "Category": "LOUNGE",
+                "Text": {
+                  "value": "LOUNGEACCESS-Included"
+                }
+              },
+              {
+                "Text": {
+                  "value": "PRIORITY_CHECKIN-Included"
+                }
+              },
+              {
+                "Category": "PRIORITY_SECURITY",
+                "Text": {
+                  "value": "PRIORITY_SECURITY-Included, where available"
+                }
+              }
+            ]
+          },
+          "DisplayOrder": "1"
+        },
+        {
+          "ObjectKey": "KQ-ECOSPFLXWW",
+          "Name": "Economy Super Flex",
+          "Descriptions": {
+            "Description": [
+              {
+                "Category": "CHGCXL_CXL",
+                "Text": {
+                  "value": "CANCEL_BEFOREDEPARTURE-Ticket Refundable at a No fee"
+                }
+              },
+              {
+                "Category": "CHGCXL_CHG",
+                "Text": {
+                  "value": "CHANGE_BEFOREDEPARTURE-Permitted, conditions apply"
+                }
+              },
+              {
+                "Category": "BAGGAGE_CARRYONALLOWANCE",
+                "Text": {
+                  "value": "BAGGAGEALLOWANCE_CARRYON-1 x 12 kg"
+                }
+              },
+              {
+                "Category": "BAGGAGE_CHECKEDALLOWANCE",
+                "Text": {
+                  "value": "BAGGAGEALLOWANCE_CHECKED-2 x 23 kg"
+                }
+              },
+              {
+                "Category": "SEAT_FREESELECTION",
+                "Text": {
+                  "value": "SEATSELECTION-Included"
+                }
+              },
+              {
+                "Category": "OTHERS",
+                "Text": {
+                  "value": "LOUNGEACCESS-Not included"
+                }
+              },
+              {
+                "Text": {
+                  "value": "PRIORITY_CHECKIN-Not included"
+                }
+              },
+              {
+                "Category": "OTHERS",
+                "Text": {
+                  "value": "PRIORITY_SECURITY-Not included"
+                }
+              }
+            ]
+          },
+          "DisplayOrder": "1"
+        }
+      ]
+    }
+  },
+  "Metadata": {
+    "Shopping": {
+      "ShopMetadataGroup": {
+        "Offer": {
+          "disclosureMetadatasOrOfferMetadatasOrOfferInstructionMetadatas": [
+            {
+              "OfferMetadatas": {
+                "OfferMetadata": [
+                  {
+                    "MetadataKey": "OTHER_ASSOCIATED_OFFERS",
+                    "AugmentationPoint": {
+                      "AugPoint": [
+                        {
+                          "Key": "KQ",
+                          "any": {
+                            "VdcAugPoint": [
+                              {
+                                "Key": "1H1KQZ_1QFYE8BPHN3OQ518EARL3WDJOUAO",
+                                "Values": [
+                                  "1H1KQZ_W4KFBCC7EIY5D4N079NZYCIQEPV1",
+                                  "1H1KQZ_MCSCQWL60LVNTLA9P1WZGX841HYQ"
+                                ]
+                              },
+                              {
+                                "Key": "1H1KQZ_PU1XAPOUYJ8GD21QFXMQH5SZ458Q",
+                                "Values": [
+                                  "1H1KQZ_LO4LFK61HB6M4OLMHZU48S583I20",
+                                  "1H1KQZ_GMVS364CGAD3RM1008JCCICJ14TS"
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    "Other": {
+      "OtherMetadata": [
+        {
+          "DescriptionMetadatas": {
+            "DescriptionMetadata": [
+              {
+                "MetadataKey": "SHOPPING_RESPONSE_IDS",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "Key": "zBahjHGWM5Gbo14MkXoGDD2xtjzCk3wpdMGH5o9-w6o-KQ",
+                      "Owner": "KQ"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "PriceMetadatas": {
+            "PriceMetadata": [
+              {
+                "MetadataKey": "VDC-AIRLINE-SRID",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "type": "java.util.HashMap",
+                        "value": "eyJLUSI6IjFIMUtRWl9RWEVZRDRFMkY0T0JNVTBSTjEzSjU1UjZDOFAwIn0="
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-PR-pmiWBERZSdKIfkXynrRw",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
+                        "value": "cVnUxFk0nWaYjt/HHxEH5EE2CNjQA/cED3nHArPe9gza8ny8p7/pyYSyApdk4uj/66o92GMyLpzas1uD7U8nOicQyoMhetoDCWN0xSjtF/KsXoLT/ODt018wQQTA4bdqXDaQPqOdX21pWiGnaEGWUgCJYPVTMKGYhDKqZlKB6djJ7RVqBa0D+P9t0AQRpcYvR6hOpcXjIXwnHzlKDX0/39BzL0jFcaHyXq6aMvJx0yZxpE8UH50u6+dUVO4Rggm2dS16j/M9K2Zv/33kShWFecnYzw6uCc11XG0hqMntQIOTLcaVLsDyAIQ2fcxaZrWClzTQcO5P7SmBvTQkZae3wUJJwpNGF8TRbohVwOjUj4m2Hy3igPHmtP4AtZ4y9Xeg/HR/i+Bf7w=="
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-PR-l9k8pmc32u9X0QVBFSsI",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
+                        "value": "cVnUxFk0nWaYjt/HHxEH5EE2CNjQA/cED3nHArPe9gza8ny8p7/pyYSyApdk4uie79083As/K43euFOW6k9OOT4P1/hDbcp4aRpqxSjtF/KsXoLT/ODt018wQQTA4bdqXDaQPqOdX21pWiGnaEGWUgCJYPVTMKGYhDKqZlKB6djJ7RVqBa0D+P9t0AQRpcYvR6hOpcXjIXwnH1hOenw7t912PkzOebT1XseZK+1sqERmtDR0ZoMu6+dUVO4Rggm2dS16j/M9K2Zv/33kShWFecnYzw6uCc11XG0hqMntQIOTLcaVLsDyAIQ2fcxaZrWClzTQcO5P7SmBvTQkZae3wUJJwpNGF8TRbohVwOjUj4m2Hy3igPHmYU8pBSvMMt3A4Mj8EWX4oQ=="
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-PR-TtOWc66Y8viUS07Uzpzq",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
+                        "value": "cVnUxFk0nWaYjt/HHxEH5EE2CNjQA/cED3nHArPe9gza8ny8p7/pyYSyApdk4ujj8a8p33hLSo3SvVHzkDI7NCUIr/NHHLgEdWkVxSjtF/KsXoLT/ODt018wQgHG67VqXDaQPqOdX21pWiGnaEGWUgCJYPVTMKGYhDKqZlKB6djJ7RVqBa0D+P9t0AQRpcYvR6hOpcXjIXwnHyVQCGk4xKkXPkDLe9GPI7KUMOoUo0AXxkhoFfwu6+dUVO4Rggm2dS16j/M9K2Zv/33kShWFecnYzw6uCc11XG0hqMntQIOTLcaVLsDyAIQ2fcxaZrWBkjLacu5P7SmBvTQkZae3wUJJwpVCGsbVcoYD1fGOl4ezGyjkxNHGLFUMO7EE3kdxEB8ahWMEFu8="
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-PR-A7F2ERIWcqqIA5N3S38H",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
+                        "value": "cVnUxFk0nWaYjt/HHxEH5EE2CNjQA/cED3nHArPe9gza8ny8p7/pyYSyApdk4uj4itAj23A+TIDZ0imD6zBGS0YTwZJXYNFybA0UxSjtF/KsXoLT/ODt018wQgHG67VqXDaQPqOdX21pWiGnaEGWUgCJYPVTMKGYhDKqZlKB6djJ7RVqBa0D+P9t0AQRpcYvR6hOpcXjIXwnHz4rd2M8zNwRM0ukA6H0Ic/rU/F6wlBrrz5xcf0u6+dUVO4Rggm2dS16j/M9K2Zv/33kShWFecnYzw6uCc11XG0hqMntQIOTLcaVLsDyAIQ2fcxaZrWBkjLacu5P7SmBvTQkZae3wUJJwpVCGsbVcoYD1fGOl4ezGyjkxNHGLAg60rAv8mjCkmWLD2S1c58="
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-PR-4XPU6jkgmTzHVYgbmMxj",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
+                        "value": "cVnUxFk0nWaYjt/HHxEH5EE2CNjQA/cED3nHArPe9gza8ny8p7/pyYSyApdk4ujo8802qgVJOILRzy+Vkk9GTEcX2IhdasoGCA92xSjtF/KsXoLT/ODt018wQwTB5rNqXDaQPqOdX21pWiGnaEGWUgCJYPVTMKGYhDKqZlKB6djJ7RVqBa0D+P9t0AQRpcYvR6hOpcXjIXwnHy5SanZNuatlMUO5BbeNXs/sUvVj2FphtEoVc58u6+dUVO4Rggm2dS16j/M9K2Zv/33kShWFecnYzw6uCc11XG0hqMntQIOTLcaVLsDyAIQ2fcxaZrWAlzXXdO5P7SmBvTQkZae3wUJJwpZBF8XXcoYD1fGOl4ezGyjkxNHGLNdj+vvVsl0JqaZZfJBX7p4="
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-PR-eeVZ6oQvg8j5nfeLWMvA",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
+                        "value": "cVnUxFk0nWaYjt/HHxEH5EE2CNjQA/cED3nHArPe9gza8ny8p7/pyYSyApdk4uji/cgmyGQxTfXc3VKTkz9PLE4KwYxMEbQGdAJ0xSjtF/KsXoLT/ODt018wQwTB5rNqXDaQPqOdX21pWiGnaEGWUgCJYPVTMKGYhDKqZlKB6djJ7RVqBa0D+P9t0AQRpcYvR6hOpcXjIXwnHyRcb2Yv2NMQRk6reLGMLsaMW+h63Esaykppfp0u6+dUVO4Rggm2dS16j/M9K2Zv/33kShWFecnYzw6uCc11XG0hqMntQIOTLcaVLsDyAIQ2fcxaZrWAlzXXdO5P7SmBvTQkZae3wUJJwpZBF8XXcoYD1fGOl4ezGyjkxNHGLI3ULCxLPR/82TSL6Y/S59Y="
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
