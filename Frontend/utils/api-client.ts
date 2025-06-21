@@ -134,12 +134,40 @@ export const api = {
     },
 
     // Flight Pricing
-    getFlightPrice: async (offerId: string, shoppingResponseId: string, airShoppingRs: any) => {
-        return apiClient.post('/api/verteil/flight-price', {
-            offer_id: offerId,
-            shopping_response_id: shoppingResponseId,
-            air_shopping_rs: airShoppingRs
-        });
+    getFlightPrice: async (offerId: string, shoppingResponseId: string, airShoppingResponse: any) => {
+        try {
+            logger.info('Sending flight price request', {
+                offerId,
+                shoppingResponseId,
+                hasAirShoppingResponse: !!airShoppingResponse,
+                airShoppingResponseType: airShoppingResponse ? typeof airShoppingResponse : 'undefined'
+            });
+            
+            const response = await apiClient.post('/api/verteil/flight-price', {
+                offer_id: offerId,
+                shopping_response_id: shoppingResponseId,
+                air_shopping_response: airShoppingResponse
+            });
+            
+            logger.info('Flight price response received', {
+                status: response.status,
+                data: response.data ? 'Received' : 'No data'
+            });
+            
+            return response;
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            const errorResponse = error && typeof error === 'object' && 'response' in error 
+                ? (error as any).response?.data 
+                : undefined;
+                
+            logger.error('Error in getFlightPrice', {
+                error: errorMessage,
+                response: errorResponse
+            });
+            
+            throw new Error(errorResponse?.message || errorMessage);
+        }
     },
 
     // Booking - Use fetch directly to call Next.js API route

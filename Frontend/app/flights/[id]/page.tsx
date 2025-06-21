@@ -238,11 +238,19 @@ export default function FlightDetailsPage() {
           }, null, 2)}`);
         }
         
-        // Call the flight-price API endpoint
+        // Log the data we're sending to the API
+        console.log('Sending to flight-price API:', {
+          offerId: selectedOffer.id,
+          shoppingResponseId,
+          hasAirShoppingRsData: !!airShoppingRsData,
+          airShoppingRsDataKeys: airShoppingRsData ? Object.keys(airShoppingRsData) : []
+        });
+        
+        // Call the flight-price API endpoint with the complete air shopping response
         const response = await api.getFlightPrice(
           selectedOffer.id,
           shoppingResponseId,
-          airShoppingRsData
+          airShoppingResponseData // Pass the complete response data
         )
         
         // Set the priced offer data

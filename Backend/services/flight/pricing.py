@@ -112,37 +112,58 @@ class FlightPricingService(FlightService):
             The airline code (e.g., 'KQ', 'WY') or None if not found
         """
         try:
+            logger.info(f"[DEBUG] Starting airline code extraction for offer_id: {offer_id}")
+            
+            # Log the full response structure for debugging
+            logger.debug(f"[DEBUG] Full airshopping_response keys: {list(airshopping_response.keys())}")
+            
             # Handle both wrapped and unwrapped response formats
-            # Check if response is wrapped in 'AirShoppingRS'
             if 'AirShoppingRS' in airshopping_response:
+                logger.debug("[DEBUG] Found AirShoppingRS wrapper")
                 offers_group = airshopping_response['AirShoppingRS'].get('OffersGroup', {})
             else:
+                logger.debug("[DEBUG] No AirShoppingRS wrapper found, using response directly")
                 offers_group = airshopping_response.get('OffersGroup', {})
+            
+            logger.debug(f"[DEBUG] OffersGroup keys: {list(offers_group.keys())}")
             
             # Look for the specific offer
             air_line_offers = offers_group.get('AirlineOffers', [])
             if not isinstance(air_line_offers, list):
                 air_line_offers = [air_line_offers]
             
+            logger.info(f"[DEBUG] Found {len(air_line_offers)} AirlineOffers entries")
+            
             # First pass: Look for exact offer match
-            for airline_offer in air_line_offers:
+            for i, airline_offer in enumerate(air_line_offers):
+                logger.debug(f"[DEBUG] Processing AirlineOffers[{i}] with keys: {list(airline_offer.keys())}")
+                
                 # The structure is AirlineOffers -> AirlineOffer (not 'Offer')
                 offers = airline_offer.get('AirlineOffer', [])
                 if not isinstance(offers, list):
                     offers = [offers]
                 
-                for offer in offers:
+                logger.info(f"[DEBUG] Found {len(offers)} offers in AirlineOffers[{i}].AirlineOffer")
+                
+                for j, offer in enumerate(offers):
+                    logger.debug(f"[DEBUG] Processing offer {j} with keys: {list(offer.keys())}")
+                    
                     # Extract OfferID value properly
                     offer_id_obj = offer.get('OfferID', {})
                     current_offer_id = offer_id_obj.get('value', '') if isinstance(offer_id_obj, dict) else offer_id_obj
+                    
+                    logger.debug(f"[DEBUG] Comparing offer_id: {offer_id} with current_offer_id: {current_offer_id}")
+                    
                     if current_offer_id == offer_id:
+                        logger.info(f"[DEBUG] Found matching offer at AirlineOffers[{i}].AirlineOffer[{j}]")
+                        
                         # Try multiple paths for airline code extraction
                         # 1. From Owner at airline_offer level
                         owner = airline_offer.get('Owner', {})
                         if isinstance(owner, dict):
                             airline_code = owner.get('value')
                             if airline_code:
-                                logger.info(f"Found airline code '{airline_code}' for offer {offer_id} from Owner")
+                                logger.info(f"[DEBUG] Found airline code '{airline_code}' for offer {offer_id} from Owner")
                                 return airline_code
                         
                         # 2. From ValidatingCarrier in the offer
@@ -150,22 +171,47 @@ class FlightPricingService(FlightService):
                         if isinstance(validating_carrier, dict):
                             airline_code = validating_carrier.get('value')
                             if airline_code:
-                                logger.info(f"Found airline code '{airline_code}' for offer {offer_id} from ValidatingCarrier")
+                                logger.info(f"[DEBUG] Found airline code '{airline_code}' for offer {offer_id} from ValidatingCarrier")
                                 return airline_code
                         
                         # 3. From FlightSegments if available
                         flight_segments = offer.get('FlightSegments', [])
                         if isinstance(flight_segments, list) and flight_segments:
-                            for segment in flight_segments:
+                            for k, segment in enumerate(flight_segments):
+                                logger.debug(f"[DEBUG] Processing FlightSegment {k} with keys: {list(segment.keys())}")
                                 operating_carrier = segment.get('OperatingCarrier', {})
                                 if isinstance(operating_carrier, dict):
                                     airline_code = operating_carrier.get('value')
                                     if airline_code:
-                                        logger.info(f"Found airline code '{airline_code}' for offer {offer_id} from FlightSegments")
+                                        logger.info(f"[DEBUG] Found airline code '{airline_code}' for offer {offer_id} from FlightSegments[{k}].OperatingCarrier")
+                                        return airline_code
+                        
+                        # 4. From MarketingCarrier if available
+                        if isinstance(flight_segments, list) and flight_segments:
+                            for k, segment in enumerate(flight_segments):
+                                marketing_carrier = segment.get('MarketingCarrier', {})
+                                if isinstance(marketing_carrier, dict):
+                                    airline_code = marketing_carrier.get('value')
+                                    if airline_code:
+                                        logger.info(f"[DEBUG] Found airline code '{airline_code}' for offer {offer_id} from FlightSegments[{k}].MarketingCarrier")
                                         return airline_code
             
             # If we reach here, the specific offer was not found
-            logger.warning(f"Could not find offer {offer_id} in AirShopping response")
+            logger.warning(f"[DEBUG] Could not find offer {offer_id} in AirShopping response")
+            
+            # Log all offer IDs for debugging
+            all_offer_ids = []
+            for airline_offer in air_line_offers:
+                offers = airline_offer.get('AirlineOffer', [])
+                if not isinstance(offers, list):
+                    offers = [offers]
+                for offer in offers:
+                    offer_id_obj = offer.get('OfferID', {})
+                    current_offer_id = offer_id_obj.get('value', '') if isinstance(offer_id_obj, dict) else offer_id_obj
+                    all_offer_ids.append(current_offer_id)
+            
+            logger.warning(f"[DEBUG] Available offer IDs in response: {all_offer_ids}")
+            
             return None
             
         except Exception as e:
@@ -188,89 +234,152 @@ class FlightPricingService(FlightService):
             Dictionary containing the request payload
         """
         try:
-            # Check if we received transformed frontend data (has 'metadata' and 'offers' keys)
-            if 'metadata' in airshopping_response and 'offers' in airshopping_response:
-                logger.info("DEBUG: Received transformed frontend data, retrieving original from cache")
+            logger.info(f"[DEBUG] Starting to build pricing payload for offer_id: {offer_id}")
+            
+            # Log the incoming airshopping_response structure
+            logger.debug(f"[DEBUG] Incoming airshopping_response keys: {list(airshopping_response.keys())}")
+            
+            # Initialize variables
+            original_response = None
+            data = None
+            selected_offer_index = 0
+            offer_found = False
+            
+            # Check if we have the transformed frontend format with nested data
+            if 'data' in airshopping_response and isinstance(airshopping_response['data'], dict):
+                logger.info("[DEBUG] Found nested data structure in air shopping response")
+                data = airshopping_response['data']
                 
-                # Get the cache key from metadata
-                cache_key = airshopping_response['metadata'].get('cache_key')
-                if not cache_key:
-                    logger.error("DEBUG: No cache_key found in metadata")
-                    raise ValueError("Cache key not found in response metadata")
-                
-                # Retrieve the original cached data
-                from utils.cache_manager import cache_manager
-                cached_data = cache_manager.get(cache_key)
-                
-                if not cached_data:
-                    logger.error(f"DEBUG: No cached data found for key: {cache_key}")
-                    raise ValueError(f"Original response data not found in cache for key: {cache_key}")
-                
-                # Extract the raw_response (original AirShoppingRS format)
-                # The cached data contains the complete result['data'] structure
-                logger.info(f"DEBUG: Cached data keys: {list(cached_data.keys()) if isinstance(cached_data, dict) else 'Not a dict'}")
-                
-                raw_response = cached_data.get('raw_response')
-                if not raw_response:
-                    logger.error("DEBUG: No raw_response found in cached data")
-                    logger.error(f"DEBUG: Available cached_data structure: {str(cached_data)[:500]}...")
-                    raise ValueError("Original AirShoppingRS data not found in cache")
-                
-                logger.info("DEBUG: Successfully retrieved original AirShoppingRS data from cache")
-                logger.info(f"DEBUG: raw_response keys: {list(raw_response.keys()) if isinstance(raw_response, dict) else 'Not a dict'}")
-                
-                # Use the original raw response
-                original_response = raw_response
+                # Check if we have the raw response in the data
+                if 'raw_response' in data:
+                    logger.info("[DEBUG] Using raw_response from nested data")
+                    original_response = data['raw_response']
+                elif 'data' in data and 'raw_response' in data['data']:
+                    logger.info("[DEBUG] Using deeply nested raw_response")
+                    original_response = data['data']['raw_response']
+                else:
+                    logger.info("[DEBUG] No raw_response found, using data directly")
+                    original_response = data
             else:
-                logger.info("DEBUG: Received raw AirShoppingRS data directly")
+                logger.info("[DEBUG] Using airshopping_response directly")
                 original_response = airshopping_response
             
-            # Find the selected offer index based on offer_id
-            selected_offer_index = 0
+            # Log the structure of the response for debugging
+            logger.debug(f"[DEBUG] Original response keys: {list(original_response.keys())}")
             
             # Handle both wrapped and unwrapped response formats
-            # Check if response is wrapped in 'AirShoppingRS'
             if 'AirShoppingRS' in original_response:
-                logger.info("DEBUG: Found AirShoppingRS wrapper, unwrapping data")
+                logger.info("[DEBUG] Found AirShoppingRS wrapper, unwrapping data")
                 air_shopping_data = original_response['AirShoppingRS']
                 offers_group = air_shopping_data.get('OffersGroup', {})
-                # Pass the unwrapped data to build_flight_price_request
                 unwrapped_response = air_shopping_data
             else:
-                logger.info("DEBUG: No AirShoppingRS wrapper found, using data directly")
+                logger.info("[DEBUG] No AirShoppingRS wrapper found, using data directly")
                 offers_group = original_response.get('OffersGroup', {})
                 unwrapped_response = original_response
             
+            # Log the structure of the response for debugging
+            logger.debug(f"[DEBUG] OffersGroup keys: {list(offers_group.keys())}")
+            
             # Validate that we have the expected data structure
             airline_offers_list = offers_group.get('AirlineOffers', [])
-            if not airline_offers_list or not isinstance(airline_offers_list, list):
-                logger.error(f"DEBUG: No valid AirlineOffers found. OffersGroup keys: {list(offers_group.keys()) if isinstance(offers_group, dict) else 'Not a dict'}")
-                raise ValueError("No AirlineOffers found in the response data")
+            if not isinstance(airline_offers_list, list):
+                airline_offers_list = [airline_offers_list]
+            
+            if not airline_offers_list:
+                # Try to find airline offers in other possible locations
+                if 'offers' in original_response:
+                    logger.info("[DEBUG] Found 'offers' key, using it as AirlineOffers")
+                    airline_offers_list = [{'AirlineOffer': original_response['offers']}]
+                else:
+                    error_msg = f"No AirlineOffers found in the response data. Top-level keys: {list(original_response.keys())}"
+                    logger.error(f"[DEBUG] {error_msg}")
+                    raise ValueError("No AirlineOffers found in the response data")
+            
+            logger.info(f"[DEBUG] Found {len(airline_offers_list)} AirlineOffers entries")
             
             # Find the matching offer index
-            if airline_offers_list and isinstance(airline_offers_list, list):
-                airline_offers = airline_offers_list[0].get('AirlineOffer', [])
-                logger.info(f"DEBUG: Found {len(airline_offers)} offers in first AirlineOffers entry")
+            for airline_offers_entry in airline_offers_list:
+                if not isinstance(airline_offers_entry, dict):
+                    continue
+                    
+                # Support both AirlineOffer and offers keys for flexibility
+                airline_offers = airline_offers_entry.get('AirlineOffer', airline_offers_entry.get('offers', []))
+                if not isinstance(airline_offers, list):
+                    airline_offers = [airline_offers]
+                
+                logger.info(f"[DEBUG] Processing {len(airline_offers)} offers in AirlineOffers entry")
+                
                 for i, offer in enumerate(airline_offers):
-                    # Extract OfferID value properly - it's a dict with 'value' field
-                    offer_id_obj = offer.get('OfferID', {})
-                    current_offer_id = offer_id_obj.get('value', '') if isinstance(offer_id_obj, dict) else offer_id_obj
-                    if current_offer_id == offer_id:
+                    if not isinstance(offer, dict):
+                        continue
+                        
+                    # Try multiple ways to get the offer ID
+                    current_offer_id = None
+                    
+                    # Check direct ID first (frontend format)
+                    if 'id' in offer:
+                        current_offer_id = str(offer['id'])
+                    # Then check OfferID object (NDC format)
+                    elif 'OfferID' in offer:
+                        offer_id_obj = offer['OfferID']
+                        current_offer_id = str(offer_id_obj.get('value', '') if isinstance(offer_id_obj, dict) else offer_id_obj)
+                    
+                    if not current_offer_id:
+                        logger.debug(f"[DEBUG] Skipping offer {i} - no valid ID found")
+                        continue
+                    
+                    logger.debug(f"[DEBUG] Checking offer {i}: {current_offer_id} (looking for: {offer_id})")
+                    
+                    if str(current_offer_id) == str(offer_id):
                         selected_offer_index = i
-                        logger.info(f"Found matching offer at index {i} for offer_id: {offer_id}")
+                        offer_found = True
+                        logger.info(f"[DEBUG] Found matching offer at index {i} for offer_id: {offer_id}")
                         break
+                
+                if offer_found:
+                    break
+            
+            if not offer_found:
+                # Log all available offer IDs for debugging
+                all_offer_ids = []
+                for entry in airline_offers_list:
+                    if not isinstance(entry, dict):
+                        continue
+                        
+                    offers = entry.get('AirlineOffer', entry.get('offers', []))
+                    if not isinstance(offers, list):
+                        offers = [offers]
+                    
+                    for offer in offers:
+                        if not isinstance(offer, dict):
+                            continue
+                            
+                        # Try to extract offer ID from different possible locations
+                        if 'id' in offer:
+                            all_offer_ids.append(str(offer['id']))
+                        elif 'OfferID' in offer:
+                            offer_id_obj = offer['OfferID']
+                            current_id = offer_id_obj.get('value', '') if isinstance(offer_id_obj, dict) else offer_id_obj
+                            if current_id:
+                                all_offer_ids.append(str(current_id))
+                
+                error_msg = f"Offer ID {offer_id} not found in response. Available offer IDs: {all_offer_ids}"
+                logger.error(f"[DEBUG] {error_msg}")
+                raise ValueError(f"Offer ID {offer_id} not found in response")
             
             # Use the request builder to create the payload with unwrapped data
+            logger.info(f"[DEBUG] Building FlightPrice payload for offer {offer_id} at index {selected_offer_index}")
             payload = build_flight_price_request(
                 airshopping_response=unwrapped_response,
                 selected_offer_index=selected_offer_index
             )
             
-            logger.info(f"Built FlightPrice payload for offer {offer_id} at index {selected_offer_index}")
+            logger.info("[DEBUG] Successfully built FlightPrice payload")
             return payload
             
         except Exception as e:
-            logger.error(f"Error building FlightPrice payload: {str(e)}")
+            logger.error(f"[ERROR] Error building FlightPrice payload: {str(e)}", exc_info=True)
             raise ValidationError(f"Failed to build pricing payload: {str(e)}") from e
     
     def _process_pricing_response(self, response: Dict[str, Any], request_id: Optional[str] = None) -> Dict[str, Any]:

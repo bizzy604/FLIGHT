@@ -376,7 +376,7 @@ async def flight_price():
     POST JSON Body:
     - offer_id: The ID of the offer to price
     - shopping_response_id: The ShoppingResponseID from AirShoppingRS
-    - air_shopping_rs: The AirShopping response containing offer details
+    - air_shopping_response: The full AirShopping response containing offer details
     - [currency]: Currency code (default: USD)
     
     Returns:
@@ -398,28 +398,56 @@ async def flight_price():
         logger.info(f"Request data keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'} - Request ID: {request_id}")
         
         # Validate required fields
-        required_fields = ['offer_id', 'shopping_response_id', 'air_shopping_rs']
-        missing_fields = [f for f in required_fields if f not in data]
+        required_fields = ['offer_id', 'shopping_response_id', 'air_shopping_response']
+        missing_fields = [f for f in required_fields if f not in data and f != 'air_shopping_response' and f'{f}_id' not in data]
+        
+        # Backward compatibility: Check for air_shopping_rs as well
+        if 'air_shopping_response' not in data and 'air_shopping_rs' in data:
+            data['air_shopping_response'] = data.pop('air_shopping_rs')
+            
+        if not data.get('air_shopping_response'):
+            missing_fields.append('air_shopping_response')
+            
         if missing_fields:
             error_msg = f"Missing required fields: {', '.join(missing_fields)}"
             logger.warning(f"{error_msg} - Request ID: {request_id}")
             return jsonify(_create_error_response(error_msg, 400, request_id))
         
+        # Log the shopping response ID and offer ID for debugging
+        logger.info(f"Processing flight price request - Offer ID: {data['offer_id']}, "
+                   f"Shopping Response ID: {data['shopping_response_id']} - Request ID: {request_id}")
+        
+        # Log basic info about the air shopping response
+        air_shopping = data.get('air_shopping_response', {})
+        logger.debug(f"Air shopping response type: {type(air_shopping)}, "
+                    f"keys: {list(air_shopping.keys()) if isinstance(air_shopping, dict) else 'N/A'}")
+        
         # Prepare request data
         price_request = {
             'offer_id': data['offer_id'],
             'shopping_response_id': data['shopping_response_id'],
-            'air_shopping_response': data['air_shopping_rs'],
+            'air_shopping_response': air_shopping,
             'currency': data.get('currency', 'USD'),
             'request_id': request_id,
             'config': dict(current_app.config)  # Pass the app configuration
         }
         
-        # Process the flight price request
-        result = await process_flight_price(price_request)
-        
-        logger.info(f"Flight price request completed - Request ID: {request_id}")
-        return jsonify(result)
+        try:
+            # Process the flight price request
+            result = await process_flight_price(price_request)
+            
+            # Log the result status
+            if result and isinstance(result, dict):
+                status = result.get('status', 'unknown')
+                logger.info(f"Flight price request completed with status: {status} - Request ID: {request_id}")
+                if status == 'error':
+                    logger.error(f"Error in flight price request: {result.get('error', 'No error details')} - Request ID: {request_id}")
+            
+            return jsonify(result)
+            
+        except Exception as e:
+            logger.error(f"Unhandled exception in flight price endpoint: {str(e)} - Request ID: {request_id}", exc_info=True)
+            return jsonify(_create_error_response("An internal server error occurred", 500, request_id))
         
     except json.JSONDecodeError:
         error_msg = "Invalid JSON payload"
