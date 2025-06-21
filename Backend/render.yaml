@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: flight-backend
+    env: python
+    pythonVersion: 3.10.13
+    buildCommand: |
+      chmod +x ./setup.sh
+      ./setup.sh
+    startCommand: gunicorn wsgi:app --worker-class uvicorn.workers.UvicornWorker --workers 4 --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.13
+      - key: PORT
+        value: 8000
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: PYTHONDONTWRITEBYTECODE
+        value: 1
+      - key: RUST_BACKTRACE
+        value: 1
+    plan: free

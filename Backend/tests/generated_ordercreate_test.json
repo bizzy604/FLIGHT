@@ -1,0 +1,384 @@
+{
+  "Query": {
+    "OrderItems": {
+      "ShoppingResponse": {
+        "Owner": "ET",
+        "ResponseID": {
+          "value": "TSg6c1Rjk9fMX1hXO5PLwfj50D-Zr3RWSpHU-sN6O0E-ET"
+        },
+        "Offers": {
+          "Offer": [
+            {
+              "OfferID": {
+                "ObjectKey": "PRICEDOFFER",
+                "value": "PRICEDOFFER",
+                "Owner": "ET",
+                "Channel": "NDC"
+              },
+              "OfferItems": {
+                "OfferItem": [
+                  {
+                    "OfferItemID": {
+                      "Owner": "ET",
+                      "value": "OFFERITEM-9739171204"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "OfferItem": [
+        {
+          "OfferItemID": {
+            "Owner": "ET",
+            "value": "OFFERITEM-9739171204"
+          },
+          "OfferItemType": {
+            "DetailedFlightItem": [
+              {
+                "Price": {
+                  "BaseAmount": {
+                    "Code": "INR",
+                    "value": 40895
+                  },
+                  "Taxes": {
+                    "Total": {
+                      "Code": "INR",
+                      "value": 27443
+                    }
+                  }
+                },
+                "OriginDestination": [
+                  {
+                    "Flight": [
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "NBO"
+                          },
+                          "Date": "2025-06-25T00:00:00.000",
+                          "Terminal": {
+                            "Name": "1C"
+                          },
+                          "Time": "05:00"
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "ADD"
+                          },
+                          "Date": "2025-06-25T00:00:00.000",
+                          "Terminal": {
+                            "Name": "2"
+                          },
+                          "Time": "07:15"
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "H"
+                          },
+                          "MarketingName": {
+                            "CabinDesignator": "Y",
+                            "value": "ECONOMY"
+                          },
+                          "refs": [
+                            "FG-HOWKE"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "ET"
+                          },
+                          "FlightNumber": {
+                            "value": "309"
+                          },
+                          "Name": "Ethiopian Airlines"
+                        },
+                        "Equipment": {
+                          "AircraftCode": {
+                            "value": "7M8"
+                          }
+                        },
+                        "FlightDetail": {
+                          "FlightDuration": {
+                            "Value": "PT2H15M"
+                          }
+                        },
+                        "SegmentKey": "SEG_NBOADD_049"
+                      },
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "ADD"
+                          },
+                          "Date": "2025-06-25T00:00:00.000",
+                          "Terminal": {
+                            "Name": "2"
+                          },
+                          "Time": "09:05"
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "KHI"
+                          },
+                          "Date": "2025-06-25T00:00:00.000",
+                          "Time": "16:20"
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "H"
+                          },
+                          "MarketingName": {
+                            "CabinDesignator": "Y",
+                            "value": "ECONOMY"
+                          },
+                          "refs": [
+                            "FG-HOWKE"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "ET"
+                          },
+                          "FlightNumber": {
+                            "value": "694"
+                          },
+                          "Name": "Ethiopian Airlines"
+                        },
+                        "Equipment": {
+                          "AircraftCode": {
+                            "value": "7M8"
+                          }
+                        },
+                        "FlightDetail": {
+                          "FlightDuration": {
+                            "Value": "PT5H15M"
+                          }
+                        },
+                        "SegmentKey": "SEG_ADDKHI_050"
+                      },
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "KHI"
+                          },
+                          "Date": "2025-06-26T00:00:00.000",
+                          "Time": "01:15"
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "DXB"
+                          },
+                          "Date": "2025-06-26T00:00:00.000",
+                          "Terminal": {
+                            "Name": "1"
+                          },
+                          "Time": "02:45"
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "H"
+                          },
+                          "MarketingName": {
+                            "CabinDesignator": "Y",
+                            "value": "ECONOMY"
+                          },
+                          "refs": [
+                            "FG-HOWPK"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "ET"
+                          },
+                          "FlightNumber": {
+                            "value": "4357"
+                          },
+                          "Name": "Ethiopian Airlines"
+                        },
+                        "Equipment": {
+                          "AircraftCode": {
+                            "value": "320"
+                          }
+                        },
+                        "FlightDetail": {
+                          "FlightDuration": {
+                            "Value": "PT2H30M"
+                          }
+                        },
+                        "SegmentKey": "SEG_KHIDXB_051"
+                      }
+                    ],
+                    "OriginDestinationKey": "OD-1"
+                  }
+                ],
+                "refs": [
+                  "PAX1"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "DataLists": {
+      "FareList": {
+        "FareGroup": [
+          {
+            "ListKey": "FG-HOWKE",
+            "FareBasisCode": {
+              "Code": "HOWKE"
+            }
+          },
+          {
+            "ListKey": "FG-HOWPK",
+            "FareBasisCode": {
+              "Code": "HOWPK"
+            }
+          }
+        ]
+      }
+    },
+    "Passengers": {
+      "Passenger": [
+        {
+          "ObjectKey": "PAX1",
+          "PTC": {
+            "value": "ADT"
+          },
+          "Name": {
+            "Title": "Mr",
+            "Given": [
+              {
+                "value": "John"
+              }
+            ],
+            "Surname": {
+              "value": "Doe"
+            }
+          },
+          "Gender": {
+            "value": "Male"
+          },
+          "Age": {
+            "BirthDate": {
+              "value": "1985-03-15"
+            }
+          },
+          "Contacts": {
+            "Contact": [
+              {
+                "ContactType": "Email",
+                "EmailContact": {
+                  "Address": "john.doe@email.com"
+                }
+              },
+              {
+                "ContactType": "Phone",
+                "PhoneContact": {
+                  "Number": "+1234567890"
+                }
+              }
+            ]
+          },
+          "PassengerIDInfo": {
+            "PassengerDocument": [
+              {
+                "Type": "PT",
+                "ID": "A12345678",
+                "DateOfExpiration": "2030-12-31",
+                "CountryOfIssuance": "US"
+              }
+            ]
+          }
+        },
+        {
+          "ObjectKey": "PAX2",
+          "PTC": {
+            "value": "ADT"
+          },
+          "Name": {
+            "Title": "Mrs",
+            "Given": [
+              {
+                "value": "Jane"
+              }
+            ],
+            "Surname": {
+              "value": "Doe"
+            }
+          },
+          "Gender": {
+            "value": "Female"
+          },
+          "Age": {
+            "BirthDate": {
+              "value": "1987-07-22"
+            }
+          },
+          "PassengerIDInfo": {
+            "PassengerDocument": [
+              {
+                "Type": "PT",
+                "ID": "B87654321",
+                "DateOfExpiration": "2029-06-15",
+                "CountryOfIssuance": "US"
+              }
+            ]
+          }
+        },
+        {
+          "ObjectKey": "PAX11",
+          "PTC": {
+            "value": "CHD"
+          },
+          "Name": {
+            "Title": "Miss",
+            "Given": [
+              {
+                "value": "Emily"
+              }
+            ],
+            "Surname": {
+              "value": "Doe"
+            }
+          },
+          "Gender": {
+            "value": "Female"
+          },
+          "Age": {
+            "BirthDate": {
+              "value": "2015-09-10"
+            }
+          },
+          "PassengerIDInfo": {
+            "PassengerDocument": [
+              {
+                "Type": "PT",
+                "ID": "C11223344",
+                "DateOfExpiration": "2028-03-20",
+                "CountryOfIssuance": "US"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "Payments": {
+      "Payment": [
+        {
+          "Amount": {
+            "Code": "INR",
+            "value": 68338.0
+          },
+          "Method": {
+            "Cash": {
+              "CashInd": true
+            }
+          }
+        }
+      ]
+    }
+  }
+}

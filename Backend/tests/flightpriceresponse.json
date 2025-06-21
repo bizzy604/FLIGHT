@@ -1,0 +1,819 @@
+{
+  "data": {
+    "fare_rules": [],
+    "metadata": {
+      "cache_key": "flight_price_response:cacbc04b-1a68-4911-a7ea-1d2eb7345d15",
+      "cached": true,
+      "request_id": "cacbc04b-1a68-4911-a7ea-1d2eb7345d15"
+    },
+    "offer_id": null,
+    "price_info": {},
+    "pricing_response_id": null,
+    "raw_response": {
+      "DataLists": {
+        "AnonymousTravelerList": {
+          "AnonymousTraveler": [
+            {
+              "ObjectKey": "PAX1",
+              "PTC": {
+                "value": "ADT"
+              }
+            }
+          ]
+        },
+        "CarryOnAllowanceList": {
+          "CarryOnAllowance": [
+            {
+              "AllowanceDescription": {
+                "ApplicableParty": "Traveler",
+                "Descriptions": {
+                  "Description": [
+                    {
+                      "Text": {
+                        "value": "CARRYON"
+                      }
+                    }
+                  ]
+                }
+              },
+              "ListKey": "CARRYON-BAG-KHI#DXBADT",
+              "WeightAllowance": {
+                "ApplicableParty": "Traveler",
+                "MaximumWeight": [
+                  {
+                    "UOM": "Kilogram",
+                    "Value": 7
+                  }
+                ]
+              }
+            },
+            {
+              "AllowanceDescription": {
+                "ApplicableParty": "Traveler",
+                "Descriptions": {
+                  "Description": [
+                    {
+                      "Text": {
+                        "value": "45.0INCHES/115.0 CENTIMETERS"
+                      }
+                    }
+                  ]
+                }
+              },
+              "ListKey": "CARRYON-BAG-ADD#KHIADT",
+              "PieceAllowance": [
+                {
+                  "ApplicableParty": "Traveler",
+                  "TotalQuantity": 1
+                }
+              ],
+              "WeightAllowance": {
+                "ApplicableParty": "Traveler",
+                "MaximumWeight": [
+                  {
+                    "UOM": "Kilogram",
+                    "Value": 7
+                  },
+                  {
+                    "UOM": "Pound",
+                    "Value": 15
+                  }
+                ]
+              }
+            },
+            {
+              "AllowanceDescription": {
+                "ApplicableParty": "Traveler",
+                "Descriptions": {
+                  "Description": [
+                    {
+                      "Text": {
+                        "value": "45.0INCHES/115.0 CENTIMETERS"
+                      }
+                    }
+                  ]
+                }
+              },
+              "ListKey": "CARRYON-BAG-NBO#ADDADT",
+              "PieceAllowance": [
+                {
+                  "ApplicableParty": "Traveler",
+                  "TotalQuantity": 1
+                }
+              ],
+              "WeightAllowance": {
+                "ApplicableParty": "Traveler",
+                "MaximumWeight": [
+                  {
+                    "UOM": "Kilogram",
+                    "Value": 7
+                  },
+                  {
+                    "UOM": "Pound",
+                    "Value": 15
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "CheckedBagAllowanceList": {
+          "CheckedBagAllowance": [
+            {
+              "AllowanceDescription": {
+                "ApplicableParty": "Traveler",
+                "Descriptions": {
+                  "Description": [
+                    {
+                      "Text": {
+                        "value": "CHECKED"
+                      }
+                    }
+                  ]
+                }
+              },
+              "ListKey": "CHECKED-BAG-OD-1ADT",
+              "PieceAllowance": [
+                {
+                  "ApplicableParty": "Traveler",
+                  "TotalQuantity": 2
+                }
+              ],
+              "WeightAllowance": {
+                "ApplicableParty": "Traveler",
+                "MaximumWeight": [
+                  {
+                    "UOM": "Kilogram",
+                    "Value": 23
+                  },
+                  {
+                    "UOM": "Pound",
+                    "Value": 50
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "FareList": {
+          "FareGroup": [
+            {
+              "FareBasisCode": {
+                "Code": "HOWKE"
+              },
+              "ListKey": "FG-HOWKE"
+            },
+            {
+              "FareBasisCode": {
+                "Code": "HOWPK"
+              },
+              "ListKey": "FG-HOWPK"
+            }
+          ]
+        },
+        "FlightList": {
+          "Flight": [
+            {
+              "FlightKey": "FLT021",
+              "SegmentReferences": {
+                "value": [
+                  "SEG_NBOADD_049",
+                  "SEG_ADDKHI_050",
+                  "SEG_KHIDXB_051"
+                ]
+              }
+            }
+          ]
+        },
+        "FlightSegmentList": {
+          "FlightSegment": [
+            {
+              "Arrival": {
+                "AirportCode": {
+                  "value": "ADD"
+                },
+                "Date": "2025-06-25T00:00:00.000",
+                "Terminal": {
+                  "Name": "2"
+                },
+                "Time": "07:15"
+              },
+              "Departure": {
+                "AirportCode": {
+                  "value": "NBO"
+                },
+                "Date": "2025-06-25T00:00:00.000",
+                "Terminal": {
+                  "Name": "1C"
+                },
+                "Time": "05:00"
+              },
+              "Equipment": {
+                "AircraftCode": {
+                  "value": "7M8"
+                }
+              },
+              "FlightDetail": {
+                "FlightDuration": {
+                  "Value": "PT2H15M"
+                }
+              },
+              "MarketingCarrier": {
+                "AirlineID": {
+                  "value": "ET"
+                },
+                "FlightNumber": {
+                  "value": "309"
+                },
+                "Name": "Ethiopian Airlines"
+              },
+              "OperatingCarrier": {
+                "AirlineID": {
+                  "value": "ET"
+                },
+                "Name": "Ethiopian Airlines"
+              },
+              "SegmentKey": "SEG_NBOADD_049"
+            },
+            {
+              "Arrival": {
+                "AirportCode": {
+                  "value": "KHI"
+                },
+                "Date": "2025-06-25T00:00:00.000",
+                "Time": "16:20"
+              },
+              "Departure": {
+                "AirportCode": {
+                  "value": "ADD"
+                },
+                "Date": "2025-06-25T00:00:00.000",
+                "Terminal": {
+                  "Name": "2"
+                },
+                "Time": "09:05"
+              },
+              "Equipment": {
+                "AircraftCode": {
+                  "value": "7M8"
+                }
+              },
+              "FlightDetail": {
+                "FlightDuration": {
+                  "Value": "PT5H15M"
+                }
+              },
+              "MarketingCarrier": {
+                "AirlineID": {
+                  "value": "ET"
+                },
+                "FlightNumber": {
+                  "value": "694"
+                },
+                "Name": "Ethiopian Airlines"
+              },
+              "OperatingCarrier": {
+                "AirlineID": {
+                  "value": "ET"
+                },
+                "Name": "Ethiopian Airlines"
+              },
+              "SegmentKey": "SEG_ADDKHI_050"
+            },
+            {
+              "Arrival": {
+                "AirportCode": {
+                  "value": "DXB"
+                },
+                "Date": "2025-06-26T00:00:00.000",
+                "Terminal": {
+                  "Name": "1"
+                },
+                "Time": "02:45"
+              },
+              "Departure": {
+                "AirportCode": {
+                  "value": "KHI"
+                },
+                "Date": "2025-06-26T00:00:00.000",
+                "Time": "01:15"
+              },
+              "Equipment": {
+                "AircraftCode": {
+                  "value": "320"
+                }
+              },
+              "FlightDetail": {
+                "FlightDuration": {
+                  "Value": "PT2H30M"
+                }
+              },
+              "MarketingCarrier": {
+                "AirlineID": {
+                  "value": "ET"
+                },
+                "FlightNumber": {
+                  "value": "4357"
+                },
+                "Name": "Ethiopian Airlines"
+              },
+              "OperatingCarrier": {
+                "AirlineID": {
+                  "value": "PK"
+                },
+                "Name": "PIA Pakistan International Airlines"
+              },
+              "SegmentKey": "SEG_KHIDXB_051"
+            }
+          ]
+        },
+        "OriginDestinationList": {
+          "OriginDestination": [
+            {
+              "ArrivalCode": {
+                "value": "DXB"
+              },
+              "DepartureCode": {
+                "value": "NBO"
+              },
+              "FlightReferences": {
+                "value": [
+                  "FLT021"
+                ]
+              },
+              "OriginDestinationKey": "OD-1"
+            }
+          ]
+        },
+        "PenaltyList": {
+          "Penalty": [
+            {
+              "ChangeAllowedInd": true,
+              "ChangeFeeInd": true,
+              "Details": {
+                "Detail": [
+                  {
+                    "Amounts": {
+                      "Amount": [
+                        {
+                          "AmountApplication": "MIN",
+                          "ApplicableFeeRemarks": {
+                            "Remark": [
+                              {
+                                "value": "Allowed"
+                              }
+                            ]
+                          },
+                          "CurrencyAmountValue": {
+                            "Code": "USD",
+                            "value": 100
+                          }
+                        },
+                        {
+                          "AmountApplication": "MAX",
+                          "ApplicableFeeRemarks": {
+                            "Remark": [
+                              {
+                                "value": "Allowed"
+                              }
+                            ]
+                          },
+                          "CurrencyAmountValue": {
+                            "Code": "USD",
+                            "value": 100
+                          }
+                        }
+                      ]
+                    },
+                    "Application": {
+                      "Code": "2"
+                    },
+                    "Type": "Change"
+                  }
+                ]
+              },
+              "ObjectKey": "SEG_NBOADD_049-SEG_ADDKHI_050-SEG_KHIDXB_051-PRICE_CLASS_PENALTY.BEFORE_DEPARTURE.CHANGE"
+            },
+            {
+              "CancelFeeInd": true,
+              "Details": {
+                "Detail": [
+                  {
+                    "Amounts": {
+                      "Amount": [
+                        {
+                          "AmountApplication": "MIN",
+                          "ApplicableFeeRemarks": {
+                            "Remark": [
+                              {
+                                "value": "Allowed"
+                              }
+                            ]
+                          },
+                          "CurrencyAmountValue": {
+                            "Code": "USD",
+                            "value": 150
+                          }
+                        },
+                        {
+                          "AmountApplication": "MAX",
+                          "ApplicableFeeRemarks": {
+                            "Remark": [
+                              {
+                                "value": "Allowed"
+                              }
+                            ]
+                          },
+                          "CurrencyAmountValue": {
+                            "Code": "USD",
+                            "value": 150
+                          }
+                        }
+                      ]
+                    },
+                    "Application": {
+                      "Code": "3"
+                    },
+                    "Type": "Cancel"
+                  }
+                ]
+              },
+              "ObjectKey": "SEG_NBOADD_049-SEG_ADDKHI_050-SEG_KHIDXB_051-PRICE_CLASS_PENALTY.AFTER_DEPARTURE.CANCEL",
+              "RefundableInd": true
+            },
+            {
+              "CancelFeeInd": true,
+              "Details": {
+                "Detail": [
+                  {
+                    "Amounts": {
+                      "Amount": [
+                        {
+                          "AmountApplication": "MIN",
+                          "ApplicableFeeRemarks": {
+                            "Remark": [
+                              {
+                                "value": "Allowed"
+                              }
+                            ]
+                          },
+                          "CurrencyAmountValue": {
+                            "Code": "USD",
+                            "value": 150
+                          }
+                        },
+                        {
+                          "AmountApplication": "MAX",
+                          "ApplicableFeeRemarks": {
+                            "Remark": [
+                              {
+                                "value": "Allowed"
+                              }
+                            ]
+                          },
+                          "CurrencyAmountValue": {
+                            "Code": "USD",
+                            "value": 150
+                          }
+                        }
+                      ]
+                    },
+                    "Application": {
+                      "Code": "2"
+                    },
+                    "Type": "Cancel"
+                  }
+                ]
+              },
+              "ObjectKey": "SEG_NBOADD_049-SEG_ADDKHI_050-SEG_KHIDXB_051-PRICE_CLASS_PENALTY.BEFORE_DEPARTURE.CANCEL",
+              "RefundableInd": true
+            },
+            {
+              "CancelFeeInd": true,
+              "Details": {
+                "Detail": [
+                  {
+                    "Amounts": {
+                      "Amount": [
+                        {
+                          "AmountApplication": "MIN",
+                          "ApplicableFeeRemarks": {
+                            "Remark": [
+                              {
+                                "value": "Allowed"
+                              }
+                            ]
+                          },
+                          "CurrencyAmountValue": {
+                            "Code": "USD",
+                            "value": 50
+                          }
+                        },
+                        {
+                          "AmountApplication": "MAX",
+                          "ApplicableFeeRemarks": {
+                            "Remark": [
+                              {
+                                "value": "Allowed"
+                              }
+                            ]
+                          },
+                          "CurrencyAmountValue": {
+                            "Code": "USD",
+                            "value": 50
+                          }
+                        }
+                      ]
+                    },
+                    "Application": {
+                      "Code": "4"
+                    },
+                    "Type": "Cancel-NoShow"
+                  }
+                ]
+              },
+              "ObjectKey": "SEG_NBOADD_049-SEG_ADDKHI_050-SEG_KHIDXB_051-PRICE_CLASS_PENALTY.NO_SHOW.CANCEL",
+              "RefundableInd": true
+            },
+            {
+              "ChangeAllowedInd": true,
+              "ChangeFeeInd": true,
+              "Details": {
+                "Detail": [
+                  {
+                    "Amounts": {
+                      "Amount": [
+                        {
+                          "AmountApplication": "MIN",
+                          "ApplicableFeeRemarks": {
+                            "Remark": [
+                              {
+                                "value": "Allowed"
+                              }
+                            ]
+                          },
+                          "CurrencyAmountValue": {
+                            "Code": "USD",
+                            "value": 50
+                          }
+                        },
+                        {
+                          "AmountApplication": "MAX",
+                          "ApplicableFeeRemarks": {
+                            "Remark": [
+                              {
+                                "value": "Allowed"
+                              }
+                            ]
+                          },
+                          "CurrencyAmountValue": {
+                            "Code": "USD",
+                            "value": 50
+                          }
+                        }
+                      ]
+                    },
+                    "Application": {
+                      "Code": "4"
+                    },
+                    "Type": "Change-NoShow"
+                  }
+                ]
+              },
+              "ObjectKey": "SEG_NBOADD_049-SEG_ADDKHI_050-SEG_KHIDXB_051-PRICE_CLASS_PENALTY.NO_SHOW.CHANGE"
+            },
+            {
+              "ChangeAllowedInd": true,
+              "ChangeFeeInd": true,
+              "Details": {
+                "Detail": [
+                  {
+                    "Amounts": {
+                      "Amount": [
+                        {
+                          "AmountApplication": "MIN",
+                          "ApplicableFeeRemarks": {
+                            "Remark": [
+                              {
+                                "value": "Allowed"
+                              }
+                            ]
+                          },
+                          "CurrencyAmountValue": {
+                            "Code": "USD",
+                            "value": 100
+                          }
+                        },
+                        {
+                          "AmountApplication": "MAX",
+                          "ApplicableFeeRemarks": {
+                            "Remark": [
+                              {
+                                "value": "Allowed"
+                              }
+                            ]
+                          },
+                          "CurrencyAmountValue": {
+                            "Code": "USD",
+                            "value": 100
+                          }
+                        }
+                      ]
+                    },
+                    "Application": {
+                      "Code": "3"
+                    },
+                    "Type": "Change"
+                  }
+                ]
+              },
+              "ObjectKey": "SEG_NBOADD_049-SEG_ADDKHI_050-SEG_KHIDXB_051-PRICE_CLASS_PENALTY.AFTER_DEPARTURE.CHANGE"
+            }
+          ]
+        },
+        "PriceClassList": {
+          "PriceClass": [
+            {
+              "Name": "ECONOMY SEMI FLEX",
+              "ObjectKey": "SD_ES"
+            }
+          ]
+        }
+      },
+      "PricedFlightOffers": {
+        "PricedFlightOffer": [
+          {
+            "OfferID": {
+              "Channel": "NDC",
+              "ObjectKey": "PRICEDOFFER",
+              "Owner": "ET",
+              "value": "PRICEDOFFER"
+            },
+            "OfferPrice": [
+              {
+                "FareDetail": {
+                  "FareComponent": [
+                    {
+                      "FareRules": {
+                        "Penalty": {
+                          "refs": [
+                            "SEG_NBOADD_049-SEG_ADDKHI_050-SEG_KHIDXB_051-PRICE_CLASS_PENALTY.BEFORE_DEPARTURE.CHANGE",
+                            "SEG_NBOADD_049-SEG_ADDKHI_050-SEG_KHIDXB_051-PRICE_CLASS_PENALTY.AFTER_DEPARTURE.CANCEL",
+                            "SEG_NBOADD_049-SEG_ADDKHI_050-SEG_KHIDXB_051-PRICE_CLASS_PENALTY.BEFORE_DEPARTURE.CANCEL",
+                            "SEG_NBOADD_049-SEG_ADDKHI_050-SEG_KHIDXB_051-PRICE_CLASS_PENALTY.NO_SHOW.CANCEL",
+                            "SEG_NBOADD_049-SEG_ADDKHI_050-SEG_KHIDXB_051-PRICE_CLASS_PENALTY.NO_SHOW.CHANGE",
+                            "SEG_NBOADD_049-SEG_ADDKHI_050-SEG_KHIDXB_051-PRICE_CLASS_PENALTY.AFTER_DEPARTURE.CHANGE"
+                          ]
+                        }
+                      },
+                      "PriceClassReference": [
+                        "SD_ES"
+                      ],
+                      "refs": [
+                        "SEG_NBOADD_049",
+                        "SEG_ADDKHI_050",
+                        "SEG_KHIDXB_051"
+                      ]
+                    }
+                  ]
+                },
+                "OfferItemID": "OFFERITEM-9739171204",
+                "RequestedDate": {
+                  "Associations": [
+                    {
+                      "ApplicableFlight": {
+                        "FlightReferences": {
+                          "value": [
+                            "FLT021"
+                          ]
+                        },
+                        "FlightSegmentReference": [
+                          {
+                            "BagDetailAssociation": {
+                              "CarryOnReferences": [
+                                "CARRYON-BAG-NBO#ADDADT"
+                              ],
+                              "CheckedBagReferences": [
+                                "CHECKED-BAG-OD-1ADT"
+                              ]
+                            },
+                            "ClassOfService": {
+                              "Code": {
+                                "value": "H"
+                              },
+                              "MarketingName": {
+                                "CabinDesignator": "Y",
+                                "value": "ECONOMY"
+                              },
+                              "refs": [
+                                "FG-HOWKE"
+                              ]
+                            },
+                            "ref": "SEG_NBOADD_049"
+                          },
+                          {
+                            "BagDetailAssociation": {
+                              "CarryOnReferences": [
+                                "CARRYON-BAG-ADD#KHIADT"
+                              ],
+                              "CheckedBagReferences": [
+                                "CHECKED-BAG-OD-1ADT"
+                              ]
+                            },
+                            "ClassOfService": {
+                              "Code": {
+                                "value": "H"
+                              },
+                              "MarketingName": {
+                                "CabinDesignator": "Y",
+                                "value": "ECONOMY"
+                              },
+                              "refs": [
+                                "FG-HOWKE"
+                              ]
+                            },
+                            "ref": "SEG_ADDKHI_050"
+                          },
+                          {
+                            "BagDetailAssociation": {
+                              "CarryOnReferences": [
+                                "CARRYON-BAG-KHI#DXBADT"
+                              ],
+                              "CheckedBagReferences": [
+                                "CHECKED-BAG-OD-1ADT"
+                              ]
+                            },
+                            "ClassOfService": {
+                              "Code": {
+                                "value": "H"
+                              },
+                              "MarketingName": {
+                                "CabinDesignator": "Y",
+                                "value": "ECONOMY"
+                              },
+                              "refs": [
+                                "FG-HOWPK"
+                              ]
+                            },
+                            "ref": "SEG_KHIDXB_051"
+                          }
+                        ],
+                        "OriginDestinationReferences": [
+                          "OD-1"
+                        ]
+                      },
+                      "AssociatedTraveler": {
+                        "TravelerReferences": [
+                          "PAX1"
+                        ]
+                      },
+                      "PriceClass": {
+                        "PriceClassReference": "SD_ES"
+                      }
+                    }
+                  ],
+                  "PriceDetail": {
+                    "BaseAmount": {
+                      "Code": "INR",
+                      "value": 40895
+                    },
+                    "Taxes": {
+                      "Total": {
+                        "Code": "INR",
+                        "value": 27443
+                      }
+                    },
+                    "TotalAmount": {
+                      "SimpleCurrencyPrice": {
+                        "Code": "INR",
+                        "value": 68338
+                      }
+                    }
+                  }
+                }
+              }
+            ],
+            "TimeLimits": {
+              "OfferExpiration": {
+                "DateTime": "2025-06-20T10:51:01.000"
+              },
+              "Payment": {
+                "DateTime": "1900-01-01T00:00:00.000"
+              }
+            }
+          }
+        ]
+      },
+      "ShoppingResponseID": {
+        "ResponseID": {
+          "value": "TSg6c1Rjk9fMX1hXO5PLwfj50D-Zr3RWSpHU-sN6O0E-ET"
+        }
+      }
+    },
+    "transaction_id": null,
+    "transformation_error": "'FareBasis'",
+    "transformation_status": "failed"
+  },
+  "request_id": "cacbc04b-1a68-4911-a7ea-1d2eb7345d15",
+  "status": "success"
+}

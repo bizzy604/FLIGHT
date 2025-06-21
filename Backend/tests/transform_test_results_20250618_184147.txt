@@ -1,0 +1,117 @@
+================================================================================
+COMPREHENSIVE TRANSFORM_VERTEIL_TO_FRONTEND TEST RESULTS
+Generated: 2025-06-18 18:41:47
+================================================================================
+
+Loading API response data...
+✓ Successfully loaded API response
+  Top-level keys: ['Document', 'OffersGroup', 'DataLists', 'Metadata']
+
+Transforming data with transform_verteil_to_frontend...
+✓ Transformation completed successfully
+  Result type: <class 'dict'>
+  Result keys: ['offers', 'reference_data']
+
+TRANSFORMATION SUMMARY:
+  Total offers created: 106
+  Reference data available: Yes
+
+=== REFERENCE DATA ANALYSIS ===
+Airlines found: 3
+  KQ: Kenya Airways (type: <class 'str'>)
+  KL: KLM (type: <class 'str'>)
+  AF: Air France (type: <class 'str'>)
+
+Airports found: 4
+  AMS: AMS (N/A)
+  CDG: CDG (N/A)
+  LHR: LHR (N/A)
+  NBO: NBO (N/A)
+
+Aircraft found: 0
+
+=== DETAILED OFFER ANALYSIS ===
+
+Offers grouped by airline: 1 airlines
+
+AIRLINE: KQ (106 offers)
+--------------------------------------------------
+Offer 1:
+  ID: 1H0KQZ_N564A9TFGI94J1T8LYGTJPSCMNZ0
+  Direction: N/A
+  Airline Code: KQ
+  Airline Name: Kenya Airways
+  Airline Logo: /airlines/KQ.svg
+  Flight Number: N/A
+  Aircraft: N/A
+  Origin: N/A
+  Destination: N/A
+  Departure: N/A
+  Arrival: N/A
+  Duration: N/A
+  Base Price: N/A
+  Total Price: N/A
+  Currency: N/A
+  Cabin Class: N/A
+  Baggage: {'carryOn': 'Not specified', 'checked': 'Not specified'}
+
+Offer 2:
+  ID: 1H0KQZ_A7QES8A4JKCKWFC39BNMY4QRB6T2
+  Direction: N/A
+  Airline Code: KQ
+  Airline Name: Kenya Airways
+  Airline Logo: /airlines/KQ.svg
+  Flight Number: N/A
+  Aircraft: N/A
+  Origin: N/A
+  Destination: N/A
+  Departure: N/A
+  Arrival: N/A
+  Duration: N/A
+  Base Price: N/A
+  Total Price: N/A
+  Currency: N/A
+  Cabin Class: N/A
+  Baggage: {'carryOn': 'Not specified', 'checked': 'Not specified'}
+
+Offer 3:
+  ID: 1H0KQZ_V1BAKUMVGVCBI92RZK3KJ2JWTUOD
+  Direction: N/A
+  Airline Code: KQ
+  Airline Name: Kenya Airways
+  Airline Logo: /airlines/KQ.svg
+  Flight Number: N/A
+  Aircraft: N/A
+  Origin: N/A
+  Destination: N/A
+  Departure: N/A
+  Arrival: N/A
+  Duration: N/A
+  Base Price: N/A
+  Total Price: N/A
+  Currency: N/A
+  Cabin Class: N/A
+  Baggage: {'carryOn': 'Not specified', 'checked': 'Not specified'}
+
+... and 103 more offers
+
+=== STATISTICAL ANALYSIS ===
+Offers by direction:
+  unknown: 106
+
+Offers by cabin class:
+  unknown: 106
+
+=== VALIDATION CHECKS ===
+Offer 1 missing fields: ['flight', 'route', 'timing', 'pricing']
+Offer 2 missing fields: ['flight', 'route', 'timing', 'pricing']
+Offer 3 missing fields: ['flight', 'route', 'timing', 'pricing']
+Offer 4 missing fields: ['flight', 'route', 'timing', 'pricing']
+Offer 5 missing fields: ['flight', 'route', 'timing', 'pricing']
+Unique airline codes found: 1
+Airline codes: ['KQ']
+✓ All offer IDs are unique (106 offers)
+
+================================================================================
+TEST COMPLETED
+================================================================================

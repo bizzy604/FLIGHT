@@ -1,0 +1,142 @@
+{
+  "id": "KQ-KQ-SEG3-KQ-SEG16-16409",
+  "airline": {
+    "code": "KQ",
+    "name": "Kenya Airways",
+    "logo": "/airlines/kq.png",
+    "flightNumber": "KQ112"
+  },
+  "departure": {
+    "airport": "NBO",
+    "datetime": "2025-06-09T23:50:00.000",
+    "time": "23:50:00",
+    "terminal": null,
+    "airportName": "NBO"
+  },
+  "arrival": {
+    "airport": "NBO",
+    "datetime": "2025-06-12T20:20:00.000",
+    "time": "20:20:00",
+    "terminal": null,
+    "airportName": "NBO"
+  },
+  "duration": "17h 5m",
+  "stops": 1,
+  "stopDetails": [
+    "CDG"
+  ],
+  "price": 16409,
+  "currency": "INR",
+  "seatsAvailable": "Available",
+  "baggage": {
+    "carryOn": "Not specified",
+    "checked": "Not specified"
+  },
+  "penalties": [
+    {
+      "type": "Change",
+      "application": "Prior to Departure",
+      "amount": 15385,
+      "currency": "INR",
+      "remarks": [
+        "Reissue permitted",
+        "Reissue permitted"
+      ],
+      "refundable": false,
+      "cancelFee": false
+    },
+    {
+      "type": "Cancel",
+      "application": "Prior to Departure",
+      "amount": 20510,
+      "currency": "INR",
+      "remarks": [
+        "Cancel permitted",
+        "Cancel permitted"
+      ],
+      "refundable": true,
+      "cancelFee": true
+    }
+  ],
+  "fareRules": {
+    "changeFee": true,
+    "refundable": true,
+    "exchangeable": true,
+    "penalties": [
+      "Change - Prior to Departure: 15385 INR",
+      "Cancel - Prior to Departure: 20510 INR"
+    ],
+    "additionalRestrictions": [
+      "Reissue permitted",
+      "Cancel permitted"
+    ],
+    "changeBeforeDeparture": {
+      "allowed": true,
+      "fee": 15385,
+      "currency": "INR",
+      "conditions": "Reissue permitted, Reissue permitted"
+    },
+    "cancelBeforeDeparture": {
+      "allowed": true,
+      "fee": 20510,
+      "currency": "INR",
+      "conditions": "Cancel permitted, Cancel permitted",
+      "refundPercentage": -105.1
+    }
+  },
+  "segments": [
+    {
+      "departure": {
+        "airport": "NBO",
+        "datetime": "2025-06-09T23:50:00.000",
+        "time": "23:50:00",
+        "terminal": null,
+        "airportName": "NBO"
+      },
+      "arrival": {
+        "airport": "CDG",
+        "datetime": "2025-06-10T07:30:00.000",
+        "time": "07:30:00",
+        "terminal": null,
+        "airportName": "CDG"
+      },
+      "flightNumber": "112",
+      "aircraft": {
+        "code": "Unknown",
+        "name": "Aircraft"
+      },
+      "airlineName": "Kenya Airways",
+      "duration": "PT8H40M"
+    },
+    {
+      "departure": {
+        "airport": "CDG",
+        "datetime": "2025-06-12T10:55:00.000",
+        "time": "10:55:00",
+        "terminal": null,
+        "airportName": "CDG"
+      },
+      "arrival": {
+        "airport": "NBO",
+        "datetime": "2025-06-12T20:20:00.000",
+        "time": "20:20:00",
+        "terminal": null,
+        "airportName": "NBO"
+      },
+      "flightNumber": "113",
+      "aircraft": {
+        "code": "Unknown",
+        "name": "Aircraft"
+      },
+      "airlineName": "Kenya Airways",
+      "duration": "PT8H25M"
+    }
+  ],
+  "priceBreakdown": {
+    "baseFare": 13675,
+    "taxes": 3418,
+    "fees": 0,
+    "totalPrice": 16409,
+    "currency": "INR"
+  }
+}
