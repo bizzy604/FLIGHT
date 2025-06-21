@@ -22,32 +22,18 @@ def create_app(test_config=None):
     load_dotenv()
     
     # Load configuration
-    from Backend.config import config
-    env = os.environ.get('FLASK_ENV', 'development')
-    app.config.from_object(config[env])
-    app.config.from_envvar('FLASK_CONFIG', silent=True)
+    from Backend.config import get_config
+    env = os.environ.get('QUART_ENV', 'development')
+    config = get_config(env)
+    app.config.from_object(config)
+    app.config.from_envvar('QUART_CONFIG', silent=True)
     
-    # Initialize config
-    config[app.config['ENV']].init_app(app)
+    # Initialize config if it has an init_app method
+    if hasattr(config, 'init_app'):
+        config.init_app(app)
     
-    # Configure CORS
-    app = cors(
-        app,
-        allow_origin=app.config['CORS_ORIGINS'],
-        allow_headers=app.config['CORS_ALLOW_HEADERS'],
-        allow_methods=app.config['CORS_METHODS'],
-        expose_headers=app.config['CORS_EXPOSE_HEADERS'],
-        allow_credentials=app.config['CORS_SUPPORTS_CREDENTIALS']
-    )
-    
-    # Add CORS headers to all responses
-    @app.after_request
-    async def add_cors_headers(response):
-        response.headers['Access-Control-Allow-Origin'] = ', '.join(app.config['CORS_ORIGINS'])
-        response.headers['Access-Control-Allow-Methods'] = ', '.join(app.config['CORS_METHODS'])
-        response.headers['Access-Control-Allow-Headers'] = ', '.join(app.config['CORS_ALLOW_HEADERS'])
-        response.headers['Access-Control-Allow-Credentials'] = 'true' if app.config['CORS_SUPPORTS_CREDENTIALS'] else 'false'
-        return response
+    # Configure CORS - Let the route-level CORS handle it
+    # The @route_cors decorator on individual routes will handle CORS
     
     # Load configuration from config.py
     from Backend.config import Config
@@ -92,10 +78,13 @@ def create_app(test_config=None):
     from routes import verteil_flights, debug
     from routes.airport_routes import airport_bp # Import the new airport blueprint
 
-    # Register the blueprints with their respective URL prefixes
-    app.register_blueprint(verteil_flights.bp)  # Uses the URL prefix defined in the blueprint
-    app.register_blueprint(debug.debug_bp, url_prefix='/')
-    app.register_blueprint(airport_bp) # Register the airport blueprint (prefix is in blueprint definition)
+    # Initialize routes with app
+    verteil_flights.init_app(app)
+    
+    # Register blueprints
+    app.register_blueprint(verteil_flights.bp)
+    app.register_blueprint(debug.bp)
+    app.register_blueprint(airport_bp)  # Register the airport blueprint (prefix is in blueprint definition)
 
     # Log registered routes for debugging
     @app.before_serving

@@ -60,45 +60,26 @@ from services.flight import (
 # Configure logging
 logger = logging.getLogger(__name__)
 
-def handle_cors(f):
-    @wraps(f)
-    async def decorated_function(*args, **kwargs):
-        if request.method == 'OPTIONS':
-            response = await make_response()
-            response.headers.add('Access-Control-Allow-Origin', ', '.join(current_app.config['CORS_ORIGINS']))
-            response.headers.add('Access-Control-Allow-Headers', ', '.join(current_app.config['CORS_ALLOW_HEADERS']))
-            response.headers.add('Access-Control-Allow-Methods', ', '.join(current_app.config['CORS_METHODS']))
-            response.headers.add('Access-Control-Allow-Credentials', 'true')
-            return response
-        return await f(*args, **kwargs)
-    return decorated_function
+# CORS is now handled by @route_cors decorator
 
 # Create a Blueprint for Verteil flight routes
 bp = Blueprint('verteil_flights', __name__, url_prefix='/api/verteil')
 
-# Apply CORS to all routes in this blueprint
-bp = cors(
-    bp,
-    allow_origin=current_app.config['CORS_ORIGINS'] if 'CORS_ORIGINS' in current_app.config else ["*"],
-    allow_headers=current_app.config.get('CORS_ALLOW_HEADERS', ["Content-Type", "Authorization"]),
-    allow_methods=current_app.config.get('CORS_METHODS', ["GET", "POST", "PUT", "DELETE", "OPTIONS"]),
-    expose_headers=current_app.config.get('CORS_EXPOSE_HEADERS', ["Content-Type"]),
-    allow_credentials=current_app.config.get('CORS_SUPPORTS_CREDENTIALS', True)
-)
+# Allowed origins for CORS
+ALLOWED_ORIGINS = [
+    "http://localhost:3000", 
+    "http://127.0.0.1:3000", 
+    "http://localhost:3001", 
+    "http://127.0.0.1:3001",
+    "https://flight-pearl.vercel.app"
+]
 
-# For debugging, allow all origins temporarily
-ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"]
+def init_app(app):
+    """Initialize the blueprint with the app."""
+    # CORS is now handled at the blueprint level with the @route_cors decorator
+    return app
 
-# Enable CORS for all routes in this blueprint with specific options
-bp = cors(
-    bp,
-    allow_origin=ALLOWED_ORIGINS,
-    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
-    allow_methods=["GET", "POST"],
-    expose_headers=["Content-Type"],
-    max_age=600,
-    allow_credentials=True
-)
+# CORS is now handled by the init_app function
 
 # Add request logging
 @bp.before_request
@@ -140,11 +121,14 @@ def _create_error_response(
     return response
 
 @bp.route('/air-shopping', methods=['GET', 'POST', 'OPTIONS'])
-@handle_cors
-@route_cors(allow_origin=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"], 
-           allow_headers=["Content-Type", "Authorization", "X-Requested-With"], 
-           allow_methods=["GET", "POST", "OPTIONS"],
-           allow_credentials=True)
+@route_cors(
+    allow_origin=ALLOWED_ORIGINS,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Request-Timestamp"],
+    expose_headers=["Content-Type"],
+    allow_credentials=True,
+    max_age=600
+)
 async def air_shopping():
     """
     Handle flight search requests with caching and advanced filtering capabilities.
@@ -377,7 +361,14 @@ async def air_shopping():
         )), 500
 
 @bp.route('/flight-price', methods=['POST', 'OPTIONS'])
-@handle_cors
+@route_cors(
+    allow_origin=ALLOWED_ORIGINS,
+    allow_methods=["POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Request-Timestamp"],
+    expose_headers=["Content-Type"],
+    allow_credentials=True,
+    max_age=600
+)
 async def flight_price():
     """
     Handle flight price requests.
@@ -446,7 +437,14 @@ async def flight_price():
 
 
 @bp.route('/order-create', methods=['POST', 'OPTIONS'])
-@handle_cors
+@route_cors(
+    allow_origin=ALLOWED_ORIGINS,
+    allow_methods=["POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Request-Timestamp"],
+    expose_headers=["Content-Type"],
+    allow_credentials=True,
+    max_age=600
+)
 async def create_order():
     """
     Create a new flight booking order.

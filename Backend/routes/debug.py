@@ -3,7 +3,12 @@ from utils.auth import TokenManager
 import time
 
 # Create a Blueprint for debug routes
-debug_bp = Blueprint('debug', __name__)
+bp = Blueprint('debug', __name__)
+
+def init_app(app):
+    """Initialize the debug routes with the app."""
+    # Any initialization can go here
+    return app
 
 def get_token_manager():
     """Helper function to get a token manager instance with app context."""
@@ -23,36 +28,44 @@ def get_token_manager():
     token_manager.set_config(config)
     return token_manager
 
-@debug_bp.route('/api/debug/token', methods=['GET'])
+@bp.route('/debug/token', methods=['GET'])
 async def get_token_status():
     """
     Debug endpoint to check the current token status.
     This helps verify that token caching and refresh are working correctly.
     """
     try:
+        # Get a token manager instance with current app config
         token_manager = get_token_manager()
-        token_info = token_manager.get_token_info()
         
-        # Get a fresh token to show the current state (will use cached if valid)
-        try:
-            token = token_manager.get_token()
-            token_info['token_available'] = bool(token)
-            # Don't expose the actual token in the response for security
-            token_info['token_preview'] = f"{token[:10]}..." if token else None
-        except Exception as e:
-            token_info['error'] = str(e)
+        # Get the current token (this will use cached or fetch new if needed)
+        token = await token_manager.get_token()
+        
+        # Get token info without triggering a refresh
+        token_info = token_manager.get_token_info()
         
         return jsonify({
             'status': 'success',
-            'data': token_info
+            'token_available': token is not None,
+            'token_info': token_info,
+            'config': {
+                'api_base': current_app.config.get('VERTEIL_API_BASE_URL'),
+                'token_endpoint': current_app.config.get('VERTEIL_TOKEN_ENDPOINT'),
+                'username_set': bool(current_app.config.get('VERTEIL_USERNAME')),
+                'password_set': bool(current_app.config.get('VERTEIL_PASSWORD')),
+                'token_expiry_buffer': current_app.config.get('OAUTH2_TOKEN_EXPIRY_BUFFER')
+            },
+            'timestamp': time.time()
         })
     except Exception as e:
         return jsonify({
             'status': 'error',
-            'error': str(e)
+            'message': str(e),
+            'config': {k: '***' if 'PASSWORD' in k or 'SECRET' in k or 'TOKEN' in k or 'KEY' in k else v 
+                     for k, v in current_app.config.items()}
         }), 500
 
-@debug_bp.route('/api/debug/clear-token', methods=['POST'])
+@bp.route('/debug/clear-token', methods=['POST'])
 async def clear_token():
     """
     Debug endpoint to clear the current token, forcing a refresh on next request.

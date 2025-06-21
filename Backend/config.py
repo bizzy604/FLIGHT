@@ -22,6 +22,9 @@ class Config:
     # CORS settings
     CORS_ORIGINS = [
         "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
         "https://flight-pearl.vercel.app"
     ]
     CORS_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
@@ -35,6 +38,8 @@ class Config:
     VERTEIL_PASSWORD = os.environ.get('VERTEIL_PASSWORD')
     VERTEIL_CLIENT_ID = os.environ.get('VERTEIL_CLIENT_ID')
     VERTEIL_CLIENT_SECRET = os.environ.get('VERTEIL_CLIENT_SECRET')
+    VERTEIL_OFFICE_ID = os.environ.get('VERTEIL_OFFICE_ID', 'OFF3746')
+    VERTEIL_THIRD_PARTY_ID = os.environ.get('VERTEIL_THIRD_PARTY_ID', 'KQ')
 
     # Redis configuration
     REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
