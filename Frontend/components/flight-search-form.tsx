@@ -35,18 +35,10 @@ const airports = [
   { code: "DXB", name: "Dubai International Airport", city: "Dubai" },
 ]
 
-// Define a type for airport suggestions
-interface AirportSuggestion {
-  code: string;
-  name: string;
-  city: string;
-  country?: string; // Optional, as it's not in the current mock data but might come from API
-}
-
 // Helper function to get airport display name
-function getAirportDisplay(code: string, suggestions: AirportSuggestion[]): string {
-  const airport = suggestions.find((a) => a.code === code) || airports.find((a) => a.code === code) // Check suggestions first, then fallback to static list
-  return airport ? `${airport.city} (${airport.code})` : code
+function getAirportDisplay(code: string): string {
+  const airport = airports.find((a) => a.code === code);
+  return airport ? `${airport.city} (${airport.code})` : code;
 }
 
 export function FlightSearchForm() {
@@ -56,14 +48,6 @@ export function FlightSearchForm() {
   const [destination, setDestination] = React.useState("")
   const [originQuery, setOriginQuery] = React.useState("");
   const [destinationQuery, setDestinationQuery] = React.useState("");
-  const [originSuggestions, setOriginSuggestions] = React.useState<AirportSuggestion[]>([]);
-  const [destinationSuggestions, setDestinationSuggestions] = React.useState<AirportSuggestion[]>([]);
-  const [isOriginLoading, setIsOriginLoading] = React.useState(false);
-  const [isDestinationLoading, setIsDestinationLoading] = React.useState(false);
-  const [originError, setOriginError] = React.useState<string | null>(null);
-  const [destinationError, setDestinationError] = React.useState<string | null>(null);
-  const [noOriginResults, setNoOriginResults] = React.useState(false);
-  const [noDestinationResults, setNoDestinationResults] = React.useState(false);
   const [passengers, setPassengers] = React.useState({
     adults: 1,
     children: 0,
@@ -99,95 +83,21 @@ export function FlightSearchForm() {
     })
   }
 
-  // Handlers for select changes
-  const handleOriginChange = (value: string) => setOrigin(value)
-  const handleDestinationChange = (value: string) => setDestination(value)
-  const handleCabinTypeChange = (value: string) => setCabinType(value)
-  const handleOutboundCabinTypeChange = (value: string) => setOutboundCabinType(value)
-  const handleReturnCabinTypeChange = (value: string) => setReturnCabinType(value)
+  // Handlers for input changes
+  const handleCabinTypeChange = (value: string) => setCabinType(value);
+  const handleOutboundCabinTypeChange = (value: string) => setOutboundCabinType(value);
+  const handleReturnCabinTypeChange = (value: string) => setReturnCabinType(value);
 
-  const handleOriginQueryChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const query = event.target.value;
-    setOriginQuery(query);
-    setOrigin(query); 
-    setOriginError(null);
-    setNoOriginResults(false);
-
-    if (query.length >= 3) {
-      setIsOriginLoading(true);
-      try {
-        console.log(`Fetching origin suggestions for: ${query}`);
-        const response = await api.get(`/api/airports/autocomplete?query=${query}`);
-        console.log("Origin API Response Data:", response.data);
-        // Check if response.data exists and has a 'data' property which is an array
-        if (response.data && Array.isArray(response.data.data)) {
-          setOriginSuggestions(response.data.data as AirportSuggestion[]);
-          if (response.data.data.length === 0) {
-            setNoOriginResults(true);
-          }
-        } else {
-          console.error("Origin API response data is not in the expected format (expected { data: [], ... }):", response.data);
-          setOriginSuggestions([]);
-          setOriginError("Unexpected response format from server.");
-          setNoOriginResults(true);
-        }
-      } catch (err: any) {
-        console.error("Error fetching origin suggestions:", err);
-        setOriginSuggestions([]);
-        setOriginError(err.message || "Failed to fetch suggestions.");
-        setNoOriginResults(true);
-      }
-      setIsOriginLoading(false);
-    } else {
-      setOriginSuggestions([]);
-      if (query.length > 0 && query.length < 3) {
-        setOriginError("Type at least 3 characters.");
-      } else {
-        setOriginError(null);
-      }
-    }
+  const handleOriginChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setOrigin(value);
+    setOriginQuery(value);
   };
 
-  const handleDestinationQueryChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const query = event.target.value;
-    setDestinationQuery(query);
-    setDestination(query); 
-    setDestinationError(null);
-    setNoDestinationResults(false);
-
-    if (query.length >= 3) {
-      setIsDestinationLoading(true);
-      try {
-        console.log(`Fetching destination suggestions for: ${query}`);
-        const response = await api.get(`/api/airports/autocomplete?query=${query}`);
-        console.log("Destination API Response Data:", response.data);
-        // Check if response.data exists and has a 'data' property which is an array
-        if (response.data && Array.isArray(response.data.data)) {
-          setDestinationSuggestions(response.data.data as AirportSuggestion[]);
-          if (response.data.data.length === 0) {
-            setNoDestinationResults(true);
-          }
-        } else {
-          console.error("Destination API response data is not in the expected format (expected { data: [], ... }):", response.data);
-          setDestinationSuggestions([]);
-          setDestinationError("Unexpected response format from server.");
-          setNoDestinationResults(true);
-        }
-      } catch (err: any) {
-        console.error("Error fetching destination suggestions:", err);
-        setDestinationSuggestions([]);
-        setDestinationError(err.message || "Failed to fetch suggestions.");
-        setNoDestinationResults(true);
-      }
-      setIsDestinationLoading(false);
-    } else {
-      setDestinationSuggestions([]);
-      if (query.length > 0 && query.length < 3) {
-        setDestinationError("Type at least 3 characters.");
-      } else {
-        setDestinationError(null);
-      }
-    }
+  const handleDestinationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setDestination(value);
+    setDestinationQuery(value);
   };
 
   // Reusable function to render From, To, Depart, Return inputs
@@ -195,96 +105,38 @@ export function FlightSearchForm() {
     return (
       <div className={`grid gap-4 sm:grid-cols-2 ${showReturnDate ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
         {/* From */}
-        <div className="w-full sm:col-span-1"> {/* Removed 'relative' */}
+        <div className="w-full sm:col-span-1">
           <Label htmlFor={`${keyPrefix}-origin-input`}>From</Label>
-          <div className="relative mt-1"> {/* Added relative wrapper with margin-top */}
+          <div className="relative mt-1">
             <div className="flex items-center">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" /> {/* Updated icon classes */}
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
                 id={`${keyPrefix}-origin-input`}
                 type="text"
-                placeholder="City or airport"
+                placeholder="City or airport code"
                 value={originQuery}
-                onChange={handleOriginQueryChange}
-                onBlur={() => setTimeout(() => { setOriginSuggestions([]); /* Clear error/no-results too if desired */ }, 150)} // Added onBlur with delay
+                onChange={handleOriginChange}
                 className="pl-10"
               />
             </div>
-            {isOriginLoading && (
-              <div className="absolute top-full left-0 right-0 z-20 text-sm text-muted-foreground mt-1 p-2 bg-background border border-border rounded-md shadow-lg">Loading...</div>
-            )}
-            {!isOriginLoading && originError && (
-              <div className="absolute top-full left-0 right-0 z-20 text-sm text-red-500 mt-1 p-2 bg-background border border-red-500 rounded-md shadow-lg">{originError}</div>
-            )}
-            {!isOriginLoading && noOriginResults && originSuggestions.length === 0 && !originError && originQuery.length >=3 && (
-              <div className="absolute top-full left-0 right-0 z-20 text-sm text-muted-foreground mt-1 p-2 bg-background border border-border rounded-md shadow-lg">No results found.</div>
-            )}
-            {originSuggestions.length > 0 && !isOriginLoading && !originError && (
-              <ul className="absolute top-full left-0 right-0 z-20 bg-background border border-border shadow-lg rounded-md mt-1 max-h-60 overflow-y-auto">
-                {originSuggestions.map((airport) => (
-                  <li 
-                    key={`${keyPrefix}-origin-sugg-${airport.code}`}
-                    className="px-3 py-2 hover:bg-accent cursor-pointer"
-                    onMouseDown={() => { // Changed to onMouseDown
-                      setOrigin(airport.code); 
-                      setOriginQuery(airport.code); // Changed to display only IATA code
-                      setOriginSuggestions([]); 
-                      setOriginError(null);
-                      setNoOriginResults(false);
-                    }}
-                  >
-                    {airport.city} ({airport.code}) - {airport.name}
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
         </div>
 
         {/* To */}
-        <div className="w-full sm:col-span-1"> {/* Removed 'relative' */}
+        <div className="w-full sm:col-span-1">
           <Label htmlFor={`${keyPrefix}-destination-input`}>To</Label>
-          <div className="relative mt-1"> {/* Added relative wrapper with margin-top */}
+          <div className="relative mt-1">
             <div className="flex items-center">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" /> {/* Updated icon classes */}
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
                 id={`${keyPrefix}-destination-input`}
                 type="text"
-                placeholder="City or airport"
+                placeholder="City or airport code"
                 value={destinationQuery}
-                onChange={handleDestinationQueryChange}
-                onBlur={() => setTimeout(() => { setDestinationSuggestions([]); /* Clear error/no-results too if desired */ }, 150)} // Added onBlur with delay
+                onChange={handleDestinationChange}
                 className="pl-10"
               />
             </div>
-            {isDestinationLoading && (
-              <div className="absolute top-full left-0 right-0 z-20 text-sm text-muted-foreground mt-1 p-2 bg-background border border-border rounded-md shadow-lg">Loading...</div>
-            )}
-            {!isDestinationLoading && destinationError && (
-              <div className="absolute top-full left-0 right-0 z-20 text-sm text-red-500 mt-1 p-2 bg-background border border-red-500 rounded-md shadow-lg">{destinationError}</div>
-            )}
-            {!isDestinationLoading && noDestinationResults && destinationSuggestions.length === 0 && !destinationError && destinationQuery.length >=3 && (
-              <div className="absolute top-full left-0 right-0 z-20 text-sm text-muted-foreground mt-1 p-2 bg-background border border-border rounded-md shadow-lg">No results found.</div>
-            )}
-            {destinationSuggestions.length > 0 && !isDestinationLoading && !destinationError && (
-              <ul className="absolute top-full left-0 right-0 z-20 bg-background border border-border shadow-lg rounded-md mt-1 max-h-60 overflow-y-auto">
-                {destinationSuggestions.map((airport) => (
-                  <li 
-                    key={`${keyPrefix}-dest-sugg-${airport.code}`}
-                    className="px-3 py-2 hover:bg-accent cursor-pointer"
-                    onMouseDown={() => { // Changed to onMouseDown
-                      setDestination(airport.code);
-                      setDestinationQuery(airport.code); // Changed to display only IATA code
-                      setDestinationSuggestions([]);
-                      setDestinationError(null); // Clear error on selection
-                      setNoDestinationResults(false); // Clear no results on selection
-                    }}
-                  >
-                    {airport.city} ({airport.code}) - {airport.name}
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
         </div>
 
@@ -351,8 +203,8 @@ export function FlightSearchForm() {
       const searchParams = new URLSearchParams();
       
       // Add basic search parameters
-      searchParams.append('origin', origin);
-      searchParams.append('destination', destination);
+      searchParams.append('origin', origin.toUpperCase());
+      searchParams.append('destination', destination.toUpperCase());
       searchParams.append('departDate', departDate ? format(departDate, 'yyyy-MM-dd') : '');
       searchParams.append('adults', passengers.adults.toString());
       searchParams.append('children', passengers.children.toString());
@@ -377,8 +229,8 @@ export function FlightSearchForm() {
       if (tripType === 'multi-city') {
         segments.forEach((segment, index) => {
           if (segment.origin && segment.destination && segment.departureDate) {
-            searchParams.append(`segments[${index}].origin`, segment.origin);
-            searchParams.append(`segments[${index}].destination`, segment.destination);
+            searchParams.append(`segments[${index}].origin`, segment.origin.toUpperCase());
+            searchParams.append(`segments[${index}].destination`, segment.destination.toUpperCase());
             searchParams.append(
               `segments[${index}].departureDate`,
               format(segment.departureDate, 'yyyy-MM-dd')

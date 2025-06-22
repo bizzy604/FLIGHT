@@ -331,7 +331,10 @@ class FlightPricingService(FlightService):
                     
                     logger.debug(f"[DEBUG] Checking offer {i}: {current_offer_id} (looking for: {offer_id})")
                     
-                    if str(current_offer_id) == str(offer_id):
+                    # Check for exact match or match without _return suffix for round-trip
+                    if (str(current_offer_id) == str(offer_id) or 
+                        (offer_id.endswith('_return') and 
+                         str(current_offer_id) == str(offer_id[:-7]))):  # Remove '_return' suffix
                         selected_offer_index = i
                         offer_found = True
                         logger.info(f"[DEBUG] Found matching offer at index {i} for offer_id: {offer_id}")
@@ -364,7 +367,14 @@ class FlightPricingService(FlightService):
                             if current_id:
                                 all_offer_ids.append(str(current_id))
                 
-                error_msg = f"Offer ID {offer_id} not found in response. Available offer IDs: {all_offer_ids}"
+                # If we have a _return suffix, try without it for better error message
+                base_offer_id = offer_id[:-7] if offer_id.endswith('_return') else None
+                
+                error_msg = f"Offer ID {offer_id} not found in response. "
+                if base_offer_id:
+                    error_msg += f"Tried both {offer_id} and {base_offer_id}. "
+                error_msg += f"Available offer IDs: {all_offer_ids}"
+                
                 logger.error(f"[DEBUG] {error_msg}")
                 raise ValueError(f"Offer ID {offer_id} not found in response")
             

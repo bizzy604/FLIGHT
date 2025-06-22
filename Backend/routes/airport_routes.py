@@ -6,7 +6,7 @@ including autocomplete search.
 """
 import logging
 from quart import Blueprint, request, jsonify
-from quart_cors import cors # Import cors
+from quart_cors import cors, route_cors  # Import cors and route_cors
 
 # Adjust import path if necessary, assuming services is a package in Backend
 from services.flight.airport_service import AirportService
@@ -14,26 +14,24 @@ from services.flight.airport_service import AirportService
 logger = logging.getLogger(__name__)
 
 # Create a Blueprint for airport routes
-# Using a more generic name like 'airports_bp' or 'airport_api_bp'
 airport_bp = Blueprint('airport_routes', __name__, url_prefix='/api/airports')
 
-# Initialize AirportService (it will load data on first instantiation)
-# This creates a singleton instance at the module level if AirportService is designed that way,
-# or a new instance each time the blueprint is loaded depending on AirportService's __init__.
-# Given the current AirportService design, it uses class variables for data, effectively making it a singleton upon first load.
+# Initialize AirportService
 airport_service = AirportService()
 
-# Enable CORS for all routes in this blueprint
-# You might want to restrict origins in a production environment
-ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"]
+# CORS configuration
 cors_config = {
-    "allow_origin": ALLOWED_ORIGINS,
-    "allow_headers": ["Content-Type", "Authorization"],
-    "allow_methods": ["GET", "OPTIONS"]
+    "allow_origin": ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"],
+    "allow_headers": ["Content-Type", "Authorization", "X-Request-Timestamp"],
+    "allow_methods": ["GET", "OPTIONS"],
+    "allow_credentials": True,
+    "expose_headers": ["Content-Type", "Authorization", "X-Request-Timestamp"]
 }
 
+# Apply CORS to all routes in this blueprint
+airport_bp = cors(airport_bp, **cors_config)
+
 @airport_bp.route('/autocomplete', methods=['GET', 'OPTIONS'])
-# @cors(**cors_config) # Apply CORS to this specific route - REMOVED as global CORS is handled
 async def airport_autocomplete():
     """
     Provides airport autocomplete suggestions based on a query.

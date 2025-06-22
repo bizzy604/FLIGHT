@@ -4,7 +4,7 @@ import { logger } from './logger';
 import type { FlightSearchResponse } from '@/types/flight-api';
 
 // Get backend URL from environment
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://rea-travel-backend.onrender.com';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -13,7 +13,7 @@ const apiClient = axios.create({
         'Content-Type': 'application/json',
         'Accept': 'application/json',
     },
-    withCredentials: true,
+    withCredentials: false, // Set to false for CORS
     timeout: 30000, // 30 seconds timeout
 });
 
@@ -27,8 +27,8 @@ apiClient.interceptors.request.use(
             data: config.data,
         });
         
-        // Add request timestamp
-        config.headers['X-Request-Timestamp'] = new Date().toISOString();
+        // Don't add X-Request-Timestamp as it can cause CORS issues
+        // The backend doesn't need this header anyway
         
         return config;
     },
@@ -195,6 +195,14 @@ export const api = {
         }
         
         return { data };
+    },
+
+    // Airport Suggestions
+    getAirportSuggestions: async (query: string): Promise<{ data: Array<{ code: string; name: string; city: string; country?: string }> }> => {
+        if (!query || query.length < 2) {
+            return { data: [] };
+        }
+        return apiClient.get(`/api/airports/autocomplete?query=${encodeURIComponent(query)}`);
     },
 
     // Health Check
