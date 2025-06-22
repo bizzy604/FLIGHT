@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     
     console.log('[[ DEBUG ]] Backend request body:', JSON.stringify(backendRequestBody, null, 2));
     
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
     console.log('[[ DEBUG ]] Forwarding to backend URL:', `${backendUrl}/api/verteil/order-create`);
     
     const response = await fetch(`${backendUrl}/api/verteil/order-create`, {
