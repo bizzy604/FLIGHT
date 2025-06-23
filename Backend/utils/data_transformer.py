@@ -1,23 +1,30 @@
 """Data transformation utilities for converting Verteil API responses to frontend-compatible formats."""
 
 import json
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Union
 from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
 
-def transform_verteil_to_frontend(verteil_response: Dict[str, Any], enable_roundtrip: bool = False) -> List[Dict[str, Any]]:
+def transform_verteil_to_frontend(
+    verteil_response: Dict[str, Any], 
+    enable_roundtrip: bool = False,
+    frontend_offer_id: Optional[str] = None
+) -> Dict[str, Any]:
     """
     Transform Verteil API air shopping response to frontend-compatible FlightOffer objects.
     
     Args:
         verteil_response: Raw response from Verteil API
         enable_roundtrip: Whether to enable round trip transformation logic
+        frontend_offer_id: The offer ID from the frontend to prioritize in transformation
         
     Returns:
-        List of FlightOffer objects compatible with frontend interface
+        Dictionary with 'offers' and 'reference_data' keys
     """
+    logger = logging.getLogger(__name__)
+    
     try:
         # If roundtrip transformation is enabled, use the enhanced roundtrip logic
         if enable_roundtrip:
@@ -27,46 +34,121 @@ def transform_verteil_to_frontend(verteil_response: Dict[str, Any], enable_round
         flight_offers = []
         
         # Debug logging to understand the response structure
-        logger.info(f"Received response with keys: {list(verteil_response.keys())}")
+        logger.info("=" * 50)
+        logger.info("STARTING TRANSFORMATION")
+        logger.info("=" * 50)
+        logger.info(f"Top-level response keys: {list(verteil_response.keys())}")
         
-        # Navigate to the offers in the response
-        offers_group = verteil_response.get('OffersGroup', {})
-        logger.info(f"OffersGroup found: {offers_group is not None}, keys: {list(offers_group.keys()) if offers_group else 'None'}")
+        # Log the structure of the response for debugging
+        logger.debug("Response structure sample:" + "\n" + 
+                    "\n".join(f"- {k}: {type(v).__name__}" for k, v in verteil_response.items()))
         
-        airline_offers = offers_group.get('AirlineOffers', [])
-        logger.info(f"AirlineOffers found: {len(airline_offers) if isinstance(airline_offers, list) else 'Not a list' if airline_offers else 'None'}")
-        
-        # Extract reference data for lookups
-        reference_data = _extract_reference_data(verteil_response)
-        logger.info(f"Reference data extracted: flights={len(reference_data['flights'])}, segments={len(reference_data['segments'])}")
-        
-        for i, airline_offer_group in enumerate(airline_offers):
-            # Extract airline code using robust method
-            airline_code = _extract_airline_code_robust(airline_offer_group)
-            airline_offers_list = airline_offer_group.get('AirlineOffer', [])
-            logger.info(f"Processing airline offer group {i}: airline_code={airline_code}, offers_count={len(airline_offers_list) if isinstance(airline_offers_list, list) else 'Not a list'}")
+        # Check for PricedFlightOffers at root level (new structure)
+        if 'PricedFlightOffers' in verteil_response and 'PricedFlightOffer' in verteil_response['PricedFlightOffers']:
+            logger.info("Found PricedFlightOffers at root level")
+            priced_offers = verteil_response['PricedFlightOffers']['PricedFlightOffer']
+            if not isinstance(priced_offers, list):
+                priced_offers = [priced_offers]
+                
+            logger.info(f"Found {len(priced_offers)} PricedFlightOffer(s)")
             
-            # Debug the airline offer group structure
-            logger.info(f"Airline offer group keys: {list(airline_offer_group.keys())}")
+            # Extract reference data for lookups
+            reference_data = _extract_reference_data(verteil_response)
+            logger.info(f"Extracted reference data: {len(reference_data.get('flights', {}))} flights, "
+                       f"{len(reference_data.get('segments', {}))} segments")
             
-            for j, offer in enumerate(airline_offers_list):
-                priced_offer = offer.get('PricedOffer', {})
-                logger.info(f"Processing offer {j}: priced_offer_keys={list(priced_offer.keys()) if isinstance(priced_offer, dict) else 'Not a dict'}")
+            # Process each priced offer
+            for i, priced_offer in enumerate(priced_offers):
+                try:
+                    # Extract airline code from the offer
+                    airline_code = priced_offer.get('OfferID', {}).get('Owner', 'UNKNOWN')
+                    logger.info(f"Processing PricedFlightOffer {i+1}, airline: {airline_code}")
                     
-                if priced_offer:
+                    # Transform the offer, passing the frontend_offer_id if available
                     flight_offer = _transform_single_offer(
-                        priced_offer, 
-                        airline_code, 
-                        reference_data,
-                        offer  # Pass the full AirlineOffer for price extraction
+                        priced_offer=priced_offer,
+                        airline_code=airline_code,
+                        reference_data=reference_data,
+                        airline_offer=priced_offer,  # Pass the full offer for price extraction
+                        frontend_offer_id=frontend_offer_id
                     )
+                    
                     if flight_offer:
                         flight_offers.append(flight_offer)
-                        logger.info(f"Successfully transformed offer {j} into flight offer")
+                        logger.info(f"Successfully transformed PricedFlightOffer {i+1}")
                     else:
-                        logger.warning(f"Failed to transform offer {j}")
-                else:
-                    logger.warning(f"No PricedOffer found in offer {j}")
+                        logger.warning(f"Failed to transform PricedFlightOffer {i+1}")
+                        
+                except Exception as e:
+                    logger.error(f"Error processing PricedFlightOffer {i+1}: {str(e)}", exc_info=True)
+                    continue
+        
+        # Check for legacy OffersGroup structure
+        if not flight_offers and 'OffersGroup' in verteil_response:
+            logger.info("Processing legacy OffersGroup structure")
+            offers_group = verteil_response.get('OffersGroup', {})
+            logger.info(f"OffersGroup found: {offers_group is not None}, keys: {list(offers_group.keys()) if offers_group else 'None'}")
+            
+            airline_offers = offers_group.get('AirlineOffers', [])
+            if not isinstance(airline_offers, list):
+                airline_offers = [airline_offers] if airline_offers else []
+                
+            logger.info(f"AirlineOffers found: {len(airline_offers) if isinstance(airline_offers, list) else 'Not a list' if airline_offers else 'None'}")
+            
+            # Extract reference data for lookups if not already done
+            if 'reference_data' not in locals():
+                reference_data = _extract_reference_data(verteil_response)
+                logger.info(f"Reference data extracted: flights={len(reference_data.get('flights', {}))}, segments={len(reference_data.get('segments', {}))}")
+            
+            for i, airline_offer_group in enumerate(airline_offers):
+                # Skip if not a dictionary
+                if not isinstance(airline_offer_group, dict):
+                    logger.warning(f"Skipping invalid airline_offer_group at index {i}: {type(airline_offer_group)}")
+                    continue
+                    
+                # Extract airline code using robust method
+                airline_code = _extract_airline_code_robust(airline_offer_group)
+                airline_offers_list = airline_offer_group.get('AirlineOffer', [])
+                
+                # Ensure airline_offers_list is a list
+                if not isinstance(airline_offers_list, list):
+                    airline_offers_list = [airline_offers_list] if airline_offers_list else []
+                    
+                logger.info(f"Processing airline offer group {i}: airline_code={airline_code}, offers_count={len(airline_offers_list)}")
+                
+                # Debug the airline offer group structure
+                logger.info(f"Airline offer group keys: {list(airline_offer_group.keys())}")
+                
+                for j, offer in enumerate(airline_offers_list):
+                    try:
+                        if not isinstance(offer, dict):
+                            logger.warning(f"Skipping invalid offer at index {j} in airline_offer_group {i}: {type(offer)}")
+                            continue
+                            
+                        # Transform the offer - pass the PricedOffer if it exists, otherwise the offer itself
+                        priced_offer = offer.get('PricedOffer', offer)
+                        logger.info(f"Processing offer {j} in airline_offer_group {i}, priced_offer keys: {list(priced_offer.keys()) if isinstance(priced_offer, dict) else 'Not a dict'})")
+                        
+                        # Ensure we're passing the correct airline_offer structure
+                        airline_offer = offer  # The full AirlineOffer from AirlineOffers list
+                        
+                        flight_offer = _transform_single_offer(
+                            priced_offer=priced_offer,
+                            airline_code=airline_code,
+                            reference_data=reference_data,
+                            airline_offer=airline_offer,  # Pass the full AirlineOffer for ID extraction
+                            frontend_offer_id=frontend_offer_id
+                        )
+                        
+                        if flight_offer:
+                            flight_offers.append(flight_offer)
+                            logger.info(f"Successfully transformed offer {j+1} in airline_offer_group {i}")
+                        else:
+                            logger.warning(f"Failed to transform offer {j+1} in airline_offer_group {i}")
+                            
+                    except Exception as e:
+                        logger.error(f"Error processing offer {j+1} in airline_offer_group {i}: {str(e)}", exc_info=True)
+                        continue
         
         logger.info(f"Transformed {len(flight_offers)} flight offers from Verteil response")
         return {
@@ -363,13 +445,21 @@ def _transform_single_offer(
     priced_offer: Dict[str, Any], 
     airline_code: str, 
     reference_data: Dict[str, Any],
-    airline_offer: Dict[str, Any] = None
+    airline_offer: Dict[str, Any] = None,
+    frontend_offer_id: Optional[str] = None
 ) -> Optional[Dict[str, Any]]:
     """
     Transform a single priced offer to FlightOffer format.
     """
+    logger = logging.getLogger(__name__)
     try:
-        logger.info(f"Starting transformation for airline {airline_code}, priced_offer keys: {list(priced_offer.keys())}")
+        logger.info(f"=== Starting transformation for airline {airline_code} ===")
+        logger.info(f"priced_offer keys: {list(priced_offer.keys())}")
+        
+        # Log the full priced_offer for debugging
+        logger.debug(f"Full priced_offer: {json.dumps(priced_offer, indent=2, default=str)}")
+        
+        # Get offer prices - handle both list and single object cases
         offer_prices = priced_offer.get('OfferPrice', [])
         
         logger.info(f"Found {len(offer_prices)} offer prices")
@@ -406,14 +496,27 @@ def _transform_single_offer(
             currency = priced_offer_total.get('Code', '')
             logger.info(f"Using PricedOffer level price: {price} {currency}")
         
-        # Extract flight associations - check both OfferPrice and PricedOffer level
-        associations = offer_price.get('Associations', [])
+        # Extract flight associations - check in RequestedDate first, then OfferPrice, then PricedOffer level
+        associations = []
+        
+        # 1. Check in RequestedDate
+        requested_date = offer_price.get('RequestedDate', {})
+        if requested_date and isinstance(requested_date, dict):
+            associations = requested_date.get('Associations', [])
+        
+        # 2. If not found, check directly in OfferPrice
         if not associations:
-            # Check if associations are at PricedOffer level
+            associations = offer_price.get('Associations', [])
+            
+        # 3. If still not found, check in PricedOffer
+        if not associations:
             associations = priced_offer.get('Associations', [])
         
+        # Ensure associations is a list
         if not isinstance(associations, list):
-            associations = [associations]
+            associations = [associations] if associations is not None else []
+            
+        logger.info(f"Found {len(associations)} associations in RequestedDate/OfferPrice/PricedOffer")
         
         logger.info(f"Found associations: {len(associations)}, structure: {[list(a.keys()) if isinstance(a, dict) else type(a) for a in associations]}")
         
@@ -422,25 +525,42 @@ def _transform_single_offer(
         all_segment_refs = []
         
         logger.info(f"Processing {len(associations)} associations")
+        logger.info(f"Available segment references in reference_data: {list(reference_data['segments'].keys())}")
+        
         for assoc in associations:
             applicable_flight = assoc.get('ApplicableFlight', {})
+            logger.info(f"Processing ApplicableFlight: {applicable_flight.keys()}")
+            
             segment_refs = applicable_flight.get('FlightSegmentReference', [])
             if not isinstance(segment_refs, list):
-                segment_refs = [segment_refs]
+                segment_refs = [segment_refs] if segment_refs else []
             
-            logger.info(f"Found {len(segment_refs)} segment references")
+            logger.info(f"Found {len(segment_refs)} segment references in this association")
+            
             for seg_ref in segment_refs:
+                if not isinstance(seg_ref, dict):
+                    logger.warning(f"Unexpected segment reference type: {type(seg_ref)}, value: {seg_ref}")
+                    continue
+                    
                 ref_key = seg_ref.get('ref')
                 if ref_key:
                     all_segment_refs.append(ref_key)
-                    segment_data = reference_data['segments'].get(ref_key, {})
-                    logger.info(f"Looking up segment {ref_key}: found={bool(segment_data)}")
+                    segment_data = reference_data['segments'].get(ref_key)
+                    
                     if segment_data:
-                        segments.append(_transform_segment(segment_data, reference_data))
+                        logger.info(f"Found segment data for ref {ref_key}")
+                        try:
+                            transformed_segment = _transform_segment(segment_data, reference_data)
+                            segments.append(transformed_segment)
+                            logger.info(f"Successfully transformed segment {ref_key}")
+                        except Exception as e:
+                            logger.error(f"Error transforming segment {ref_key}: {str(e)}", exc_info=True)
                     else:
-                        logger.warning(f"No segment data found for reference {ref_key}")
+                        logger.warning(f"No segment data found in reference_data['segments'] for ref: {ref_key}")
+                        logger.debug(f"Available segment refs: {list(reference_data['segments'].keys())}")
                 else:
                     logger.warning(f"No ref key found in segment reference: {seg_ref}")
+                    logger.debug(f"Segment reference structure: {json.dumps(seg_ref, indent=2, default=str)}")
         
         logger.info(f"Total segments extracted: {len(segments)}")
         if not segments:
@@ -474,34 +594,52 @@ def _transform_single_offer(
             # Fallback to datetime calculation
             duration = _calculate_duration(first_segment, last_segment)
         
-        # Extract OfferID from the airline_offer (not priced_offer)
-        offer_id = None
-        if airline_offer:
-            offer_id_obj = airline_offer.get('OfferID')
-            if offer_id_obj and isinstance(offer_id_obj, dict):
-                offer_id = offer_id_obj.get('value')
-                if offer_id:
-                    logger.info(f"Using OfferID from API: {offer_id}")
-                else:
-                    logger.warning(f"OfferID object found but value is empty: {offer_id_obj}")
-            elif isinstance(offer_id_obj, str) and offer_id_obj.strip():
-                # Handle case where OfferID is a string directly
-                offer_id = offer_id_obj.strip()
-                logger.info(f"Using OfferID string from API: {offer_id}")
-            else:
-                logger.warning(f"OfferID not found or invalid in airline_offer: {offer_id_obj}")
+        # 0. First priority: Use the offer ID from the frontend if provided
+        if frontend_offer_id and not frontend_offer_id.startswith('fallback_'):
+            offer_id = frontend_offer_id
+            logger.info(f"Using offer ID from frontend: {offer_id}")
+        else:
+            # 1. Try to get OfferID from the correct path: AirlineOffer.OfferID.value
+            offer_id = None
+            
+            # First try to get from airline_offer if available (most likely location in AirShopping response)
+            if airline_offer and 'OfferID' in airline_offer:
+                if isinstance(airline_offer['OfferID'], dict) and 'value' in airline_offer['OfferID']:
+                    offer_id = airline_offer['OfferID']['value']
+                    logger.info(f"Using OfferID from airline_offer.OfferID.value: {offer_id}")
+                elif isinstance(airline_offer['OfferID'], str):
+                    offer_id = airline_offer['OfferID']
+                    logger.info(f"Using string OfferID from airline_offer: {offer_id}")
+            
+            # 2. If not found, try to get from priced_offer
+            if not offer_id and 'OfferID' in priced_offer:
+                if isinstance(priced_offer['OfferID'], dict) and 'value' in priced_offer['OfferID']:
+                    offer_id = priced_offer['OfferID']['value']
+                    logger.info(f"Using OfferID from priced_offer.OfferID.value: {offer_id}")
+                elif isinstance(priced_offer['OfferID'], str):
+                    offer_id = priced_offer['OfferID']
+                    logger.info(f"Using string OfferID from priced_offer: {offer_id}")
+            
+            # 3. Try OfferRefID as fallback
+            if not offer_id and airline_offer and 'OfferRefID' in airline_offer:
+                offer_id = airline_offer['OfferRefID']
+                logger.info(f"Using OfferRefID from airline_offer as fallback: {offer_id}")
+            
+            # 4. Generate fallback ID if still not found
+            if not offer_id:
+                import uuid
+                offer_id = f"fallback_{str(uuid.uuid4())[:8]}"
+                logger.warning(f"No valid OfferID found, generated fallback ID: {offer_id}")
         
-        # Fallback to UUID-based ID if OfferID extraction failed
-        if not offer_id:
-            import uuid
-            import time
-            timestamp = int(time.time())
-            offer_id = f"flight_{timestamp}_{str(uuid.uuid4())[:8]}"
-            logger.warning(f"OfferID not found, generated fallback ID: {offer_id}")
-            if airline_offer:
-                logger.info(f"Available airline_offer keys: {list(airline_offer.keys())}")
-            else:
-                logger.warning("airline_offer parameter is None")
+        # Ensure we have a string ID even if it's a fallback
+        offer_id = str(offer_id)
+            
+        # Log the final offer ID being used
+        logger.info(f"Final OfferID: {offer_id}")
+        
+        # Store the offer ID in the priced_offer for reference
+        if 'OfferID' not in priced_offer:
+            priced_offer['OfferID'] = {'value': offer_id}
         
         # Build price breakdown - pass airline_offer for correct price extraction
         price_breakdown = _build_price_breakdown(price_detail, priced_offer, airline_offer)
@@ -519,9 +657,41 @@ def _transform_single_offer(
         # Extract baggage and penalty information
         baggage_info = _extract_baggage_info(offer_price, reference_data)
         
-        # Extract penalty information and transform to FareRules structure
+        # Initialize fare_rules with default values
+        fare_rules = _create_segment_fare_rules()
+        
+        # Extract penalty information using the dedicated function
         penalty_info = _extract_penalty_info(priced_offer, reference_data)
-        fare_rules = _transform_penalties_to_fare_rules(penalty_info)
+        
+        # Ensure penalty_info is a list before checking its length
+        if not isinstance(penalty_info, list):
+            logger.warning(f"Expected list of penalties but got {type(penalty_info)}. Converting to empty list.")
+            penalty_info = []
+            
+        logger.info(f"Extracted {len(penalty_info)} penalty entries from reference data")
+        
+        if penalty_info:
+            # Log the first penalty for debugging
+            logger.info(f"Processing {len(penalty_info)} penalties. First penalty: {json.dumps(penalty_info[0], indent=2, default=str) if penalty_info else 'None'}")
+            
+            try:
+                # Transform penalties to fare rules
+                fare_rules = _transform_penalties_to_fare_rules(penalty_info)
+                logger.info(f"Successfully transformed penalties to fare rules")
+                
+                # Log a summary of the fare rules
+                if fare_rules.get('changeFee') or fare_rules.get('cancelFee') or fare_rules.get('refundable'):
+                    logger.info(f"Fare rules summary - Change allowed: {fare_rules.get('changeable')}, "
+                                f"Refundable: {fare_rules.get('refundable')}, "
+                                f"Change fee: {fare_rules.get('changeFee')}, "
+                                f"Cancel fee: {fare_rules.get('cancelFee')}")
+            except Exception as e:
+                logger.error(f"Error transforming penalties to fare rules: {e}", exc_info=True)
+                # Return default fare rules on error
+                fare_rules = _create_segment_fare_rules()
+        else:
+            logger.warning("No penalty information found in the offer")
+            fare_rules = _create_segment_fare_rules()
         
         flight_offer = {
             'id': offer_id,
@@ -812,95 +982,213 @@ def _extract_penalty_info(priced_offer: Dict[str, Any], reference_data: Dict[str
     """
     Extract penalty information using references from PricedOffer.OfferPrice.FareDetail.FareComponent.FareRules.Penalty.refs
     and mapping to DataLists.PenaltyList.
+    
+    Args:
+        priced_offer: The PricedOffer dictionary from the API response
+        reference_data: Dictionary containing reference data including penalties
+        
+    Returns:
+        List of penalty dictionaries with segment references
     """
+    logger = logging.getLogger(__name__)
     penalties = []
     
     try:
+        logger.info("=== Starting penalty info extraction ===")
+        logger.info(f"Reference data has {len(reference_data.get('penalties', {}))} penalties available")
+        
+        # Log the structure of the priced_offer for debugging
+        logger.debug(f"Priced offer keys: {list(priced_offer.keys())}")
+        if 'OfferPrice' in priced_offer:
+            logger.debug(f"OfferPrice type: {type(priced_offer['OfferPrice'])}")
+            if isinstance(priced_offer['OfferPrice'], list) and priced_offer['OfferPrice']:
+                logger.debug(f"First OfferPrice keys: {list(priced_offer['OfferPrice'][0].keys())}")
+                if 'FareDetail' in priced_offer['OfferPrice'][0]:
+                    logger.debug(f"FareDetail type: {type(priced_offer['OfferPrice'][0]['FareDetail'])}")
+        
         # Navigate to penalty references: PricedOffer.OfferPrice[0].FareDetail.FareComponent[0].FareRules.Penalty.refs
         offer_prices = priced_offer.get('OfferPrice', [])
         if not offer_prices:
+            logger.debug("No OfferPrice found in priced_offer")
             return penalties
         
-        offer_price = offer_prices[0]
+        logger.debug(f"Found {len(offer_prices)} offer prices")
+        offer_price = offer_prices[0]  # Take first offer price
+        
         fare_detail = offer_price.get('FareDetail', {})
-        fare_components = fare_detail.get('FareComponent', [])
-        
-        if not fare_components:
+        if not fare_detail:
+            logger.debug("No FareDetail found in offer price")
             return penalties
+            
+        fare_components = fare_detail.get('FareComponent', [])
+        if not fare_components:
+            logger.debug("No FareComponent found in fare detail")
+            return penalties
+            
+        logger.debug(f"Processing {len(fare_components)} fare components")
         
-        fare_component = fare_components[0]
-        fare_rules = fare_component.get('FareRules', {})
-        penalty_refs = fare_rules.get('Penalty', {}).get('refs', [])
-        
-        # Map penalty references to actual penalty data
-        if penalty_refs and reference_data.get('penalties'):
-            for penalty_ref in penalty_refs:
-                penalty_data = reference_data['penalties'].get(penalty_ref)
-                if penalty_data:
-                    details_data = penalty_data.get('Details', {})
-                    details = details_data.get('Detail', []) if isinstance(details_data, dict) else []
-                    for detail in details:
-                        # Ensure detail is a dictionary before calling .get()
-                        if not isinstance(detail, dict):
-                            logger.warning(f"Invalid detail type: {type(detail)}, expected dict")
+        # Process each fare component to get segment-specific penalties
+        for i, fare_component in enumerate(fare_components):
+            try:
+                if not isinstance(fare_component, dict):
+                    logger.warning(f"Fare component {i} is not a dictionary")
+                    continue
+                    
+                logger.debug(f"Processing fare component {i}")
+                
+                # Get segment references from fare component
+                segment_refs = []
+                if 'refs' in fare_component:
+                    segment_refs = [fare_component['refs']] if isinstance(fare_component['refs'], str) else fare_component['refs']
+                logger.debug(f"Segment refs for component {i}: {segment_refs}")
+                
+                # Get penalty references from fare rules
+                fare_rules = fare_component.get('FareRules', {})
+                penalty_refs = []
+                
+                # Handle different possible structures of penalty references
+                if isinstance(fare_rules, dict):
+                    penalty_data = fare_rules.get('Penalty', {})
+                    if isinstance(penalty_data, dict):
+                        penalty_refs = penalty_data.get('refs', [])
+                        if not isinstance(penalty_refs, list):
+                            penalty_refs = [penalty_refs] if penalty_refs else []
+                
+                logger.debug(f"Found {len(penalty_refs)} penalty refs in fare component {i}")
+                
+                # Map penalty references to actual penalty data with segment references
+                if penalty_refs and reference_data.get('penalties'):
+                    for penalty_ref in penalty_refs:
+                        if not penalty_ref or not isinstance(penalty_ref, str):
+                            logger.warning(f"Skipping invalid penalty ref: {penalty_ref}")
                             continue
-                        penalty_type = detail.get('Type', 'Unknown')
-                        application_code = detail.get('Application', {}).get('Code', '')
+                            
+                        penalty_data = reference_data['penalties'].get(penalty_ref)
+                        if not penalty_data or not isinstance(penalty_data, dict):
+                            logger.debug(f"No penalty data found for ref: {penalty_ref}")
+                            continue
+                            
+                        logger.debug(f"Processing penalty data for ref {penalty_ref}")
                         
-                        # Map application codes as specified by user
-                        application_desc = {
-                            '1': 'After Departure NO Show',
-                            '2': 'Prior to Departure',
-                            '3': 'After Departure',
-                            '4': 'Before Departure No Show'
-                        }.get(application_code, f"Code {application_code}")
+                        # Extract penalty details
+                        details_data = penalty_data.get('Details', {})
+                        details = []
                         
-                        # Extract penalty amounts
-                        amounts_data = detail.get('Amounts', {})
-                        amounts = amounts_data.get('Amount', []) if isinstance(amounts_data, dict) else []
-                        penalty_amount = 0
-                        currency = 'USD'  # Default currency
-                        remarks = []
+                        if isinstance(details_data, dict):
+                            details_list = details_data.get('Detail', [])
+                            if isinstance(details_list, list):
+                                details = [d for d in details_list if isinstance(d, dict)]
+                            elif isinstance(details_list, dict):
+                                details = [details_list]
                         
-                        # Try to get default currency from first amount if available
-                        if amounts and isinstance(amounts, list) and len(amounts) > 0:
-                            first_amount = amounts[0]
-                            if isinstance(first_amount, dict):
-                                currency_amount = first_amount.get('CurrencyAmountValue', {})
-                                if isinstance(currency_amount, dict):
-                                    currency = currency_amount.get('Code', 'USD')
-                        
-                        for amount in amounts:
-                            # Ensure amount is a dictionary before calling .get()
-                            if not isinstance(amount, dict):
-                                logger.warning(f"Invalid amount type: {type(amount)}, expected dict")
+                        if not details:
+                            logger.debug(f"No valid details found for penalty ref: {penalty_ref}")
+                            continue
+                            
+                        for detail in details:
+                            try:
+                                penalty_type = detail.get('Type', 'Unknown')
+                                application_code = str(detail.get('Application', {}).get('Code', ''))
+                                
+                                # Map application codes based on official documentation
+                                application_mapping = {
+                                    '1': 'After Departure',  # Post-departure
+                                    '2': 'Before Departure',  # Pre-departure
+                                    '3': 'No Show',
+                                    '4': 'Unknown'  # Default to most restrictive
+                                }
+                                
+                                application_desc = application_mapping.get(application_code, f"Code {application_code}")
+                                logger.debug(f"Mapped penalty code {application_code} to: {application_desc}")
+                                
+                                # Extract penalty amounts
+                                amounts_data = detail.get('Amounts', {})
+                                amounts = []
+                                
+                                if isinstance(amounts_data, dict):
+                                    amounts_list = amounts_data.get('Amount', [])
+                                    if isinstance(amounts_list, list):
+                                        amounts = [a for a in amounts_list if isinstance(a, dict)]
+                                    elif isinstance(amounts_list, dict):
+                                        amounts = [amounts_list]
+                                
+                                penalty_amount = 0.0
+                                currency = 'USD'  # Default currency
+                                remarks = []
+                                
+                                # Process amounts to get the highest penalty
+                                for amount in amounts:
+                                    try:
+                                        currency_amount = amount.get('CurrencyAmountValue', {})
+                                        if not isinstance(currency_amount, dict):
+                                            continue
+                                            
+                                        amount_value = float(currency_amount.get('value', 0))
+                                        amount_currency = currency_amount.get('Code', 'USD')
+                                        
+                                        # Track the highest penalty amount
+                                        if amount_value > penalty_amount:
+                                            penalty_amount = amount_value
+                                            currency = amount_currency
+                                            
+                                        # Extract remarks
+                                        fee_remarks = amount.get('ApplicableFeeRemarks', {})
+                                        remark_list = fee_remarks.get('Remark', [])
+                                        if isinstance(remark_list, list):
+                                            for remark in remark_list:
+                                                if isinstance(remark, dict):
+                                                    remark_text = remark.get('value', '')
+                                                else:
+                                                    remark_text = str(remark)
+                                                if remark_text and remark_text not in remarks:
+                                                    remarks.append(remark_text)
+                                    except (ValueError, TypeError) as e:
+                                        logger.warning(f"Error processing amount: {e}")
+                                        continue
+                                
+                                # Create penalty with segment references
+                                penalty = {
+                                    'type': str(penalty_type),
+                                    'application': application_desc,
+                                    'amount': penalty_amount,
+                                    'currency': currency,
+                                    'remarks': remarks,
+                                    'refundable': bool(penalty_data.get('RefundableInd', False)),
+                                    'cancelFee': bool(penalty_data.get('CancelFeeInd', False)),
+                                    'segment_refs': segment_refs  # Add segment references
+                                }
+                                
+                                penalties.append(penalty)
+                                logger.debug(f"Added penalty: {penalty}")
+                                
+                            except Exception as e:
+                                logger.error(f"Error processing penalty detail: {e}", exc_info=True)
                                 continue
                                 
-                            currency_amount = amount.get('CurrencyAmountValue', {})
-                            penalty_amount = currency_amount.get('value', 0)
-                            currency = currency_amount.get('Code', 'USD')
-                            
-                            fee_remarks = amount.get('ApplicableFeeRemarks', {}).get('Remark', [])
-                            for remark in fee_remarks:
-                                if isinstance(remark, dict):
-                                    remarks.append(remark.get('value', ''))
-                                else:
-                                    remarks.append(str(remark))
-                        
-                        penalties.append({
-                            'type': penalty_type,
-                            'application': application_desc,
-                            'amount': penalty_amount,
-                            'currency': currency,
-                            'remarks': remarks,
-                            'refundable': penalty_data.get('RefundableInd', False),
-                            'cancelFee': penalty_data.get('CancelFeeInd', False)
-                        })
+            except Exception as e:
+                logger.error(f"Error processing fare component {i}: {e}", exc_info=True)
+                continue
     
     except Exception as e:
-        logger.error(f"Error extracting penalty info: {e}")
+        logger.error(f"Error extracting penalty info: {e}", exc_info=True)
     
-    return penalties
+    logger.info(f"Extracted {len(penalties)} penalties")
+    
+    # Ensure we always return a list, even if empty
+    if not isinstance(penalties, list):
+        logger.warning(f"Penalties is not a list: {type(penalties)}. Converting to empty list.")
+        return []
+        
+    # Ensure all items in the list are dictionaries
+    valid_penalties = []
+    for i, penalty in enumerate(penalties):
+        if isinstance(penalty, dict):
+            valid_penalties.append(penalty)
+        else:
+            logger.warning(f"Skipping non-dict penalty at index {i}: {penalty}")
+    
+    logger.info(f"Returning {len(valid_penalties)} valid penalties")
+    return valid_penalties
 
 
 from utils.airline_data import get_airline_name, AIRLINE_NAMES
@@ -1023,106 +1311,692 @@ def _get_airline_name(airline_code: str, reference_data: Dict[str, Any] = None) 
     logger.debug(f"Could not find airline name for code: {code}")
     return f"Airline {code}"
 
-def _transform_penalties_to_fare_rules(penalties: List[Dict[str, Any]]) -> Dict[str, Any]:
+def _organize_penalties_by_segment(penalties: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
     """
-    Transform penalty list into structured FareRules format expected by frontend.
+    Organize penalties by segment reference.
+    
+    Args:
+        penalties: List of penalty dictionaries with segment references
+        
+    Returns:
+        Dictionary mapping segment references to their penalties
     """
-    fare_rules = {
+    segment_penalties = {}
+    
+    for penalty in penalties:
+        segment_refs = penalty.get('segment_refs', [])
+        if not segment_refs:
+            # If no segment reference, apply to all segments
+            segment_refs = ['all']
+            
+        for segment_ref in segment_refs:
+            if segment_ref not in segment_penalties:
+                segment_penalties[segment_ref] = []
+            segment_penalties[segment_ref].append(penalty)
+            
+    return segment_penalties
+
+def _create_segment_fare_rules() -> Dict[str, Any]:
+    """
+    Create a new segment fare rules structure.
+    
+    Returns:
+        Dictionary with initialized fare rules for a segment
+    """
+    return {
+        # Change rules
+        'changeBeforeDeparture': {
+            'allowed': False,
+            'fee': 0,
+            'currency': '',
+            'conditions': []
+        },
+        'changeAfterDeparture': {
+            'allowed': False,
+            'fee': 0,
+            'currency': '',
+            'conditions': []
+        },
+        'changeNoShow': {
+            'allowed': False,
+            'fee': 0,
+            'currency': '',
+            'conditions': []
+        },
+        
+        # Cancel rules
+        'cancelBeforeDeparture': {
+            'allowed': False,
+            'refundPercentage': 0,
+            'fee': 0,
+            'currency': '',
+            'conditions': []
+        },
+        'cancelAfterDeparture': {
+            'allowed': False,
+            'refundPercentage': 0,
+            'fee': 0,
+            'currency': '',
+            'conditions': []
+        },
+        'cancelNoShow': {
+            'allowed': False,
+            'refundPercentage': 0,
+            'fee': 0,
+            'currency': '',
+            'conditions': []
+        },
+        
+        # No show rules
+        'noShow': {
+            'allowed': False,
+            'refundable': False,
+            'conditions': []
+        },
+        
+        # Additional fields
         'changeFee': False,
         'refundable': False,
         'exchangeable': False,
+        'changeable': False,
         'penalties': [],
         'additionalRestrictions': []
     }
+
+def _apply_penalty_to_rules(penalty: Union[Dict[str, Any], str], rules: Dict[str, Any]) -> None:
+    """
+    Apply a single penalty to the given rules with enhanced logging and support for all penalty types.
     
-    for penalty in penalties:
-        penalty_type = penalty.get('type', '').lower()
-        application = penalty.get('application', '')
-        amount = penalty.get('amount', 0)
-        currency = penalty.get('currency', '')
+    Args:
+        penalty: Dictionary or string containing penalty details. If dict, should contain:
+                - type: Type of penalty (change, cancel, no-show, etc.)
+                - application: When the penalty applies (before/after departure, no-show)
+                - amount: Fee amount
+                - currency: Currency code
+                - remarks: List of remarks or conditions
+                - refundable: Whether the penalty is refundable
+                - segment_ref: Optional segment reference for per-segment penalties
+        rules: Rules dictionary to update with penalty information
+    
+    Returns:
+        None: Modifies the rules dictionary in place
+    """
+    logger = logging.getLogger(__name__)
+    
+    # Input validation
+    if penalty is None:
+        logger.warning("Received None penalty, skipping")
+        return
+        
+    # Handle string penalties by converting to a dictionary
+    if isinstance(penalty, str):
+        logger.warning(f"Received string penalty, converting to dict: {penalty}")
+        penalty = {'type': penalty, 'application': '', 'amount': 0, 'currency': 'USD', 'remarks': []}
+    
+    if not isinstance(penalty, dict):
+        logger.error(f"Invalid penalty type: {type(penalty)}. Expected dict or str.")
+        return
+    
+    if not isinstance(rules, dict):
+        logger.error(f"Invalid rules type: {type(rules)}. Expected dict.")
+        return
+    
+    # Extract and normalize penalty data with type checking
+    try:
+        penalty_type = str(penalty.get('type', '')).strip()
+        application = str(penalty.get('application', '')).strip()
+        
+        # Safely convert amount to float with error handling
+        try:
+            amount = float(penalty.get('amount', 0) or 0)
+        except (ValueError, TypeError):
+            logger.warning(f"Invalid penalty amount: {penalty.get('amount')}. Defaulting to 0.")
+            amount = 0.0
+            
+        currency = str(penalty.get('currency', '')).strip().upper() or 'USD'  # Default to USD if not specified
+        
+        # Ensure remarks is a list of strings
         remarks = penalty.get('remarks', [])
-        refundable = penalty.get('refundable', False)
-        
-        # Determine the category based on type and application
-        if penalty_type == 'change':
-            fare_rules['exchangeable'] = True
-            if amount > 0:
-                fare_rules['changeFee'] = True
+        if isinstance(remarks, str):
+            remarks = [remarks] if remarks.strip() else []
+        elif not isinstance(remarks, list):
+            logger.warning(f"Unexpected remarks type: {type(remarks)}. Converting to list.")
+            remarks = [str(remarks)] if remarks else []
             
-            # Map to specific change categories
-            if 'prior to departure' in application.lower():
-                fare_rules['changeBeforeDeparture'] = {
-                    'allowed': True,
-                    'fee': amount,
-                    'currency': currency,
-                    'conditions': ', '.join(remarks) if remarks else None
-                }
-            elif 'after departure' in application.lower():
-                fare_rules['changeAfterDeparture'] = {
-                    'allowed': True,
-                    'fee': amount,
-                    'currency': currency,
-                    'conditions': ', '.join(remarks) if remarks else None
-                }
-            elif 'no show' in application.lower():
-                fare_rules['changeNoShow'] = {
-                    'allowed': True,
-                    'fee': amount,
-                    'currency': currency,
-                    'conditions': ', '.join(remarks) if remarks else None
-                }
+        # Clean up remarks
+        remarks = [str(r).strip() for r in remarks if r and str(r).strip()]
         
-        elif penalty_type == 'cancel':
-            fare_rules['refundable'] = refundable
-            
-            # Calculate refund percentage (simplified logic)
-            refund_percentage = 100 if refundable and amount == 0 else (100 - (amount / 100)) if amount > 0 else 0
-            
-            # Map to specific cancel categories
-            if 'prior to departure' in application.lower():
-                fare_rules['cancelBeforeDeparture'] = {
-                    'allowed': True,
-                    'fee': amount,
-                    'currency': currency,
-                    'conditions': ', '.join(remarks) if remarks else None,
-                    'refundPercentage': refund_percentage
-                }
-            elif 'after departure' in application.lower():
-                fare_rules['cancelAfterDeparture'] = {
-                    'allowed': True,
-                    'fee': amount,
-                    'currency': currency,
-                    'conditions': ', '.join(remarks) if remarks else None,
-                    'refundPercentage': refund_percentage
-                }
-            elif 'no show' in application.lower():
-                fare_rules['cancelNoShow'] = {
-                    'allowed': True,
-                    'fee': amount,
-                    'currency': currency,
-                    'conditions': ', '.join(remarks) if remarks else None,
-                    'refundPercentage': refund_percentage
-                }
-                # Also set noShow field
-                fare_rules['noShow'] = {
-                    'refundable': refundable,
-                    'fee': amount,
-                    'currency': currency,
-                    'conditions': ', '.join(remarks) if remarks else None,
-                    'refundPercentage': refund_percentage
-                }
+        refundable = bool(penalty.get('refundable', False))
+        segment_ref = penalty.get('segment_ref')
         
-        # Add to penalties list for backward compatibility
-        fare_rules['penalties'].append(f"{penalty_type.title()} - {application}: {amount} {currency}")
-        
-        # Add remarks to additional restrictions
-        if remarks:
-            fare_rules['additionalRestrictions'].extend(remarks)
+    except Exception as e:
+        logger.error(f"Error processing penalty data: {e}", exc_info=True)
+        return
     
-    # Remove duplicates from additional restrictions
-    fare_rules['additionalRestrictions'] = list(set(fare_rules['additionalRestrictions']))
+    # Normalize values for case-insensitive comparison
+    penalty_type_lower = penalty_type.lower()
+    application_lower = application.lower()
+    
+    # Log penalty processing details
+    logger.debug(
+        f"Applying penalty - Type: '{penalty_type}', Application: '{application}', "
+        f"Amount: {amount} {currency}, Refundable: {refundable}, "
+        f"Segment: {segment_ref or 'All'}"
+    )
+    
+    # Process NoShow penalties (both as type and application)
+    is_noshow = ('noshow' in penalty_type_lower or 'no show' in penalty_type_lower or 
+                'noshow' in application_lower or 'no show' in application_lower)
+    
+    if is_noshow:
+        try:
+            logger.debug(f"Processing NoShow penalty: {penalty}")
+            
+            # Initialize noShow section if it doesn't exist
+            if 'noShow' not in rules:
+                rules['noShow'] = {
+                    'allowed': False, 
+                    'refundable': False, 
+                    'fee': 0.0,
+                    'currency': currency or 'USD',
+                    'conditions': []
+                }
+            
+            target = rules['noShow']
+            target['allowed'] = True
+            target['refundable'] = target.get('refundable', False) or refundable
+            
+            # Update fee if higher than current
+            if amount > target.get('fee', 0):
+                target['fee'] = amount
+                target['currency'] = currency or target.get('currency', 'USD')
+            
+            # Add remarks as conditions if they don't exist
+            for remark in remarks:
+                if remark and remark not in target['conditions']:
+                    target['conditions'].append(remark)
+            
+            # Also update the legacy penalties list
+            penalty_desc = f"NoShow: {amount} {currency}"
+            if refundable:
+                penalty_desc += " (Refundable)"
+            
+            # Ensure penalties list exists
+            if 'penalties' not in rules:
+                rules['penalties'] = []
+                
+            if penalty_desc not in rules['penalties']:
+                rules['penalties'].append(penalty_desc)
+            
+            # Ensure additionalRestrictions exists
+            if 'additionalRestrictions' not in rules:
+                rules['additionalRestrictions'] = []
+                
+            # Add to additional restrictions if not already present
+            for remark in remarks:
+                if remark and remark not in rules['additionalRestrictions']:
+                    rules['additionalRestrictions'].append(remark)
+            
+            logger.debug(f"Updated noShow rules: {target}")
+            return
+            
+        except Exception as e:
+            logger.error(f"Error processing NoShow penalty: {e}", exc_info=True)
+            return
+    
+    try:
+        # Process Change penalties
+        if 'change' in penalty_type_lower:
+            try:
+                rules['exchangeable'] = True
+                rules['changeable'] = True
+                
+                if amount > 0:
+                    rules['changeFee'] = True
+                
+                # Determine the target rule based on application time
+                target_key = None
+                if 'before departure' in application_lower:
+                    target_key = 'changeBeforeDeparture'
+                elif 'after departure' in application_lower:
+                    target_key = 'changeAfterDeparture'
+                elif 'no show' in application_lower:
+                    target_key = 'changeNoShow'
+                
+                if target_key:
+                    # Ensure target key exists in rules
+                    if target_key not in rules:
+                        rules[target_key] = {
+                            'allowed': False,
+                            'fee': 0.0,
+                            'currency': currency or 'USD',
+                            'conditions': []
+                        }
+                    
+                    target = rules[target_key]
+                    target['allowed'] = True
+                    
+                    # Only update fee if it's higher than current
+                    if amount > target.get('fee', 0):
+                        target['fee'] = amount
+                        target['currency'] = currency or target.get('currency', 'USD')
+                    
+                    # Add remarks as conditions
+                    for remark in remarks:
+                        if remark and remark not in target['conditions']:
+                            target['conditions'].append(remark)
+                    
+                    logger.debug(f"Updated {target_key} rules: {target}")
+            except Exception as e:
+                logger.error(f"Error processing change penalty: {e}", exc_info=True)
+        
+        # Process Cancel penalties
+        elif 'cancel' in penalty_type_lower:
+            try:
+                if refundable:
+                    rules['refundable'] = True
+                
+                # Calculate refund percentage (100% if no fee, 0% otherwise)
+                refund_percentage = 100 if amount == 0 else 0
+                
+                # Determine the target rule based on application time
+                target_key = None
+                if 'before departure' in application_lower:
+                    target_key = 'cancelBeforeDeparture'
+                elif 'after departure' in application_lower:
+                    target_key = 'cancelAfterDeparture'
+                elif 'no show' in application_lower:
+                    target_key = 'cancelNoShow'
+                
+                if target_key:
+                    # Ensure target key exists in rules
+                    if target_key not in rules:
+                        rules[target_key] = {
+                            'allowed': False,
+                            'fee': 0.0,
+                            'currency': currency or 'USD',
+                            'refundPercentage': 0,
+                            'conditions': []
+                        }
+                    
+                    target = rules[target_key]
+                    target['allowed'] = True
+                    
+                    # Only update fee if it's higher than current
+                    if amount > target.get('fee', 0):
+                        target['fee'] = amount
+                        target['currency'] = currency or target.get('currency', 'USD')
+                    
+                    # Update refund percentage if more favorable
+                    if refund_percentage > target.get('refundPercentage', 0):
+                        target['refundPercentage'] = refund_percentage
+                    
+                    # Add remarks as conditions
+                    for remark in remarks:
+                        if remark and remark not in target['conditions']:
+                            target['conditions'].append(remark)
+                    
+                    logger.debug(f"Updated {target_key} rules: {target}")
+            except Exception as e:
+                logger.error(f"Error processing cancel penalty: {e}", exc_info=True)
+        
+        # Add to legacy penalties list for backward compatibility
+        try:
+            penalty_desc = f"{penalty_type.capitalize()} - {application}: {amount} {currency}"
+            if refundable and ('cancel' in penalty_type_lower or 'refund' in penalty_type_lower):
+                penalty_desc += " (Refundable)"
+            
+            # Ensure penalties list exists
+            if 'penalties' not in rules:
+                rules['penalties'] = []
+            
+            if penalty_desc not in rules['penalties']:
+                rules['penalties'].append(penalty_desc)
+            
+            # Ensure additionalRestrictions exists
+            if 'additionalRestrictions' not in rules:
+                rules['additionalRestrictions'] = []
+            
+            # Add remarks to additional restrictions if not already added
+            for remark in remarks:
+                if remark and remark not in rules['additionalRestrictions']:
+                    rules['additionalRestrictions'].append(remark)
+            
+            logger.debug(f"Final penalty processing complete for {penalty_type}")
+            
+        except Exception as e:
+            logger.error(f"Error updating legacy penalty information: {e}", exc_info=True)
+            
+    except Exception as e:
+        logger.error(f"Unexpected error in penalty processing: {e}", exc_info=True)
+
+def _transform_penalties_to_fare_rules(penalties: Union[List[Dict[str, Any]], Any]) -> Dict[str, Any]:
+    """
+    Transform penalty list into structured FareRules format expected by frontend.
+    
+    Handles different penalty types and application times according to documentation:
+    - Change fees (before/after departure, no-show)
+    - Cancel fees (before/after departure, no-show)
+    - Refund information
+    - No-show penalties
+    
+    Supports per-segment penalties and includes comprehensive penalty details.
+    
+    Args:
+        penalties: List of penalty dictionaries from _extract_penalty_info, or any other type
+        
+    Returns:
+        Dict containing structured fare rules for frontend with per-segment penalties
+    """
+    logger = logging.getLogger(__name__)
+    
+    # Handle case where penalties is not a list
+    if not isinstance(penalties, list):
+        logger.warning(f"Expected list of penalties but got {type(penalties)}. Converting to empty list.")
+        penalties = []
+    
+    # Filter out any non-dict items from penalties
+    valid_penalties = []
+    for i, penalty in enumerate(penalties):
+        if isinstance(penalty, dict):
+            valid_penalties.append(penalty)
+        else:
+            logger.warning(f"Skipping non-dict penalty at index {i}: {penalty}")
+    
+    logger.info(f"Transforming {len(valid_penalties)} valid penalties to fare rules")
+    
+    # Initialize fare rules structure
+    fare_rules = {
+        'changeable': False,
+        'refundable': False,
+        'exchangeable': False,
+        'cancelFee': False,
+        'changeFee': False,
+        'changeBeforeDeparture': None,
+        'changeAfterDeparture': None,
+        'cancelBeforeDeparture': None,
+        'cancelAfterDeparture': None,
+        'noShow': None,
+        'penalties': [],
+        'changeConditions': [],
+        'cancelConditions': [],
+        'noShowConditions': [],
+        'additionalRestrictions': [],
+        'segmentRules': {}
+    }
+    
+    # If no penalties, return default rules
+    if not penalties:
+        logger.debug("No penalties to process, returning default rules")
+        return fare_rules
+    
+    # Organize penalties by segment first
+    try:
+        segment_penalties = {}
+        for penalty in penalties:
+            if not isinstance(penalty, dict):
+                logger.warning(f"Skipping invalid penalty (not a dict): {penalty}")
+                continue
+                
+            # Get segment references from penalty, default to ['all'] if not specified
+            segment_refs = penalty.get('segment_refs', ['all'])
+            if not isinstance(segment_refs, list):
+                segment_refs = [segment_refs]
+                
+            for segment_ref in segment_refs:
+                if segment_ref not in segment_penalties:
+                    segment_penalties[segment_ref] = []
+                segment_penalties[segment_ref].append(penalty)
+        
+        logger.debug(f"Organized penalties into {len(segment_penalties)} segment groups")
+        
+    except Exception as e:
+        logger.error(f"Error organizing penalties by segment: {e}")
+        return fare_rules  # Return default rules if we can't organize penalties
+    
+    cancel_fees = []
+    change_fees = []
+    
+    # Process penalties for each segment
+    for segment_ref, seg_penalties in segment_penalties.items():
+        logger.info(f"Processing penalties for segment {segment_ref}")
+        # Create a new segment rules structure
+        segment_rules = _create_segment_fare_rules()
+        
+        # Log the penalties being processed
+        logger.info(f"Processing {len(seg_penalties)} penalties for segment {segment_ref}")
+        
+        # Ensure all penalties are dictionaries before processing
+        processed_penalties = []
+        for penalty in seg_penalties:
+            if isinstance(penalty, str):
+                logger.warning(f"Found string penalty, converting to dict: {penalty}")
+                processed_penalties.append({
+                    'type': penalty,
+                    'application': 'UNKNOWN',
+                    'amount': 0,
+                    'currency': 'USD',
+                    'remarks': [f"Converted from string: {penalty}"],
+                    'refundable': False,
+                    'segment_refs': [segment_ref]
+                })
+            elif isinstance(penalty, dict):
+                processed_penalties.append(penalty)
+            else:
+                logger.warning(f"Skipping invalid penalty type: {type(penalty)}")
+        
+        # Process each penalty
+        for i, penalty in enumerate(processed_penalties, 1):
+            try:
+                logger.info(f"Processing penalty {i}/{len(processed_penalties)}: {json.dumps(penalty, indent=2, default=str)}")
+                _apply_penalty_to_rules(penalty, segment_rules)
+            except Exception as e:
+                logger.error(f"Error applying penalty: {e}", exc_info=True)
+                # Continue with other penalties instead of failing the whole process
+                continue
+            
+        # Track fees for overall fare rules
+        for penalty in seg_penalties:
+            try:
+                if not isinstance(penalty, dict):
+                    logger.warning(f"Skipping non-dict penalty in fee tracking: {penalty}")
+                    continue
+                
+                penalty_type = str(penalty.get('type', '')).lower()
+                if not penalty_type:
+                    logger.warning(f"Penalty missing type: {penalty}")
+                    continue
+                    
+                if 'change' in penalty_type:
+                    fee = float(penalty.get('amount', 0) or 0)
+                    if fee > 0:
+                        change_fees.append(fee)
+                        fare_rules['changeCurrency'] = str(penalty.get('currency', ''))
+                elif 'cancel' in penalty_type:
+                    fee = float(penalty.get('amount', 0) or 0)
+                    if fee > 0:
+                        cancel_fees.append(fee)
+                        fare_rules['cancelCurrency'] = str(penalty.get('currency', ''))
+            except Exception as e:
+                logger.error(f"Error processing penalty for fee tracking: {e}", exc_info=True)
+                continue
+        
+        # Add segment rules to the main rules
+        fare_rules['segmentRules'][segment_ref] = segment_rules
+        
+        # Update overall rules based on segment rules
+        fare_rules['changeable'] = fare_rules['changeable'] or segment_rules.get('changeable', False)
+        fare_rules['changeFee'] = fare_rules['changeFee'] or segment_rules.get('changeFee', False)
+        fare_rules['refundable'] = fare_rules['refundable'] or segment_rules.get('refundable', False)
+        fare_rules['exchangeable'] = fare_rules['exchangeable'] or segment_rules.get('exchangeable', False)
+        
+        # Log the updated rules for this segment
+        logger.debug(f"Updated fare rules after segment {segment_ref}: {segment_rules}")
+        
+        # Merge penalties and additional restrictions
+        for penalty in segment_rules.get('penalties', []):
+            try:
+                # Skip if penalty is not a dictionary
+                if not isinstance(penalty, dict):
+                    logger.warning(f"Skipping non-dict penalty in segment rules: {penalty}")
+                    continue
+                    
+                # Skip if we've already processed this penalty
+                if penalty in fare_rules['penalties']:
+                    continue
+                    
+                # Add the penalty to our list
+                fare_rules['penalties'].append(penalty)
+                
+                # Safely extract penalty type and conditions
+                penalty_type = str(penalty.get('type', '')).lower()
+                conditions = penalty.get('conditions', [])
+                if not isinstance(conditions, list):
+                    conditions = []
+                
+                # Categorize penalty conditions based on type
+                if 'change' in penalty_type:
+                    fare_rules['changeConditions'].extend(
+                        str(c) for c in conditions 
+                        if str(c) not in fare_rules['changeConditions'] and c is not None
+                    )
+                elif 'cancel' in penalty_type:
+                    fare_rules['cancelConditions'].extend(
+                        str(c) for c in conditions 
+                        if str(c) not in fare_rules['cancelConditions'] and c is not None
+                    )
+                elif 'no show' in penalty_type or 'noshow' in penalty_type:
+                    fare_rules['noShowConditions'].extend(
+                        str(c) for c in conditions 
+                        if str(c) not in fare_rules['noShowConditions'] and c is not None
+                    )
+            except Exception as e:
+                logger.error(f"Error processing penalty in segment rules: {e}", exc_info=True)
+                continue
+        
+        for restriction in segment_rules.get('additionalRestrictions', []):
+            if restriction not in fare_rules['additionalRestrictions']:
+                fare_rules['additionalRestrictions'].append(restriction)
+    
+    # Set min/max fees for overall fare rules
+    if change_fees:
+        fare_rules['changeFeeBeforeDeparture'] = min(change_fees)
+        fare_rules['changeFeeAfterDeparture'] = max(change_fees)
+        fare_rules['changeFeeNoShow'] = max(change_fees)  # Default to max for no-show
+        
+    if cancel_fees:
+        fare_rules['cancelFeeBeforeDeparture'] = min(cancel_fees)
+        fare_rules['cancelFeeAfterDeparture'] = max(cancel_fees)
+        fare_rules['cancelFeeNoShow'] = max(cancel_fees)  # Default to max for no-show
+    
+    # Initialize refund conditions set with any existing refund conditions
+    refund_conditions = set(fare_rules.get('refundConditions', []))
+    
+    # Include cancel conditions if the fare is refundable
+    if fare_rules.get('refundable', False):
+        refund_conditions.update(fare_rules.get('cancelConditions', []))
+    
+    # Add refund conditions from penalties
+    for penalty in penalties:
+        if not isinstance(penalty, dict):
+            continue
+            
+        # If penalty is refundable, add its remarks as refund conditions
+        if penalty.get('refundable', False):
+            # Handle different types of remarks
+            remarks = penalty.get('remarks', [])
+            if isinstance(remarks, list):
+                refund_conditions.update(str(r) for r in remarks if r)
+            elif remarks:  # Handle case where remarks is a single string
+                refund_conditions.add(str(remarks))
+            
+            # Also add any conditions from the penalty
+            conditions = penalty.get('conditions', [])
+            if isinstance(conditions, list):
+                refund_conditions.update(str(c) for c in conditions if c)
+            elif conditions:
+                refund_conditions.add(str(conditions))
+    
+    # Add any additional restrictions that might be relevant
+    additional_restrictions = fare_rules.get('additionalRestrictions', [])
+    if isinstance(additional_restrictions, list):
+        refund_conditions.update(str(r) for r in additional_restrictions if r and 'refund' in str(r).lower())
+    
+    # Set default message if no conditions found but fare is refundable
+    if not refund_conditions and fare_rules.get('refundable', False):
+        refund_conditions.add("Refundable")
+    elif not refund_conditions:
+        refund_conditions.add("Non-refundable")
+    
+    # Update fare rules with refund conditions
+    fare_rules['refundConditions'] = [c for c in refund_conditions if c]  # Remove any empty strings
+    
+    # Final cleanup and validation
+    _cleanup_fare_rules(fare_rules)
+    
+    # Log the transformed fare rules for debugging
+    logger.debug(f"Transformed fare rules: {json.dumps(fare_rules, indent=2, default=str)}")
     
     return fare_rules
+
+def _cleanup_fare_rules(fare_rules: Dict[str, Any]) -> None:
+    """
+    Clean up and validate the fare rules structure.
+    
+    Args:
+        fare_rules: The fare rules dictionary to clean up
+    """
+    if not isinstance(fare_rules, dict):
+        logger.warning(f"Invalid fare_rules type: {type(fare_rules).__name__}. Expected dict.")
+        return
+    
+    # Remove empty conditions lists
+    for key in ['changeBeforeDeparture', 'changeAfterDeparture', 'changeNoShow',
+               'cancelBeforeDeparture', 'cancelAfterDeparture', 'cancelNoShow', 'noShow']:
+        try:
+            rule = fare_rules.get(key)
+            if isinstance(rule, dict) and 'conditions' in rule and not rule['conditions']:
+                del rule['conditions']
+        except Exception as e:
+            logger.warning(f"Error cleaning up {key} conditions: {e}")
+            continue
+    
+    # Ensure consistent refundable flag
+    try:
+        if fare_rules.get('refundable', False):
+            # If any cancellation is allowed, ensure refundable is True
+            cancel_before = fare_rules.get('cancelBeforeDeparture', {}) and fare_rules['cancelBeforeDeparture'].get('allowed', False)
+            cancel_after = fare_rules.get('cancelAfterDeparture', {}) and fare_rules['cancelAfterDeparture'].get('allowed', False)
+            cancel_noshow = fare_rules.get('cancelNoShow', {}) and fare_rules['cancelNoShow'].get('allowed', False)
+            
+            if any([cancel_before, cancel_after, cancel_noshow]):
+                fare_rules['refundable'] = True
+    except Exception as e:
+        logger.warning(f"Error updating refundable flag: {e}")
+    
+    # Clean up empty additional restrictions if it exists
+    try:
+        if 'additionalRestrictions' in fare_rules and not fare_rules['additionalRestrictions']:
+            del fare_rules['additionalRestrictions']
+    except Exception as e:
+        logger.warning(f"Error cleaning up additional restrictions: {e}")
+    
+    # Ensure exchangeable and changeable are in sync with proper null checks
+    try:
+        change_before = (isinstance(fare_rules.get('changeBeforeDeparture'), dict) and 
+                         fare_rules['changeBeforeDeparture'].get('allowed', False)) or False
+        change_after = (isinstance(fare_rules.get('changeAfterDeparture'), dict) and 
+                        fare_rules['changeAfterDeparture'].get('allowed', False)) or False
+        change_noshow = (isinstance(fare_rules.get('changeNoShow'), dict) and 
+                         fare_rules['changeNoShow'].get('allowed', False)) or False
+        
+        is_changeable = any([change_before, change_after, change_noshow])
+        fare_rules['exchangeable'] = fare_rules.get('exchangeable', False) or is_changeable
+        fare_rules['changeable'] = fare_rules.get('changeable', False) or is_changeable
+    except Exception as e:
+        logger.warning(f"Error syncing exchangeable/changeable flags: {e}")
+        fare_rules['exchangeable'] = fare_rules.get('exchangeable', False)
+        fare_rules['changeable'] = fare_rules.get('changeable', False)
 
 def _parse_iso_duration(duration_str):
     """

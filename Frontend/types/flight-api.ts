@@ -380,10 +380,65 @@ export interface Penalty {
   type: string;
   application: string;
   amount: number;
-  currency: string;
+  currency?: string;
+  fareDescription?: string;
   remarks?: string;
-}
+  code?: string;
+  description?: string;
+  isRefundable?: boolean;
+  isChangeable?: boolean;
+  isWaivedForFrequentFlyer?: boolean;
+  isWaivedForStatus?: boolean;
+  isWaivedForMilitary?: boolean;
+  isWaivedForCreditCard?: boolean;
+  isWaivedForCorporate?: boolean;
+  isWaivedForGroup?: boolean;
+  isWaivedForGovernment?: boolean;
+  isWaivedForSeniorCitizen?: boolean;
+  isWaivedForYouth?: boolean;
+  isWaivedForInfant?: boolean;
+  isWaivedForChild?: boolean;
+  isWaivedForStudent?: boolean;
+  isWaivedForMedical?: boolean;
+  isWaivedForBereavement?: boolean;
+  isWaivedForWeather?: boolean;
+  isWaivedForAirlineIssue?: boolean;
+  isWaivedForCovid19?: boolean;
+  isWaivedForOther?: boolean;
+  otherWaiverReason?: string;
+  waiverCode?: string;
+  waiverDescription?: string;
+  waiverUrl?: string;
+  waiverPhoneNumber?: string;
+  waiverEmail?: string;
+  waiverFormUrl?: string;
+  waiverFormRequired?: boolean;
+  waiverFormDeadline?: string;
+  waiverFormNotes?: string;
+  waiverFormInstructions?: string;
+  waiverFormContactName?: string;
+  waiverFormContactPhone?: string;
+  waiverFormContactEmail?: string;
+  waiverFormContactUrl?: string;
+  waiverFormContactNotes?: string;
+  waiverFormContactInstructions?: string;
+  waiverFormContactDeadline?: string;
+  waiverFormContactRequired?: boolean;
+  waiverFormContactType?: string;
+  waiverFormContactMethod?: string;
+  waiverFormContactOther?: string;
+  waiverFormContactOtherType?: string;
+  waiverFormContactOtherMethod?: string;
+  waiverFormContactOtherUrl?: string;
+  waiverFormContactOtherPhone?: string;
+  waiverFormContactOtherEmail?: string;
+  waiverFormContactOtherNotes?: string;
+  waiverFormContactOtherInstructions?: string;
+  waiverFormContactOtherDeadline?: string;
+  waiverFormContactOtherRequired?: boolean;
+} // Fare description from backend
 
+// Flight offer interface
 export interface FlightOffer {
   id: string;
   airline: AirlineDetails;
@@ -403,20 +458,21 @@ export interface FlightOffer {
   };
   duration: string;
   stops: number;
-  stopDetails: string[]; // Array of airport codes for stops
+  stopDetails: string[];
   price: number;
   currency: string;
-  baggage: BaggageAllowance; // Added baggage allowance information
-  fare?: FareDetails; // Added fare details information
-  aircraft?: AircraftDetails; // Added aircraft information
-  segments?: FlightSegmentDetails[]; // Detailed information about each flight segment 
-  priceBreakdown?: PriceBreakdown; // Added price breakdown information
-  additionalServices?: AdditionalServices; // Added additional services information
+  baggage: BaggageAllowance;
+  fare?: FareDetails;
+  aircraft?: AircraftDetails;
+  segments?: FlightSegmentDetails[];
+  priceBreakdown?: PriceBreakdown;
+  additionalServices?: AdditionalServices;
+  fareRules?: FareRules;
+  penalties?: Penalty[];
+  fareDescription?: string;
   
-  // Enhanced fare rules and penalties from backend
-  fareRules?: FareRules; // Comprehensive fare rules
-  penalties?: Penalty[]; // Detailed penalty information
-  fareDescription?: string; // Fare description from backend
+  // For roundtrip flights
+  returnFlight?: Omit<FlightOffer, 'returnFlight'>; // Recursive type for return flight
 }
 
 // API Response interfaces

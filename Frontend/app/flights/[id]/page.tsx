@@ -162,34 +162,13 @@ export default function FlightDetailsPage() {
           // Find return flight by looking for corresponding return ID or by direction
           let returnOffer;
           
-          // Current selectedOffer.id might be BASE_ID, BASE_ID_outbound, or BASE_ID_return
-          // We need the base ID to find its counterpart
-          const baseOfferId = selectedOffer.id.replace('_outbound', '').replace('_return', '');
-          
-          // First try to find return flight by replacing 'outbound' with 'return' in the ID or vice-versa
-          // This logic needs to handle if selectedOffer.id is already a return or an outbound flight
-          if (selectedOffer.id.includes('_outbound')) {
-            const potentialReturnId = selectedOffer.id.replace('_outbound', '_return');
-            returnOffer = offers.find((offer: any) => offer.id === potentialReturnId);
-          } else if (selectedOffer.id.includes('_return')) {
-            // If the selected offer is already a return, this logic might be for finding its outbound pair if needed
-            // For now, let's assume we are primarily looking for the return flight if selected is outbound
-          } else {
-            // If selectedOffer.id is a base ID (no suffix), look for its suffixed counterparts
-            const potentialReturnId = `${baseOfferId}_return`;
-            returnOffer = offers.find((offer: any) => offer.id === potentialReturnId);
-          }
-          
-          // If not found by direct ID manipulation, try to find by direction or other criteria
-          if (!returnOffer) {
-            returnOffer = offers.find(
-              (offer: any) => offer.id !== flightId && (
-                offer.direction === 'return' || 
-                offer.segments?.some((seg: any) => seg.direction === 'return') ||
-                offer.id.includes('-return')
-              )
-            ) || offers[1]; // Fallback to second offer
-          }
+          // Find return flight by direction
+          returnOffer = offers.find(
+            (offer: any) => offer.id !== flightId && (
+              offer.direction === 'return' || 
+              offer.segments?.some((seg: any) => seg.direction === 'return')
+            )
+          ) || offers[1]; // Fallback to second offer
           
           if (returnOffer) {
             console.log('[DEBUG] Return flight offer found:', returnOffer);

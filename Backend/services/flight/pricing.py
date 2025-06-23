@@ -33,13 +33,13 @@ class FlightPricingService(FlightService):
         shopping_response_id: str,
         currency: str = "USD",
         request_id: Optional[str] = None,
-    ) -> PricingResponse:
+    ) -> Dict[str, Any]:
         """
         Get pricing for a specific flight offer.
         
         Args:
             airshopping_response: The AirShopping response
-            offer_id: The ID of the offer to price
+            offer_id: The ID of the offer to price (frontend's offer ID)
             shopping_response_id: The ShoppingResponseID from AirShoppingRS
             currency: Currency code (default: USD)
             request_id: Optional request ID for tracking
@@ -51,6 +51,8 @@ class FlightPricingService(FlightService):
             ValidationError: If the request data is invalid
             APIError: If there's an error communicating with the API
         """
+        logger.info(f"[INFO] Starting flight price request for offer ID: {offer_id}")
+        
         try:
             # Validate input
             if not airshopping_response or not offer_id or not shopping_response_id:
@@ -59,29 +61,37 @@ class FlightPricingService(FlightService):
             # Generate a request ID if not provided
             request_id = request_id or str(uuid.uuid4())
             
-            # Extract airline code from the offer for dynamic thirdPartyId
+            # Extract airline code from the offer
             airline_code = self._extract_airline_code_from_offer(airshopping_response, offer_id)
             logger.info(f"Extracted airline code '{airline_code}' for offer {offer_id} (ReqID: {request_id})")
             
-            # Build the request payload
-            payload = self._build_pricing_payload(
+            # Build the pricing payload
+            pricing_payload = self._build_pricing_payload(
                 airshopping_response=airshopping_response,
                 offer_id=offer_id
             )
             
-            # Make the API request with dynamic airline code
+            # Log the request details
+            logger.info(f"[INFO] Sending FlightPrice request for offer ID: {offer_id}")
+            logger.debug(f"[DEBUG] FlightPrice request payload: {pricing_payload}")
+            
+            # Make the API request
             response = await self._make_request(
                 endpoint='/entrygate/rest/request:flightPrice',
-                payload=payload,
+                payload=pricing_payload,
                 service_name='FlightPrice',
                 airline_code=airline_code,
                 request_id=request_id
             )
             
-            # Process and return the response
+            # Process the response, passing the frontend's offer_id to ensure consistency
             return {
                 'status': 'success',
-                'data': self._process_pricing_response(response, request_id),
+                'data': self._process_pricing_response(
+                    response=response,
+                    request_id=request_id,
+                    frontend_offer_id=offer_id  # Pass the frontend's offer ID to maintain consistency
+                ),
                 'request_id': request_id
             }
             
@@ -331,10 +341,8 @@ class FlightPricingService(FlightService):
                     
                     logger.debug(f"[DEBUG] Checking offer {i}: {current_offer_id} (looking for: {offer_id})")
                     
-                    # Check for exact match or match without _return suffix for round-trip
-                    if (str(current_offer_id) == str(offer_id) or 
-                        (offer_id.endswith('_return') and 
-                         str(current_offer_id) == str(offer_id[:-7]))):  # Remove '_return' suffix
+                    # Check for exact match
+                    if str(current_offer_id) == str(offer_id):
                         selected_offer_index = i
                         offer_found = True
                         logger.info(f"[DEBUG] Found matching offer at index {i} for offer_id: {offer_id}")
@@ -367,13 +375,7 @@ class FlightPricingService(FlightService):
                             if current_id:
                                 all_offer_ids.append(str(current_id))
                 
-                # If we have a _return suffix, try without it for better error message
-                base_offer_id = offer_id[:-7] if offer_id.endswith('_return') else None
-                
-                error_msg = f"Offer ID {offer_id} not found in response. "
-                if base_offer_id:
-                    error_msg += f"Tried both {offer_id} and {base_offer_id}. "
-                error_msg += f"Available offer IDs: {all_offer_ids}"
+                error_msg = f"Offer ID {offer_id} not found in response. Available offer IDs: {all_offer_ids}"
                 
                 logger.error(f"[DEBUG] {error_msg}")
                 raise ValueError(f"Offer ID {offer_id} not found in response")
@@ -392,18 +394,26 @@ class FlightPricingService(FlightService):
             logger.error(f"[ERROR] Error building FlightPrice payload: {str(e)}", exc_info=True)
             raise ValidationError(f"Failed to build pricing payload: {str(e)}") from e
     
-    def _process_pricing_response(self, response: Dict[str, Any], request_id: Optional[str] = None) -> Dict[str, Any]:
+    def _process_pricing_response(
+        self, 
+        response: Dict[str, Any], 
+        request_id: Optional[str] = None,
+        frontend_offer_id: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Process the FlightPrice API response using FlightPriceTransformer.
         
         Args:
             response: Raw API response from FlightPrice endpoint
             request_id: Request ID for caching purposes
+            frontend_offer_id: The offer ID from the frontend to ensure consistency
             
         Returns:
             Transformed response data compatible with frontend
         """
         try:
+            logger.info("Starting to process FlightPrice response")
+            
             # Check if response contains FlightPriceRS
             if 'FlightPriceRS' in response:
                 flight_price_data = response['FlightPriceRS']
@@ -447,7 +457,16 @@ class FlightPricingService(FlightService):
             
             # Use FlightPriceTransformer to transform the response
             transformer = FlightPriceTransformer(flight_price_data)
+            
+            # Transform the response, passing the frontend_offer_id if available
             transformed_offers = transformer.transform()
+            
+            # If we have a frontend_offer_id, ensure it's used in the transformed offers
+            if frontend_offer_id and transformed_offers:
+                for offer in transformed_offers:
+                    if 'offer_id' in offer:
+                        offer['original_offer_id'] = offer['offer_id']
+                        offer['offer_id'] = frontend_offer_id
             
             logger.info(f"Successfully transformed FlightPrice response with {len(transformed_offers)} offers")
             
@@ -589,15 +608,33 @@ async def process_flight_price(price_request: Dict[str, Any]) -> Dict[str, Any]:
     Process flight price request.
     
     This is a backward-compatible wrapper around the FlightPricingService.
+    
+    Args:
+        price_request: Dictionary containing:
+            - air_shopping_response: The AirShopping response
+            - offer_id: The frontend's offer ID (required)
+            - shopping_response_id: The ShoppingResponseID from AirShoppingRS (required)
+            - currency: Currency code (default: USD)
+            - request_id: Optional request ID for tracking
+            - config: Optional configuration overrides
     """
     config = price_request.pop('config', {})
+    
+    # Extract the offer_id from the request
+    offer_id = price_request.get('offer_id', '')
+    if not offer_id:
+        raise ValueError("offer_id is required in price_request")
+    
+    # Log the request details
+    logger.info(f"[INFO] Processing flight price request for offer ID: {offer_id}")
     
     # Use a single service instance to avoid creating multiple TokenManager instances
     service = FlightPricingService(config=config)
     try:
+        # Pass the offer_id as the frontend_offer_id to maintain consistency
         return await service.get_flight_price(
             airshopping_response=price_request.get('air_shopping_response', {}),
-            offer_id=price_request.get('offer_id', ''),
+            offer_id=offer_id,
             shopping_response_id=price_request.get('shopping_response_id', ''),
             currency=price_request.get('currency', 'USD'),
             request_id=price_request.get('request_id')

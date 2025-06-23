@@ -423,9 +423,15 @@ async def flight_price():
                     f"keys: {list(air_shopping.keys()) if isinstance(air_shopping, dict) else 'N/A'}")
         
         # Prepare request data
+        offer_id = data['offer_id']
+        shopping_response_id = data['shopping_response_id']
+        
+        # Log the offer details for debugging
+        logger.info(f"[DEBUG] Flight price request - Offer ID: {offer_id}, Type: {type(offer_id).__name__}")
+        
         price_request = {
-            'offer_id': data['offer_id'],
-            'shopping_response_id': data['shopping_response_id'],
+            'offer_id': offer_id,  # This is the frontend's offer ID
+            'shopping_response_id': shopping_response_id,
             'air_shopping_response': air_shopping,
             'currency': data.get('currency', 'USD'),
             'request_id': request_id,

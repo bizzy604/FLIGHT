@@ -132,13 +132,13 @@ def _create_flight_offer_from_segments(segments: List[Dict], airline_code: str,
         if offer_id_obj and isinstance(offer_id_obj, dict):
             offer_id_value = offer_id_obj.get('value')
             if offer_id_value:
-                offer_id = f"{offer_id_value}_{offer_id_suffix}"
+                offer_id = offer_id_value
                 logger.info(f"Using OfferID from API: {offer_id}")
             else:
                 logger.warning(f"OfferID object found but value is empty: {offer_id_obj}")
         elif isinstance(offer_id_obj, str) and offer_id_obj.strip():
             # Handle case where OfferID is a string directly
-            offer_id = f"{offer_id_obj.strip()}_{offer_id_suffix}"
+            offer_id = offer_id_obj.strip()
             logger.info(f"Using OfferID string from API: {offer_id}")
         else:
             logger.warning(f"OfferID not found or invalid in airline_offer: {offer_id_obj}")
@@ -148,7 +148,7 @@ def _create_flight_offer_from_segments(segments: List[Dict], airline_code: str,
         import uuid
         import time
         timestamp = int(time.time())
-        offer_id = f"flight_{timestamp}_{str(uuid.uuid4())[:8]}_{offer_id_suffix}"
+        offer_id = f"flight_{timestamp}_{str(uuid.uuid4())[:8]}"
         logger.warning(f"OfferID not found, generated fallback ID: {offer_id}")
         if airline_offer:
             logger.info(f"Available airline_offer keys: {list(airline_offer.keys())}")
@@ -232,7 +232,7 @@ def transform_single_offer_with_roundtrip(airline_code: str, priced_offer: Dict,
         # Create outbound offer
         if outbound_segments:
             outbound_offer = _create_flight_offer_from_segments(
-                outbound_segments, airline_code, price, currency, "outbound",
+                outbound_segments, airline_code, price, currency, "",
                 price_detail, priced_offer, airline_offer, reference_data, offer_price
             )
             if outbound_offer:
@@ -243,7 +243,7 @@ def transform_single_offer_with_roundtrip(airline_code: str, priced_offer: Dict,
         # Create return offer if this is a round trip
         if return_segments:
             return_offer = _create_flight_offer_from_segments(
-                return_segments, airline_code, price, currency, "return",
+                return_segments, airline_code, price, currency, "",
                 price_detail, priced_offer, airline_offer, reference_data, offer_price
             )
             if return_offer:

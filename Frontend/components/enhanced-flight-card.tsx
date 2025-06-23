@@ -26,7 +26,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { FlightOffer } from "@/types/flight-api"
+import type { FlightOffer, FlightSegmentDetails, Penalty } from "@/types/flight-api"
 
 interface EnhancedFlightCardProps {
   flight: FlightOffer
@@ -45,23 +45,61 @@ interface EnhancedFlightCardProps {
 }
 
 export function EnhancedFlightCard({ flight, showExtendedDetails = false, searchParams }: EnhancedFlightCardProps) {
+  // Store flight data in localStorage when flight is selected
+  const handleFlightSelect = (e: React.MouseEvent) => {
+    try {
+      // Store the complete flight data with a timestamp
+      const flightData = {
+        flight,
+        timestamp: new Date().toISOString(),
+        expiresAt: Date.now() + (30 * 60 * 1000), // 30 minutes expiry
+        searchParams: searchParams || {}
+      };
+      
+      // Create a unique key for this flight
+      const flightKey = `flight_${flight.id}_${Date.now()}`;
+      
+      // Store the flight data
+      localStorage.setItem(flightKey, JSON.stringify(flightData));
+      
+      // Store the key for easy retrieval
+      localStorage.setItem('currentFlightKey', flightKey);
+      
+      // If this is a roundtrip, store the return flight data as well
+      if (flight.returnFlight) {
+        const returnKey = `flight_${flight.returnFlight.id}_${Date.now()}_return`;
+        const returnFlightData = {
+          flight: flight.returnFlight,
+          timestamp: new Date().toISOString(),
+          expiresAt: Date.now() + (30 * 60 * 1000), // 30 minutes expiry
+          searchParams: searchParams || {}
+        };
+        localStorage.setItem(returnKey, JSON.stringify(returnFlightData));
+        localStorage.setItem('returnFlightKey', returnKey);
+      }
+      
+    } catch (error) {
+      console.error('Error storing flight data:', error);
+    }
+  };
+
   // Build query string with search parameters
   const buildFlightUrl = () => {
-    const params = new URLSearchParams({ from: 'search' })
+    const params = new URLSearchParams({ from: 'search' });
     
     if (searchParams) {
-      if (searchParams.adults) params.set('adults', searchParams.adults.toString())
-      if (searchParams.children) params.set('children', searchParams.children.toString())
-      if (searchParams.infants) params.set('infants', searchParams.infants.toString())
-      if (searchParams.tripType) params.set('tripType', searchParams.tripType)
-      if (searchParams.origin) params.set('origin', searchParams.origin)
-      if (searchParams.destination) params.set('destination', searchParams.destination)
-      if (searchParams.departDate) params.set('departDate', searchParams.departDate)
-      if (searchParams.returnDate) params.set('returnDate', searchParams.returnDate)
-      if (searchParams.cabinClass) params.set('cabinClass', searchParams.cabinClass)
+      if (searchParams.adults) params.set('adults', searchParams.adults.toString());
+      if (searchParams.children) params.set('children', searchParams.children.toString());
+      if (searchParams.infants) params.set('infants', searchParams.infants.toString());
+      if (searchParams.tripType) params.set('tripType', searchParams.tripType);
+      if (searchParams.origin) params.set('origin', searchParams.origin);
+      if (searchParams.destination) params.set('destination', searchParams.destination);
+      if (searchParams.departDate) params.set('departDate', searchParams.departDate);
+      if (searchParams.returnDate) params.set('returnDate', searchParams.returnDate);
+      if (searchParams.cabinClass) params.set('cabinClass', searchParams.cabinClass);
     }
     
-    return `/flights/${encodeURIComponent(flight.id)}?${params.toString()}`
+    return `/flights/${encodeURIComponent(flight.id)}?${params.toString()}`;
   }
   const [expanded, setExpanded] = useState(showExtendedDetails)
   
@@ -303,7 +341,9 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                           )}
                           {flight.fareRules.changeBeforeDeparture.conditions && (
                             <div className="text-muted-foreground">
-                              <strong>Conditions:</strong> {flight.fareRules.changeBeforeDeparture.conditions}
+                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.changeBeforeDeparture.conditions) 
+                                ? flight.fareRules.changeBeforeDeparture.conditions.join('. ') 
+                                : flight.fareRules.changeBeforeDeparture.conditions}
                             </div>
                           )}
                         </div>
@@ -323,19 +363,176 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                         </div>
                         
                         <div className="grid grid-cols-1 gap-2 text-sm mt-2">
-                          {flight.fareRules.cancelBeforeDeparture.fee && (
+                          {flight.fareRules.cancelBeforeDeparture.fee !== undefined && (
                             <div className="text-muted-foreground">
                               <strong>Fee:</strong> {flight.fareRules.cancelBeforeDeparture.fee} {flight.fareRules.cancelBeforeDeparture.currency}
                             </div>
                           )}
-                          {flight.fareRules.cancelBeforeDeparture.refundPercentage && (
+                          {flight.fareRules.cancelBeforeDeparture.refundPercentage !== undefined && (
                             <div className="text-muted-foreground">
                               <strong>Refund:</strong> {flight.fareRules.cancelBeforeDeparture.refundPercentage}%
                             </div>
                           )}
                           {flight.fareRules.cancelBeforeDeparture.conditions && (
                             <div className="text-muted-foreground">
-                              <strong>Conditions:</strong> {flight.fareRules.cancelBeforeDeparture.conditions}
+                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.cancelBeforeDeparture.conditions) 
+                                ? flight.fareRules.cancelBeforeDeparture.conditions.join('. ') 
+                                : flight.fareRules.cancelBeforeDeparture.conditions}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Change After Departure */}
+                    {flight.fareRules?.changeAfterDeparture && (
+                      <div className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <span className="font-medium">Change After Departure</span>
+                          </div>
+                          <Badge variant={flight.fareRules.changeAfterDeparture.allowed ? "default" : "destructive"}>
+                            {flight.fareRules.changeAfterDeparture.allowed ? "Allowed" : "Not Allowed"}
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-1 gap-2 text-sm mt-2">
+                          {flight.fareRules.changeAfterDeparture.fee !== undefined && (
+                            <div className="text-muted-foreground">
+                              <strong>Fee:</strong> {flight.fareRules.changeAfterDeparture.fee} {flight.fareRules.changeAfterDeparture.currency}
+                            </div>
+                          )}
+                          {flight.fareRules.changeAfterDeparture.conditions && (
+                            <div className="text-muted-foreground">
+                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.changeAfterDeparture.conditions) 
+                                ? flight.fareRules.changeAfterDeparture.conditions.join('. ') 
+                                : flight.fareRules.changeAfterDeparture.conditions}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Change No Show */}
+                    {flight.fareRules?.changeNoShow && (
+                      <div className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <span className="font-medium">Change (No Show)</span>
+                          </div>
+                          <Badge variant={flight.fareRules.changeNoShow.allowed ? "default" : "destructive"}>
+                            {flight.fareRules.changeNoShow.allowed ? "Allowed" : "Not Allowed"}
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-1 gap-2 text-sm mt-2">
+                          {flight.fareRules.changeNoShow.fee !== undefined && (
+                            <div className="text-muted-foreground">
+                              <strong>Fee:</strong> {flight.fareRules.changeNoShow.fee} {flight.fareRules.changeNoShow.currency}
+                            </div>
+                          )}
+                          {flight.fareRules.changeNoShow.conditions && (
+                            <div className="text-muted-foreground">
+                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.changeNoShow.conditions) 
+                                ? flight.fareRules.changeNoShow.conditions.join('. ') 
+                                : flight.fareRules.changeNoShow.conditions}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Cancel After Departure */}
+                    {flight.fareRules?.cancelAfterDeparture && (
+                      <div className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <span className="font-medium">Cancel After Departure</span>
+                          </div>
+                          <Badge variant={flight.fareRules.cancelAfterDeparture.allowed ? "default" : "destructive"}>
+                            {flight.fareRules.cancelAfterDeparture.allowed ? "Allowed" : "Not Allowed"}
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-1 gap-2 text-sm mt-2">
+                          {flight.fareRules.cancelAfterDeparture.fee !== undefined && (
+                            <div className="text-muted-foreground">
+                              <strong>Fee:</strong> {flight.fareRules.cancelAfterDeparture.fee} {flight.fareRules.cancelAfterDeparture.currency}
+                            </div>
+                          )}
+                          {flight.fareRules.cancelAfterDeparture.refundPercentage !== undefined && (
+                            <div className="text-muted-foreground">
+                              <strong>Refund:</strong> {flight.fareRules.cancelAfterDeparture.refundPercentage}%
+                            </div>
+                          )}
+                          {flight.fareRules.cancelAfterDeparture.conditions && (
+                            <div className="text-muted-foreground">
+                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.cancelAfterDeparture.conditions) 
+                                ? flight.fareRules.cancelAfterDeparture.conditions.join('. ') 
+                                : flight.fareRules.cancelAfterDeparture.conditions}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Cancel No Show */}
+                    {flight.fareRules?.cancelNoShow && (
+                      <div className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <span className="font-medium">Cancel (No Show)</span>
+                          </div>
+                          <Badge variant={flight.fareRules.cancelNoShow.allowed ? "default" : "destructive"}>
+                            {flight.fareRules.cancelNoShow.allowed ? "Allowed" : "Not Allowed"}
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-1 gap-2 text-sm mt-2">
+                          {flight.fareRules.cancelNoShow.fee !== undefined && (
+                            <div className="text-muted-foreground">
+                              <strong>Fee:</strong> {flight.fareRules.cancelNoShow.fee} {flight.fareRules.cancelNoShow.currency}
+                            </div>
+                          )}
+                          {flight.fareRules.cancelNoShow.refundPercentage !== undefined && (
+                            <div className="text-muted-foreground">
+                              <strong>Refund:</strong> {flight.fareRules.cancelNoShow.refundPercentage}%
+                            </div>
+                          )}
+                          {flight.fareRules.cancelNoShow.conditions && (
+                            <div className="text-muted-foreground">
+                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.cancelNoShow.conditions) 
+                                ? flight.fareRules.cancelNoShow.conditions.join('. ') 
+                                : flight.fareRules.cancelNoShow.conditions}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* No Show Policy */}
+                    {flight.fareRules?.noShow && (
+                      <div className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <span className="font-medium">No Show Policy</span>
+                          </div>
+                          <Badge variant={flight.fareRules.noShow.refundable ? "default" : "destructive"}>
+                            {flight.fareRules.noShow.refundable ? "Refundable" : "Non-refundable"}
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-1 gap-2 text-sm mt-2">
+                          {flight.fareRules.noShow.fee !== undefined && (
+                            <div className="text-muted-foreground">
+                              <strong>Fee:</strong> {flight.fareRules.noShow.fee} {flight.fareRules.noShow.currency}
+                            </div>
+                          )}
+                          {flight.fareRules.noShow.refundPercentage !== undefined && (
+                            <div className="text-muted-foreground">
+                              <strong>Refund:</strong> {flight.fareRules.noShow.refundPercentage}%
+                            </div>
+                          )}
+                          {flight.fareRules.noShow.conditions && (
+                            <div className="text-muted-foreground">
+                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.noShow.conditions) 
+                                ? flight.fareRules.noShow.conditions.join('. ') 
+                                : flight.fareRules.noShow.conditions}
                             </div>
                           )}
                         </div>
@@ -353,7 +550,7 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                         </div>
                         
                         <div className="mt-2 text-sm text-muted-foreground space-y-1">
-                          {flight.fareRules.additionalRestrictions.map((restriction, index) => (
+                          {flight.fareRules.additionalRestrictions.map((restriction: string, index: number) => (
                             <div key={index}>• {restriction}</div>
                           ))}
                         </div>
