@@ -10,6 +10,7 @@ that can be used across different parts of the application.
 AIRLINE_NAMES = {
     # Major Airlines
     'AA': 'American Airlines',
+    'KQ': 'Kenya Airways',
     'DL': 'Delta Air Lines',
     'UA': 'United Airlines',
     'WN': 'Southwest Airlines',

@@ -31,9 +31,7 @@ from services.flight.types import (
     SearchCriteria,
     FlightSearchResponse,
     PricingResponse,
-    BookingResponse,
-    ODSegment,
-    PassengerCounts
+    BookingResponse
 )
 from utils.auth import TokenManager
 
@@ -114,7 +112,7 @@ class FlightService:
             'Content-Type': 'application/json',
             'Accept': '*/*',
             'Authorization': f'Bearer {access_token}', # Optional: Keep if Verteil uses/recommends it
-            'OfficeId': self.config.get('VERTEIL_OFFICE_ID', ''),
+            'OfficeId': self.config.get('VERTEIL_OFFICE_ID'),
             'ThirdpartyId': third_party_id,
             'service': service_name,
             'User-Agent': 'FlightBookingPortal/1.0'
