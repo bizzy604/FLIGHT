@@ -9,7 +9,7 @@ import { api } from "@/utils/api-client"
 import type { FlightSearchRequest } from "@/utils/api-client"
 import type { FlightOffer } from "@/types/flight-api"
 
-import { Button } from "@/components/ui/button"
+import { Button, LoadingButton } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { MainNav } from "@/components/main-nav"
 import { UserNav } from "@/components/user-nav"
@@ -111,7 +111,19 @@ function SearchParamsWrapper() {
   const searchParams = useSearchParams()
   const [sortOption, setSortOption] = useState('price_low')
   const [currentPage, setCurrentPage] = useState(1)
+  const [isChangingPage, setIsChangingPage] = useState(false)
   const itemsPerPage = 10
+
+  const handlePageChange = async (newPage: number) => {
+    setIsChangingPage(true)
+    try {
+      // Add a small delay to show loading state
+      await new Promise(resolve => setTimeout(resolve, 300))
+      setCurrentPage(newPage)
+    } finally {
+      setIsChangingPage(false)
+    }
+  }
 
   // Extract search parameters outside useEffect so they're available in component scope
   const origin = searchParams.get('origin') || ''
@@ -568,54 +580,58 @@ function SearchParamsWrapper() {
 
               {/* Pagination */}
               <div className="flex items-center justify-center space-x-2 sm:space-x-3 py-6 sm:py-8">
-                <Button
+                <LoadingButton
                   variant="outline"
                   size="icon"
                   className="h-9 w-9 sm:h-10 sm:w-10"
                   disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  loading={isChangingPage}
+                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                 >
                   <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span className="sr-only">Previous page</span>
-                </Button>
+                </LoadingButton>
                 
                 {/* Generate page buttons */}
                 {Array.from({ length: Math.min(3, Math.ceil(allFlights.length / itemsPerPage)) }, (_, i) => (
-                  <Button
+                  <LoadingButton
                     key={i}
                     variant={currentPage === i + 1 ? "default" : "outline"}
                     size="sm"
                     className="h-8 w-8 sm:h-9 sm:w-9 p-0 text-sm sm:text-base"
-                    onClick={() => setCurrentPage(i + 1)}
+                    loading={isChangingPage && currentPage !== i + 1}
+                    onClick={() => handlePageChange(i + 1)}
                   >
                     {i + 1}
-                  </Button>
+                  </LoadingButton>
                 ))}
                 
                 {Math.ceil(allFlights.length / itemsPerPage) > 3 && (
                   <>
                     <span className="text-sm text-muted-foreground">...</span>
-                    <Button
+                    <LoadingButton
                       variant="outline"
                       size="sm"
                       className="h-8 w-8 sm:h-9 sm:w-9 p-0 text-sm sm:text-base"
-                      onClick={() => setCurrentPage(Math.ceil(allFlights.length / itemsPerPage))}
+                      loading={isChangingPage}
+                      onClick={() => handlePageChange(Math.ceil(allFlights.length / itemsPerPage))}
                     >
                       {Math.ceil(allFlights.length / itemsPerPage)}
-                    </Button>
+                    </LoadingButton>
                   </>
                 )}
                 
-                <Button
+                <LoadingButton
                   variant="outline"
                   size="icon"
                   className="h-9 w-9 sm:h-10 sm:w-10"
                   disabled={currentPage >= Math.ceil(allFlights.length / itemsPerPage)}
-                  onClick={() => setCurrentPage(prev => Math.min(Math.ceil(allFlights.length / itemsPerPage), prev + 1))}
+                  loading={isChangingPage}
+                  onClick={() => handlePageChange(Math.min(Math.ceil(allFlights.length / itemsPerPage), currentPage + 1))}
                 >
                   <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span className="sr-only">Next page</span>
-                </Button>
+                </LoadingButton>
               </div>
             </div>
           </div>

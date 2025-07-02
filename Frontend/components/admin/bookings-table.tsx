@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { ArrowUpDown, ChevronLeft, ChevronRight, Download, MoreHorizontal, Printer, RefreshCw } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button, LoadingButton } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -140,10 +140,16 @@ export function BookingsTable() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setIsLoading(true)}>
+          <LoadingButton
+            variant="outline"
+            size="sm"
+            onClick={() => setIsLoading(true)}
+            loading={isLoading}
+            loadingText="Refreshing..."
+          >
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
-          </Button>
+          </LoadingButton>
           <Button variant="outline" size="sm">
             <Download className="mr-2 h-4 w-4" />
             Export

@@ -7,7 +7,7 @@ import { useAuth } from "@clerk/nextjs"
 import { ChevronRight, CreditCard, Luggage, User, Users, AlertCircle, CheckCircle } from "lucide-react"
 
 import { cn } from "@/utils/cn"
-import { Button } from "@/components/ui/button"
+import { Button, LoadingButton } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
@@ -56,6 +56,7 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
   const pathname = usePathname()
   const { isSignedIn } = useAuth()
   const [currentStep, setCurrentStep] = useState(1)
+  const [isNavigating, setIsNavigating] = useState(false)
   
   // Calculate total passenger count from props
   const totalPassengers = adults + children + infants
@@ -281,6 +282,8 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
       return;
     }
 
+    setIsNavigating(true);
+
     const flightId = pathname.split("/")[2]
 
     // Prepare booking data for backend API
@@ -388,16 +391,21 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
     console.log('[DEBUG] isSignedIn:', isSignedIn)
     console.log('[DEBUG] flightId:', flightId)
 
-    if (isSignedIn) {
-      const paymentUrl = `/flights/${encodeURIComponent(flightId)}/payment`
-      console.log('[DEBUG] Navigating to payment URL:', paymentUrl)
-      router.push(paymentUrl)
-    } else {
-      // Store the redirect URL in session storage
-      const redirectUrl = `/flights/${flightId}/payment`
-      const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`
-      console.log('[DEBUG] Navigating to sign-in URL:', signInUrl)
-      router.push(signInUrl)
+    try {
+      if (isSignedIn) {
+        const paymentUrl = `/flights/${encodeURIComponent(flightId)}/payment`
+        console.log('[DEBUG] Navigating to payment URL:', paymentUrl)
+        router.push(paymentUrl)
+      } else {
+        // Store the redirect URL in session storage
+        const redirectUrl = `/flights/${flightId}/payment`
+        const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`
+        console.log('[DEBUG] Navigating to sign-in URL:', signInUrl)
+        router.push(signInUrl)
+      }
+    } finally {
+      // Reset loading state after a delay to allow navigation
+      setTimeout(() => setIsNavigating(false), 1000);
     }
   }
 
@@ -1028,9 +1036,11 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
             </Button>
 
             {currentStep < steps.length ? (
-              <Button
+              <LoadingButton
                 onClick={nextStep}
                 disabled={!isCurrentStepValid}
+                loading={isNavigating}
+                loadingText="Processing..."
                 className={cn(
                   "w-full sm:w-auto text-sm",
                   !isCurrentStepValid && "opacity-50 cursor-not-allowed"
@@ -1038,11 +1048,13 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
               >
                 Continue
                 <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
+              </LoadingButton>
             ) : (
-              <Button
+              <LoadingButton
                 onClick={handleContinueToPayment}
                 disabled={!isCurrentStepValid}
+                loading={isNavigating}
+                loadingText="Redirecting..."
                 className={cn(
                   "w-full sm:w-auto text-sm",
                   !isCurrentStepValid && "opacity-50 cursor-not-allowed"
@@ -1052,7 +1064,7 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
                 <span className="hidden sm:inline">Continue to Payment</span>
                 <span className="sm:hidden">Continue</span>
                 <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
+              </LoadingButton>
             )}
           </div>
         </div>

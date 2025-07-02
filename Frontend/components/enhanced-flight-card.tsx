@@ -21,7 +21,7 @@ import {
   AlertCircle
 } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
+import { Button, LoadingButton } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -45,6 +45,8 @@ interface EnhancedFlightCardProps {
 }
 
 export function EnhancedFlightCard({ flight, showExtendedDetails = false, searchParams }: EnhancedFlightCardProps) {
+  const [isSelecting, setIsSelecting] = useState(false)
+
   // Check if offer is expiring soon (within 10 minutes)
   const getOfferExpirationStatus = () => {
     if (!flight.time_limits?.offer_expiration) return null;
@@ -71,7 +73,9 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
 
   const expirationStatus = getOfferExpirationStatus();
   // Store flight data in localStorage when flight is selected
-  const handleFlightSelect = (e: React.MouseEvent) => {
+  const handleFlightSelect = async (e: React.MouseEvent) => {
+    setIsSelecting(true);
+
     try {
       // Store the complete flight data with a timestamp
       const flightData = {
@@ -103,8 +107,13 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
         localStorage.setItem('returnFlightKey', returnKey);
       }
 
+      // Add a small delay to show the loading state
+      await new Promise(resolve => setTimeout(resolve, 500));
+
     } catch (error) {
       console.error('Error storing flight data:', error);
+    } finally {
+      setIsSelecting(false);
     }
   };
 
@@ -741,9 +750,14 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
             </div>
 
             <Link href={buildFlightUrl()} className="w-full">
-              <Button className="w-full" onClick={handleFlightSelect}>
+              <LoadingButton
+                className="w-full"
+                onClick={handleFlightSelect}
+                loading={isSelecting}
+                loadingText="Selecting..."
+              >
                 Select Flight
-              </Button>
+              </LoadingButton>
             </Link>
           </div>
         </div>

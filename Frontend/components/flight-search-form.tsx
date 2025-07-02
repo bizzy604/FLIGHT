@@ -8,7 +8,7 @@ import { useLoading } from "@/utils/loading-state"
 import { FlightOffer, FlightSearchRequest } from "@/utils/api-client"
 
 import { cn } from "@/utils/cn"
-import { Button } from "@/components/ui/button"
+import { Button, LoadingButton } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -340,19 +340,20 @@ export function FlightSearchForm() {
           </div>
 
           <div className="mt-6 sm:mt-8 flex justify-center">
-            <Button
+            <LoadingButton
               className="px-6 sm:px-8 lg:px-12 h-11 sm:h-12 lg:h-14 text-sm sm:text-base lg:text-lg font-semibold min-w-[140px] sm:min-w-[160px] lg:min-w-[180px]"
               onClick={handleSearchButtonClick}
+              loading={loading}
+              loadingText="Searching..."
               disabled={
-                loading ||
                 !origin ||
                 !destination ||
                 !departDate ||
                 (activeTab === 'round-trip' && !returnDate)
               }
             >
-              {loading ? "Searching..." : "Search Flights"}
-            </Button>
+              Search Flights
+            </LoadingButton>
           </div>
         </TabsContent>
 
@@ -389,18 +390,19 @@ export function FlightSearchForm() {
           </div>
 
           <div className="mt-6 sm:mt-8 flex justify-center">
-            <Button
+            <LoadingButton
               className="px-6 sm:px-8 lg:px-12 h-11 sm:h-12 lg:h-14 text-sm sm:text-base lg:text-lg font-semibold min-w-[140px] sm:min-w-[160px] lg:min-w-[180px]"
               onClick={handleSearchButtonClick}
+              loading={loading}
+              loadingText="Searching..."
               disabled={
-                loading ||
                 !origin ||
                 !destination ||
                 !departDate
               }
             >
-              {loading ? "Searching..." : "Search Flights"}
-            </Button>
+              Search Flights
+            </LoadingButton>
           </div>
         </TabsContent>
 
@@ -549,18 +551,20 @@ export function FlightSearchForm() {
             </div>
 
             <div className="mt-4 flex justify-center">
-              <Button 
-                className="px-8" 
+              <LoadingButton
+                className="px-8"
                 onClick={handleSearchButtonClick}
+                loading={loading}
+                loadingText="Searching..."
                 disabled={
                   (() => {
                     const isAnySegmentInvalid = segments.some(s => !s.origin || !s.destination || !s.departureDate);
-                    return loading || isAnySegmentInvalid;
+                    return isAnySegmentInvalid;
                   })()
                 }
               >
-                {loading ? "Searching..." : "Search Flights"}
-              </Button>
+                Search Flights
+              </LoadingButton>
             </div>
           </div>
         </TabsContent>

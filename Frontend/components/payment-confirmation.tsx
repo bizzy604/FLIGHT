@@ -1,11 +1,12 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Check, Download, Mail, Printer, Share2 } from "lucide-react"
 import ReactDOMServer from 'react-dom/server'; 
 import BoardingPass from "./boarding-pass/BoardingPass"; 
-import { Button } from "@/components/ui/button"
+import { Button, LoadingButton } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent } from "@/components/ui/card"
 import { downloadFromDataUrl, componentToDataUrl } from "@/utils/download-utils"
@@ -15,6 +16,9 @@ interface PaymentConfirmationProps {
 }
 
 export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [isEmailing, setIsEmailing] = useState(false)
+
   // Function to download booking confirmation
   const downloadBookingConfirmation = async () => {
     try {
@@ -437,10 +441,12 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
   };
 
   const handleDownloadBoardingPass = async () => {
-    // Get data from session storage using helper functions
-    const flightDetails = getFlightDetails(booking)
-    const passengerData = getPassengerData(booking)
-    const contactInfo = getContactInfo(booking)
+    setIsDownloading(true);
+    try {
+      // Get data from session storage using helper functions
+      const flightDetails = getFlightDetails(booking);
+      const passengerData = getPassengerData(booking);
+      const contactInfo = getContactInfo(booking);
     
     // Use the first passenger for boarding pass
     const passenger = passengerData && passengerData.length > 0 ? passengerData[0] : null
@@ -589,12 +595,25 @@ html, body {
       console.error('Error generating HTML boarding pass:', error);
       alert(error instanceof Error ? error.message : 'Failed to generate HTML boarding pass. Please try again.');
     }
+    } catch (error) {
+      console.error('Error in handleDownloadBoardingPass:', error);
+      alert('Failed to generate boarding pass. Please try again.');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
-  const handleEmailItinerary = () => {
-    // In a real app, this would trigger an API call to send an email
-    alert(`Itinerary sent to ${booking.contactInfo?.email || 'your email'}`)
-  }
+  const handleEmailItinerary = async () => {
+    setIsEmailing(true);
+    try {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      // In a real app, this would trigger an API call to send an email
+      alert(`Itinerary sent to ${booking.contactInfo?.email || 'your email'}`);
+    } finally {
+      setIsEmailing(false);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -616,26 +635,30 @@ html, body {
             <p className="text-sm text-muted-foreground">Please save these reference numbers for future inquiries</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button
+            <LoadingButton
               variant="outline"
               size="sm"
               className="flex items-center gap-1"
               onClick={handleEmailItinerary}
+              loading={isEmailing}
+              loadingText="Sending..."
               aria-label="Email itinerary"
             >
               <Mail className="h-4 w-4" />
               <span>Email</span>
-            </Button>
-            <Button
+            </LoadingButton>
+            <LoadingButton
               variant="outline"
               size="sm"
               className="flex items-center gap-1"
               onClick={handleDownloadBoardingPass} // Changed to handleDownloadBoardingPass
+              loading={isDownloading}
+              loadingText="Generating..."
               aria-label="Download itinerary"
             >
               <Download className="h-4 w-4" />
               <span>Download</span>
-            </Button>
+            </LoadingButton>
             <Button
               variant="outline"
               size="sm"

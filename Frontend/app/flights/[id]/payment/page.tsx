@@ -7,6 +7,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { ChevronLeft, Lock, Shield } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
+import { LoadingButton } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { UserNav } from "@/components/user-nav"
 import { CardPaymentForm } from "@/components/card-payment-form"
@@ -27,6 +28,7 @@ export default function PaymentPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [booking, setBooking] = useState<any>(null)
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false)
 
   // Fetch booking data from session storage and flight offer data
   useEffect(() => {
@@ -256,6 +258,7 @@ export default function PaymentPage() {
   const handlePaymentSuccess = async (paymentData: any = {}) => {
     try {
       setIsLoading(true)
+      setIsProcessingPayment(true)
       setPaymentStatus("processing") // Show processing state
       
       toast({
@@ -321,6 +324,7 @@ export default function PaymentPage() {
       })
     } finally {
       setIsLoading(false)
+      setIsProcessingPayment(false)
     }
   }
 
@@ -513,12 +517,14 @@ export default function PaymentPage() {
                               <li>• Present valid ID and booking confirmation</li>
                             </ul>
                           </div>
-                          <button
+                          <LoadingButton
                             onClick={handlePaymentSuccess}
-                            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-md font-medium"
+                            loading={isProcessingPayment}
+                            loadingText="Processing..."
+                            className="w-full"
                           >
                             Confirm Cash Payment
-                          </button>
+                          </LoadingButton>
                         </div>
                       </div>
                     ) : booking.paymentMethod === 'EASYPAY' ? (
@@ -538,16 +544,18 @@ export default function PaymentPage() {
                               You will be redirected to EasyPay to complete your payment of ${booking.totalAmount}.
                             </p>
                           </div>
-                          <button
+                          <LoadingButton
                             onClick={() => {
                               // In a real implementation, this would redirect to EasyPay
                               alert('Redirecting to EasyPay...');
                               handlePaymentSuccess();
                             }}
-                            className="w-full bg-purple-600 text-white hover:bg-purple-700 h-10 px-4 py-2 rounded-md font-medium"
+                            loading={isProcessingPayment}
+                            loadingText="Redirecting..."
+                            className="w-full bg-purple-600 text-white hover:bg-purple-700"
                           >
                             Pay with EasyPay
-                          </button>
+                          </LoadingButton>
                         </div>
                       </div>
                     ) : booking.paymentMethod === 'OTHER' ? (
@@ -567,12 +575,14 @@ export default function PaymentPage() {
                               Our customer service team will contact you within 24 hours to arrange payment for ${booking.totalAmount}.
                             </p>
                           </div>
-                          <button
+                          <LoadingButton
                             onClick={handlePaymentSuccess}
-                            className="w-full bg-gray-600 text-white hover:bg-gray-700 h-10 px-4 py-2 rounded-md font-medium"
+                            loading={isProcessingPayment}
+                            loadingText="Processing..."
+                            className="w-full bg-gray-600 text-white hover:bg-gray-700"
                           >
                             Confirm Alternative Payment
-                          </button>
+                          </LoadingButton>
                         </div>
                       </div>
                     ) : (

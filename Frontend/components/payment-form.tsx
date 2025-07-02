@@ -6,7 +6,7 @@ import { CreditCard, Lock } from "lucide-react"
 import Image from "next/image"
 
 import { cn } from "@/utils/cn"
-import { Button } from "@/components/ui/button"
+import { LoadingButton } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -351,9 +351,15 @@ export function PaymentForm({ onSubmit, isLoading }: PaymentFormProps) {
                 <p className="mb-4 text-sm text-muted-foreground">
                   You will be redirected to PayPal to complete your payment securely.
                 </p>
-                <Button type="button" className="w-full" onClick={onSubmit} disabled={isLoading}>
-                  {isLoading ? "Processing..." : "Continue to PayPal"}
-                </Button>
+                <LoadingButton
+                  type="button"
+                  className="w-full"
+                  onClick={onSubmit}
+                  loading={isLoading}
+                  loadingText="Processing..."
+                >
+                  Continue to PayPal
+                </LoadingButton>
               </div>
             </TabsContent>
 
@@ -371,9 +377,15 @@ export function PaymentForm({ onSubmit, isLoading }: PaymentFormProps) {
                 <p className="mb-4 text-sm text-muted-foreground">
                   Complete your purchase with Apple Pay for a faster checkout experience.
                 </p>
-                <Button type="button" className="w-full" onClick={onSubmit} disabled={isLoading}>
-                  {isLoading ? "Processing..." : "Pay with Apple Pay"}
-                </Button>
+                <LoadingButton
+                  type="button"
+                  className="w-full"
+                  onClick={onSubmit}
+                  loading={isLoading}
+                  loadingText="Processing..."
+                >
+                  Pay with Apple Pay
+                </LoadingButton>
               </div>
             </TabsContent>
 
@@ -510,16 +522,14 @@ export function PaymentForm({ onSubmit, isLoading }: PaymentFormProps) {
         </div>
 
         <div className="mt-6">
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <span className="mr-2">Processing...</span>
-                <span className="spinner h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              </>
-            ) : (
-              paymentMethodType === "cash" ? "Confirm Booking (Pay at Airport)" : "Pay Now"
-            )}
-          </Button>
+          <LoadingButton
+            type="submit"
+            className="w-full"
+            loading={isLoading}
+            loadingText="Processing..."
+          >
+            {paymentMethodType === "cash" ? "Confirm Booking (Pay at Airport)" : "Pay Now"}
+          </LoadingButton>
         </div>
       </form>
     </ErrorBoundary>

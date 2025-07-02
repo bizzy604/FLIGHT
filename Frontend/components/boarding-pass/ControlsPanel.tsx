@@ -1,5 +1,6 @@
-import React, { RefObject } from 'react';
+import React, { RefObject, useState } from 'react';
 import { Moon, Sun, Wallet, Download, Share2, ChevronDown, Plane, Zap, Star } from 'lucide-react';
+import { LoadingButton } from '@/components/ui/button';
 
 type Airline = 'AeroLux Airlines' | 'SkyLink Express' | 'CloudJet Premium';
 
@@ -34,11 +35,32 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
   onDownload,
   menuRef
 }) => {
+  const [isSharing, setIsSharing] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
   const airlines = [
     { name: 'AeroLux Airlines', icon: <Plane className="w-4 h-4 text-blue-600" /> },
     { name: 'SkyLink Express', icon: <Zap className="w-4 h-4 text-emerald-600" /> },
     { name: 'CloudJet Premium', icon: <Star className="w-4 h-4 text-rose-600" /> },
   ] as const;
+
+  const handleShare = async () => {
+    setIsSharing(true);
+    try {
+      await onShare();
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+      await onDownload();
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   return (
     <div className="mt-8 space-y-6 bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-xl">
@@ -175,20 +197,24 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
 
       {/* Action Buttons */}
       <div className="grid grid-cols-2 gap-3 pt-4">
-        <button 
-          onClick={onShare}
+        <LoadingButton
+          onClick={handleShare}
+          loading={isSharing}
+          loadingText="Sharing..."
           className="flex items-center justify-center gap-2 bg-slate-700 text-white text-sm font-semibold py-3 rounded-xl shadow-lg hover:bg-slate-800 transition-all duration-200 transform hover:scale-105"
         >
           <Share2 className="w-4 h-4" />
           Share
-        </button>
-        <button 
-          onClick={onDownload}
+        </LoadingButton>
+        <LoadingButton
+          onClick={handleDownload}
+          loading={isDownloading}
+          loadingText="Downloading..."
           className="flex items-center justify-center gap-2 bg-blue-700 text-white text-sm font-semibold py-3 rounded-xl shadow-lg hover:bg-blue-800 transition-all duration-200 transform hover:scale-105"
         >
           <Download className="w-4 h-4" />
           Download
-        </button>
+        </LoadingButton>
       </div>
     </div>
   );
