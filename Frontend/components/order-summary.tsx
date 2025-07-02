@@ -102,7 +102,7 @@ function OrderSummary({ booking }: OrderSummaryProps) {
   const lastSegment = outboundSegments[outboundSegments.length - 1] || firstSegment
 
   // Format datetime helper function (same as flight details page)
-  const formatDateTime = (isoString) => {
+  const formatDateTime = (isoString: string) => {
     if (!isoString) return { time: 'Unknown', date: 'Unknown' }
     const date = new Date(isoString)
     return {
@@ -240,7 +240,7 @@ function OrderSummary({ booking }: OrderSummaryProps) {
             {/* Show per-passenger pricing if available */}
             {pricedOffer.passengers && Array.isArray(pricedOffer.passengers) ? (
               <>
-                {pricedOffer.passengers.map((passenger, index) => (
+                {pricedOffer.passengers.map((passenger: any, index: number) => (
                   <div key={index} className="space-y-1">
                     <div className="text-sm font-medium text-muted-foreground">
                       {passenger.type} {index + 1}

@@ -302,13 +302,13 @@ function FlightDetailsPageContent() {
   let outboundSegments: any[] = [];
   let returnSegments: any[] = [];
 
-  if (isRoundTrip) {
+  if (isRoundTrip && typeof pricedOffer.flight_segments === 'object' && !Array.isArray(pricedOffer.flight_segments)) {
     // Inside this block, TypeScript knows `flight_segments` is an object.
-    outboundSegments = pricedOffer.flight_segments.outbound;
-    returnSegments = pricedOffer.flight_segments.return;
+    outboundSegments = (pricedOffer.flight_segments as { outbound: any[], return: any[] }).outbound;
+    returnSegments = (pricedOffer.flight_segments as { outbound: any[], return: any[] }).return;
   } else {
     // Inside this block, TypeScript knows `flight_segments` is an array.
-    outboundSegments = pricedOffer.flight_segments;
+    outboundSegments = pricedOffer.flight_segments as any[];
   }
 
   return (
