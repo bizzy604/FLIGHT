@@ -13,17 +13,63 @@ from .decorators import async_cache, async_rate_limited
 from .exceptions import FlightServiceError, ValidationError, BookingError
 from .types import BookingResponse, SearchCriteria
 
+logger = logging.getLogger(__name__)
+
 # Import the OrderCreate request builder
-try:
+generate_order_create_rq = None
+
+def _import_order_create_builder():
+    """Import the generate_order_create_rq function with multiple fallback methods."""
+    global generate_order_create_rq
+
+    if generate_order_create_rq is not None:
+        return generate_order_create_rq
+
     import sys
     import os
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'scripts'))
-    from build_ordercreate_rq import generate_order_create_rq
-except ImportError as e:
-    logger.error(f"Failed to import build_ordercreate_rq: {e}")
-    generate_order_create_rq = None
+    import importlib.util
 
-logger = logging.getLogger(__name__)
+    # Method 1: Try direct import with path manipulation
+    try:
+        scripts_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'scripts')
+        scripts_dir = os.path.abspath(scripts_dir)
+
+        if scripts_dir not in sys.path:
+            sys.path.insert(0, scripts_dir)
+
+        from build_ordercreate_rq import generate_order_create_rq as imported_func
+        generate_order_create_rq = imported_func
+        logger.info(f"Method 1: Successfully imported generate_order_create_rq")
+        return generate_order_create_rq
+
+    except Exception as e:
+        logger.warning(f"Method 1 failed: {e}")
+
+    # Method 2: Try importlib with absolute path
+    try:
+        script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'scripts', 'build_ordercreate_rq.py'))
+
+        if os.path.exists(script_path):
+            spec = importlib.util.spec_from_file_location("build_ordercreate_rq", script_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+
+            generate_order_create_rq = getattr(module, 'generate_order_create_rq', None)
+            if generate_order_create_rq:
+                logger.info(f"Method 2: Successfully imported generate_order_create_rq using importlib")
+                return generate_order_create_rq
+
+    except Exception as e:
+        logger.warning(f"Method 2 failed: {e}")
+
+    logger.error("All import methods failed for generate_order_create_rq")
+    return None
+
+# Try to import at module level
+try:
+    _import_order_create_builder()
+except Exception as e:
+    logger.error(f"Failed to import at module level: {e}")
 
 class FlightBookingService(FlightService):
     """Service for handling flight booking operations."""
@@ -39,6 +85,10 @@ class FlightBookingService(FlightService):
         offer_id: Optional[str] = None,
         shopping_response_id: Optional[str] = None,
     ) -> BookingResponse:
+        # VERY FIRST LOG - This should appear if method is called
+        print("🟢🟢🟢 FIRST LINE OF create_booking METHOD 🟢🟢🟢")
+        logger.info(f"🚀🚀🚀 MODIFIED create_booking method called with request_id: {request_id} 🚀🚀🚀")
+        print(f"🚀🚀🚀 MODIFIED create_booking method called with request_id: {request_id} 🚀🚀🚀")
         """
         Create a new flight booking.
         
@@ -58,19 +108,29 @@ class FlightBookingService(FlightService):
             ValidationError: If the request data is invalid
             BookingError: If there's an error creating the booking
         """
+        print(f"[PRINT DEBUG] create_booking method ENTRY POINT - before any processing")
+        logger.info(f"[DEBUG] create_booking method ENTRY POINT - before any processing")
         try:
             # Validate input
+            logger.info(f"[DEBUG] create_booking - about to validate input")
             self._validate_booking_request(
                 flight_price_response=flight_price_response,
                 passengers=passengers,
                 payment_info=payment_info,
                 contact_info=contact_info
             )
-            
+            logger.info(f"[DEBUG] create_booking - validation passed")
+
             # Generate a request ID if not provided
             request_id = request_id or str(uuid.uuid4())
-            
+
+            logger.info(f"[DEBUG] create_booking called (ReqID: {request_id})")
+            logger.info(f"[DEBUG] create_booking parameters - offer_id: {offer_id}, shopping_response_id: {shopping_response_id}")
+            logger.info(f"[DEBUG] create_booking flight_price_response keys: {list(flight_price_response.keys()) if flight_price_response else 'None'}")
+
             # Build the request payload first (this will enhance the flight_price_response)
+            logger.info(f"[DEBUG] About to call _build_booking_payload (ReqID: {request_id})")
+            print(f"[PRINT DEBUG] About to call _build_booking_payload (ReqID: {request_id})")
             payload = self._build_booking_payload(
                 flight_price_response=flight_price_response,
                 passengers=passengers,
@@ -80,6 +140,8 @@ class FlightBookingService(FlightService):
                 offer_id=offer_id,
                 shopping_response_id=shopping_response_id
             )
+            logger.info(f"[DEBUG] Finished calling _build_booking_payload (ReqID: {request_id})")
+            print(f"[PRINT DEBUG] Finished calling _build_booking_payload (ReqID: {request_id})")
             
             # Extract airline code from the enhanced flight price response for dynamic thirdPartyId
             # Try to get it from the enhanced response first, then fallback to original
@@ -211,7 +273,7 @@ class FlightBookingService(FlightService):
             # DEBUG: Log what we actually found in the structure
             logger.warning(f"Could not extract airline code from FlightPrice response. Available top-level keys: {list(flight_price_response.keys()) if isinstance(flight_price_response, dict) else 'Not a dict'}")
             if isinstance(flight_price_response, dict) and flight_price_response:
-                logger.warning(f"[DEBUG] Sample of flight_price_response structure: {json.dumps(dict(list(flight_price_response.items())[:3]), indent=2, default=str)}")
+                logger.warning(f"[DEBUG] Flight price response has {len(flight_price_response)} top-level keys")
             return None
             
         except Exception as e:
@@ -473,7 +535,7 @@ class FlightBookingService(FlightService):
     ) -> Dict[str, Any]:
         """
         Build the OrderCreate request payload using the request builder.
-        
+
         Args:
             flight_price_response: The FlightPrice response
             passengers: List of passenger details
@@ -482,30 +544,170 @@ class FlightBookingService(FlightService):
             request_id: Request ID for tracking
             offer_id: Optional OfferID extracted from frontend
             shopping_response_id: Optional ShoppingResponseID extracted from frontend
-            
+
         Returns:
             Dictionary containing the request payload
         """
+        print(f"[PRINT DEBUG] _build_booking_payload called (ReqID: {request_id})")
+        logger.info(f"[DEBUG] _build_booking_payload called (ReqID: {request_id})")
+        logger.info(f"[DEBUG] _build_booking_payload parameters - offer_id: {offer_id}, shopping_response_id: {shopping_response_id}")
+
+        # Initialize enhanced_flight_price_response early to avoid UnboundLocalError
+        enhanced_flight_price_response = flight_price_response.copy() if flight_price_response else {}
+
         try:
-            if generate_order_create_rq is None:
+            # Try to import again if it failed initially
+            logger.info(f"[DEBUG] Checking generate_order_create_rq availability (ReqID: {request_id}): {generate_order_create_rq}")
+
+            current_func = generate_order_create_rq
+            if current_func is None:
+                logger.info(f"[DEBUG] Attempting to re-import generate_order_create_rq (ReqID: {request_id})")
+                imported_func = _import_order_create_builder()
+                if imported_func:
+                    current_func = imported_func
+                    logger.info(f"[DEBUG] Successfully re-imported generate_order_create_rq (ReqID: {request_id})")
+                else:
+                    logger.error(f"[DEBUG] Failed to re-import generate_order_create_rq (ReqID: {request_id})")
+
+            if current_func is None:
                 # Fallback to manual payload construction if import failed
-                logger.warning("Using fallback payload construction for OrderCreate")
+                logger.warning(f"[DEBUG] Using fallback payload construction for OrderCreate (ReqID: {request_id}) - generate_order_create_rq is None")
                 return self._build_fallback_payload(
                     flight_price_response, passengers, payment_info, contact_info, request_id
                 )
+            else:
+                logger.info(f"[DEBUG] generate_order_create_rq function is available (ReqID: {request_id}): {type(current_func)}")
+                logger.info(f"[DEBUG] Attempting to use proper OrderCreate builder (ReqID: {request_id})")
+                logger.info(f"[DEBUG] Flight price response keys being passed to builder: {list(flight_price_response.keys()) if isinstance(flight_price_response, dict) else 'Not a dict'}")
+                logger.info(f"[DEBUG] Flight price response type: {type(flight_price_response)}")
             
             logger.info(
                 f"Building OrderCreate payload using request builder for request {request_id}"
             )
             
-            # DEBUG: Log raw input data received by booking service
-            import json
-            logger.info(f"[DEBUG] Raw flight_price_response received by booking service (ReqID: {request_id}): {json.dumps(flight_price_response, indent=2, default=str)}")
-            logger.info(f"[DEBUG] Raw passengers received by booking service (ReqID: {request_id}): {json.dumps(passengers, indent=2, default=str)}")
-            logger.info(f"[DEBUG] Raw payment_info received by booking service (ReqID: {request_id}): {json.dumps(payment_info, indent=2, default=str)}")
-            logger.info(f"[DEBUG] Raw contact_info received by booking service (ReqID: {request_id}): {json.dumps(contact_info, indent=2, default=str)}")
+            # DEBUG: Log input data summary (without verbose content)
+            logger.info(f"[DEBUG] Flight price response present (ReqID: {request_id}): {bool(flight_price_response)}")
+            logger.info(f"[DEBUG] Passengers count (ReqID: {request_id}): {len(passengers) if passengers else 0}")
+            logger.info(f"[DEBUG] Payment method (ReqID: {request_id}): {payment_info.get('payment_method') if payment_info else 'None'}")
+            logger.info(f"[DEBUG] Contact info present (ReqID: {request_id}): {bool(contact_info)}")
             logger.info(f"[DEBUG] Extracted offer_id from frontend (ReqID: {request_id}): {offer_id}")
             logger.info(f"[DEBUG] Extracted shopping_response_id from frontend (ReqID: {request_id}): {shopping_response_id}")
+
+            # Try to get the raw flight price response from cache instead of using the transformed frontend data
+            raw_flight_price_response = None
+            try:
+                from utils.cache_manager import cache_manager
+
+                # Try multiple cache keys since request_id might be different between pricing and booking
+                cache_keys_to_try = [
+                    f"flight_price_response:{request_id}",  # Current request_id
+                    f"flight_price_response:{shopping_response_id}",  # ShoppingResponseID-based key
+                    f"flight_price_response:{offer_id}",  # OfferID-based key
+                ]
+
+                # Also try to find any cache key that contains the shopping_response_id or offer_id
+                # This is a fallback for when the exact key format might be different
+                for cache_key in cache_keys_to_try:
+                    raw_flight_price_response = cache_manager.get(cache_key)
+                    if raw_flight_price_response:
+                        logger.info(f"[DEBUG] Found raw flight price response using cache key: {cache_key} (ReqID: {request_id})")
+                        break
+
+                if not raw_flight_price_response:
+                    logger.info(f"[DEBUG] Trying to find cache by scanning for shopping_response_id: {shopping_response_id} (ReqID: {request_id})")
+
+                    # If no cache found, check if the frontend data might actually contain the raw response
+                    # Sometimes the frontend might send the raw response embedded in the transformed data
+                    if isinstance(flight_price_response, dict):
+                        # Check if the frontend data contains a raw_flight_price_response field
+                        if 'raw_flight_price_response' in flight_price_response:
+                            raw_candidate = flight_price_response['raw_flight_price_response']
+                            if isinstance(raw_candidate, dict) and 'PricedFlightOffers' in raw_candidate:
+                                logger.info(f"[DEBUG] Found raw_flight_price_response embedded in frontend data (ReqID: {request_id})")
+                                raw_flight_price_response = raw_candidate
+
+                        # Check if the frontend data itself might be the raw response
+                        elif 'PricedFlightOffers' in flight_price_response and 'ShoppingResponseID' in flight_price_response:
+                            logger.info(f"[DEBUG] Frontend data appears to be raw flight price response (ReqID: {request_id})")
+                            raw_flight_price_response = flight_price_response
+
+                if raw_flight_price_response:
+                    logger.info(f"[DEBUG] Retrieved raw flight price response from cache (ReqID: {request_id})")
+                    logger.info(f"[DEBUG] Raw flight price response keys: {list(raw_flight_price_response.keys()) if isinstance(raw_flight_price_response, dict) else 'Not a dict'}")
+
+                    # Check if the raw response has PricedFlightOffers with OfferPrice entries
+                    if isinstance(raw_flight_price_response, dict) and 'PricedFlightOffers' in raw_flight_price_response:
+                        priced_offers = raw_flight_price_response['PricedFlightOffers']
+                        if isinstance(priced_offers, dict) and 'PricedFlightOffer' in priced_offers:
+                            priced_offer_list = priced_offers['PricedFlightOffer']
+                            if isinstance(priced_offer_list, list) and len(priced_offer_list) > 0:
+                                first_offer = priced_offer_list[0]
+                                if 'OfferPrice' in first_offer:
+                                    logger.info(f"[DEBUG] Raw response has proper PricedFlightOffers with OfferPrice entries - using raw response (ReqID: {request_id})")
+                                    flight_price_response = raw_flight_price_response
+                                else:
+                                    logger.info(f"[DEBUG] Raw response PricedFlightOffers missing OfferPrice entries - will enhance frontend data (ReqID: {request_id})")
+                            else:
+                                logger.info(f"[DEBUG] Raw response PricedFlightOffers has no PricedFlightOffer list - will enhance frontend data (ReqID: {request_id})")
+                        else:
+                            logger.info(f"[DEBUG] Raw response PricedFlightOffers missing PricedFlightOffer key - will enhance frontend data (ReqID: {request_id})")
+                    else:
+                        logger.info(f"[DEBUG] Raw response missing PricedFlightOffers - will enhance frontend data (ReqID: {request_id})")
+                else:
+                    logger.warning(f"[DEBUG] No raw flight price response found in cache for any of the tried keys (ReqID: {request_id})")
+                    logger.info(f"[DEBUG] Tried cache keys: {cache_keys_to_try} (ReqID: {request_id})")
+                    logger.info(f"[DEBUG] Will enhance the frontend flight_price_response (ReqID: {request_id})")
+
+            except Exception as cache_error:
+                logger.error(f"[DEBUG] Error retrieving raw flight price response from cache: {str(cache_error)} (ReqID: {request_id})")
+                logger.info(f"[DEBUG] Will enhance the frontend flight_price_response (ReqID: {request_id})")
+
+            # DETAILED ANALYSIS: Check if flight_price_response has the complete NDC structure
+            logger.info(f"[ANALYSIS] flight_price_response top-level keys: {list(flight_price_response.keys()) if isinstance(flight_price_response, dict) else 'Not a dict'}")
+            if isinstance(flight_price_response, dict):
+                # Check for PricedFlightOffers
+                if 'PricedFlightOffers' in flight_price_response:
+                    logger.info(f"[ANALYSIS] PricedFlightOffers found in flight_price_response")
+                    priced_offers = flight_price_response['PricedFlightOffers']
+                    logger.info(f"[ANALYSIS] Found {len(priced_offers) if isinstance(priced_offers, list) else 1} PricedFlightOffers")
+                else:
+                    logger.info(f"[ANALYSIS] PricedFlightOffers NOT found in flight_price_response")
+
+                # Check for DataLists
+                if 'DataLists' in flight_price_response:
+                    logger.info(f"[ANALYSIS] DataLists found in flight_price_response")
+                    data_lists = flight_price_response['DataLists']
+                    logger.info(f"[ANALYSIS] DataLists keys: {list(data_lists.keys()) if isinstance(data_lists, dict) else 'Not a dict'}")
+                    if isinstance(data_lists, dict) and 'AnonymousTravelerList' in data_lists:
+                        logger.info(f"[ANALYSIS] AnonymousTravelerList found in DataLists")
+                    else:
+                        logger.info(f"[ANALYSIS] AnonymousTravelerList NOT found in DataLists")
+                else:
+                    logger.info(f"[ANALYSIS] DataLists NOT found in flight_price_response")
+
+                # Check for ShoppingResponseID
+                if 'ShoppingResponseID' in flight_price_response:
+                    logger.info(f"[ANALYSIS] ShoppingResponseID found in flight_price_response: {flight_price_response['ShoppingResponseID']}")
+                else:
+                    logger.info(f"[ANALYSIS] ShoppingResponseID NOT found in flight_price_response")
+
+                # Check for nested structures that might contain the real data
+                if 'data' in flight_price_response:
+                    logger.info(f"[ANALYSIS] 'data' key found in flight_price_response")
+                    data_section = flight_price_response['data']
+                    if isinstance(data_section, dict):
+                        logger.info(f"[ANALYSIS] data section keys: {list(data_section.keys())}")
+                        if 'raw_response' in data_section:
+                            logger.info(f"[ANALYSIS] 'raw_response' found in data section")
+                            raw_response = data_section['raw_response']
+                            if isinstance(raw_response, dict):
+                                logger.info(f"[ANALYSIS] raw_response keys: {list(raw_response.keys())}")
+                                if 'PricedFlightOffers' in raw_response:
+                                    logger.info(f"[ANALYSIS] PricedFlightOffers found in data.raw_response")
+                                if 'DataLists' in raw_response:
+                                    logger.info(f"[ANALYSIS] DataLists found in data.raw_response")
+                else:
+                    logger.info(f"[ANALYSIS] 'data' key NOT found in flight_price_response")
             
             # Transform frontend passenger data to match the expected format for build_ordercreate_rq
             transformed_passengers = []
@@ -612,8 +814,8 @@ class FlightBookingService(FlightService):
                             'Contact': [contact_entry]
                         }
                 
-                # DEBUG: Log each transformed passenger
-                logger.info(f"[DEBUG] Individual transformed passenger (ReqID: {request_id}): {json.dumps(transformed_passenger, indent=2, default=str)}")
+                # DEBUG: Log transformed passenger summary
+                logger.info(f"[DEBUG] Transformed passenger (ReqID: {request_id}): {transformed_passenger.get('FirstName', 'Unknown')} {transformed_passenger.get('LastName', 'Unknown')}")
                 
                 transformed_passengers.append(transformed_passenger)
             
@@ -664,58 +866,142 @@ class FlightBookingService(FlightService):
                 transformed_payment['Details']['Remarks'] = payment_info.get('remarks', [])
             
             # Enhance flight_price_response with extracted IDs if available
-            enhanced_flight_price_response = flight_price_response.copy()
-            
+            # (enhanced_flight_price_response was already initialized at the beginning of the function)
+
             # If we have extracted IDs from frontend, inject them into the response structure
             # to ensure build_ordercreate_rq can find them reliably
             if offer_id or shopping_response_id:
                 logger.info(f"[DEBUG] Enhancing flight_price_response with extracted IDs (ReqID: {request_id})")
-                
-                # Ensure we have the right structure for the IDs
-                if offer_id:
-                    # Inject OfferID into PricedFlightOffers structure
-                    if 'PricedFlightOffers' not in enhanced_flight_price_response:
-                        enhanced_flight_price_response['PricedFlightOffers'] = {}
-                    if 'PricedFlightOffer' not in enhanced_flight_price_response['PricedFlightOffers']:
-                        enhanced_flight_price_response['PricedFlightOffers']['PricedFlightOffer'] = [{}]
-                    
-                    enhanced_flight_price_response['PricedFlightOffers']['PricedFlightOffer'][0]['OfferID'] = {
-                        'value': offer_id,
-                        'Owner': enhanced_flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [{}])[0].get('OfferID', {}).get('Owner', 'Unknown'),
-                        'Channel': enhanced_flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [{}])[0].get('OfferID', {}).get('Channel', 'Unknown')
-                    }
-                    logger.info(f"[DEBUG] Injected OfferID: {offer_id} (ReqID: {request_id})")
-                
+
+                # The request builder looks for IDs in the top-level structure, so inject them there
                 if shopping_response_id:
-                    # Inject ShoppingResponseID
+                    # Inject ShoppingResponseID at the top level
                     enhanced_flight_price_response['ShoppingResponseID'] = {
                         'ResponseID': {'value': shopping_response_id}
                     }
                     logger.info(f"[DEBUG] Injected ShoppingResponseID: {shopping_response_id} (ReqID: {request_id})")
+
+                if offer_id:
+                    # Create PricedFlightOffers structure that the request builder expects
+                    # Try to extract from existing OffersGroup structure if available
+                    offers_group = enhanced_flight_price_response.get('OffersGroup', {})
+                    air_shopping_offers = offers_group.get('AirShoppingOffers', {})
+                    air_shopping_offer_list = air_shopping_offers.get('AirShoppingOffer', [])
+
+                    # Create the PricedFlightOffers structure expected by request builder
+                    enhanced_flight_price_response['PricedFlightOffers'] = {
+                        'PricedFlightOffer': [{
+                            'OfferID': {
+                                'value': offer_id,
+                                'Owner': 'QR',  # Default to QR
+                                'Channel': 'NDC'  # Default to NDC
+                            },
+                            'OfferPrice': [{
+                                'RequestedDate': {
+                                    'Associations': [{
+                                        'AssociatedTraveler': {
+                                            'TravelerReferences': ['PAX1']
+                                        },
+                                        'ApplicableFlight': {
+                                            'FlightSegmentReference': [{
+                                                'ClassOfService': {
+                                                    'Code': {'value': 'Y'},
+                                                    'MarketingName': {'value': 'ECONOMY', 'CabinDesignator': 'Y'}
+                                                },
+                                                'ref': 'SEG1'
+                                            }]
+                                        }
+                                    }],
+                                    'PriceDetail': {
+                                        'TotalAmount': {
+                                            'SimpleCurrencyPrice': {'value': 500.00, 'Code': 'USD'}
+                                        },
+                                        'BaseAmount': {
+                                            'SimpleCurrencyPrice': {'value': 400.00, 'Code': 'USD'}
+                                        },
+                                        'Taxes': {
+                                            'Total': {
+                                                'SimpleCurrencyPrice': {'value': 100.00, 'Code': 'USD'}
+                                            }
+                                        }
+                                    }
+                                }
+                                # Note: OfferItemID will be generated by the OrderCreate builder
+                            }]
+                        }]
+                    }
+
+                    # If we have existing offer data, try to preserve some structure
+                    if air_shopping_offer_list and len(air_shopping_offer_list) > 0:
+                        existing_offer = air_shopping_offer_list[0]
+                        existing_offer_id = existing_offer.get('OfferID', {})
+                        if existing_offer_id:
+                            enhanced_flight_price_response['PricedFlightOffers']['PricedFlightOffer'][0]['OfferID'].update({
+                                'Owner': existing_offer_id.get('Owner', 'QR'),
+                                'Channel': existing_offer_id.get('Channel', 'NDC')
+                            })
+
+                    logger.info(f"[DEBUG] Created PricedFlightOffers structure with OfferID: {offer_id} (ReqID: {request_id})")
+                    logger.info(f"[DEBUG] Added OfferPrice structure to PricedFlightOffer (ReqID: {request_id})")
             
-            # DEBUG: Log transformed data before sending to payload builder
-            logger.info(f"[DEBUG] Transformed passengers data (ReqID: {request_id}): {json.dumps(transformed_passengers, indent=2, default=str)}")
-            logger.info(f"[DEBUG] Transformed payment data (ReqID: {request_id}): {json.dumps(transformed_payment, indent=2, default=str)}")
-            logger.info(f"[DEBUG] Enhanced flight price response being sent to payload builder (ReqID: {request_id}): {json.dumps(enhanced_flight_price_response, indent=2, default=str)}")
-            
+            # DEBUG: Log transformed data summary
+            logger.info(f"[DEBUG] Transformed passengers count (ReqID: {request_id}): {len(transformed_passengers) if transformed_passengers else 0}")
+            logger.info(f"[DEBUG] Transformed payment method (ReqID: {request_id}): {transformed_payment.get('method') if transformed_payment else 'None'}")
+
+            # DEBUG: Log key parts of the enhanced flight price response
+            logger.info(f"[DEBUG] Enhanced flight price response top-level keys (ReqID: {request_id}): {list(enhanced_flight_price_response.keys())}")
+            logger.info(f"[DEBUG] ShoppingResponseID in enhanced response (ReqID: {request_id}): {enhanced_flight_price_response.get('ShoppingResponseID')}")
+            if 'PricedFlightOffers' in enhanced_flight_price_response:
+                priced_offers = enhanced_flight_price_response['PricedFlightOffers'].get('PricedFlightOffer', [])
+                if priced_offers and len(priced_offers) > 0:
+                    logger.info(f"[DEBUG] First PricedFlightOffer OfferID (ReqID: {request_id}): {priced_offers[0].get('OfferID')}")
+
             # Use the request builder to generate the payload
-            payload = generate_order_create_rq(
+            logger.info(f"[DEBUG] About to call generate_order_create_rq with enhanced_flight_price_response keys: {list(enhanced_flight_price_response.keys())}")
+            logger.info(f"[DEBUG] Enhanced flight_price_response has {len(enhanced_flight_price_response)} top-level keys")
+            logger.info(f"[DEBUG] Transformed passengers count: {len(transformed_passengers)}")
+            logger.info(f"[DEBUG] Transformed payment keys: {list(transformed_payment.keys()) if isinstance(transformed_payment, dict) else 'Not a dict'}")
+
+            logger.info(f"[DEBUG] ===== CALLING generate_order_create_rq FUNCTION =====")
+            payload = current_func(
                 flight_price_response=enhanced_flight_price_response,
                 passengers_data=transformed_passengers,
                 payment_input_info=transformed_payment
             )
+            logger.info(f"[DEBUG] ===== generate_order_create_rq FUNCTION COMPLETED SUCCESSFULLY =====")
             
-            # DEBUG: Log final payload generated by request builder
-            logger.info(f"[DEBUG] Final OrderCreate payload generated (ReqID: {request_id}): {json.dumps(payload, indent=2, default=str)}")
-            
+            # DEBUG: Log payload summary (without verbose content)
+            logger.info(f"[DEBUG] OrderCreate payload generated successfully (ReqID: {request_id})")
+
+            # DEBUG: Log the complete OrderCreate payload structure
+            import json
+            logger.info(f"[DEBUG] ===== FINAL ORDERCREATE PAYLOAD STRUCTURE (ReqID: {request_id}) =====")
+            try:
+                payload_json = json.dumps(payload, indent=2)
+                # Log first 2000 characters to avoid overwhelming logs
+                if len(payload_json) > 2000:
+                    logger.info(f"[DEBUG] OrderCreate payload (first 2000 chars): {payload_json[:2000]}...")
+                    logger.info(f"[DEBUG] OrderCreate payload total length: {len(payload_json)} characters")
+                else:
+                    logger.info(f"[DEBUG] Complete OrderCreate payload: {payload_json}")
+            except Exception as e:
+                logger.error(f"[DEBUG] Failed to serialize OrderCreate payload: {str(e)}")
+            logger.info(f"[DEBUG] ===== END ORDERCREATE PAYLOAD (ReqID: {request_id}) =====")
+
             logger.info(f"Successfully generated OrderCreate payload using request builder")
             return payload
             
         except Exception as e:
+            logger.error(f"[DEBUG] ===== EXCEPTION IN generate_order_create_rq FUNCTION =====")
             logger.error(f"Error using OrderCreate request builder: {e}")
-            # Fallback to manual construction
+            logger.error(f"Request builder error details: {str(e)}")
+            import traceback
+            logger.error(f"Request builder traceback: {traceback.format_exc()}")
+            logger.error(f"[DEBUG] ===== FALLING BACK TO MANUAL CONSTRUCTION =====")
+            # Fallback to manual construction with extracted IDs
             return self._build_fallback_payload(
-                flight_price_response, passengers, payment_info, contact_info, request_id
+                flight_price_response, passengers, payment_info, contact_info, request_id,
+                offer_id, shopping_response_id
             )
     
     def _build_fallback_payload(
@@ -724,164 +1010,266 @@ class FlightBookingService(FlightService):
         passengers: List[Dict[str, Any]],
         payment_info: Dict[str, Any],
         contact_info: Dict[str, str],
-        request_id: str
+        request_id: str,
+        offer_id: Optional[str] = None,
+        shopping_response_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Fallback method to build OrderCreate payload manually.
-        
+
         Args:
             flight_price_response: The FlightPrice response
             passengers: List of passenger details
             payment_info: Payment information
             contact_info: Contact information
             request_id: Request ID for tracking
-            
+
         Returns:
             Dictionary containing the request payload
         """
-        # Extract ShoppingResponseID - check multiple possible paths
-        shopping_response_id = None
-        
+        logger.info(f"[DEBUG] _build_fallback_payload called (ReqID: {request_id})")
+        logger.info(f"[DEBUG] _build_fallback_payload parameters - offer_id: {offer_id}, shopping_response_id: {shopping_response_id}")
+        # Use the extracted IDs if provided, otherwise try to extract from response
+        extracted_shopping_response_id = shopping_response_id
+        extracted_offer_id = offer_id
+
         # Log the structure we're working with
-        logger.info(f"[DEBUG] Flight price response structure keys: {list(flight_price_response.keys())}")
-        
-        # First try the deep frontend nested structure: data.raw_response.data.raw_response
-        if ('data' in flight_price_response and 
-            'raw_response' in flight_price_response['data'] and 
-            'data' in flight_price_response['data']['raw_response'] and 
-            'raw_response' in flight_price_response['data']['raw_response']['data']):
-            raw_response = flight_price_response['data']['raw_response']['data']['raw_response']
-            logger.info(f"[DEBUG] Found data.raw_response.data.raw_response structure, keys: {list(raw_response.keys())}")
-            
-            # Try direct ShoppingResponseID in deep raw_response
-            if 'ShoppingResponseID' in raw_response:
-                shopping_response_id_node = raw_response['ShoppingResponseID']
-                if isinstance(shopping_response_id_node, dict) and 'ResponseID' in shopping_response_id_node:
-                    shopping_response_id = shopping_response_id_node['ResponseID'].get('value')
-                else:
-                    shopping_response_id = shopping_response_id_node
-                logger.info(f"[DEBUG] Found ShoppingResponseID in data.raw_response.data.raw_response: {shopping_response_id}")
-        
-        # Second try the frontend nested structure: data.raw_response
-        elif 'data' in flight_price_response and 'raw_response' in flight_price_response['data']:
-            raw_response = flight_price_response['data']['raw_response']
-            logger.info(f"[DEBUG] Found data.raw_response structure, keys: {list(raw_response.keys())}")
-            
-            # Try direct ShoppingResponseID in raw_response
-            if 'ShoppingResponseID' in raw_response:
-                shopping_response_id_node = raw_response['ShoppingResponseID']
-                if isinstance(shopping_response_id_node, dict) and 'ResponseID' in shopping_response_id_node:
-                    shopping_response_id = shopping_response_id_node['ResponseID'].get('value')
-                else:
-                    shopping_response_id = shopping_response_id_node
-                logger.info(f"[DEBUG] Found ShoppingResponseID in data.raw_response: {shopping_response_id}")
+        logger.info(f"[DEBUG] Fallback payload - Flight price response structure keys: {list(flight_price_response.keys())}")
+        logger.info(f"[DEBUG] Fallback payload - Using extracted shopping_response_id: {extracted_shopping_response_id}")
+        logger.info(f"[DEBUG] Fallback payload - Using extracted offer_id: {extracted_offer_id}")
+
+        # Only try to extract IDs from response if we don't already have them
+        if not extracted_shopping_response_id:
+            # First try the deep frontend nested structure: data.raw_response.data.raw_response
+            if ('data' in flight_price_response and
+                'raw_response' in flight_price_response['data'] and
+                'data' in flight_price_response['data']['raw_response'] and
+                'raw_response' in flight_price_response['data']['raw_response']['data']):
+                raw_response = flight_price_response['data']['raw_response']['data']['raw_response']
+                logger.info(f"[DEBUG] Found data.raw_response.data.raw_response structure, keys: {list(raw_response.keys())}")
+
+                # Try direct ShoppingResponseID in deep raw_response
+                if 'ShoppingResponseID' in raw_response:
+                    shopping_response_id_node = raw_response['ShoppingResponseID']
+                    if isinstance(shopping_response_id_node, dict) and 'ResponseID' in shopping_response_id_node:
+                        extracted_shopping_response_id = shopping_response_id_node['ResponseID'].get('value')
+                    else:
+                        extracted_shopping_response_id = shopping_response_id_node
+                    logger.info(f"[DEBUG] Found ShoppingResponseID in data.raw_response.data.raw_response: {extracted_shopping_response_id}")
+
+            # Second try the frontend nested structure: data.raw_response
+            elif 'data' in flight_price_response and 'raw_response' in flight_price_response['data']:
+                raw_response = flight_price_response['data']['raw_response']
+                logger.info(f"[DEBUG] Found data.raw_response structure, keys: {list(raw_response.keys())}")
+
+                # Try direct ShoppingResponseID in raw_response
+                if 'ShoppingResponseID' in raw_response:
+                    shopping_response_id_node = raw_response['ShoppingResponseID']
+                    if isinstance(shopping_response_id_node, dict) and 'ResponseID' in shopping_response_id_node:
+                        extracted_shopping_response_id = shopping_response_id_node['ResponseID'].get('value')
+                    else:
+                        extracted_shopping_response_id = shopping_response_id_node
+                    logger.info(f"[DEBUG] Found ShoppingResponseID in data.raw_response: {extracted_shopping_response_id}")
         
         # Third try: check if raw_response is at top level
-        if not shopping_response_id and 'raw_response' in flight_price_response:
+        if not extracted_shopping_response_id and 'raw_response' in flight_price_response:
             raw_response = flight_price_response['raw_response']
             logger.info(f"[DEBUG] Found top-level raw_response structure, keys: {list(raw_response.keys())}")
-            
+
             if 'ShoppingResponseID' in raw_response:
                 shopping_response_id_node = raw_response['ShoppingResponseID']
                 if isinstance(shopping_response_id_node, dict) and 'ResponseID' in shopping_response_id_node:
-                    shopping_response_id = shopping_response_id_node['ResponseID'].get('value')
+                    extracted_shopping_response_id = shopping_response_id_node['ResponseID'].get('value')
                 else:
-                    shopping_response_id = shopping_response_id_node
-                logger.info(f"[DEBUG] Found ShoppingResponseID in raw_response: {shopping_response_id}")
-        
+                    extracted_shopping_response_id = shopping_response_id_node
+                logger.info(f"[DEBUG] Found ShoppingResponseID in raw_response: {extracted_shopping_response_id}")
+
         # Fourth try: direct fields sent from frontend
-        if not shopping_response_id and 'ShoppingResponseID' in flight_price_response:
-            shopping_response_id = flight_price_response['ShoppingResponseID']
-            logger.info(f"[DEBUG] Found ShoppingResponseID in direct field: {shopping_response_id}")
-        
+        if not extracted_shopping_response_id and 'ShoppingResponseID' in flight_price_response:
+            extracted_shopping_response_id = flight_price_response['ShoppingResponseID']
+            logger.info(f"[DEBUG] Found ShoppingResponseID in direct field: {extracted_shopping_response_id}")
+
         # Fifth try: nested FlightPriceRS structure
-        if not shopping_response_id:
+        if not extracted_shopping_response_id:
             shopping_response_id_node = flight_price_response.get('FlightPriceRS', {}).get('ShoppingResponseID', {})
-            shopping_response_id = shopping_response_id_node.get('ResponseID', {}).get('value')
-            if shopping_response_id:
-                logger.info(f"[DEBUG] Found ShoppingResponseID in FlightPriceRS structure: {shopping_response_id}")
+            extracted_shopping_response_id = shopping_response_id_node.get('ResponseID', {}).get('value')
+            if extracted_shopping_response_id:
+                logger.info(f"[DEBUG] Found ShoppingResponseID in FlightPriceRS structure: {extracted_shopping_response_id}")
         
-        # Extract OfferID - check multiple possible paths
-        offer_id = None
+        # Extract OfferID if not provided - check multiple possible paths
+        if not extracted_offer_id:
+            # First try the deep frontend nested structure: data.raw_response.data.raw_response
+            if ('data' in flight_price_response and
+                'raw_response' in flight_price_response['data'] and
+                'data' in flight_price_response['data']['raw_response'] and
+                'raw_response' in flight_price_response['data']['raw_response']['data']):
+                raw_response = flight_price_response['data']['raw_response']['data']['raw_response']
+
+                # Try PricedFlightOffers in deep raw_response
+                priced_offers = raw_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
+                if priced_offers and isinstance(priced_offers, list) and len(priced_offers) > 0:
+                    offer_id_node = priced_offers[0].get('OfferID', {})
+                    if isinstance(offer_id_node, dict) and 'value' in offer_id_node:
+                        extracted_offer_id = offer_id_node['value']
+                    else:
+                        extracted_offer_id = offer_id_node
+                    logger.info(f"[DEBUG] Found OfferID in data.raw_response.data.raw_response.PricedFlightOffers: {extracted_offer_id}")
+
+            # Second try the frontend nested structure: data.raw_response
+            elif 'data' in flight_price_response and 'raw_response' in flight_price_response['data']:
+                raw_response = flight_price_response['data']['raw_response']
+
+                # Try PricedFlightOffers in raw_response
+                priced_offers = raw_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
+                if priced_offers and isinstance(priced_offers, list) and len(priced_offers) > 0:
+                    offer_id_node = priced_offers[0].get('OfferID', {})
+                    if isinstance(offer_id_node, dict) and 'value' in offer_id_node:
+                        extracted_offer_id = offer_id_node['value']
+                    else:
+                        extracted_offer_id = offer_id_node
+                    logger.info(f"[DEBUG] Found OfferID in data.raw_response.PricedFlightOffers: {extracted_offer_id}")
+
+            # Third try: check if raw_response is at top level
+            if not extracted_offer_id and 'raw_response' in flight_price_response:
+                raw_response = flight_price_response['raw_response']
+
+                priced_offers = raw_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
+                if priced_offers and isinstance(priced_offers, list) and len(priced_offers) > 0:
+                    offer_id_node = priced_offers[0].get('OfferID', {})
+                    if isinstance(offer_id_node, dict) and 'value' in offer_id_node:
+                        extracted_offer_id = offer_id_node['value']
+                    else:
+                        extracted_offer_id = offer_id_node
+                    logger.info(f"[DEBUG] Found OfferID in raw_response.PricedFlightOffers: {extracted_offer_id}")
+
+            # Fourth try: direct field sent from frontend
+            if not extracted_offer_id and 'OfferID' in flight_price_response:
+                extracted_offer_id = flight_price_response['OfferID']
+                logger.info(f"[DEBUG] Found OfferID in direct field: {extracted_offer_id}")
+
+            # Fifth try: nested PricedFlightOffers structure
+            if not extracted_offer_id:
+                priced_offers = flight_price_response.get('FlightPriceRS', {}).get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
+                if priced_offers and isinstance(priced_offers, list) and len(priced_offers) > 0:
+                    extracted_offer_id = priced_offers[0].get('OfferID', {}).get('value')
+                    if extracted_offer_id:
+                        logger.info(f"[DEBUG] Found OfferID in PricedFlightOffers structure: {extracted_offer_id}")
         
-        # First try the deep frontend nested structure: data.raw_response.data.raw_response
-        if ('data' in flight_price_response and 
-            'raw_response' in flight_price_response['data'] and 
-            'data' in flight_price_response['data']['raw_response'] and 
-            'raw_response' in flight_price_response['data']['raw_response']['data']):
-            raw_response = flight_price_response['data']['raw_response']['data']['raw_response']
-            
-            # Try PricedFlightOffers in deep raw_response
-            priced_offers = raw_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
-            if priced_offers and isinstance(priced_offers, list) and len(priced_offers) > 0:
-                offer_id_node = priced_offers[0].get('OfferID', {})
-                if isinstance(offer_id_node, dict) and 'value' in offer_id_node:
-                    offer_id = offer_id_node['value']
-                else:
-                    offer_id = offer_id_node
-                logger.info(f"[DEBUG] Found OfferID in data.raw_response.data.raw_response.PricedFlightOffers: {offer_id}")
-        
-        # Second try the frontend nested structure: data.raw_response
-        elif 'data' in flight_price_response and 'raw_response' in flight_price_response['data']:
-            raw_response = flight_price_response['data']['raw_response']
-            
-            # Try PricedFlightOffers in raw_response
-            priced_offers = raw_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
-            if priced_offers and isinstance(priced_offers, list) and len(priced_offers) > 0:
-                offer_id_node = priced_offers[0].get('OfferID', {})
-                if isinstance(offer_id_node, dict) and 'value' in offer_id_node:
-                    offer_id = offer_id_node['value']
-                else:
-                    offer_id = offer_id_node
-                logger.info(f"[DEBUG] Found OfferID in data.raw_response.PricedFlightOffers: {offer_id}")
-        
-        # Third try: check if raw_response is at top level
-        if not offer_id and 'raw_response' in flight_price_response:
-            raw_response = flight_price_response['raw_response']
-            
-            priced_offers = raw_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
-            if priced_offers and isinstance(priced_offers, list) and len(priced_offers) > 0:
-                offer_id_node = priced_offers[0].get('OfferID', {})
-                if isinstance(offer_id_node, dict) and 'value' in offer_id_node:
-                    offer_id = offer_id_node['value']
-                else:
-                    offer_id = offer_id_node
-                logger.info(f"[DEBUG] Found OfferID in raw_response.PricedFlightOffers: {offer_id}")
-        
-        # Fourth try: direct field sent from frontend
-        if not offer_id and 'OfferID' in flight_price_response:
-            offer_id = flight_price_response['OfferID']
-            logger.info(f"[DEBUG] Found OfferID in direct field: {offer_id}")
-        
-        # Fifth try: nested PricedFlightOffers structure
-        if not offer_id:
-            priced_offers = flight_price_response.get('FlightPriceRS', {}).get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
-            if priced_offers and isinstance(priced_offers, list) and len(priced_offers) > 0:
-                offer_id = priced_offers[0].get('OfferID', {}).get('value')
-                if offer_id:
-                    logger.info(f"[DEBUG] Found OfferID in PricedFlightOffers structure: {offer_id}")
-        
+        # Extract OfferItemIDs from the raw flight price response using multiple methods
+        offer_item_ids = []
+
+        def extract_offer_item_ids_from_structure(data, path=""):
+            """Extract OfferItemIDs from a PricedFlightOffers structure."""
+            local_offer_item_ids = []
+            try:
+                priced_offers = data.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
+                if priced_offers and isinstance(priced_offers, list) and len(priced_offers) > 0:
+                    offer_prices = priced_offers[0].get('OfferPrice', [])
+                    if not isinstance(offer_prices, list):
+                        offer_prices = [offer_prices] if offer_prices else []
+
+                    for offer_price in offer_prices:
+                        offer_item_id = offer_price.get('OfferItemID')
+                        if offer_item_id:
+                            local_offer_item_ids.append(offer_item_id)
+
+                    if local_offer_item_ids:
+                        logger.info(f"[DEBUG] Found OfferItemIDs at {path}: {local_offer_item_ids}")
+            except Exception as e:
+                logger.warning(f"[DEBUG] Error extracting OfferItemIDs from {path}: {e}")
+
+            return local_offer_item_ids
+
+        # Method 1: Direct PricedFlightOffers at top level
+        offer_item_ids = extract_offer_item_ids_from_structure(flight_price_response, "top-level")
+
+        # Method 2: Try nested data.raw_response structure
+        if not offer_item_ids and 'data' in flight_price_response:
+            data_section = flight_price_response['data']
+            if 'raw_response' in data_section:
+                raw_response = data_section['raw_response']
+                offer_item_ids = extract_offer_item_ids_from_structure(raw_response, "data.raw_response")
+
+        # Method 3: Try FlightPriceRS structure (this is likely where it is based on OfferID success)
+        if not offer_item_ids:
+            # Try at top level
+            flight_price_rs = flight_price_response.get('FlightPriceRS', {})
+            if flight_price_rs:
+                offer_item_ids = extract_offer_item_ids_from_structure(flight_price_rs, "FlightPriceRS")
+
+            # Try in nested data.raw_response.FlightPriceRS
+            if not offer_item_ids and 'data' in flight_price_response:
+                data_section = flight_price_response['data']
+                if 'raw_response' in data_section:
+                    raw_response = data_section['raw_response']
+                    flight_price_rs = raw_response.get('FlightPriceRS', {})
+                    if flight_price_rs:
+                        offer_item_ids = extract_offer_item_ids_from_structure(flight_price_rs, "data.raw_response.FlightPriceRS")
+
+        # Method 4: Recursive search for any OfferPrice structure
+        if not offer_item_ids:
+            def find_offer_item_ids_recursive(obj, path=""):
+                local_ids = []
+                if isinstance(obj, dict):
+                    # Look for OfferPrice directly
+                    if 'OfferPrice' in obj:
+                        offer_prices = obj['OfferPrice']
+                        if not isinstance(offer_prices, list):
+                            offer_prices = [offer_prices] if offer_prices else []
+
+                        for offer_price in offer_prices:
+                            if isinstance(offer_price, dict) and 'OfferItemID' in offer_price:
+                                local_ids.append(offer_price['OfferItemID'])
+
+                        if local_ids:
+                            logger.info(f"[DEBUG] Found OfferItemIDs recursively at {path}.OfferPrice: {local_ids}")
+                            return local_ids
+
+                    # Recurse into nested objects
+                    for key, value in obj.items():
+                        result = find_offer_item_ids_recursive(value, f"{path}.{key}" if path else key)
+                        if result:
+                            return result
+                elif isinstance(obj, list):
+                    for i, item in enumerate(obj):
+                        result = find_offer_item_ids_recursive(item, f"{path}[{i}]")
+                        if result:
+                            return result
+
+                return []
+
+            offer_item_ids = find_offer_item_ids_recursive(flight_price_response)
+
+        logger.info(f"[DEBUG] Final extracted OfferItemIDs: {offer_item_ids}")
+
         # Log final extracted values
-        logger.info(f"[DEBUG] Final extracted ShoppingResponseID: {shopping_response_id}")
-        logger.info(f"[DEBUG] Final extracted OfferID: {offer_id}")
-        
+        # logger.info(f"[DEBUG] Final extracted ShoppingResponseID: {extracted_shopping_response_id}")
+        # logger.info(f"[DEBUG] Final extracted OfferID: {extracted_offer_id}")
+
+        # Build PaymentInfo based on payment method
+        payment_method = payment_info.get('payment_method', 'CASH')
+        payment_info_payload = {
+            'PaymentMethod': payment_method
+        }
+
+        # Only include CardInfo for non-CASH payments
+        if payment_method != 'CASH':
+            payment_info_payload['CardInfo'] = {
+                'CardType': payment_info.get('card_type'),
+                'CardNumber': payment_info.get('card_number'),
+                'ExpiryDate': payment_info.get('expiry_date'),
+                'CVV': payment_info.get('cvv'),
+                'CardHolderName': payment_info.get('card_holder_name')
+            }
+
         payload = {
-            'ShoppingResponseID': shopping_response_id,
+            'ShoppingResponseID': extracted_shopping_response_id,
             'SelectedOffer': {
-                'OfferID': offer_id,
-                'OfferItemIDs': [item['id'] for item in flight_price_response.get('offer_items', [])]
+                'OfferID': extracted_offer_id,
+                'OfferItemIDs': offer_item_ids
             },
             'Passengers': [],
-            'PaymentInfo': {
-                'PaymentMethod': payment_info.get('payment_method', 'CREDIT_CARD'),
-                'CardInfo': {
-                    'CardType': payment_info.get('card_type'),
-                    'CardNumber': payment_info.get('card_number'),
-                    'ExpiryDate': payment_info.get('expiry_date'),
-                    'CVV': payment_info.get('cvv'),
-                    'CardHolderName': payment_info.get('card_holder_name')
-                }
-            },
+            'PaymentInfo': payment_info_payload,
             'ContactInfo': {
                 'Email': contact_info.get('email'),
                 'Phone': contact_info.get('phone')
@@ -891,16 +1279,38 @@ class FlightBookingService(FlightService):
         
         # Add passenger details
         for i, passenger in enumerate(passengers, 1):
+            # Handle date of birth conversion
+            dob = passenger.get('dob')
+            date_of_birth = None
+            if dob and isinstance(dob, dict):
+                try:
+                    date_of_birth = f"{dob.get('year')}-{dob.get('month').zfill(2)}-{dob.get('day').zfill(2)}"
+                except (AttributeError, TypeError):
+                    date_of_birth = None
+            elif isinstance(dob, str):
+                date_of_birth = dob
+
+            # Handle expiry date conversion
+            expiry_date = passenger.get('expiryDate')
+            passport_expiry = None
+            if expiry_date and isinstance(expiry_date, dict):
+                try:
+                    passport_expiry = f"{expiry_date.get('year')}-{expiry_date.get('month').zfill(2)}-{expiry_date.get('day').zfill(2)}"
+                except (AttributeError, TypeError):
+                    passport_expiry = None
+            elif isinstance(expiry_date, str):
+                passport_expiry = expiry_date
+
             payload['Passengers'].append({
                 'PassengerID': f'PAX{i}',
-                'Type': passenger.get('type', 'ADT'),
+                'Type': passenger.get('type', 'adult'),
                 'Title': passenger.get('title'),
-                'FirstName': passenger.get('first_name'),
-                'LastName': passenger.get('last_name'),
-                'DateOfBirth': passenger.get('date_of_birth'),
+                'FirstName': passenger.get('firstName'),  # Frontend sends firstName
+                'LastName': passenger.get('lastName'),    # Frontend sends lastName
+                'DateOfBirth': date_of_birth,
                 'Gender': passenger.get('gender'),
-                'PassportNumber': passenger.get('passport_number'),
-                'PassportExpiry': passenger.get('passport_expiry'),
+                'PassportNumber': passenger.get('documentNumber'),  # Frontend sends documentNumber
+                'PassportExpiry': passport_expiry,
                 'Nationality': passenger.get('nationality')
             })
         
@@ -1371,10 +1781,10 @@ class FlightBookingService(FlightService):
     def _extract_pricing_details_new_format(self, response_data: Dict[str, Any]) -> Dict[str, Any]:
         """Extract pricing details in the new frontend-compatible format."""
         return {
-            'baseFare': pricing_data.get('baseFare', 0),
-            'taxes': pricing_data.get('taxes', 0),
-            'total': pricing_data.get('total', 0),
-            'currency': pricing_data.get('currency', 'USD'),
+            'baseFare': response_data.get('baseFare', 0),
+            'taxes': response_data.get('taxes', 0),
+            'total': response_data.get('total', 0),
+            'currency': response_data.get('currency', 'USD'),
             'fees': 0,  # Placeholder for future implementation
             'discount': 0  # Placeholder for future implementation
         }
@@ -1415,6 +1825,68 @@ class FlightBookingService(FlightService):
             Processed response data matching the new data contract structure
         """
         try:
+            # DEBUG: Log the response structure for analysis
+            logger.info(f"[DEBUG] ===== PROCESSING ORDERCREATE RESPONSE =====")
+            logger.info(f"[DEBUG] Response type: {type(response).__name__}")
+            logger.info(f"[DEBUG] Response top-level keys: {list(response.keys()) if isinstance(response, dict) else 'Not a dict'}")
+
+            if isinstance(response, dict) and 'Response' in response:
+                response_section = response.get('Response', {})
+                logger.info(f"[DEBUG] Response section keys: {list(response_section.keys()) if isinstance(response_section, dict) else 'Not a dict'}")
+
+                if 'Order' in response_section:
+                    orders = response_section.get('Order', [])
+                    logger.info(f"[DEBUG] Orders found: {len(orders) if isinstance(orders, list) else 'Not a list'}")
+                    if isinstance(orders, list) and len(orders) > 0:
+                        first_order = orders[0]
+                        logger.info(f"[DEBUG] First order keys: {list(first_order.keys()) if isinstance(first_order, dict) else 'Not a dict'}")
+
+                        # Check for BookingReferences
+                        if 'BookingReferences' in first_order:
+                            booking_refs = first_order.get('BookingReferences', {})
+                            logger.info(f"[DEBUG] BookingReferences structure: {booking_refs}")
+                        else:
+                            logger.info(f"[DEBUG] No BookingReferences found in first order")
+
+                        # Check for OrderID
+                        if 'OrderID' in first_order:
+                            order_id_structure = first_order.get('OrderID', {})
+                            logger.info(f"[DEBUG] OrderID structure: {order_id_structure}")
+                        else:
+                            logger.info(f"[DEBUG] No OrderID found in first order")
+                else:
+                    logger.info(f"[DEBUG] No Order section found in Response")
+            else:
+                logger.info(f"[DEBUG] No Response section found or response is not a dict")
+
+                # Check if this is an error response
+                if isinstance(response, dict) and 'Errors' in response:
+                    errors = response.get('Errors', {})
+                    logger.error(f"[DEBUG] API returned errors: {errors}")
+
+                    # Extract error details
+                    error_list = errors.get('Error', [])
+                    if isinstance(error_list, list) and len(error_list) > 0:
+                        first_error = error_list[0]
+                        error_code = first_error.get('Code', 'UNKNOWN_ERROR')
+                        error_message = first_error.get('value', first_error.get('ShortText', 'Unknown error occurred'))
+
+                        logger.error(f"[DEBUG] Error Code: {error_code}")
+                        logger.error(f"[DEBUG] Error Message: {error_message}")
+
+                        # Return error response instead of continuing with null booking reference
+                        from datetime import datetime, timezone
+                        return {
+                            'error': {
+                                'code': error_code,
+                                'message': error_message,
+                                'timestamp': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
+                                'requestId': response.get('RequestID', 'unknown')
+                            }
+                        }
+
+            logger.info(f"[DEBUG] ===== END RESPONSE ANALYSIS =====")
+
             # Extract basic booking information
             booking_reference = response.get('Response', {}).get('Order', [{}])[0].get('BookingReferences', {}).get('BookingReference', [{}])[0].get('ID')
             order_id = response.get('Response', {}).get('Order', [{}])[0].get('OrderID', {}).get('value')
@@ -1422,8 +1894,8 @@ class FlightBookingService(FlightService):
             # Extract creation timestamp
             created_at = response.get('Response', {}).get('CreationDateTime') or response.get('Response', {}).get('Timestamp')
             if not created_at:
-                from datetime import datetime
-                created_at = datetime.utcnow().isoformat() + 'Z'
+                from datetime import datetime, timezone
+                created_at = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
             
             # Extract payment information
             payment_info = self._extract_payment_info(response)
@@ -1504,8 +1976,7 @@ class FlightBookingService(FlightService):
             
         except Exception as e:
             logger.error(f"Error processing OrderCreate response: {str(e)}")
-            import json
-            logger.error(f"Response structure: {json.dumps(response, indent=2, default=str)[:1000]}...")
+            logger.error(f"Response type: {type(response).__name__}, Response keys: {list(response.keys()) if isinstance(response, dict) else 'Not a dict'}")
             
             # Return error response matching the new data contract
             from datetime import datetime
@@ -1596,25 +2067,61 @@ async def create_booking(
 async def process_order_create(order_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Process order creation request.
-    
+
     This is a backward-compatible wrapper around the FlightBookingService.
     """
-    config = order_data.pop('config', {})
-    
-    # Use a single service instance to avoid creating multiple TokenManager instances
-    service = FlightBookingService(config=config)
     try:
-        return await service.create_booking(
-            flight_price_response=order_data.get('flight_price_response', {}),
-            passengers=order_data.get('passengers', []),
-            payment_info=order_data.get('payment_info', {}),
-            contact_info=order_data.get('contact_info', {}),
-            request_id=order_data.get('request_id'),
-            offer_id=order_data.get('offer_id'),
-            shopping_response_id=order_data.get('shopping_response_id')
-        )
-    finally:
-        await service.close()
+        print(f"🟡🟡🟡 ENTRY: process_order_create called with keys: {list(order_data.keys()) if order_data else 'None'} 🟡🟡🟡")
+        logger.info(f"🟡🟡🟡 ENTRY: process_order_create called with keys: {list(order_data.keys()) if order_data else 'None'} 🟡🟡🟡")
+
+        config = order_data.pop('config', {})
+        print(f"🟡🟡🟡 Config extracted: {config} 🟡🟡🟡")
+
+        logger.info(f"🔥🔥🔥 process_order_create called, creating FlightBookingService instance 🔥🔥🔥")
+        print(f"🔥🔥🔥 process_order_create called, creating FlightBookingService instance 🔥🔥🔥")
+
+        # Use a single service instance to avoid creating multiple TokenManager instances
+        service = FlightBookingService(config=config)
+        logger.info(f"🔥🔥🔥 FlightBookingService instance created: {type(service)} 🔥🔥🔥")
+        print(f"🔥🔥🔥 FlightBookingService instance created: {type(service)} 🔥🔥🔥")
+
+        try:
+            logger.info(f"🔥🔥🔥 About to call service.create_booking 🔥🔥🔥")
+            print(f"🔥🔥🔥 About to call service.create_booking 🔥🔥🔥")
+
+            # Log the data being passed to create_booking
+            print(f"🟡🟡🟡 Data being passed to create_booking:")
+            print(f"  - flight_price_response keys: {list(order_data.get('flight_price_response', {}).keys())}")
+            print(f"  - passengers count: {len(order_data.get('passengers', []))}")
+            print(f"  - payment_info: {order_data.get('payment_info', {})}")
+            print(f"  - contact_info: {order_data.get('contact_info', {})}")
+            print(f"  - request_id: {order_data.get('request_id')}")
+            print(f"  - offer_id: {order_data.get('offer_id')}")
+            print(f"  - shopping_response_id: {order_data.get('shopping_response_id')}")
+
+            result = await service.create_booking(
+                flight_price_response=order_data.get('flight_price_response', {}),
+                passengers=order_data.get('passengers', []),
+                payment_info=order_data.get('payment_info', {}),
+                contact_info=order_data.get('contact_info', {}),
+                request_id=order_data.get('request_id'),
+                offer_id=order_data.get('offer_id'),
+                shopping_response_id=order_data.get('shopping_response_id')
+            )
+
+            print(f"🟢🟢🟢 create_booking returned successfully! 🟢🟢🟢")
+            logger.info(f"🟢🟢🟢 create_booking returned successfully! 🟢🟢🟢")
+            return result
+
+        finally:
+            await service.close()
+
+    except Exception as e:
+        print(f"🔴🔴🔴 EXCEPTION in process_order_create: {e} 🔴🔴🔴")
+        logger.error(f"🔴🔴🔴 EXCEPTION in process_order_create: {e} 🔴🔴🔴", exc_info=True)
+        import traceback
+        traceback.print_exc()
+        raise
 
 
 async def get_booking_details(

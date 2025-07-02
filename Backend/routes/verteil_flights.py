@@ -49,7 +49,6 @@ request_cache = RequestDeduplicationCache(max_size=1000, ttl=2)  # 2 second TTL 
 # Import from the new modular flight service
 from services.flight import (
     FlightServiceError,
-    search_flights,
     get_flight_price as get_flight_price_service,
     create_booking,
     process_air_shopping,
@@ -211,7 +210,6 @@ async def air_shopping():
             
         # Convert frontend parameter names to backend equivalents
         parameter_mapping = {
-            'tripType': 'trip_type',
             'numAdults': 'num_adults',
             'numChildren': 'num_children',
             'numInfants': 'num_infants',
@@ -224,7 +222,8 @@ async def air_shopping():
             'destinationCode': 'destination_code',
             'adults': 'num_adults',
             'children': 'num_children',
-            'infants': 'num_infants'
+            'infants': 'num_infants',
+            'tripType': 'trip_type'
         }
         
         # Apply parameter mapping
@@ -233,7 +232,11 @@ async def air_shopping():
             # Use mapped key if it exists, otherwise use original key
             mapped_key = parameter_mapping.get(key, key)
             converted_data[mapped_key] = value
-            
+
+        # Handle tripType parameter specifically
+        if 'tripType' in data and 'trip_type' not in converted_data:
+            converted_data['trip_type'] = data['tripType']
+
         # Build odSegments from individual parameters if not already present
         if 'odSegments' not in converted_data and 'origin' in converted_data and 'destination' in converted_data:
             od_segments = []
@@ -249,7 +252,8 @@ async def air_shopping():
             
             # Add return segment for round-trip
             trip_type = converted_data.get('trip_type', '').lower()
-            if (trip_type in ['round-trip', 'round_trip', 'roundtrip'] and 
+            logger.info(f"[DEBUG] Trip type for return segment check: '{trip_type}', returnDate: {converted_data.get('returnDate')}")
+            if (trip_type in ['round-trip', 'round_trip', 'roundtrip'] and
                 converted_data.get('returnDate')):
                 od_segments.append({
                     'origin': converted_data['destination'],
@@ -312,7 +316,14 @@ async def air_shopping():
         # Log the incoming request for debugging
         logger.info(f"Original request data: {data}")
         logger.info(f"Converted request data: {converted_data}")
-        
+
+        # [PASSENGER DEBUG] Log passenger counts specifically
+        logger.info(f"[PASSENGER DEBUG] Backend Route - Received air shopping request:")
+        logger.info(f"[PASSENGER DEBUG] Passenger counts: num_adults={converted_data.get('num_adults')}, num_children={converted_data.get('num_children')}, num_infants={converted_data.get('num_infants')}")
+        logger.info(f"[PASSENGER DEBUG] Total passengers: {(converted_data.get('num_adults', 0) + converted_data.get('num_children', 0) + converted_data.get('num_infants', 0))}")
+        logger.info(f"[PASSENGER DEBUG] All converted_data keys: {list(converted_data.keys())}")
+        logger.info(f"[PASSENGER DEBUG] Full converted_data: {converted_data}")
+
         # Process the request with the flight service
         # Add configuration to the request data
         converted_data['config'] = dict(current_app.config)
@@ -499,25 +510,116 @@ async def create_order():
         if not data:
             return jsonify(_create_error_response("Request body is required", 400, request_id))
         
-        # DEBUG: Log raw frontend data
-        logger.info(f"[DEBUG] Raw frontend data received (ReqID: {request_id}):")
-        logger.info(f"[DEBUG] Full request payload: {json.dumps(data, indent=2, default=str)}")
+        # DEBUG: Log frontend data summary
+        logger.info(f"[DEBUG] Raw frontend data received (ReqID: {request_id}) - Keys: {list(data.keys()) if data else 'None'}")
         
         # Extract data from frontend request
         flight_price_response = data.get('flight_price_response')  # Direct flight price response from frontend
         frontend_passengers = data.get('passengers', [])
         payment_info = data.get('payment', {})
         contact_info = data.get('contact_info', {})
-        offer_id = data.get('OfferID')  # Extract OfferID sent from frontend
+        frontend_offer_id = data.get('OfferID')  # Extract OfferID sent from frontend (might be index)
         shopping_response_id = data.get('ShoppingResponseID')  # Extract ShoppingResponseID sent from frontend
+
+        # Extract the REAL OfferID from the raw flight price response instead of using the index
+        offer_id = None
+        logger.info(f"[DEBUG] flight_price_response available: {bool(flight_price_response)} (ReqID: {request_id})")
+        logger.info(f"[DEBUG] frontend_offer_id received: {frontend_offer_id} (ReqID: {request_id})")
+
+        if flight_price_response:
+            logger.info(f"[DEBUG] flight_price_response keys: {list(flight_price_response.keys()) if isinstance(flight_price_response, dict) else 'Not a dict'} (ReqID: {request_id})")
+            logger.info(f"[DEBUG] flight_price_response type: {type(flight_price_response)} (ReqID: {request_id})")
+
+            # Try multiple possible structures for OfferID extraction
+            extracted_offer_id = None
+
+            # Log the complete structure for debugging
+            logger.info(f"[DEBUG] Complete flight_price_response structure (first 2000 chars): {str(flight_price_response)[:2000]}... (ReqID: {request_id})")
+
+            # Method 1: Direct PricedFlightOffers at top level
+            priced_offers = flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
+            if priced_offers and isinstance(priced_offers, list) and len(priced_offers) > 0:
+                offer_id_node = priced_offers[0].get('OfferID', {})
+                if isinstance(offer_id_node, dict) and 'value' in offer_id_node:
+                    extracted_offer_id = offer_id_node['value']
+                    logger.info(f"[DEBUG] Method 1 - Extracted OfferID from top-level PricedFlightOffers: {extracted_offer_id} (ReqID: {request_id})")
+                elif offer_id_node:
+                    extracted_offer_id = offer_id_node
+                    logger.info(f"[DEBUG] Method 1 - Extracted OfferID (simple): {extracted_offer_id} (ReqID: {request_id})")
+
+            # Method 2: Try nested data.raw_response structure
+            if not extracted_offer_id and 'data' in flight_price_response:
+                data_section = flight_price_response['data']
+                logger.info(f"[DEBUG] Found data section, keys: {list(data_section.keys()) if isinstance(data_section, dict) else 'Not a dict'} (ReqID: {request_id})")
+
+                if 'raw_response' in data_section:
+                    raw_response = data_section['raw_response']
+                    logger.info(f"[DEBUG] Found raw_response in data, keys: {list(raw_response.keys()) if isinstance(raw_response, dict) else 'Not a dict'} (ReqID: {request_id})")
+
+                    priced_offers = raw_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
+                    if priced_offers and isinstance(priced_offers, list) and len(priced_offers) > 0:
+                        offer_id_node = priced_offers[0].get('OfferID', {})
+                        if isinstance(offer_id_node, dict) and 'value' in offer_id_node:
+                            extracted_offer_id = offer_id_node['value']
+                            logger.info(f"[DEBUG] Method 2 - Extracted OfferID from data.raw_response: {extracted_offer_id} (ReqID: {request_id})")
+
+            # Method 3: Try FlightPriceRS structure
+            if not extracted_offer_id:
+                flight_price_rs = flight_price_response.get('FlightPriceRS', {})
+                if flight_price_rs:
+                    logger.info(f"[DEBUG] Found FlightPriceRS, keys: {list(flight_price_rs.keys()) if isinstance(flight_price_rs, dict) else 'Not a dict'} (ReqID: {request_id})")
+                    priced_offers = flight_price_rs.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
+                    if priced_offers and isinstance(priced_offers, list) and len(priced_offers) > 0:
+                        offer_id_node = priced_offers[0].get('OfferID', {})
+                        if isinstance(offer_id_node, dict) and 'value' in offer_id_node:
+                            extracted_offer_id = offer_id_node['value']
+                            logger.info(f"[DEBUG] Method 3 - Extracted OfferID from FlightPriceRS: {extracted_offer_id} (ReqID: {request_id})")
+
+            # Method 4: Try to find any OfferID anywhere in the structure (recursive search)
+            if not extracted_offer_id:
+                def find_offer_id_recursive(obj, path=""):
+                    if isinstance(obj, dict):
+                        if 'OfferID' in obj:
+                            offer_id_node = obj['OfferID']
+                            if isinstance(offer_id_node, dict) and 'value' in offer_id_node:
+                                return offer_id_node['value'], f"{path}.OfferID.value"
+                            elif offer_id_node:
+                                return offer_id_node, f"{path}.OfferID"
+
+                        for key, value in obj.items():
+                            result, result_path = find_offer_id_recursive(value, f"{path}.{key}" if path else key)
+                            if result:
+                                return result, result_path
+                    elif isinstance(obj, list):
+                        for i, item in enumerate(obj):
+                            result, result_path = find_offer_id_recursive(item, f"{path}[{i}]")
+                            if result:
+                                return result, result_path
+
+                    return None, ""
+
+                extracted_offer_id, found_path = find_offer_id_recursive(flight_price_response)
+                if extracted_offer_id:
+                    logger.info(f"[DEBUG] Method 4 - Found OfferID recursively at path: {found_path}, value: {extracted_offer_id} (ReqID: {request_id})")
+
+            offer_id = extracted_offer_id
+
+            # Fallback to frontend OfferID if extraction failed
+            if not offer_id:
+                offer_id = frontend_offer_id
+                logger.warning(f"[DEBUG] Could not extract OfferID from raw response, using frontend value: {offer_id} (ReqID: {request_id})")
+        else:
+            offer_id = frontend_offer_id
+            logger.warning(f"[DEBUG] No flight_price_response available, using frontend OfferID: {offer_id} (ReqID: {request_id})")
         
         # DEBUG: Log extracted data components
         logger.info(f"[DEBUG] Extracted flight_price_response present (ReqID: {request_id}): {bool(flight_price_response)}")
         if flight_price_response:
             logger.info(f"[DEBUG] Flight price response keys (ReqID: {request_id}): {list(flight_price_response.keys()) if isinstance(flight_price_response, dict) else 'Not a dict'}")
-        logger.info(f"[DEBUG] Extracted passengers (ReqID: {request_id}): {json.dumps(frontend_passengers, indent=2, default=str)}")
-        logger.info(f"[DEBUG] Extracted payment (ReqID: {request_id}): {json.dumps(payment_info, indent=2, default=str)}")
-        logger.info(f"[DEBUG] Extracted contact_info (ReqID: {request_id}): {json.dumps(contact_info, indent=2, default=str)}")
+        logger.info(f"[DEBUG] Extracted passengers count (ReqID: {request_id}): {len(frontend_passengers) if frontend_passengers else 0}")
+        logger.info(f"[DEBUG] Extracted payment method (ReqID: {request_id}): {payment_info.get('payment_method') if payment_info else 'None'}")
+        logger.info(f"[DEBUG] Complete payment_info structure (ReqID: {request_id}): {payment_info}")
+        logger.info(f"[DEBUG] Extracted contact info present (ReqID: {request_id}): {bool(contact_info)}")
         logger.info(f"[DEBUG] Extracted OfferID (ReqID: {request_id}): {offer_id}")
         logger.info(f"[DEBUG] Extracted ShoppingResponseID (ReqID: {request_id}): {shopping_response_id}")
         
@@ -547,28 +649,38 @@ async def create_order():
             'shopping_response_id': shopping_response_id  # Pass the extracted ShoppingResponseID
         }
         
-        # DEBUG: Log order data being sent to booking service
-        logger.info(f"[DEBUG] Order data being sent to booking service (ReqID: {request_id}): {json.dumps(order_data, indent=2, default=str)}")
+        # DEBUG: Log order data summary (without verbose content)
+        logger.info(f"[DEBUG] Order data being sent to booking service (ReqID: {request_id}) - Keys: {list(order_data.keys()) if order_data else 'None'}")
         
         logger.info(f"Processing order creation - Request ID: {request_id}")
         
         # Call the booking service
         result = await process_order_create(order_data)
-        
-        if result.get('status') == 'success':
+
+        # Check if result contains an error
+        if 'error' in result:
+            error_info = result['error']
+            # Handle both string and dict error formats
+            if isinstance(error_info, str):
+                error_message = error_info
+                error_code = 'BOOKING_ERROR'
+            else:
+                error_message = error_info.get('message', 'Failed to create order')
+                error_code = error_info.get('code', 'BOOKING_ERROR')
+            logger.error(f"Order creation failed - Request ID: {request_id}, Error Code: {error_code}, Error: {error_message}")
+            return jsonify(_create_error_response(
+                error_message,
+                500,
+                request_id
+            ))
+        else:
+            # Success case - result contains booking data directly
             logger.info(f"Order created successfully - Request ID: {request_id}")
             return jsonify({
                 'status': 'success',
-                'data': result.get('data', {}),
+                'data': result,
                 'request_id': request_id
             })
-        else:
-            logger.error(f"Order creation failed - Request ID: {request_id}, Error: {result.get('error')}")
-            return jsonify(_create_error_response(
-                result.get('error', 'Failed to create order'), 
-                500, 
-                request_id
-            ))
     
     except Exception as e:
         logger.error(f"Unexpected error in order creation: {str(e)} - Request ID: {request_id}", exc_info=True)

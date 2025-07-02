@@ -254,7 +254,7 @@ def _extract_reference_data(response: Dict[str, Any]) -> Dict[str, Any]:
         if isinstance(segments, list):
             logger.info(f"Processing {len(segments)} segments")
             for i, segment in enumerate(segments[:2]):  # Log first 2 segments for debugging
-                logger.info(f"Segment {i} structure: {json.dumps(segment, indent=2)}")
+                logger.info(f"Segment {i} keys: {list(segment.keys()) if isinstance(segment, dict) else 'Not a dict'}")
                 
             for segment in segments:
                 segment_key = segment.get('SegmentKey')
@@ -456,8 +456,8 @@ def _transform_single_offer(
         logger.info(f"=== Starting transformation for airline {airline_code} ===")
         logger.info(f"priced_offer keys: {list(priced_offer.keys())}")
         
-        # Log the full priced_offer for debugging
-        logger.debug(f"Full priced_offer: {json.dumps(priced_offer, indent=2, default=str)}")
+        # Log priced_offer summary for debugging
+        logger.debug(f"Priced offer structure: {list(priced_offer.keys()) if priced_offer else 'None'}")
         
         # Get offer prices - handle both list and single object cases
         offer_prices = priced_offer.get('OfferPrice', [])
@@ -560,7 +560,7 @@ def _transform_single_offer(
                         logger.debug(f"Available segment refs: {list(reference_data['segments'].keys())}")
                 else:
                     logger.warning(f"No ref key found in segment reference: {seg_ref}")
-                    logger.debug(f"Segment reference structure: {json.dumps(seg_ref, indent=2, default=str)}")
+                    logger.debug(f"Segment reference keys: {list(seg_ref.keys()) if isinstance(seg_ref, dict) else 'Not a dict'}")
         
         logger.info(f"Total segments extracted: {len(segments)}")
         if not segments:
@@ -671,8 +671,8 @@ def _transform_single_offer(
         logger.info(f"Extracted {len(penalty_info)} penalty entries from reference data")
         
         if penalty_info:
-            # Log the first penalty for debugging
-            logger.info(f"Processing {len(penalty_info)} penalties. First penalty: {json.dumps(penalty_info[0], indent=2, default=str) if penalty_info else 'None'}")
+            # Log penalty processing summary
+            logger.info(f"Processing {len(penalty_info)} penalties for fare rules transformation")
             
             try:
                 # Transform penalties to fare rules
@@ -1788,7 +1788,7 @@ def _transform_penalties_to_fare_rules(penalties: Union[List[Dict[str, Any]], An
         # Process each penalty
         for i, penalty in enumerate(processed_penalties, 1):
             try:
-                logger.info(f"Processing penalty {i}/{len(processed_penalties)}: {json.dumps(penalty, indent=2, default=str)}")
+                logger.info(f"Processing penalty {i}/{len(processed_penalties)}: Type={penalty.get('type', 'Unknown')}, Amount={penalty.get('amount', 'Unknown')}")
                 _apply_penalty_to_rules(penalty, segment_rules)
             except Exception as e:
                 logger.error(f"Error applying penalty: {e}", exc_info=True)
@@ -1934,8 +1934,8 @@ def _transform_penalties_to_fare_rules(penalties: Union[List[Dict[str, Any]], An
     # Final cleanup and validation
     _cleanup_fare_rules(fare_rules)
     
-    # Log the transformed fare rules for debugging
-    logger.debug(f"Transformed fare rules: {json.dumps(fare_rules, indent=2, default=str)}")
+    # Log fare rules transformation summary
+    logger.debug(f"Transformed fare rules with {len(fare_rules)} rule categories")
     
     return fare_rules
 

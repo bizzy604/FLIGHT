@@ -51,101 +51,101 @@ export default function PaymentPage() {
           return
         }
 
-        const flightData = JSON.parse(storedFlightOffer)
-        
-        // Debug: Log the flight offer structure
-        console.log('Complete Flight Data Structure:', JSON.stringify(flightData, null, 2))
-        
-        // Note: transformFlightOfferToDetails function removed - backend now provides complete data structure
-        
-        // Extract pricing from the correct path in flight data structure
-        let pricing: any = {}
+        // The stored flight offer should be the priced offer from flight details page
+        const pricedOffer = JSON.parse(storedFlightOffer)
+
+        // Debug: Log the priced offer structure
+        console.log('Complete Priced Offer Structure:', JSON.stringify(pricedOffer, null, 2))
+
+        // Extract pricing from the priced offer structure (same as flight details page)
         let currency = "USD"
+        let totalPrice = 0
+
+        if (pricedOffer.total_price) {
+          totalPrice = pricedOffer.total_price.amount || 0
+          currency = pricedOffer.total_price.currency || "USD"
+        }
+
+        // Create pricing object for backward compatibility
+        const pricing = {
+          total_price: totalPrice,
+          total_price_per_traveler: totalPrice,
+          currency: currency
+        }
         
-        // Use the same path as Order Summary component
-        const pricedOffer = flightData?.data?.raw_response?.data?.priced_offers?.[0]
-        if (pricedOffer?.pricing) {
-          pricing = pricedOffer.pricing
-          currency = pricing.currency || "USD"
+        // The booking form now stores the complete flight offer data with raw response
+        // Check if the data is already properly structured from the booking form
+        let flightOfferWithRawResponse;
+
+        if (pricedOffer.raw_flight_price_response && pricedOffer.shopping_response_id) {
+          // Data is already properly structured from the booking form
+          console.log('[DEBUG] Using pre-structured flight offer data from booking form');
+          flightOfferWithRawResponse = pricedOffer;
         } else {
-          // Fallback to other possible locations
-          if (flightData.priced_offers?.[0]?.pricing) {
-            pricing = flightData.priced_offers[0].pricing
-            currency = pricing.currency || "USD"
-          } else if (flightData.pricing) {
-            pricing = flightData.pricing
-            currency = pricing.currency || "USD"
-          } else if (flightData.price) {
-            // Handle case where price is directly on flight data
-            pricing = {
-              total_price: flightData.price,
-              total_price_per_traveler: flightData.price,
-              currency: flightData.currency || "USD"
+          // Fallback: extract from old structure (for backward compatibility)
+          console.log('[DEBUG] Fallback: extracting from old data structure');
+
+          const rawFlightPriceResponse = pricedOffer?.data?.raw_response
+          console.log('[DEBUG] Extracted raw flight price response:', !!rawFlightPriceResponse);
+
+          // Extract ShoppingResponseID and OrderID from raw response for backend
+          let shoppingResponseId = null;
+          let orderId = null;
+
+          // Debug: Log the complete raw response structure
+          console.log('[DEBUG] Complete raw response structure:', JSON.stringify(rawFlightPriceResponse, null, 2));
+
+          // Try multiple possible paths for ShoppingResponseID based on terminal logs
+          if (rawFlightPriceResponse?.ShoppingResponseID?.ResponseID?.value) {
+            shoppingResponseId = rawFlightPriceResponse.ShoppingResponseID.ResponseID.value;
+            console.log('[DEBUG] Extracted ShoppingResponseID from direct path:', shoppingResponseId);
+          } else if (rawFlightPriceResponse?.data?.ShoppingResponseID?.ResponseID?.value) {
+            shoppingResponseId = rawFlightPriceResponse.data.ShoppingResponseID.ResponseID.value;
+            console.log('[DEBUG] Extracted ShoppingResponseID from data path:', shoppingResponseId);
+          } else if (rawFlightPriceResponse?.data?.raw_response?.ShoppingResponseID?.ResponseID?.value) {
+            shoppingResponseId = rawFlightPriceResponse.data.raw_response.ShoppingResponseID.ResponseID.value;
+            console.log('[DEBUG] Extracted ShoppingResponseID from nested path:', shoppingResponseId);
+          } else {
+            console.error('[ERROR] ShoppingResponseID not found in any expected path');
+            console.log('[DEBUG] Raw response structure keys:', Object.keys(rawFlightPriceResponse || {}));
+            if (rawFlightPriceResponse?.data) {
+              console.log('[DEBUG] Raw response data keys:', Object.keys(rawFlightPriceResponse.data || {}));
             }
-            currency = flightData.currency || "USD"
           }
-        }
-        
-        const rawFlightPriceResponse = flightData?.data?.raw_response
-        // console.log('[[ DEBUG ]] Extracted raw flight price response:', !!rawFlightPriceResponse)
 
-        // Extract ShoppingResponseID and OrderID from raw response for backend
-        let shoppingResponseId = null;
-        let orderId = null;
-        
-        // Debug: Log the complete raw response structure
-        console.log('[DEBUG] Complete raw response structure:', JSON.stringify(rawFlightPriceResponse, null, 2));
-        
-        // Try multiple possible paths for ShoppingResponseID based on terminal logs
-        if (rawFlightPriceResponse?.ShoppingResponseID?.ResponseID?.value) {
-          shoppingResponseId = rawFlightPriceResponse.ShoppingResponseID.ResponseID.value;
-          console.log('[DEBUG] Extracted ShoppingResponseID from direct path:', shoppingResponseId);
-        } else if (rawFlightPriceResponse?.data?.ShoppingResponseID?.ResponseID?.value) {
-          shoppingResponseId = rawFlightPriceResponse.data.ShoppingResponseID.ResponseID.value;
-          console.log('[DEBUG] Extracted ShoppingResponseID from data path:', shoppingResponseId);
-        } else if (rawFlightPriceResponse?.data?.raw_response?.ShoppingResponseID?.ResponseID?.value) {
-          shoppingResponseId = rawFlightPriceResponse.data.raw_response.ShoppingResponseID.ResponseID.value;
-          console.log('[DEBUG] Extracted ShoppingResponseID from nested path:', shoppingResponseId);
-        } else {
-          console.error('[ERROR] ShoppingResponseID not found in any expected path');
-          console.log('[DEBUG] Raw response structure keys:', Object.keys(rawFlightPriceResponse || {}));
-          if (rawFlightPriceResponse?.data) {
-            console.log('[DEBUG] Raw response data keys:', Object.keys(rawFlightPriceResponse.data || {}));
+          // Try multiple possible paths for OfferID
+          if (rawFlightPriceResponse?.PricedFlightOffers?.PricedFlightOffer?.[0]?.OfferID?.value) {
+            orderId = rawFlightPriceResponse.PricedFlightOffers.PricedFlightOffer[0].OfferID.value;
+            console.log('[DEBUG] Extracted OrderID from direct path:', orderId);
+          } else if (rawFlightPriceResponse?.data?.PricedFlightOffers?.PricedFlightOffer?.[0]?.OfferID?.value) {
+            orderId = rawFlightPriceResponse.data.PricedFlightOffers.PricedFlightOffer[0].OfferID.value;
+            console.log('[DEBUG] Extracted OrderID from data path:', orderId);
+          } else if (rawFlightPriceResponse?.data?.raw_response?.PricedFlightOffers?.PricedFlightOffer?.[0]?.OfferID?.value) {
+            orderId = rawFlightPriceResponse.data.raw_response.PricedFlightOffers.PricedFlightOffer[0].OfferID.value;
+            console.log('[DEBUG] Extracted OrderID from nested path:', orderId);
+          } else {
+            console.error('[ERROR] OrderID not found in any expected path');
           }
-        }
-        
-        // Try multiple possible paths for OfferID
-        if (rawFlightPriceResponse?.PricedFlightOffers?.PricedFlightOffer?.[0]?.OfferID?.value) {
-          orderId = rawFlightPriceResponse.PricedFlightOffers.PricedFlightOffer[0].OfferID.value;
-          console.log('[DEBUG] Extracted OrderID from direct path:', orderId);
-        } else if (rawFlightPriceResponse?.data?.PricedFlightOffers?.PricedFlightOffer?.[0]?.OfferID?.value) {
-          orderId = rawFlightPriceResponse.data.PricedFlightOffers.PricedFlightOffer[0].OfferID.value;
-          console.log('[DEBUG] Extracted OrderID from data path:', orderId);
-        } else if (rawFlightPriceResponse?.data?.raw_response?.PricedFlightOffers?.PricedFlightOffer?.[0]?.OfferID?.value) {
-          orderId = rawFlightPriceResponse.data.raw_response.PricedFlightOffers.PricedFlightOffer[0].OfferID.value;
-          console.log('[DEBUG] Extracted OrderID from nested path:', orderId);
-        } else {
-          console.error('[ERROR] OrderID not found in any expected path');
-        }
 
-        const flightOfferWithRawResponse = {
-          ...flightData,
-          raw_flight_price_response: rawFlightPriceResponse,
-          shopping_response_id: shoppingResponseId,
-          order_id: orderId
+          flightOfferWithRawResponse = {
+            ...pricedOffer,
+            raw_flight_price_response: rawFlightPriceResponse,
+            shopping_response_id: shoppingResponseId,
+            order_id: orderId
+          }
         }
         
 
         const bookingData = {
           ...pendingBooking,
-          flightOffer: flightOfferWithRawResponse,
-          flightDetails: flightData.flightDetails || flightData,
-          totalAmount: pricing.total_price_per_traveler || pricing.total_price || 0,
+          flightOffer: pricedOffer, // Pass the priced offer directly
+          flightDetails: pricedOffer, // For backward compatibility
+          totalAmount: totalPrice,
           currency: currency,
           pricing: {
-            baseFare: pricing.base_fare_per_traveler || pricing.total_base_fare || 0,
-            taxes: pricing.taxes_per_traveler || pricing.total_taxes || 0,
-            total: pricing.total_price_per_traveler || pricing.total_price || 0,
+            baseFare: 0, // Will be extracted from priced offer in OrderSummary
+            taxes: 0, // Will be extracted from priced offer in OrderSummary
+            total: totalPrice,
             currency: currency
           },
           status: "pending"
@@ -208,14 +208,13 @@ export default function PaymentPage() {
       // For other payment methods like 'cash', no additional data from paymentData is added by default.
       // If other methods require specific fields from paymentData, they should be explicitly and safely added here.
 
-      // Debug: Log the data being sent to backend
+      // Debug: Log booking data summary
       console.log('[DEBUG] Data being sent to backend:')
       console.log('[DEBUG] Flight Offer Raw Response:', !!booking.flightOffer?.raw_flight_price_response)
       console.log('[DEBUG] Shopping Response ID:', booking.flightOffer?.shopping_response_id)
-      console.log('[DEBUG] Flight Offer Keys:', Object.keys(booking.flightOffer || {}))
-      console.log('[DEBUG] Passengers:', JSON.stringify(booking.passengers, null, 2))
-      console.log('[DEBUG] Payment Info:', JSON.stringify(paymentInfo, null, 2))
-      console.log('[DEBUG] Contact Info:', JSON.stringify(booking.contactInfo, null, 2))
+      console.log('[DEBUG] Passengers count:', booking.passengers?.length || 0)
+      console.log('[DEBUG] Payment method:', paymentInfo?.payment_method || 'None')
+      console.log('[DEBUG] Contact info present:', !!booking.contactInfo)
 
       const response = await api.createBooking(
         booking.flightOffer,
@@ -452,12 +451,12 @@ export default function PaymentPage() {
                         amount={booking.totalAmount || 0} 
                         currency={booking.currency || "USD"} 
                         flightDetails={{
-                          id: booking.flightDetails?.outbound?.airline?.flightNumber || "",
-                          from: booking.flightDetails?.outbound?.departure?.city || "",
-                          to: booking.flightDetails?.outbound?.arrival?.city || "",
-                          departureDate: booking.flightDetails?.outbound?.departure?.fullDate || "",
-                          returnDate: booking.flightDetails?.return?.departure?.fullDate
-                        }} 
+                          id: booking.flightOffer?.flight_segments?.[0]?.flight_number || "",
+                          from: booking.flightOffer?.flight_segments?.[0]?.departure_airport || "",
+                          to: booking.flightOffer?.flight_segments?.[booking.flightOffer?.flight_segments?.length - 1]?.arrival_airport || "",
+                          departureDate: booking.flightOffer?.flight_segments?.[0]?.departure_datetime || "",
+                          returnDate: booking.flightOffer?.direction === 'roundtrip' ? booking.flightOffer?.flight_segments?.return?.[0]?.departure_datetime : undefined
+                        }}
                         onPaymentSuccess={async (paymentData?: any) => {
                           console.log('Card details captured successfully:', paymentData)
                           console.log('Now proceeding to create booking with airline...')

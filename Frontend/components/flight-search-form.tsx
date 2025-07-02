@@ -103,55 +103,56 @@ export function FlightSearchForm() {
   // Reusable function to render From, To, Depart, Return inputs
   const renderFlightLegInputs = (showReturnDate: boolean, keyPrefix: string = 'leg') => {
     return (
-      <div className={`grid gap-4 sm:grid-cols-2 ${showReturnDate ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
+      <div className={`grid gap-3 sm:gap-4 lg:gap-6 ${showReturnDate ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
         {/* From */}
-        <div className="w-full sm:col-span-1">
-          <Label htmlFor={`${keyPrefix}-origin-input`}>From</Label>
-          <div className="relative mt-1">
+        <div className="w-full">
+          <Label htmlFor={`${keyPrefix}-origin-input`} className="text-sm sm:text-base font-medium mb-2 block">From</Label>
+          <div className="relative">
             <div className="flex items-center">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground pointer-events-none" />
               <Input
                 id={`${keyPrefix}-origin-input`}
                 type="text"
                 placeholder="City or airport code"
                 value={originQuery}
                 onChange={handleOriginChange}
-                className="pl-10"
+                className="pl-10 sm:pl-12 h-11 sm:h-12 lg:h-14 text-sm sm:text-base"
               />
             </div>
           </div>
         </div>
 
         {/* To */}
-        <div className="w-full sm:col-span-1">
-          <Label htmlFor={`${keyPrefix}-destination-input`}>To</Label>
-          <div className="relative mt-1">
+        <div className="w-full">
+          <Label htmlFor={`${keyPrefix}-destination-input`} className="text-sm sm:text-base font-medium mb-2 block">To</Label>
+          <div className="relative">
             <div className="flex items-center">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground pointer-events-none" />
               <Input
                 id={`${keyPrefix}-destination-input`}
                 type="text"
                 placeholder="City or airport code"
                 value={destinationQuery}
                 onChange={handleDestinationChange}
-                className="pl-10"
+                className="pl-10 sm:pl-12 h-11 sm:h-12 lg:h-14 text-sm sm:text-base"
               />
             </div>
           </div>
         </div>
 
         {/* Depart Date */}
-        <div className="w-full sm:col-span-1">
+        <div className="w-full">
+          <Label className="text-sm sm:text-base font-medium mb-2 block">Depart Date</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
                 className={cn(
-                  "w-full justify-start text-left font-normal",
+                  "w-full justify-start text-left font-normal h-11 sm:h-12 lg:h-14 text-sm sm:text-base",
                   !departDate && "text-muted-foreground",
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
+                <CalendarIcon className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                 {departDate ? format(departDate, "PPP") : <span>Depart Date</span>}
               </Button>
             </PopoverTrigger>
@@ -163,17 +164,18 @@ export function FlightSearchForm() {
 
         {/* Return Date (Conditional) */}
         {showReturnDate && (
-          <div className="w-full sm:col-span-1">
+          <div className="w-full">
+            <Label className="text-sm sm:text-base font-medium mb-2 block">Return Date</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant={"outline"}
                   className={cn(
-                    "w-full justify-start text-left font-normal",
+                    "w-full justify-start text-left font-normal h-11 sm:h-12 lg:h-14 text-sm sm:text-base",
                     !returnDate && "text-muted-foreground",
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                   {returnDate ? format(returnDate, "PPP") : <span>Return Date</span>}
                 </Button>
               </PopoverTrigger>
@@ -279,13 +281,13 @@ export function FlightSearchForm() {
   };
 
   return (
-    <div className="w-full px-2 sm:px-0">
-      <div className="backdrop-blur-md bg-white/30 dark:bg-gray-900/30 rounded-2xl p-6 shadow-xl border border-white/20">
+    <div className="w-full px-1 sm:px-2 lg:px-0">
+      <div className="backdrop-blur-md bg-white/95 dark:bg-gray-900/95 rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-6 shadow-xl border border-white/20">
       <Tabs className="w-full" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3 overflow-x-auto sm:grid-cols-3">
-          <TabsTrigger value="round-trip" className="text-xs sm:text-sm">Round Trip</TabsTrigger>
-          <TabsTrigger value="one-way" className="text-xs sm:text-sm">One Way</TabsTrigger>
-          <TabsTrigger value="multi-city" className="text-xs sm:text-sm">Multi-City</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 h-10 sm:h-11 lg:h-12 mb-4 sm:mb-6">
+          <TabsTrigger value="round-trip" className="text-xs sm:text-sm lg:text-base font-medium">Round Trip</TabsTrigger>
+          <TabsTrigger value="one-way" className="text-xs sm:text-sm lg:text-base font-medium">One Way</TabsTrigger>
+          <TabsTrigger value="multi-city" className="text-xs sm:text-sm lg:text-base font-medium">Multi-City</TabsTrigger>
         </TabsList>
         
         {/* Round Trip Tab */}
@@ -293,20 +295,20 @@ export function FlightSearchForm() {
           {renderFlightLegInputs(true, 'rt')}
 
           {/* Common Fields */}
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="mt-6 sm:mt-8 grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {/* Passengers */}
-            <div className="w-full sm:col-span-1">
-              <PassengersSelector 
-                passengers={passengers} 
-                onPassengersChange={handlePassengersChange} 
+            <div className="w-full">
+              <PassengersSelector
+                passengers={passengers}
+                onPassengersChange={handlePassengersChange}
               />
             </div>
 
             {/* Outbound Cabin Type */}
-            <div className="w-full sm:col-span-1">
-              <Label className="text-sm font-medium mb-2 block">Outbound Cabin</Label>
+            <div className="w-full">
+              <Label className="text-sm sm:text-base font-medium mb-2 block">Outbound Cabin</Label>
               <Select onValueChange={handleOutboundCabinTypeChange} value={outboundCabinType}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11 sm:h-12 lg:h-14 text-sm sm:text-base">
                   <SelectValue placeholder="Outbound Cabin" />
                 </SelectTrigger>
                 <SelectContent>
@@ -320,10 +322,10 @@ export function FlightSearchForm() {
             </div>
 
             {/* Return Cabin Type */}
-            <div className="w-full sm:col-span-1">
-              <Label className="text-sm font-medium mb-2 block">Return Cabin</Label>
+            <div className="w-full">
+              <Label className="text-sm sm:text-base font-medium mb-2 block">Return Cabin</Label>
               <Select onValueChange={handleReturnCabinTypeChange} value={returnCabinType}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11 sm:h-12 lg:h-14 text-sm sm:text-base">
                   <SelectValue placeholder="Return Cabin" />
                 </SelectTrigger>
                 <SelectContent>
@@ -337,15 +339,15 @@ export function FlightSearchForm() {
             </div>
           </div>
 
-          <div className="mt-4 flex justify-center">
-            <Button 
-              className="px-8" 
-              onClick={handleSearchButtonClick} 
+          <div className="mt-6 sm:mt-8 flex justify-center">
+            <Button
+              className="px-6 sm:px-8 lg:px-12 h-11 sm:h-12 lg:h-14 text-sm sm:text-base lg:text-lg font-semibold min-w-[140px] sm:min-w-[160px] lg:min-w-[180px]"
+              onClick={handleSearchButtonClick}
               disabled={
-                loading || 
-                !origin || 
-                !destination || 
-                !departDate || 
+                loading ||
+                !origin ||
+                !destination ||
+                !departDate ||
                 (activeTab === 'round-trip' && !returnDate)
               }
             >
@@ -359,19 +361,20 @@ export function FlightSearchForm() {
           {renderFlightLegInputs(false, 'ow')}
           
           {/* Common Fields */}
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="mt-6 sm:mt-8 grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2">
             {/* Passengers */}
-            <div className="w-full sm:col-span-1">
-              <PassengersSelector 
-                passengers={passengers} 
-                onPassengersChange={handlePassengersChange} 
+            <div className="w-full">
+              <PassengersSelector
+                passengers={passengers}
+                onPassengersChange={handlePassengersChange}
               />
             </div>
 
             {/* Cabin Type */}
-            <div className="w-full sm:col-span-1">
+            <div className="w-full">
+              <Label className="text-sm sm:text-base font-medium mb-2 block">Cabin Type</Label>
               <Select onValueChange={handleCabinTypeChange} value={cabinType}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11 sm:h-12 lg:h-14 text-sm sm:text-base">
                   <SelectValue placeholder="Cabin Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -383,19 +386,16 @@ export function FlightSearchForm() {
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Placeholder for grid alignment */}
-            <div className="sm:col-span-1"></div>
           </div>
 
-          <div className="mt-4 flex justify-center">
-            <Button 
-              className="px-8" 
-              onClick={handleSearchButtonClick} 
+          <div className="mt-6 sm:mt-8 flex justify-center">
+            <Button
+              className="px-6 sm:px-8 lg:px-12 h-11 sm:h-12 lg:h-14 text-sm sm:text-base lg:text-lg font-semibold min-w-[140px] sm:min-w-[160px] lg:min-w-[180px]"
+              onClick={handleSearchButtonClick}
               disabled={
-                loading || 
-                !origin || 
-                !destination || 
+                loading ||
+                !origin ||
+                !destination ||
                 !departDate
               }
             >

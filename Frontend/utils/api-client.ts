@@ -118,6 +118,16 @@ export interface FlightOffer {
 // Create debounced search function to prevent rapid successive requests
 const debouncedSearchFlights = debounce(async (params: FlightSearchRequest, resolve: (value: any) => void, reject: (reason?: any) => void) => {
     try {
+        // [PASSENGER DEBUG] Log the search request payload
+        console.log('[PASSENGER DEBUG] Frontend API Client - Sending air shopping request:');
+        console.log('[PASSENGER DEBUG] Passenger counts:', {
+            numAdults: params.numAdults,
+            numChildren: params.numChildren,
+            numInfants: params.numInfants,
+            total: (params.numAdults || 0) + (params.numChildren || 0) + (params.numInfants || 0)
+        });
+        console.log('[PASSENGER DEBUG] Full request payload:', JSON.stringify(params, null, 2));
+
         const response = await apiClient.post<FlightSearchResponse>('/api/verteil/air-shopping', params);
         resolve(response);
     } catch (error) {
@@ -134,17 +144,17 @@ export const api = {
     },
 
     // Flight Pricing
-    getFlightPrice: async (offerId: string, shoppingResponseId: string, airShoppingResponse: any) => {
+    getFlightPrice: async (flightIndex: number, shoppingResponseId: string, airShoppingResponse: any) => {
         try {
             logger.info('Sending flight price request', {
-                offerId,
+                flightIndex,
                 shoppingResponseId,
                 hasAirShoppingResponse: !!airShoppingResponse,
                 airShoppingResponseType: airShoppingResponse ? typeof airShoppingResponse : 'undefined'
             });
-            
+
             const response = await apiClient.post('/api/verteil/flight-price', {
-                offer_id: offerId,
+                offer_id: flightIndex.toString(), // Send index as string to backend
                 shopping_response_id: shoppingResponseId,
                 air_shopping_response: airShoppingResponse
             });
@@ -162,6 +172,7 @@ export const api = {
                 : undefined;
                 
             logger.error('Error in getFlightPrice', {
+                flightIndex,
                 error: errorMessage,
                 response: errorResponse
             });

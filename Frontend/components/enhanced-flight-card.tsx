@@ -3,16 +3,16 @@
 import { useState, useEffect } from 'react'
 import Link from "next/link"
 import Image from "next/image"
-import { 
-  ArrowRight, 
-  Clock, 
-  Luggage, 
-  ChevronDown, 
-  ChevronUp, 
-  Wifi, 
-  Power, 
-  Utensils, 
-  Tv, 
+import {
+  ArrowRight,
+  Clock,
+  Luggage,
+  ChevronDown,
+  ChevronUp,
+  Wifi,
+  Power,
+  Utensils,
+  Tv,
   Briefcase,
   MapPin,
   Plane,
@@ -45,6 +45,31 @@ interface EnhancedFlightCardProps {
 }
 
 export function EnhancedFlightCard({ flight, showExtendedDetails = false, searchParams }: EnhancedFlightCardProps) {
+  // Check if offer is expiring soon (within 10 minutes)
+  const getOfferExpirationStatus = () => {
+    if (!flight.time_limits?.offer_expiration) return null;
+
+    try {
+      const expirationTime = new Date(flight.time_limits.offer_expiration);
+      const currentTime = new Date();
+      const timeUntilExpiration = expirationTime.getTime() - currentTime.getTime();
+      const minutesUntilExpiration = Math.floor(timeUntilExpiration / (1000 * 60));
+
+      if (timeUntilExpiration <= 0) {
+        return { status: 'expired', message: 'Offer expired' };
+      } else if (minutesUntilExpiration <= 10) {
+        return { status: 'expiring', message: `Expires in ${minutesUntilExpiration}m` };
+      } else if (minutesUntilExpiration <= 30) {
+        return { status: 'warning', message: `Expires in ${minutesUntilExpiration}m` };
+      }
+    } catch (error) {
+      console.warn('Error parsing offer expiration time:', error);
+    }
+
+    return null;
+  };
+
+  const expirationStatus = getOfferExpirationStatus();
   // Store flight data in localStorage when flight is selected
   const handleFlightSelect = (e: React.MouseEvent) => {
     try {
@@ -55,16 +80,16 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
         expiresAt: Date.now() + (30 * 60 * 1000), // 30 minutes expiry
         searchParams: searchParams || {}
       };
-      
+
       // Create a unique key for this flight
       const flightKey = `flight_${flight.id}_${Date.now()}`;
-      
+
       // Store the flight data
       localStorage.setItem(flightKey, JSON.stringify(flightData));
-      
+
       // Store the key for easy retrieval
       localStorage.setItem('currentFlightKey', flightKey);
-      
+
       // If this is a roundtrip, store the return flight data as well
       if (flight.returnFlight) {
         const returnKey = `flight_${flight.returnFlight.id}_${Date.now()}_return`;
@@ -77,7 +102,7 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
         localStorage.setItem(returnKey, JSON.stringify(returnFlightData));
         localStorage.setItem('returnFlightKey', returnKey);
       }
-      
+
     } catch (error) {
       console.error('Error storing flight data:', error);
     }
@@ -86,7 +111,7 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
   // Build query string with search parameters
   const buildFlightUrl = () => {
     const params = new URLSearchParams({ from: 'search' });
-    
+
     if (searchParams) {
       if (searchParams.adults) params.set('adults', searchParams.adults.toString());
       if (searchParams.children) params.set('children', searchParams.children.toString());
@@ -98,11 +123,21 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
       if (searchParams.returnDate) params.set('returnDate', searchParams.returnDate);
       if (searchParams.cabinClass) params.set('cabinClass', searchParams.cabinClass);
     }
-    
+
+    // Debug: Log the flight ID being used in the URL
+    console.log('[DEBUG] Building flight URL with flight.id:', flight.id);
+    console.log('[DEBUG] Flight object keys:', Object.keys(flight));
+
+    if (!flight.id) {
+      console.error('[ERROR] Flight ID is null/undefined! Cannot build URL.');
+      console.error('[ERROR] Full flight object:', flight);
+      return '/flights/error';
+    }
+
     return `/flights/${encodeURIComponent(flight.id)}?${params.toString()}`;
   }
   const [expanded, setExpanded] = useState(showExtendedDetails)
-  
+
   useEffect(() => {
   }, [flight]);
 
@@ -136,57 +171,119 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                   </div>
                 </div>
               </div>
-              
+
               {flight.fare?.fareFamily && (
                 <Badge variant="secondary" className="ml-auto">
                   {flight.fare.fareFamily}
+                </Badge>
+              )}
+              {searchParams?.tripType === 'round-trip' && (
+                <Badge variant="outline" className="ml-2">
+                  Round Trip
                 </Badge>
               )}
             </div>
 
             {/* Route and Time */}
             <div className="mb-4">
-              <div className="flex items-center justify-between">
-                <div className="text-center">
-                  <div className="text-2xl font-bold">
-                    {flight.segments?.[0]?.departure?.time || '--:--'}
+              {searchParams?.tripType === 'round-trip' ? (
+                // Round-trip display: show true origin to destination
+                (() => {
+                  // Find the midpoint to separate outbound and return segments
+                  const totalSegments = flight.segments?.length || 0;
+                  const midPoint = Math.ceil(totalSegments / 2);
+                  const outboundSegments = flight.segments?.slice(0, midPoint) || [];
+                  const firstOutbound = outboundSegments[0];
+                  const lastOutbound = outboundSegments[outboundSegments.length - 1];
+
+                  return (
+                    <div className="flex items-center justify-between">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold">
+                          {firstOutbound?.departure?.time || '--:--'}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {firstOutbound?.departure?.airportName ||
+                            firstOutbound?.departure?.airport}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {firstOutbound?.departure?.airport}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-center px-4">
+                        <div className="text-xs text-muted-foreground mb-1">
+                          Outbound Journey
+                        </div>
+                        <div className="flex items-center">
+                          <div className="h-px bg-border flex-1 w-16"></div>
+                          <ArrowRight className="mx-2 h-4 w-4 text-muted-foreground" />
+                          <div className="h-px bg-border flex-1 w-16"></div>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {outboundSegments.length > 1 ? `${outboundSegments.length - 1} stop${outboundSegments.length > 2 ? 's' : ''}` : 'Direct'}
+                        </div>
+                      </div>
+
+                      <div className="text-center">
+                        <div className="text-2xl font-bold">
+                          {lastOutbound?.arrival?.time || '--:--'}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {lastOutbound?.arrival?.airportName ||
+                            lastOutbound?.arrival?.airport || 'Unknown'}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {lastOutbound?.arrival?.airport}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()
+              ) : (
+                // One-way display: show full journey
+                <div className="flex items-center justify-between">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold">
+                      {flight.segments?.[0]?.departure?.time || '--:--'}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {flight.segments?.[0]?.departure?.airportName ||
+                        flight.segments?.[0]?.departure?.airport}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {flight.segments?.[0]?.departure?.airport}
+                    </div>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    {flight.segments?.[0]?.departure?.airportName ||
-                      flight.segments?.[0]?.departure?.airport}
+
+                  <div className="flex flex-col items-center px-4">
+                    <div className="text-xs text-muted-foreground mb-1">
+                      {flight.duration}
+                    </div>
+                    <div className="flex items-center">
+                      <div className="h-px bg-border flex-1 w-16"></div>
+                      <ArrowRight className="mx-2 h-4 w-4 text-muted-foreground" />
+                      <div className="h-px bg-border flex-1 w-16"></div>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {flight.segments && flight.segments.length > 1 ? `${flight.segments.length - 1} stop${flight.segments.length > 2 ? 's' : ''}` : 'Direct'}
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {flight.segments?.[0]?.departure?.airport}
+
+                  <div className="text-center">
+                    <div className="text-2xl font-bold">
+                      {flight.segments?.[flight.segments.length - 1]?.arrival?.time || '--:--'}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {flight.segments?.[flight.segments.length - 1]?.arrival?.airportName ||
+                        flight.segments?.[flight.segments.length - 1]?.arrival?.airport || 'Unknown'}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {flight.segments?.[flight.segments.length - 1]?.arrival?.airport}
+                    </div>
                   </div>
                 </div>
-                
-                <div className="flex flex-col items-center px-4">
-                  <div className="text-xs text-muted-foreground mb-1">
-                    {flight.duration}
-                  </div>
-                  <div className="flex items-center">
-                    <div className="h-px bg-border flex-1 w-16"></div>
-                    <ArrowRight className="mx-2 h-4 w-4 text-muted-foreground" />
-                    <div className="h-px bg-border flex-1 w-16"></div>
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {flight.segments && flight.segments.length > 1 ? `${flight.segments.length - 1} stop${flight.segments.length > 2 ? 's' : ''}` : 'Direct'}
-                  </div>
-                </div>
-                
-                <div className="text-center">
-                  <div className="text-2xl font-bold">
-                    {flight.segments?.[flight.segments.length - 1]?.arrival?.time || '--:--'}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {flight.segments?.[flight.segments.length - 1]?.arrival?.airportName ||
-                      flight.segments?.[flight.segments.length - 1]?.arrival?.airport || 'Unknown'}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {flight.segments?.[flight.segments.length - 1]?.arrival?.airport}
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Amenities */}
@@ -208,7 +305,7 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                           return <Briefcase className="h-3 w-3" />;
                       }
                     };
-                    
+
                     return (
                       <Badge key={`${amenity}-${index}`} variant="outline" className="text-xs">
                         {getAmenityIcon(amenity)}
@@ -224,14 +321,14 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
             {expanded && (
               <div className="space-y-4">
                 <Separator />
-                
+
                 <Tabs defaultValue="segments" className="w-full">
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="segments">Flight Details</TabsTrigger>
                     <TabsTrigger value="baggage">Baggage</TabsTrigger>
                     <TabsTrigger value="fare">Fare Rules</TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="segments" className="space-y-4">
                     {flight.segments?.map((segment, index) => (
                       <div key={`flight-${flight.id}-detail-segment-${index}-${segment.airline?.flightNumber || 'unknown'}-${segment.departure?.airport || 'unknown'}`} className="border rounded-lg p-4">
@@ -248,7 +345,7 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                           </div>
                           <Badge variant="outline">{segment.aircraft?.name || segment.aircraft?.code}</Badge>
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
                             <div className="font-medium">Departure</div>
@@ -265,14 +362,14 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="mt-2 text-sm text-muted-foreground">
                           Duration: {segment.duration}
                         </div>
                       </div>
                     ))}
                   </TabsContent>
-                  
+
                   <TabsContent value="baggage">
                     <div className="space-y-2">
                       <div className="flex items-center">
@@ -285,7 +382,7 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                       </div>
                     </div>
                   </TabsContent>
-                  
+
                   <TabsContent value="fare" className="space-y-4">
                     {/* Basic Fare Rules Cards */}
                     <div className="border rounded-lg p-4">
@@ -320,7 +417,7 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Change Policy Before Departure */}
                     {flight.fareRules?.changeBeforeDeparture && (
                       <div className="border rounded-lg p-4">
@@ -332,7 +429,7 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                             {flight.fareRules.changeBeforeDeparture.allowed ? "Allowed" : "Not Allowed"}
                           </Badge>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 gap-2 text-sm mt-2">
                           {flight.fareRules.changeBeforeDeparture.fee && (
                             <div className="text-muted-foreground">
@@ -341,15 +438,15 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                           )}
                           {flight.fareRules.changeBeforeDeparture.conditions && (
                             <div className="text-muted-foreground">
-                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.changeBeforeDeparture.conditions) 
-                                ? flight.fareRules.changeBeforeDeparture.conditions.join('. ') 
+                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.changeBeforeDeparture.conditions)
+                                ? flight.fareRules.changeBeforeDeparture.conditions.join('. ')
                                 : flight.fareRules.changeBeforeDeparture.conditions}
                             </div>
                           )}
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Cancellation Policy Before Departure */}
                     {flight.fareRules?.cancelBeforeDeparture && (
                       <div className="border rounded-lg p-4">
@@ -361,7 +458,7 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                             {flight.fareRules.cancelBeforeDeparture.allowed ? "Allowed" : "Not Allowed"}
                           </Badge>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 gap-2 text-sm mt-2">
                           {flight.fareRules.cancelBeforeDeparture.fee !== undefined && (
                             <div className="text-muted-foreground">
@@ -375,8 +472,8 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                           )}
                           {flight.fareRules.cancelBeforeDeparture.conditions && (
                             <div className="text-muted-foreground">
-                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.cancelBeforeDeparture.conditions) 
-                                ? flight.fareRules.cancelBeforeDeparture.conditions.join('. ') 
+                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.cancelBeforeDeparture.conditions)
+                                ? flight.fareRules.cancelBeforeDeparture.conditions.join('. ')
                                 : flight.fareRules.cancelBeforeDeparture.conditions}
                             </div>
                           )}
@@ -403,8 +500,8 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                           )}
                           {flight.fareRules.changeAfterDeparture.conditions && (
                             <div className="text-muted-foreground">
-                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.changeAfterDeparture.conditions) 
-                                ? flight.fareRules.changeAfterDeparture.conditions.join('. ') 
+                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.changeAfterDeparture.conditions)
+                                ? flight.fareRules.changeAfterDeparture.conditions.join('. ')
                                 : flight.fareRules.changeAfterDeparture.conditions}
                             </div>
                           )}
@@ -431,8 +528,8 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                           )}
                           {flight.fareRules.changeNoShow.conditions && (
                             <div className="text-muted-foreground">
-                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.changeNoShow.conditions) 
-                                ? flight.fareRules.changeNoShow.conditions.join('. ') 
+                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.changeNoShow.conditions)
+                                ? flight.fareRules.changeNoShow.conditions.join('. ')
                                 : flight.fareRules.changeNoShow.conditions}
                             </div>
                           )}
@@ -464,8 +561,8 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                           )}
                           {flight.fareRules.cancelAfterDeparture.conditions && (
                             <div className="text-muted-foreground">
-                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.cancelAfterDeparture.conditions) 
-                                ? flight.fareRules.cancelAfterDeparture.conditions.join('. ') 
+                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.cancelAfterDeparture.conditions)
+                                ? flight.fareRules.cancelAfterDeparture.conditions.join('. ')
                                 : flight.fareRules.cancelAfterDeparture.conditions}
                             </div>
                           )}
@@ -497,8 +594,8 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                           )}
                           {flight.fareRules.cancelNoShow.conditions && (
                             <div className="text-muted-foreground">
-                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.cancelNoShow.conditions) 
-                                ? flight.fareRules.cancelNoShow.conditions.join('. ') 
+                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.cancelNoShow.conditions)
+                                ? flight.fareRules.cancelNoShow.conditions.join('. ')
                                 : flight.fareRules.cancelNoShow.conditions}
                             </div>
                           )}
@@ -530,15 +627,15 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                           )}
                           {flight.fareRules.noShow.conditions && (
                             <div className="text-muted-foreground">
-                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.noShow.conditions) 
-                                ? flight.fareRules.noShow.conditions.join('. ') 
+                              <strong>Conditions:</strong> {Array.isArray(flight.fareRules.noShow.conditions)
+                                ? flight.fareRules.noShow.conditions.join('. ')
                                 : flight.fareRules.noShow.conditions}
                             </div>
                           )}
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Additional Restrictions */}
                     {flight.fareRules?.additionalRestrictions && flight.fareRules.additionalRestrictions.length > 0 && (
                       <div className="border rounded-lg p-4">
@@ -548,7 +645,7 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                           </div>
                           <Badge variant="outline">{flight.fareRules.additionalRestrictions.length} restriction{flight.fareRules.additionalRestrictions.length > 1 ? 's' : ''}</Badge>
                         </div>
-                        
+
                         <div className="mt-2 text-sm text-muted-foreground space-y-1">
                           {flight.fareRules.additionalRestrictions.map((restriction: string, index: number) => (
                             <div key={index}>• {restriction}</div>
@@ -556,7 +653,7 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Fare Description */}
                     {flight.fareDescription && (
                       <div className="border rounded-lg p-4">
@@ -565,13 +662,13 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                             <span className="font-medium">Fare Description</span>
                           </div>
                         </div>
-                        
+
                         <div className="mt-2 text-sm text-muted-foreground">
                           {flight.fareDescription}
                         </div>
                       </div>
                     )}
-                      
+
                     {/* Detailed Penalty Information (if available) */}
                     {flight.penalties && flight.penalties.length > 0 && (
                       <div className="space-y-4">
@@ -584,7 +681,7 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                               </div>
                               <Badge variant="outline">{penalty.amount} {penalty.currency}</Badge>
                             </div>
-                            
+
                             <div className="grid grid-cols-1 gap-2 text-sm mt-2">
                               <div className="text-muted-foreground">
                                 <strong>Application:</strong> {penalty.application}
@@ -642,9 +739,9 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                 </div>
               )}
             </div>
-            
+
             <Link href={buildFlightUrl()} className="w-full">
-              <Button className="w-full">
+              <Button className="w-full" onClick={handleFlightSelect}>
                 Select Flight
               </Button>
             </Link>

@@ -7,13 +7,12 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // DEBUG: Log the complete request body received from frontend
-    console.log('[[ DEBUG ]] Frontend data received by Next.js API route:');
-    console.log('[[ DEBUG ]] Full request body:', JSON.stringify(body, null, 2));
-    console.log('[[ DEBUG ]] Flight offer keys:', body.flight_offer ? Object.keys(body.flight_offer) : 'No flight_offer');
-    console.log('[[ DEBUG ]] Passengers count:', body.passengers ? body.passengers.length : 'No passengers');
-    console.log('[[ DEBUG ]] Payment info keys:', body.payment ? Object.keys(body.payment) : 'No payment');
-    console.log('[[ DEBUG ]] Contact info keys:', body.contact_info ? Object.keys(body.contact_info) : 'No contact_info');
+    // DEBUG: Log request summary (without verbose content)
+    console.log('[[ DEBUG ]] Frontend data received by Next.js API route');
+    console.log('[[ DEBUG ]] Flight offer present:', !!body.flight_offer);
+    console.log('[[ DEBUG ]] Passengers count:', body.passengers ? body.passengers.length : 0);
+    console.log('[[ DEBUG ]] Payment method:', body.payment ? body.payment.method : 'None');
+    console.log('[[ DEBUG ]] Contact info present:', !!body.contact_info);
     
     // Extract data from the request body (no transformation needed - backend handles it)
     const passengers = body.passengers;
@@ -51,12 +50,13 @@ export async function POST(request: NextRequest) {
       console.log('[[ DEBUG ]] No shopping_response_id found in flight_offer');
     }
     
-    // Add OfferID if available
-    if (body.flight_offer && body.flight_offer.order_id) {
-      console.log('[[ DEBUG ]] Using OfferID:', body.flight_offer.order_id);
-      backendRequestBody.OfferID = body.flight_offer.order_id;
+    // Add OfferID if available - try both offer_id and order_id
+    if (body.flight_offer && (body.flight_offer.offer_id || body.flight_offer.order_id)) {
+      const offerId = body.flight_offer.offer_id || body.flight_offer.order_id;
+      console.log('[[ DEBUG ]] Using OfferID:', offerId);
+      backendRequestBody.OfferID = offerId;
     } else {
-      console.log('[[ DEBUG ]] No order_id found in flight_offer');
+      console.log('[[ DEBUG ]] No offer_id or order_id found in flight_offer');
     }
     
     console.log('[[ DEBUG ]] Backend request body:', JSON.stringify(backendRequestBody, null, 2));

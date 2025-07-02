@@ -172,8 +172,14 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0, sel
             fare_list_for_rq.append(new_fare_group_for_rq)
 
     query_offer_id_node = selected_offer.get("OfferID", {})
+    print(f"[DEBUG] Selected offer OfferID node: {query_offer_id_node}")
+    print(f"[DEBUG] Selected offer index: {selected_offer_index}")
+    print(f"[DEBUG] Selected offer keys: {list(selected_offer.keys())}")
+
     if not query_offer_id_node.get("value") or not query_offer_id_node.get("Owner"):
         raise ValueError("Selected offer is missing required OfferID fields for Query")
+
+    print(f"[DEBUG] Using OfferID for airline API: {query_offer_id_node.get('value')} (Owner: {query_offer_id_node.get('Owner')})")
 
     query_offer = {
         "OfferID": query_offer_id_node,

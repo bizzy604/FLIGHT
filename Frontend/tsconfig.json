@@ -30,14 +30,6 @@
       "./types"
     ],
     "types": ["node", "jest"],
-    "typeRoots": [
-      "./node_modules/@types",
-      "./types"
-    ],
-    "typeRoots": [
-      "./node_modules/@types",
-      "./types"
-    ],
     "plugins": [
       {
         "name": "next"

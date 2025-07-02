@@ -14,13 +14,13 @@ const ServiceCard = ({ icon, title, description, color }: ServiceCardProps) => (
     initial={{ opacity: 0, y: 20 }}
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true }}
-    className="p-6 rounded-xl bg-white shadow-lg hover:shadow-xl transition-shadow"
+    className="p-4 sm:p-6 lg:p-8 rounded-xl bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
   >
-    <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${color} flex items-center justify-center mb-4`}>
+    <div className={`w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-r ${color} flex items-center justify-center mb-3 sm:mb-4 lg:mb-6`}>
       {icon}
     </div>
-    <h3 className="text-xl font-semibold mb-2">{title}</h3>
-    <p className="text-gray-600">{description}</p>
+    <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold mb-2 sm:mb-3 lg:mb-4">{title}</h3>
+    <p className="text-sm sm:text-base lg:text-lg text-gray-600 leading-relaxed">{description}</p>
   </motion.div>
 )
 
@@ -53,21 +53,21 @@ export function ServicesSection() {
   ]
 
   return (
-    <section className="py-20 bg-gray-50 p-4">
-      <div className="container mx-auto px-4">
-        <motion.div 
+    <section className="py-12 sm:py-16 lg:py-20 xl:py-24 bg-gray-50 px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto">
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-8 sm:mb-12 lg:mb-16"
         >
-          <h2 className="text-3xl font-bold mb-4 pt-10">Our Services</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6 pt-6 sm:pt-8 lg:pt-10">Our Services</h2>
+          <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600 max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto leading-relaxed">
             We offer the best services in the travel industry to make your journey memorable and hassle-free.
           </p>
         </motion.div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 xl:gap-10">
           {services.map((service, index) => (
             <ServiceCard key={index} {...service} />
           ))}

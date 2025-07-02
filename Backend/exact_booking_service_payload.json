@@ -1,0 +1,195 @@
+{
+  "Query": {
+    "OrderItems": {
+      "ShoppingResponse": {
+        "Owner": "KQ",
+        "ResponseID": {
+          "value": "oF1GB-sDTojw9IGdhHUtrDp9ZhWo5cRBe18lRHIuh90-KQ"
+        },
+        "Offers": {
+          "Offer": [
+            {
+              "OfferID": {
+                "ObjectKey": "1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL",
+                "value": "1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL",
+                "Owner": "KQ",
+                "Channel": "NDC"
+              },
+              "OfferItems": {
+                "OfferItem": [
+                  {
+                    "OfferItemID": {
+                      "Owner": "KQ",
+                      "value": "1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL-1-1"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "OfferItem": [
+        {
+          "OfferItemID": {
+            "Owner": "KQ",
+            "value": "1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL-1-1"
+          },
+          "OfferItemType": {
+            "DetailedFlightItem": [
+              {
+                "Price": {
+                  "BaseAmount": {
+                    "Code": "INR",
+                    "value": 35335
+                  },
+                  "Taxes": {
+                    "Total": {
+                      "Code": "INR",
+                      "value": 15866
+                    }
+                  }
+                },
+                "OriginDestination": [
+                  {
+                    "Flight": [
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "NBO"
+                          },
+                          "Date": "2025-07-09T09:05:00.000",
+                          "Terminal": {
+                            "Name": "1A"
+                          },
+                          "Time": "09:05"
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "LHR"
+                          },
+                          "Date": "2025-07-09T16:15:00.000",
+                          "Terminal": {
+                            "Name": "4"
+                          },
+                          "Time": "16:15"
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "T"
+                          },
+                          "MarketingName": {
+                            "CabinDesignator": "Y",
+                            "value": "ECO"
+                          },
+                          "refs": [
+                            "FG-582995596328752"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "KQ"
+                          },
+                          "FlightNumber": {
+                            "value": "100"
+                          },
+                          "Name": "Kenya Airways"
+                        },
+                        "Equipment": {
+                          "AircraftCode": {
+                            "value": "788"
+                          }
+                        },
+                        "FlightDetail": {
+                          "FlightDuration": {
+                            "Value": "PT9H10M"
+                          }
+                        },
+                        "SegmentKey": "SEG2"
+                      }
+                    ],
+                    "OriginDestinationKey": "NBOLHR"
+                  }
+                ],
+                "refs": [
+                  "PAX1"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "DataLists": {
+      "FareList": {
+        "FareGroup": [
+          {
+            "ListKey": "FG-582995596328752",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              }
+            },
+            "FareBasisCode": {
+              "Code": "TLSRWKE"
+            }
+          }
+        ]
+      }
+    },
+    "Passengers": {
+      "Passenger": [
+        {
+          "ObjectKey": "PAX1",
+          "PTC": {
+            "value": "ADT"
+          },
+          "Name": {
+            "Title": "Mr",
+            "Given": [
+              {
+                "value": "John"
+              }
+            ],
+            "Surname": {
+              "value": "Doe"
+            }
+          },
+          "Gender": {
+            "value": "Male"
+          },
+          "Age": {
+            "BirthDate": {
+              "value": "1990-01-01"
+            }
+          },
+          "PassengerIDInfo": {
+            "PassengerDocument": [
+              {
+                "Type": "PT",
+                "ID": "P123456789",
+                "DateOfExpiration": "2030-01-01",
+                "CountryOfIssuance": "US"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "Payments": {
+      "Payment": [
+        {
+          "Amount": {
+            "Code": "INR",
+            "value": 49434.0
+          },
+          "Method": {
+            "Cash": {
+              "CashInd": true
+            }
+          }
+        }
+      ]
+    }
+  }
+}

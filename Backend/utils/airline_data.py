@@ -112,3 +112,12 @@ def get_airline_name(airline_code: str, log_missing: bool = True) -> str:
     
     # Return a generic name for missing codes
     return f"Airline {code}"
+
+def get_airline_logo_url(airline_code: str) -> str:
+    """
+    Return a local URL to the airline's logo based on the IATA code, for use with the frontend's /public/airlines directory.
+    """
+    code = (airline_code or "").strip().upper()
+    if not code:
+        return "/airlines/unknown.png"
+    return f"/airlines/{code}.svg"

@@ -272,8 +272,12 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
   }
 
   const handleContinueToPayment = async () => {
+    console.log('[DEBUG] Continue to Payment button clicked')
+    console.log('[DEBUG] isCurrentStepValid:', isCurrentStepValid)
+
     // Final validation before payment
     if (!isCurrentStepValid) {
+      console.log('[DEBUG] Current step is not valid, returning early')
       return;
     }
 
@@ -297,29 +301,132 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
     // Store booking data in session storage for payment page
     sessionStorage.setItem("pendingBookingData", JSON.stringify(bookingData))
 
+    // Get the flight price response data and prepare complete flight offer for order creation
+    try {
+      const storedFlightPriceResponse = sessionStorage.getItem('flightPriceResponseForBooking')
+      if (!storedFlightPriceResponse) {
+        console.error('No flight price response found for booking - proceeding anyway')
+        // Don't return - continue to payment page
+      }
+
+      let flightPriceData = null;
+      if (storedFlightPriceResponse) {
+        flightPriceData = JSON.parse(storedFlightPriceResponse)
+      }
+
+      // Get the raw flight price response that the backend needs for order creation
+      const storedRawFlightPriceResponse = sessionStorage.getItem('rawFlightPriceResponse')
+      if (!storedRawFlightPriceResponse) {
+        console.warn('No raw flight price response found for booking - will use fallback approach')
+        // Don't return - continue to payment page with available data
+      }
+
+      let rawFlightPriceResponse = null;
+      if (storedRawFlightPriceResponse) {
+        rawFlightPriceResponse = JSON.parse(storedRawFlightPriceResponse)
+        console.log('[DEBUG] Using raw flight price response for order creation:', {
+          hasShoppingResponseID: !!rawFlightPriceResponse.ShoppingResponseID,
+          hasPricedFlightOffers: !!rawFlightPriceResponse.PricedFlightOffers,
+          topLevelKeys: Object.keys(rawFlightPriceResponse)
+        })
+      }
+
+      // Extract shopping response ID from the raw flight price response
+      let shoppingResponseId = '';
+      let orderId = '';
+
+      if (rawFlightPriceResponse) {
+        if (rawFlightPriceResponse?.ShoppingResponseID?.ResponseID?.value) {
+          shoppingResponseId = rawFlightPriceResponse.ShoppingResponseID.ResponseID.value;
+        }
+
+        // Extract order ID from the raw flight price response
+        if (rawFlightPriceResponse?.PricedFlightOffers?.PricedFlightOffer?.[0]?.OfferID?.value) {
+          orderId = rawFlightPriceResponse.PricedFlightOffers.PricedFlightOffer[0].OfferID.value;
+        }
+
+        console.log('[DEBUG] Extracted IDs from raw flight price response:', {
+          shoppingResponseId,
+          orderId,
+          hasShoppingResponseID: !!shoppingResponseId,
+          hasOrderID: !!orderId
+        })
+      } else {
+        console.log('[DEBUG] No raw flight price response available - using fallback approach')
+      }
+
+      // Prepare complete flight offer data for order creation
+      const flightOfferWithRawResponse = {
+        ...(flightPriceData || {}),
+        raw_flight_price_response: rawFlightPriceResponse,  // May be null - payment page will handle
+        shopping_response_id: shoppingResponseId,
+        order_id: orderId
+      }
+
+      // Store the complete flight offer data that the payment page expects
+      sessionStorage.setItem("selectedFlightOffer", JSON.stringify(flightOfferWithRawResponse))
+
+      console.log('[DEBUG] Stored complete flight offer data for payment page:', {
+        hasRawResponse: !!flightOfferWithRawResponse.raw_flight_price_response,
+        hasFlightPriceData: !!flightPriceData,
+        shoppingResponseId: shoppingResponseId,
+        orderId: orderId,
+        flightOfferKeys: Object.keys(flightOfferWithRawResponse)
+      })
+
+    } catch (error) {
+      console.error('Error preparing flight offer data for payment:', error)
+      // Store minimal data so payment page doesn't crash
+      sessionStorage.setItem("selectedFlightOffer", JSON.stringify({
+        error: 'Failed to prepare flight data',
+        timestamp: Date.now()
+      }))
+      // Continue anyway - the payment page will handle missing data
+    }
+
+    console.log('[DEBUG] Attempting navigation to payment page')
+    console.log('[DEBUG] isSignedIn:', isSignedIn)
+    console.log('[DEBUG] flightId:', flightId)
+
     if (isSignedIn) {
-      router.push(`/flights/${encodeURIComponent(flightId)}/payment`)
+      const paymentUrl = `/flights/${encodeURIComponent(flightId)}/payment`
+      console.log('[DEBUG] Navigating to payment URL:', paymentUrl)
+      router.push(paymentUrl)
     } else {
       // Store the redirect URL in session storage
       const redirectUrl = `/flights/${flightId}/payment`
-      router.push(`/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`)
+      const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`
+      console.log('[DEBUG] Navigating to sign-in URL:', signInUrl)
+      router.push(signInUrl)
     }
   }
 
   return (
-    <div className="rounded-lg border">
-      <div className="p-4 sm:p-6">
-        <h2 className="text-xl font-semibold">Booking Details</h2>
+    <div className="p-3 sm:p-4 md:p-6">
 
-        {/* Progress Steps */}
+        {/* Mobile Progress Indicator */}
+        <div className="mt-3 sm:hidden">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Step {currentStep} of {steps.length}</span>
+            <span className="font-medium">{steps[currentStep - 1]?.name}</span>
+          </div>
+          <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary transition-all duration-300"
+              style={{ width: `${(currentStep / steps.length) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Desktop Progress Steps */}
         <div className="mt-4 hidden sm:block">
-          <div className="flex items-center">
+          <div className="flex items-center overflow-x-auto pb-2">
             {steps.map((step, index) => (
               <React.Fragment key={step.id}>
-                <div className="flex items-center">
+                <div className="flex items-center flex-shrink-0">
                   <div
                     className={cn(
-                      "flex h-8 w-8 items-center justify-center rounded-full border text-xs font-medium",
+                      "flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-full border text-xs font-medium",
                       currentStep >= step.id
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-muted-foreground/30 text-muted-foreground",
@@ -329,7 +436,7 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
                   </div>
                   <span
                     className={cn(
-                      "ml-2 text-sm font-medium",
+                      "ml-2 text-xs md:text-sm font-medium whitespace-nowrap",
                       currentStep >= step.id ? "text-foreground" : "text-muted-foreground",
                     )}
                   >
@@ -338,7 +445,7 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
                 </div>
                 {index < steps.length - 1 && (
                   <div
-                    className={cn("mx-2 h-0.5 w-10 bg-muted-foreground/30", currentStep > step.id && "bg-primary")}
+                    className={cn("mx-2 h-0.5 w-8 md:w-10 bg-muted-foreground/30 flex-shrink-0", currentStep > step.id && "bg-primary")}
                   />
                 )}
               </React.Fragment>
@@ -348,28 +455,28 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
 
         {/* Validation Summary */}
         {!isCurrentStepValid && (
-          <Alert className="mt-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
+          <Alert className="mt-3 sm:mt-4">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <AlertDescription className="text-sm">
               Please complete all required fields before continuing.
               {currentStep === 1 && (
-                <div className="mt-2">
+                <div className="mt-2 space-y-1">
                   {validationState.passengers.map((validation, index) => (
                     !validation.isValid && (
-                      <div key={index} className="text-sm">
-                        Passenger {index + 1}: {validation.missingFields.join(', ')}
+                      <div key={index} className="text-xs sm:text-sm">
+                        <span className="font-medium">Passenger {index + 1}:</span> {validation.missingFields.join(', ')}
                       </div>
                     )
                   ))}
                   {!validationState.contactInfo.isValid && (
-                    <div className="text-sm">
-                      Contact Info: {validationState.contactInfo.missingFields.join(', ')}
+                    <div className="text-xs sm:text-sm">
+                      <span className="font-medium">Contact Info:</span> {validationState.contactInfo.missingFields.join(', ')}
                     </div>
                   )}
                 </div>
               )}
               {currentStep === 5 && !validationState.termsAccepted && (
-                <div className="mt-2 text-sm">
+                <div className="mt-2 text-xs sm:text-sm">
                   Please accept the Terms and Conditions
                 </div>
               )}
@@ -377,14 +484,14 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
           </Alert>
         )}
 
-        <div className="mt-6">
+        <div className="mt-4 sm:mt-6">
           {/* Step 1: Passenger Details */}
           {currentStep === 1 && (
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium">Passenger Information</h3>
-                  <div className="text-sm text-muted-foreground">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <h3 className="text-base sm:text-lg font-medium">Passenger Information</h3>
+                  <div className="text-xs sm:text-sm text-muted-foreground">
                     {adults} Adult{adults !== 1 ? 's' : ''}
                     {children > 0 && `, ${children} Child${children !== 1 ? 'ren' : ''}`}
                     {infants > 0 && `, ${infants} Infant${infants !== 1 ? 's' : ''}`}
@@ -392,23 +499,23 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
                 </div>
 
                 <Tabs defaultValue="passenger-1" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:grid-cols-none sm:auto-cols-auto sm:flex">
+                  <TabsList className="grid w-full grid-cols-1 gap-1 sm:grid-cols-2 md:w-auto md:grid-cols-none md:auto-cols-auto md:flex md:gap-0">
                     {passengerTypes.map((passengerType, index) => {
                       const validation = validationState.passengers[index];
                       const completionPercentage = getPassengerCompletionPercentage(index);
-                      
+
                       return (
-                        <TabsTrigger key={index} value={`passenger-${index + 1}`} className="relative">
-                          <div className="flex items-center gap-2">
-                            <span>{passengerType.label}</span>
+                        <TabsTrigger key={index} value={`passenger-${index + 1}`} className="relative text-xs sm:text-sm">
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <span className="truncate">{passengerType.label}</span>
                             {validation?.isValid ? (
-                              <CheckCircle className="h-3 w-3 text-green-500" />
+                              <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
                             ) : completionPercentage > 0 ? (
-                              <div className="h-3 w-3 rounded-full border border-orange-500 bg-orange-100 text-[8px] flex items-center justify-center text-orange-600">
+                              <div className="h-3 w-3 rounded-full border border-orange-500 bg-orange-100 text-[8px] flex items-center justify-center text-orange-600 flex-shrink-0">
                                 {Math.round(completionPercentage / 10)}
                               </div>
                             ) : (
-                              <AlertCircle className="h-3 w-3 text-red-500" />
+                              <AlertCircle className="h-3 w-3 text-red-500 flex-shrink-0" />
                             )}
                           </div>
                         </TabsTrigger>
@@ -427,8 +534,8 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
                       />
                       
                       {/* Progress indicator */}
-                      <div className="mt-4 p-3 bg-muted/50 rounded-md">
-                        <div className="flex items-center justify-between text-sm">
+                      <div className="mt-3 sm:mt-4 p-2 sm:p-3 bg-muted/50 rounded-md">
+                        <div className="flex items-center justify-between text-xs sm:text-sm">
                           <span>Form Completion</span>
                           <span className={cn(
                             "font-medium",
@@ -437,8 +544,8 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
                             {getPassengerCompletionPercentage(index)}%
                           </span>
                         </div>
-                        <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
-                          <div 
+                        <div className="mt-2 h-1.5 sm:h-2 bg-muted rounded-full overflow-hidden">
+                          <div
                             className={cn(
                               "h-full transition-all duration-300",
                               validationState.passengers[index]?.isValid ? "bg-green-500" : "bg-orange-500"
@@ -457,13 +564,13 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
                 </Tabs>
               </div>
 
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Contact Information</h3>
-                
+              <div className="space-y-3 sm:space-y-4">
+                <h3 className="text-base sm:text-lg font-medium">Contact Information</h3>
+
                 {/* Email and Phone Section */}
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email Address *</Label>
+                    <Label htmlFor="email" className="text-sm">Email Address *</Label>
                     <Input
                       id="email"
                       type="email"
@@ -471,6 +578,7 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
                       value={contactInfo.email || ''}
                       onChange={handleContactInfoChange}
                       className={cn(
+                        "text-sm",
                         contactInfo.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactInfo.email) && "border-red-500"
                       )}
                     />
@@ -479,13 +587,13 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Label>Phone Number *</Label>
+                    <Label className="text-sm">Phone Number *</Label>
                     <div className="flex gap-2">
                       <Select
                         value={contactInfo.phoneCountryCode || ''}
                         onValueChange={(value) => handleContactInfoSelectChange('phoneCountryCode', value)}
                       >
-                        <SelectTrigger className="w-24">
+                        <SelectTrigger className="w-20 sm:w-24 text-sm">
                           <SelectValue placeholder="+1" />
                         </SelectTrigger>
                         <SelectContent>
@@ -517,7 +625,7 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
                         placeholder="123-456-7890"
                         value={typeof contactInfo.phone === 'string' ? contactInfo.phone : contactInfo.phone?.formatted || contactInfo.phone?.number || ''}
                         onChange={handleContactInfoChange}
-                        className="flex-1"
+                        className="flex-1 text-sm"
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">For urgent notifications about your flight</p>
@@ -525,47 +633,50 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
                 </div>
 
                 {/* Address Section */}
-                <div className="space-y-4">
-                  <h4 className="text-base font-medium">Address Information</h4>
-                  <div className="grid gap-4">
+                <div className="space-y-3 sm:space-y-4">
+                  <h4 className="text-sm sm:text-base font-medium">Address Information</h4>
+                  <div className="grid gap-3 sm:gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="street">Street Address *</Label>
+                      <Label htmlFor="street" className="text-sm">Street Address *</Label>
                       <Input
                         id="street"
                         type="text"
                         placeholder="123 Main Street, Apt 4B"
                         value={contactInfo.street || ''}
                         onChange={handleContactInfoChange}
+                        className="text-sm"
                       />
                     </div>
-                    <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="grid gap-3 sm:gap-4 sm:grid-cols-3">
                       <div className="space-y-2">
-                        <Label htmlFor="city">City *</Label>
+                        <Label htmlFor="city" className="text-sm">City *</Label>
                         <Input
                           id="city"
                           type="text"
                           placeholder="New York"
                           value={contactInfo.city || ''}
                           onChange={handleContactInfoChange}
+                          className="text-sm"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="postalCode">Postal Code *</Label>
+                        <Label htmlFor="postalCode" className="text-sm">Postal Code *</Label>
                         <Input
                           id="postalCode"
                           type="text"
                           placeholder="10001"
                           value={contactInfo.postalCode || ''}
                           onChange={handleContactInfoChange}
+                          className="text-sm"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Country *</Label>
+                        <Label className="text-sm">Country *</Label>
                         <Select
                           value={contactInfo.countryCode || ''}
                           onValueChange={(value) => handleContactInfoSelectChange('countryCode', value)}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="text-sm">
                             <SelectValue placeholder="Select country" />
                           </SelectTrigger>
                           <SelectContent>
@@ -602,30 +713,30 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
 
           {/* Step 2: Seat Selection */}
           {currentStep === 2 && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div>
-                <h3 className="text-lg font-medium">Seat Selection</h3>
-                <p className="text-sm text-muted-foreground">Choose your preferred seats for your flights</p>
+                <h3 className="text-base sm:text-lg font-medium">Seat Selection</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Choose your preferred seats for your flights</p>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <h4 className="mb-2 text-base font-medium">Outbound Flight</h4>
-                  <SeatSelection 
+                  <h4 className="mb-2 text-sm sm:text-base font-medium">Outbound Flight</h4>
+                  <SeatSelection
                     flightType="outbound"
-                    selectedSeats={selectedSeats.outbound || []} 
-                    onSeatChange={handleSeatChange} 
+                    selectedSeats={selectedSeats.outbound || []}
+                    onSeatChange={handleSeatChange}
                   />
                 </div>
 
                 <Separator />
 
                 <div>
-                  <h4 className="mb-2 text-base font-medium">Return Flight</h4>
-                  <SeatSelection 
+                  <h4 className="mb-2 text-sm sm:text-base font-medium">Return Flight</h4>
+                  <SeatSelection
                     flightType="return"
-                    selectedSeats={selectedSeats.return || []} 
-                    onSeatChange={handleSeatChange} 
+                    selectedSeats={selectedSeats.return || []}
+                    onSeatChange={handleSeatChange}
                   />
                 </div>
               </div>
@@ -634,18 +745,18 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
 
           {/* Step 3: Extras */}
           {currentStep === 3 && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div>
-                <h3 className="text-lg font-medium">Optional Extras</h3>
-                <p className="text-sm text-muted-foreground">Enhance your journey with additional services</p>
+                <h3 className="text-base sm:text-lg font-medium">Optional Extras</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Enhance your journey with additional services</p>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <h4 className="mb-2 text-base font-medium">Baggage Options</h4>
-                  <BaggageOptions 
-                    selectedBaggage={selectedBaggage} 
-                    onBaggageChange={handleBaggageChange} 
+                  <h4 className="mb-2 text-sm sm:text-base font-medium">Baggage Options</h4>
+                  <BaggageOptions
+                    selectedBaggage={selectedBaggage}
+                    onBaggageChange={handleBaggageChange}
                   />
                 </div>
 
@@ -664,131 +775,131 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
 
           {/* Step 4: Payment Method */}
           {currentStep === 4 && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div>
-                <h3 className="text-lg font-medium">Payment Method</h3>
-                <p className="text-sm text-muted-foreground">Choose your preferred payment method</p>
+                <h3 className="text-base sm:text-lg font-medium">Payment Method</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Choose your preferred payment method</p>
               </div>
 
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 gap-3 sm:gap-4">
                   {/* Cash Payment */}
-                  <div 
+                  <div
                     className={cn(
-                      "p-4 border rounded-lg cursor-pointer transition-all",
-                      selectedPaymentMethod === 'CASH' 
-                        ? "border-primary bg-primary/5 ring-2 ring-primary/20" 
+                      "p-3 sm:p-4 border rounded-lg cursor-pointer transition-all",
+                      selectedPaymentMethod === 'CASH'
+                        ? "border-primary bg-primary/5 ring-2 ring-primary/20"
                         : "border-border hover:border-primary/50"
                     )}
                     onClick={() => setSelectedPaymentMethod('CASH')}
                   >
                     <div className="flex items-center space-x-3">
                       <div className={cn(
-                        "w-4 h-4 rounded-full border-2",
-                        selectedPaymentMethod === 'CASH' 
-                          ? "border-primary bg-primary" 
+                        "w-4 h-4 rounded-full border-2 flex-shrink-0",
+                        selectedPaymentMethod === 'CASH'
+                          ? "border-primary bg-primary"
                           : "border-gray-300"
                       )}>
                         {selectedPaymentMethod === 'CASH' && (
                           <div className="w-full h-full rounded-full bg-white scale-50"></div>
                         )}
                       </div>
-                      <div>
-                        <h4 className="font-medium">Cash Payment</h4>
-                        <p className="text-sm text-muted-foreground">Pay with cash at the airport</p>
+                      <div className="min-w-0">
+                        <h4 className="font-medium text-sm sm:text-base">Cash Payment</h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Pay with cash at the airport</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Card Payment */}
-                  <div 
+                  <div
                     className={cn(
-                      "p-4 border rounded-lg cursor-pointer transition-all",
-                      selectedPaymentMethod === 'PAYMENTCARD' 
-                        ? "border-primary bg-primary/5 ring-2 ring-primary/20" 
+                      "p-3 sm:p-4 border rounded-lg cursor-pointer transition-all",
+                      selectedPaymentMethod === 'PAYMENTCARD'
+                        ? "border-primary bg-primary/5 ring-2 ring-primary/20"
                         : "border-border hover:border-primary/50"
                     )}
                     onClick={() => setSelectedPaymentMethod('PAYMENTCARD')}
                   >
                     <div className="flex items-center space-x-3">
                       <div className={cn(
-                        "w-4 h-4 rounded-full border-2",
-                        selectedPaymentMethod === 'PAYMENTCARD' 
-                          ? "border-primary bg-primary" 
+                        "w-4 h-4 rounded-full border-2 flex-shrink-0",
+                        selectedPaymentMethod === 'PAYMENTCARD'
+                          ? "border-primary bg-primary"
                           : "border-gray-300"
                       )}>
                         {selectedPaymentMethod === 'PAYMENTCARD' && (
                           <div className="w-full h-full rounded-full bg-white scale-50"></div>
                         )}
                       </div>
-                      <div>
-                        <h4 className="font-medium">Credit/Debit Card</h4>
-                        <p className="text-sm text-muted-foreground">Pay securely with your card</p>
+                      <div className="min-w-0">
+                        <h4 className="font-medium text-sm sm:text-base">Credit/Debit Card</h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Pay securely with your card</p>
                       </div>
                     </div>
                   </div>
 
                   {/* EasyPay */}
-                  <div 
+                  <div
                     className={cn(
-                      "p-4 border rounded-lg cursor-pointer transition-all",
-                      selectedPaymentMethod === 'EASYPAY' 
-                        ? "border-primary bg-primary/5 ring-2 ring-primary/20" 
+                      "p-3 sm:p-4 border rounded-lg cursor-pointer transition-all",
+                      selectedPaymentMethod === 'EASYPAY'
+                        ? "border-primary bg-primary/5 ring-2 ring-primary/20"
                         : "border-border hover:border-primary/50"
                     )}
                     onClick={() => setSelectedPaymentMethod('EASYPAY')}
                   >
                     <div className="flex items-center space-x-3">
                       <div className={cn(
-                        "w-4 h-4 rounded-full border-2",
-                        selectedPaymentMethod === 'EASYPAY' 
-                          ? "border-primary bg-primary" 
+                        "w-4 h-4 rounded-full border-2 flex-shrink-0",
+                        selectedPaymentMethod === 'EASYPAY'
+                          ? "border-primary bg-primary"
                           : "border-gray-300"
                       )}>
                         {selectedPaymentMethod === 'EASYPAY' && (
                           <div className="w-full h-full rounded-full bg-white scale-50"></div>
                         )}
                       </div>
-                      <div>
-                        <h4 className="font-medium">EasyPay</h4>
-                        <p className="text-sm text-muted-foreground">Quick payment with EasyPay account</p>
+                      <div className="min-w-0">
+                        <h4 className="font-medium text-sm sm:text-base">EasyPay</h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Quick payment with EasyPay account</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Other Payment */}
-                  <div 
+                  <div
                     className={cn(
-                      "p-4 border rounded-lg cursor-pointer transition-all",
-                      selectedPaymentMethod === 'OTHER' 
-                        ? "border-primary bg-primary/5 ring-2 ring-primary/20" 
+                      "p-3 sm:p-4 border rounded-lg cursor-pointer transition-all",
+                      selectedPaymentMethod === 'OTHER'
+                        ? "border-primary bg-primary/5 ring-2 ring-primary/20"
                         : "border-border hover:border-primary/50"
                     )}
                     onClick={() => setSelectedPaymentMethod('OTHER')}
                   >
                     <div className="flex items-center space-x-3">
                       <div className={cn(
-                        "w-4 h-4 rounded-full border-2",
-                        selectedPaymentMethod === 'OTHER' 
-                          ? "border-primary bg-primary" 
+                        "w-4 h-4 rounded-full border-2 flex-shrink-0",
+                        selectedPaymentMethod === 'OTHER'
+                          ? "border-primary bg-primary"
                           : "border-gray-300"
                       )}>
                         {selectedPaymentMethod === 'OTHER' && (
                           <div className="w-full h-full rounded-full bg-white scale-50"></div>
                         )}
                       </div>
-                      <div>
-                        <h4 className="font-medium">Other Payment</h4>
-                        <p className="text-sm text-muted-foreground">Alternative payment methods</p>
+                      <div className="min-w-0">
+                        <h4 className="font-medium text-sm sm:text-base">Other Payment</h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Alternative payment methods</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Selected Payment Method Info */}
-                <div className="p-4 bg-muted/50 rounded-lg">
-                  <h4 className="font-medium mb-2">Selected Payment Method</h4>
-                  <p className="text-sm text-muted-foreground">
+                <div className="p-3 sm:p-4 bg-muted/50 rounded-lg">
+                  <h4 className="font-medium mb-2 text-sm sm:text-base">Selected Payment Method</h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     {selectedPaymentMethod === 'CASH' && 'You will pay with cash at the airport counter.'}
                     {selectedPaymentMethod === 'PAYMENTCARD' && 'You will be redirected to secure card payment processing.'}
                     {selectedPaymentMethod === 'EASYPAY' && 'You will use your EasyPay account for quick payment.'}
@@ -801,29 +912,29 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
 
           {/* Step 5: Review */}
           {currentStep === 5 && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div>
-                <h3 className="text-lg font-medium">Review Your Booking</h3>
-                <p className="text-sm text-muted-foreground">Please review all details before proceeding to payment</p>
+                <h3 className="text-base sm:text-lg font-medium">Review Your Booking</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Please review all details before proceeding to payment</p>
               </div>
 
               {/* Passenger Summary */}
-              <div className="space-y-4">
-                <h4 className="text-base font-medium">Passengers ({passengerCount})</h4>
+              <div className="space-y-3 sm:space-y-4">
+                <h4 className="text-sm sm:text-base font-medium">Passengers ({passengerCount})</h4>
                 {passengers.slice(0, passengerCount).map((passenger, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 border rounded-md">
-                    <div>
-                      <div className="font-medium">
+                  <div key={index} className="flex items-center justify-between p-2 sm:p-3 border rounded-md">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-sm sm:text-base truncate">
                         {passenger?.title} {passenger?.firstName} {passenger?.lastName}
                       </div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-xs sm:text-sm text-muted-foreground">
                         {passenger?.type} • {passenger?.nationality}
                       </div>
                     </div>
                     {validationState.passengers[index]?.isValid ? (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 flex-shrink-0 ml-2" />
                     ) : (
-                      <AlertCircle className="h-5 w-5 text-red-500" />
+                      <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 flex-shrink-0 ml-2" />
                     )}
                   </div>
                 ))}
@@ -831,19 +942,19 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
 
               {/* Contact Info Summary */}
               <div className="space-y-2">
-                <h4 className="text-base font-medium">Contact Information</h4>
-                <div className="p-3 border rounded-md">
+                <h4 className="text-sm sm:text-base font-medium">Contact Information</h4>
+                <div className="p-2 sm:p-3 border rounded-md">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <div>{contactInfo.email}</div>
-                      <div className="text-sm text-muted-foreground">{typeof contactInfo.phone === 'object' && contactInfo.phone?.formatted 
-                        ? contactInfo.phone.formatted 
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm sm:text-base truncate">{contactInfo.email}</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground">{typeof contactInfo.phone === 'object' && contactInfo.phone?.formatted
+                        ? contactInfo.phone.formatted
                         : typeof contactInfo.phone === 'string' ? contactInfo.phone : 'N/A'}</div>
                     </div>
                     {validationState.contactInfo.isValid ? (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 flex-shrink-0 ml-2" />
                     ) : (
-                      <AlertCircle className="h-5 w-5 text-red-500" />
+                      <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 flex-shrink-0 ml-2" />
                     )}
                   </div>
                 </div>
@@ -851,40 +962,41 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
 
               {/* Payment Method Summary */}
               <div className="space-y-2">
-                <h4 className="text-base font-medium">Payment Method</h4>
-                <div className="p-3 border rounded-md">
+                <h4 className="text-sm sm:text-base font-medium">Payment Method</h4>
+                <div className="p-2 sm:p-3 border rounded-md">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-sm sm:text-base">
                         {selectedPaymentMethod === 'CASH' && 'Cash Payment'}
                         {selectedPaymentMethod === 'PAYMENTCARD' && 'Credit/Debit Card'}
                         {selectedPaymentMethod === 'EASYPAY' && 'EasyPay'}
                         {selectedPaymentMethod === 'OTHER' && 'Other Payment Method'}
                       </div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-xs sm:text-sm text-muted-foreground">
                         {selectedPaymentMethod === 'CASH' && 'Pay with cash at the airport counter'}
                         {selectedPaymentMethod === 'PAYMENTCARD' && 'Secure card payment processing'}
                         {selectedPaymentMethod === 'EASYPAY' && 'Quick payment with EasyPay account'}
                         {selectedPaymentMethod === 'OTHER' && 'Alternative payment method'}
                       </div>
                     </div>
-                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 flex-shrink-0 ml-2" />
                   </div>
                 </div>
               </div>
 
               {/* Terms and Conditions */}
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <Checkbox 
-                    id="terms" 
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex items-start space-x-2 sm:space-x-3">
+                  <Checkbox
+                    id="terms"
                     checked={termsAccepted}
                     onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
+                    className="mt-0.5"
                   />
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <label
                       htmlFor="terms"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      className="text-xs sm:text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                     >
                       I agree to the Terms and Conditions *
                     </label>
@@ -905,34 +1017,45 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
           )}
 
           {/* Navigation Buttons */}
-          <div className="mt-8 flex justify-between">
-            <Button variant="outline" onClick={prevStep} disabled={currentStep === 1}>
+          <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between">
+            <Button
+              variant="outline"
+              onClick={prevStep}
+              disabled={currentStep === 1}
+              className="w-full sm:w-auto text-sm"
+            >
               Back
             </Button>
 
             {currentStep < steps.length ? (
-              <Button 
-                onClick={nextStep} 
+              <Button
+                onClick={nextStep}
                 disabled={!isCurrentStepValid}
-                className={cn(!isCurrentStepValid && "opacity-50 cursor-not-allowed")}
+                className={cn(
+                  "w-full sm:w-auto text-sm",
+                  !isCurrentStepValid && "opacity-50 cursor-not-allowed"
+                )}
               >
                 Continue
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             ) : (
-              <Button 
-                onClick={handleContinueToPayment} 
+              <Button
+                onClick={handleContinueToPayment}
                 disabled={!isCurrentStepValid}
-                className={cn(!isCurrentStepValid && "opacity-50 cursor-not-allowed")}
+                className={cn(
+                  "w-full sm:w-auto text-sm",
+                  !isCurrentStepValid && "opacity-50 cursor-not-allowed"
+                )}
                 aria-label="Continue to payment page"
               >
-                Continue to Payment
+                <span className="hidden sm:inline">Continue to Payment</span>
+                <span className="sm:hidden">Continue</span>
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             )}
           </div>
         </div>
-      </div>
     </div>
   )
 }

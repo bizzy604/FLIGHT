@@ -144,14 +144,11 @@ class FlightService:
             log_request_id = payload['request_id']
 
         logger.info(f"Making {method} request to {url} for service {service_name} (ReqID: {log_request_id}).")
-        # Log final headers and payload for debugging
-        # logger.info(f"Final headers for {service_name} (ReqID: {log_request_id}): {json.dumps(headers, indent=2)}")
-        logger.info(f"Final payload for {service_name} (ReqID: {log_request_id}): {json.dumps(api_payload, indent=2)}")
-        logger.info(f"Request URL: {url}")
-        logger.info(f"Request method: {method}")
-        
-        # DEBUG: Log detailed request information
-        logger.info(f"[DEBUG] Complete request headers (ReqID: {log_request_id}): {json.dumps(dict(headers), indent=2, default=str)}")
+        # Temporarily disable verbose logging to see debug logs clearly
+        # logger.info(f"Final payload for {service_name} (ReqID: {log_request_id}): {json.dumps(api_payload, indent=2)}")
+        # logger.info(f"Request URL: {url}")
+        # logger.info(f"Request method: {method}")
+        # logger.info(f"[DEBUG] Complete request headers (ReqID: {log_request_id}): {json.dumps(dict(headers), indent=2, default=str)}")
         logger.info(f"[DEBUG] Airline code used: {airline_code}")
         # logger.debug(f"Payload for ReqID {log_request_id}: {json.dumps(api_payload)}") # Avoid logging sensitive data in prod
 
@@ -197,9 +194,23 @@ class FlightService:
                             raise APIError(error_msg, status_code=response.status, response=response_data)
                     
                     if response.status == 200:
-                        logger.info(f"Successfully received API response for {service_name} (ReqID: {log_request_id}) with status {response.status}. Response snippet: {str(response_data)[:100]}...")
-                        # DEBUG: Log complete API response
-                        logger.info(f"[DEBUG] Complete API response for {service_name} (ReqID: {log_request_id}): {json.dumps(response_data, indent=2, default=str)}")
+                        logger.info(f"Successfully received API response for {service_name} (ReqID: {log_request_id}) with status {response.status}")
+
+                        # DEBUG: Log the complete API response for OrderCreate to debug booking issues
+                        if service_name == "OrderCreate":
+                            logger.info(f"[DEBUG] ===== COMPLETE ORDERCREATE API RESPONSE (ReqID: {log_request_id}) =====")
+                            try:
+                                response_json = json.dumps(response_data, indent=2, default=str)
+                                # Log first 3000 characters to see the structure
+                                if len(response_json) > 3000:
+                                    logger.info(f"[DEBUG] OrderCreate API response (first 3000 chars): {response_json[:3000]}...")
+                                    logger.info(f"[DEBUG] OrderCreate API response total length: {len(response_json)} characters")
+                                else:
+                                    logger.info(f"[DEBUG] Complete OrderCreate API response: {response_json}")
+                            except Exception as e:
+                                logger.error(f"[DEBUG] Failed to serialize OrderCreate API response: {str(e)}")
+                            logger.info(f"[DEBUG] ===== END ORDERCREATE API RESPONSE (ReqID: {log_request_id}) =====")
+
                         return response_data # Success
             
             except aiohttp.ClientError as e: # Includes ClientConnectionError, ClientTimeout etc.

@@ -44,14 +44,14 @@ try:
     )
     
     # Import any additional types that might be needed for type hints
-    from .types import (
-        FlightSearchRequest,
-        FlightPricingRequest,
-        BookingRequest,
-        Passenger,
-        PaymentInfo,
-        ContactInfo
-    )
+    # from .types import (
+    #     FlightSearchRequest,
+    #     FlightPricingRequest,
+    #     BookingRequest,
+    #     Passenger,
+    #     PaymentInfo,
+    #     ContactInfo
+    # )
     
 except ImportError as e:
     # Provide helpful error if the new package is not installed

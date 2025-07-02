@@ -5,12 +5,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // DEBUG: Log the flight price request data
-    console.log('[[ DEBUG ]] Flight price request data:');
-    console.log('[[ DEBUG ]] Offer ID:', body.offer_id);
+    // DEBUG: Log flight price request summary
+    console.log('[[ DEBUG ]] Flight price request - Offer ID:', body.offer_id);
     console.log('[[ DEBUG ]] Shopping Response ID:', body.shopping_response_id);
-    console.log('[[ DEBUG ]] Air Shopping RS keys:', body.air_shopping_rs ? Object.keys(body.air_shopping_rs) : 'No air_shopping_rs');
-    console.log('[[ DEBUG ]] Full request body:', JSON.stringify(body, null, 2));
+    console.log('[[ DEBUG ]] Air Shopping RS present:', !!body.air_shopping_rs);
     
     // Forward the request to the backend
     const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';

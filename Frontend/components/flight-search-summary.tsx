@@ -37,7 +37,7 @@ export function FlightSearchSummary({
         <div className="flex items-center">
           <MapPin className="mr-1 h-4 w-4" />
           <span>
-            {origin} to {destination}
+            {returnDate ? `${origin} ⇄ ${destination}` : `${origin} → ${destination}`}
           </span>
         </div>
         <div className="flex items-center">

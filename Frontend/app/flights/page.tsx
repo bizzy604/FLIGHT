@@ -289,13 +289,22 @@ function SearchParamsWrapper() {
             isArray: Array.isArray(apiResponse)
           });
         }
+
+        // Debug: Log the first flight object to see its structure
+        if (apiFlights && apiFlights.length > 0) {
+          console.log('[DEBUG] First flight object structure:', {
+            id: apiFlights[0].id,
+            keys: Object.keys(apiFlights[0]),
+            hasId: !!apiFlights[0].id
+          });
+        }
         
         // console.log('Extracted flights:', apiFlights.length, 'offers');
         
         // Store complete flight data in localStorage for flight details page
         // This includes the complete airShoppingResponse needed for pricing API calls
         const flightDataForStorage = {
-          airShoppingResponse: apiResponse, // Complete API response
+          airShoppingResponse: apiResponse.data, // Backend response data (contains status, data with offers and raw_response)
           searchParams: {
             origin,
             destination,
@@ -363,7 +372,9 @@ function SearchParamsWrapper() {
         
         // Use backend-provided FlightOffer data directly
         const directFlights = apiFlights.map((offer: any) => ({
-          id: offer.id,
+          id: offer.id, // This is now the index (string)
+          offer_index: offer.offer_index, // Explicit index property
+          original_offer_id: offer.original_offer_id, // Store original OfferID for reference
           airline: offer.airline,
           departure: offer.departure,
           arrival: offer.arrival,
@@ -379,7 +390,8 @@ function SearchParamsWrapper() {
           priceBreakdown: offer.priceBreakdown,
           additionalServices: offer.additionalServices,
           fareRules: offer.fareRules,
-          penalties: offer.penalties
+          penalties: offer.penalties,
+          time_limits: offer.time_limits || {} // Include offer expiration information
         }));
         
         setAllFlights(directFlights);
@@ -414,10 +426,16 @@ function SearchParamsWrapper() {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Image src="/logo1.png" alt="Rea Travel Logo" width={32} height={32} />
-            <span className="text-xl font-bold">Rea Travel</span>
+        <div className="container flex h-14 sm:h-16 items-center justify-between px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Image
+              src="/logo1.png"
+              alt="Rea Travel Logo"
+              width={32}
+              height={32}
+              className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12"
+            />
+            <span className="text-lg sm:text-xl lg:text-2xl font-bold">Rea Travel</span>
           </div>
           <MainNav />
           <UserNav />
@@ -425,13 +443,13 @@ function SearchParamsWrapper() {
       </header>
 
       <main className="flex-1">
-        <div className="container py-6">
-          <div className="mb-6">
+        <div className="container py-4 sm:py-6 lg:py-8 px-3 sm:px-6 lg:px-8">
+          <div className="mb-4 sm:mb-6">
             <Link
               href="/"
-              className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground"
+              className="inline-flex items-center text-sm sm:text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              <ChevronLeft className="mr-1 h-4 w-4" />
+              <ChevronLeft className="mr-1 h-4 w-4 sm:h-5 sm:w-5" />
               Back to Home
             </Link>
 
@@ -448,16 +466,16 @@ function SearchParamsWrapper() {
             </Suspense>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-[280px_1fr]">
+          <div className="grid gap-4 sm:gap-6 lg:gap-8 lg:grid-cols-[300px_1fr] xl:grid-cols-[320px_1fr]">
             {/* Filters Sidebar */}
-            <div className="hidden md:block">
-              <div className="sticky top-24 rounded-lg border p-4">
-                <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">Filters</h2>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-8 px-2 text-xs"
+            <div className="hidden lg:block">
+              <div className="sticky top-24 rounded-lg border p-4 lg:p-6 bg-white shadow-sm">
+                <div className="mb-4 lg:mb-6 flex items-center justify-between">
+                  <h2 className="text-lg lg:text-xl font-semibold">Filters</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 lg:h-9 px-2 lg:px-3 text-xs lg:text-sm"
                     onClick={handleResetFilters}
                   >
                     Reset All
@@ -488,18 +506,18 @@ function SearchParamsWrapper() {
             </div>
 
             {/* Mobile Filters Button */}
-            <div className="flex items-center justify-between md:hidden">
-              <Button variant="outline" size="sm" className="mb-4">
-                <Filter className="mr-2 h-4 w-4" />
+            <div className="flex items-center justify-between gap-3 lg:hidden mb-4 sm:mb-6">
+              <Button variant="outline" size="sm" className="h-10 sm:h-11 px-3 sm:px-4 text-sm sm:text-base">
+                <Filter className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                 Filters
               </Button>
               <FlightSortOptions />
             </div>
 
             {/* Results */}
-            <div className="space-y-4">
-              <div className="hidden items-center justify-between md:flex">
-                <p className="text-sm text-muted-foreground">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="hidden items-center justify-between lg:flex">
+                <p className="text-sm lg:text-base text-muted-foreground">
                   Showing <strong>{flights.length}</strong> of <strong>{allFlights.length}</strong> flights
                 </p>
                 <FlightSortOptions />
@@ -514,18 +532,18 @@ function SearchParamsWrapper() {
                   </div>
                 }
               >
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4 lg:space-y-6">
                   {loading ? (
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
                       {[...Array(3)].map((_, i) => (
-                        <Skeleton key={i} className="h-48 w-full rounded-lg" />
+                        <Skeleton key={i} className="h-40 sm:h-48 lg:h-56 w-full rounded-lg" />
                       ))}
                     </div>
                   ) : flights.length > 0 ? (
                     flights.map((flight) => (
-                      <EnhancedFlightCard 
-                        key={flight.id} 
-                        flight={flight} 
+                      <EnhancedFlightCard
+                        key={flight.id}
+                        flight={flight}
                         searchParams={{
                           adults,
                           children,
@@ -540,33 +558,34 @@ function SearchParamsWrapper() {
                       />
                     ))
                   ) : (
-                    <div className="rounded-lg border p-8 text-center">
-                      <h3 className="mb-2 text-lg font-semibold">No flights found</h3>
-                      <p className="text-sm text-muted-foreground">Try adjusting your search criteria</p>
+                    <div className="rounded-lg border p-6 sm:p-8 lg:p-12 text-center bg-white shadow-sm">
+                      <h3 className="mb-2 sm:mb-4 text-lg sm:text-xl lg:text-2xl font-semibold">No flights found</h3>
+                      <p className="text-sm sm:text-base text-muted-foreground">Try adjusting your search criteria</p>
                     </div>
                   )}
                 </div>
               </Suspense>
 
               {/* Pagination */}
-              <div className="flex items-center justify-center space-x-2 py-4">
-                <Button 
-                  variant="outline" 
-                  size="icon" 
+              <div className="flex items-center justify-center space-x-2 sm:space-x-3 py-6 sm:py-8">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 sm:h-10 sm:w-10"
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span className="sr-only">Previous page</span>
                 </Button>
                 
                 {/* Generate page buttons */}
                 {Array.from({ length: Math.min(3, Math.ceil(allFlights.length / itemsPerPage)) }, (_, i) => (
-                  <Button 
+                  <Button
                     key={i}
-                    variant={currentPage === i + 1 ? "default" : "outline"} 
-                    size="sm" 
-                    className="h-8 w-8 p-0"
+                    variant={currentPage === i + 1 ? "default" : "outline"}
+                    size="sm"
+                    className="h-8 w-8 sm:h-9 sm:w-9 p-0 text-sm sm:text-base"
                     onClick={() => setCurrentPage(i + 1)}
                   >
                     {i + 1}
@@ -576,10 +595,10 @@ function SearchParamsWrapper() {
                 {Math.ceil(allFlights.length / itemsPerPage) > 3 && (
                   <>
                     <span className="text-sm text-muted-foreground">...</span>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="h-8 w-8 p-0"
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 sm:h-9 sm:w-9 p-0 text-sm sm:text-base"
                       onClick={() => setCurrentPage(Math.ceil(allFlights.length / itemsPerPage))}
                     >
                       {Math.ceil(allFlights.length / itemsPerPage)}
@@ -587,13 +606,14 @@ function SearchParamsWrapper() {
                   </>
                 )}
                 
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="icon"
+                  className="h-9 w-9 sm:h-10 sm:w-10"
                   disabled={currentPage >= Math.ceil(allFlights.length / itemsPerPage)}
                   onClick={() => setCurrentPage(prev => Math.min(Math.ceil(allFlights.length / itemsPerPage), prev + 1))}
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span className="sr-only">Next page</span>
                 </Button>
               </div>

@@ -470,7 +470,13 @@ export interface FlightOffer {
   fareRules?: FareRules;
   penalties?: Penalty[];
   fareDescription?: string;
-  
+
+  // Offer expiration information
+  time_limits?: {
+    offer_expiration?: string; // ISO datetime string
+    payment_deadline?: string; // ISO datetime string
+  };
+
   // For roundtrip flights
   returnFlight?: Omit<FlightOffer, 'returnFlight'>; // Recursive type for return flight
 }
