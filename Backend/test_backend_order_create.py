@@ -10,63 +10,22 @@ import sys
 import os
 
 def load_actual_raw_response():
-    """Load the actual raw flight price response from the known good data."""
-    # Use the known good KQ flight price response structure
-    raw_response = {
-        "DataLists": {
-            "AnonymousTravelerList": {
-                "AnonymousTraveler": [
-                    {"ObjectKey": "PAX1", "PTC": {"value": "ADT"}}
-                ]
-            },
-            "FlightSegmentList": {
-                "FlightSegment": [
-                    {
-                        "SegmentKey": "SEG2",
-                        "Departure": {
-                            "AirportCode": {"value": "NBO"},
-                            "Date": "2025-07-09T09:05:00.000",
-                            "Time": "09:05"
-                        },
-                        "Arrival": {
-                            "AirportCode": {"value": "LHR"},
-                            "Date": "2025-07-09T16:15:00.000",
-                            "Time": "16:15"
-                        },
-                        "MarketingCarrier": {
-                            "AirlineID": {"value": "KQ"},
-                            "FlightNumber": {"value": "100"},
-                            "Name": "Kenya Airways"
-                        }
-                    }
-                ]
-            }
-        },
-        "Document": {
-            "Name": "NDC AirShoppingRS",
-            "ReferenceVersion": "1.0"
-        },
-        "PricedFlightOffers": {
-            "PricedFlightOffer": [
-                {
-                    "OfferID": "1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL",
-                    "OfferPrice": {
-                        "RequestedDate": "2025-07-02",
-                        "TotalAmount": {
-                            "DetailCurrencyPrice": {
-                                "Total": {
-                                    "Code": "INR",
-                                    "value": 49434
-                                }
-                            }
-                        }
-                    }
-                }
-            ]
-        },
-        "ShoppingResponseID": "test-shopping-response-id"
-    }
-    return raw_response
+    """Load the actual raw flight price response from the KQ test file."""
+    try:
+        # Load the actual KQ flight price response from the test file
+        test_file_path = os.path.join(os.path.dirname(__file__), 'tests', 'FlightPriceRS_KQ.json')
+        with open(test_file_path, 'r', encoding='utf-8') as f:
+            raw_response = json.load(f)
+
+        print(f"✅ Loaded actual KQ flight price response from: {test_file_path}")
+        print(f"   - Document Name: {raw_response.get('Document', {}).get('Name', 'Unknown')}")
+        print(f"   - OfferID: {raw_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [{}])[0].get('OfferID', {}).get('value', 'Unknown')}")
+        print(f"   - Number of OfferPrice items: {len(raw_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [{}])[0].get('OfferPrice', []))}")
+
+        return raw_response
+
+    except FileNotFoundError:
+        print(f"❌ Could not find KQ test file at: {test_file_path}")
 
 def test_backend_order_create():
     """Test the backend order-create endpoint directly."""

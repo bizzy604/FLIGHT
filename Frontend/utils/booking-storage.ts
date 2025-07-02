@@ -64,18 +64,45 @@ export function storeBookingData(bookingData: any): void {
 }
 
 /**
- * Retrieve booking data with fallback priority: sessionStorage → localStorage → null
+ * Retrieve booking data with fallback priority: sessionStorage → localStorage → persistent backup
  * @returns The booking data or null if not found/expired
  */
 export function getBookingData(): any | null {
   try {
     const storageKey = getStorageKey();
-    
+
     // First try sessionStorage (primary)
     const sessionData = sessionStorage.getItem(storageKey);
     if (sessionData) {
       console.log('[BookingStorage] Retrieved data from sessionStorage');
       return JSON.parse(sessionData);
+    }
+
+    // In development, try persistent backup first (better for hot reloads)
+    if (isDevelopment()) {
+      const persistentData = localStorage.getItem(`${storageKey}_persistent`);
+      if (persistentData) {
+        try {
+          const storageData: BookingStorageData = JSON.parse(persistentData);
+
+          // Check if data has expired
+          if (Date.now() <= storageData.expiresAt) {
+            console.log('[BookingStorage] Retrieved data from persistent backup (development)');
+
+            // Restore to both sessionStorage and regular localStorage
+            sessionStorage.setItem(storageKey, JSON.stringify(storageData.data));
+            localStorage.setItem(storageKey, persistentData);
+
+            return storageData.data;
+          } else {
+            console.log('[BookingStorage] Persistent data expired, cleaning up');
+            localStorage.removeItem(`${storageKey}_persistent`);
+          }
+        } catch (error) {
+          console.error('[BookingStorage] Error parsing persistent data:', error);
+          localStorage.removeItem(`${storageKey}_persistent`);
+        }
+      }
     }
     
     // Fallback to localStorage (backup)
@@ -99,29 +126,6 @@ export function getBookingData(): any | null {
       sessionStorage.setItem(storageKey, JSON.stringify(storageData.data));
       
       return storageData.data;
-    }
-    
-    // In development, try the persistent backup (survives hot reloads)
-    if (isDevelopment()) {
-      const persistentData = localStorage.getItem(`${storageKey}_persistent`);
-      if (persistentData) {
-        const storageData: BookingStorageData = JSON.parse(persistentData);
-        
-        // Check if data has expired
-        if (Date.now() > storageData.expiresAt) {
-          console.log('[BookingStorage] Persistent data expired, cleaning up');
-          localStorage.removeItem(`${storageKey}_persistent`);
-          return null;
-        }
-        
-        console.log('[BookingStorage] Retrieved data from persistent backup (development)');
-        
-        // Restore to both sessionStorage and regular localStorage
-        sessionStorage.setItem(storageKey, JSON.stringify(storageData.data));
-        localStorage.setItem(storageKey, persistentData);
-        
-        return storageData.data;
-      }
     }
     
     console.log('[BookingStorage] No booking data found in storage');

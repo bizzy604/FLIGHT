@@ -252,24 +252,28 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
     if (bookingData.flightDetails || bookingData.routeSegments) {
       const apiFlightDetails = bookingData.flightDetails || {}
       const segments = bookingData.routeSegments || {}
-      
+
+      // Extract flight information from the correct backend structure
+      const outboundFlight = apiFlightDetails.outbound || {}
+      const airlineInfo = outboundFlight.airline || {}
+
       return {
         outbound: {
           airline: {
-            name: bookingData.airlineCode !== 'Unknown' ? bookingData.airlineCode : 'N/A',
-            code: bookingData.airlineCode !== 'Unknown' ? bookingData.airlineCode : 'N/A',
-            flightNumber: bookingData.flightNumbers?.[0] !== 'Unknown' ? bookingData.flightNumbers[0] : 'N/A',
-            logo: `/airlines/${bookingData.airlineCode}.svg`
+            name: airlineInfo.name || bookingData.airlineCode || 'N/A',
+            code: airlineInfo.code || bookingData.airlineCode || 'N/A',
+            flightNumber: airlineInfo.flightNumber || bookingData.flightNumbers?.[0] || 'N/A',
+            logo: `/airlines/${airlineInfo.code || bookingData.airlineCode || 'Unknown'}.svg`
           },
           departure: {
-            airport: segments.origin !== 'Unknown' ? segments.origin : 'N/A',
-            time: segments.departureTime ? new Date(segments.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A',
-            fullDate: segments.departureTime ? new Date(segments.departureTime).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'
+            airport: outboundFlight.departure?.airport || segments.origin || 'N/A',
+            time: outboundFlight.departure?.time || (segments.departureTime ? new Date(segments.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'),
+            fullDate: outboundFlight.departure?.fullDate || (segments.departureTime ? new Date(segments.departureTime).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A')
           },
           arrival: {
-            airport: segments.destination !== 'Unknown' ? segments.destination : 'N/A',
-            time: segments.arrivalTime ? new Date(segments.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A',
-            fullDate: segments.arrivalTime ? new Date(segments.arrivalTime).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'
+            airport: outboundFlight.arrival?.airport || segments.destination || 'N/A',
+            time: outboundFlight.arrival?.time || (segments.arrivalTime ? new Date(segments.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'),
+            fullDate: outboundFlight.arrival?.fullDate || (segments.arrivalTime ? new Date(segments.arrivalTime).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A')
           },
           duration: 'N/A',
           stops: 0
@@ -608,7 +612,8 @@ html, body {
         <div className="mb-4 flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div>
             <h2 className="text-xl font-bold">Booking Reference: {booking.bookingReference || booking.id || 'N/A'}</h2>
-            <p className="text-sm text-muted-foreground">Please save this reference number for future inquiries</p>
+            <p className="text-sm font-medium text-muted-foreground">Order ID: {booking.order_id || booking.orderId || booking.OrderID || 'N/A'}</p>
+            <p className="text-sm text-muted-foreground">Please save these reference numbers for future inquiries</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button

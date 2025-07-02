@@ -1,59 +1,59 @@
-PS C:\Users\User\Desktop\FLIGHT\Backend> python .\app.py     
+PS C:\Users\User\Desktop\FLIGHT> cd Backend; python app.py
 INFO:services.flight.booking:Method 1: Successfully imported generate_order_create_rq
 Successfully loaded 9803 airports from C:\Users\User\Desktop\FLIGHT\airports.csv
  * Serving Quart app 'app'
  * Debug mode: True
  * Please use an ASGI server (e.g. Hypercorn) directly in production
  * Running on http://0.0.0.0:5000 (CTRL + C to quit)
-[2025-07-02 12:58:13,757] INFO in app: Route: static -> /static/<path:filename>
+[2025-07-02 13:27:08,817] INFO in app: Route: static -> /static/<path:filename>
 INFO:app:Route: static -> /static/<path:filename>
-[2025-07-02 12:58:13,757] INFO in app: Route: verteil_flights.air_shopping -> /api/verteil/air-shopping
+[2025-07-02 13:27:08,818] INFO in app: Route: verteil_flights.air_shopping -> /api/verteil/air-shopping
 INFO:app:Route: verteil_flights.air_shopping -> /api/verteil/air-shopping
-[2025-07-02 12:58:13,758] INFO in app: Route: verteil_flights.flight_price -> /api/verteil/flight-price
+[2025-07-02 13:27:08,818] INFO in app: Route: verteil_flights.flight_price -> /api/verteil/flight-price
 INFO:app:Route: verteil_flights.flight_price -> /api/verteil/flight-price
-[2025-07-02 12:58:13,758] INFO in app: Route: verteil_flights.create_order -> /api/verteil/order-create
+[2025-07-02 13:27:08,818] INFO in app: Route: verteil_flights.create_order -> /api/verteil/order-create
 INFO:app:Route: verteil_flights.create_order -> /api/verteil/order-create
-[2025-07-02 12:58:13,759] INFO in app: Route: debug.get_token_status -> /debug/token
-INFO:app:Route: debug.get_token_status -> /debug/token       
-[2025-07-02 12:58:13,759] INFO in app: Route: debug.clear_token -> /debug/clear-token
-INFO:app:Route: debug.clear_token -> /debug/clear-token      
-[2025-07-02 12:58:13,760] INFO in app: Route: airport_routes.airport_autocomplete -> /api/airports/autocomplete
+[2025-07-02 13:27:08,819] INFO in app: Route: debug.get_token_status -> /debug/token
+INFO:app:Route: debug.get_token_status -> /debug/token
+[2025-07-02 13:27:08,820] INFO in app: Route: debug.clear_token -> /debug/clear-token
+INFO:app:Route: debug.clear_token -> /debug/clear-token
+[2025-07-02 13:27:08,820] INFO in app: Route: airport_routes.airport_autocomplete -> /api/airports/autocomplete
 INFO:app:Route: airport_routes.airport_autocomplete -> /api/airports/autocomplete
-[2025-07-02 12:58:13,760] INFO in app: Route: health_check -> /api/health
+[2025-07-02 13:27:08,821] INFO in app: Route: health_check -> /api/health
 INFO:app:Route: health_check -> /api/health
-[2025-07-02 12:58:13,760] INFO in app: Route: list_routes -> /api/debug/routes
+[2025-07-02 13:27:08,821] INFO in app: Route: list_routes -> /api/debug/routes
 INFO:app:Route: list_routes -> /api/debug/routes
-[2025-07-02 12:58:13 +0300] [14128] [INFO] Running on http://0.0.0.0:5000 (CTRL + C to quit)
+[2025-07-02 13:27:08 +0300] [15892] [INFO] Running on http://0.0.0.0:5000 (CTRL + C to quit)
 INFO:hypercorn.error:Running on http://0.0.0.0:5000 (CTRL + C to quit)
 INFO:routes.verteil_flights:Incoming request: POST /api/verteil/order-create
 INFO:routes.verteil_flights:Headers: {'Remote-Addr': '127.0.0.1', 'Host': 'localhost:5000', 'User-Agent': 'python-requests/2.31.0', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Type': 'application/json', 'Content-Length': '1439'}
 INFO:routes.verteil_flights:Origin: None
 INFO:routes.verteil_flights:Access-Control-Request-Method: None
-INFO:routes.verteil_flights:[DEBUG] Raw frontend data received (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617) - Keys: ['flight_price_response', 'passengers', 'payment', 'contact_info']
-INFO:routes.verteil_flights:[DEBUG] flight_price_response available: True (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)   
-INFO:routes.verteil_flights:[DEBUG] frontend_offer_id received: None (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)        
-INFO:routes.verteil_flights:[DEBUG] flight_price_response keys: ['DataLists', 'Document', 'PricedFlightOffers', 'ShoppingResponseID'] (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)    
-INFO:routes.verteil_flights:[DEBUG] flight_price_response type: <class 'dict'> (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
-INFO:routes.verteil_flights:[DEBUG] Complete flight_price_response structure (first 2000 chars): {'DataLists': {'AnonymousTravelerList': {'AnonymousTraveler': [{'ObjectKey': 'PAX1', 'PTC': {'value': 'ADT'}}]}, 'FlightSegmentList': {'FlightSegment': [{'SegmentKey': 'SEG2', 'Departure': {'AirportCode': {'value': 'NBO'}, 'Date': '2025-07-09T09:05:00.000', 'Time': '09:05'}, 'Arrival': {'AirportCode': {'value': 'LHR'}, 'Date': '2025-07-09T16:15:00.000', 'Time': '16:15'}, 'MarketingCarrier': {'AirlineID': {'value': 'KQ'}, 'FlightNumber': {'value': '100'}, 'Name': 'Kenya Airways'}}]}}, 'Document': {'Name': 'NDC AirShoppingRS', 'ReferenceVersion': '1.0'}, 'PricedFlightOffers': {'PricedFlightOffer': [{'OfferID': '1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL', 'OfferPrice': {'RequestedDate': '2025-07-02', 'TotalAmount': {'DetailCurrencyPrice': {'Total': {'Code': 'INR', 'value': 49434}}}}}]}, 'ShoppingResponseID': 'test-shopping-response-id'}... (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
-INFO:routes.verteil_flights:[DEBUG] Method 1 - Extracted OfferID (simple): 1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
-INFO:routes.verteil_flights:[DEBUG] Extracted flight_price_response present (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): True
-INFO:routes.verteil_flights:[DEBUG] Flight price response keys (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): ['DataLists', 'Document', 'PricedFlightOffers', 'ShoppingResponseID']    
-INFO:routes.verteil_flights:[DEBUG] Extracted passengers count (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): 1
-INFO:routes.verteil_flights:[DEBUG] Extracted payment method (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): CASH
-INFO:routes.verteil_flights:[DEBUG] Complete payment_info structure (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): {'payment_method': 'CASH'}
-INFO:routes.verteil_flights:[DEBUG] Extracted contact info present (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): True    
-INFO:routes.verteil_flights:[DEBUG] Extracted OfferID (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): 1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL
-INFO:routes.verteil_flights:[DEBUG] Extracted ShoppingResponseID (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): None      
-INFO:routes.verteil_flights:[DEBUG] Order data being sent to booking service (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617) - Keys: ['flight_price_response', 'passengers', 'payment_info', 'contact_info', 'request_id', 'config', 'offer_id', 'shopping_response_id']
-INFO:routes.verteil_flights:Processing order creation - Request ID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617
+INFO:routes.verteil_flights:[DEBUG] Raw frontend data received (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd) - Keys: ['flight_price_response', 'passengers', 'payment', 'contact_info']
+INFO:routes.verteil_flights:[DEBUG] flight_price_response available: True (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
+INFO:routes.verteil_flights:[DEBUG] frontend_offer_id received: None (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
+INFO:routes.verteil_flights:[DEBUG] flight_price_response keys: ['DataLists', 'Document', 'PricedFlightOffers', 'ShoppingResponseID'] (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
+INFO:routes.verteil_flights:[DEBUG] flight_price_response type: <class 'dict'> (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
+INFO:routes.verteil_flights:[DEBUG] Complete flight_price_response structure (first 2000 chars): {'DataLists': {'AnonymousTravelerList': {'AnonymousTraveler': [{'ObjectKey': 'PAX1', 'PTC': {'value': 'ADT'}}]}, 'FlightSegmentList': {'FlightSegment': [{'SegmentKey': 'SEG2', 'Departure': {'AirportCode': {'value': 'NBO'}, 'Date': '2025-07-09T09:05:00.000', 'Time': '09:05'}, 'Arrival': {'AirportCode': {'value': 'LHR'}, 'Date': '2025-07-09T16:15:00.000', 'Time': '16:15'}, 'MarketingCarrier': {'AirlineID': {'value': 'KQ'}, 'FlightNumber': {'value': '100'}, 'Name': 'Kenya Airways'}}]}}, 'Document': {'Name': 'NDC AirShoppingRS', 'ReferenceVersion': '1.0'}, 'PricedFlightOffers': {'PricedFlightOffer': [{'OfferID': '1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL', 'OfferPrice': {'RequestedDate': '2025-07-02', 'TotalAmount': {'DetailCurrencyPrice': {'Total': {'Code': 'INR', 'value': 49434}}}}}]}, 'ShoppingResponseID': 'test-shopping-response-id'}... (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
+INFO:routes.verteil_flights:[DEBUG] Method 1 - Extracted OfferID (simple): 1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
+INFO:routes.verteil_flights:[DEBUG] Extracted flight_price_response present (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): True        
+INFO:routes.verteil_flights:[DEBUG] Flight price response keys (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): ['DataLists', 'Document', 'PricedFlightOffers', 'ShoppingResponseID']
+INFO:routes.verteil_flights:[DEBUG] Extracted passengers count (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): 1
+INFO:routes.verteil_flights:[DEBUG] Extracted payment method (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): CASH
+INFO:routes.verteil_flights:[DEBUG] Complete payment_info structure (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): {'payment_method': 'CASH'}
+INFO:routes.verteil_flights:[DEBUG] Extracted contact info present (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): True
+INFO:routes.verteil_flights:[DEBUG] Extracted OfferID (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): 1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL
+INFO:routes.verteil_flights:[DEBUG] Extracted ShoppingResponseID (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): None
+INFO:routes.verteil_flights:[DEBUG] Order data being sent to booking service (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd) - Keys: ['flight_price_response', 'passengers', 'payment_info', 'contact_info', 'request_id', 'config', 'offer_id', 'shopping_response_id']        
+INFO:routes.verteil_flights:Processing order creation - Request ID: bafc4765-aacb-437f-9e0d-2b53221935dd
 🟡🟡🟡 ENTRY: process_order_create called with keys: ['flight_price_response', 'passengers', 'payment_info', 'contact_info', 'request_id', 'config', 'offer_id', 'shopping_response_id'] 🟡🟡🟡
 INFO:services.flight.booking:🟡🟡🟡 ENTRY: process_order_create called with keys: ['flight_price_response', 'passengers', 'payment_info', 'contact_info', 'request_id', 'config', 'offer_id', 'shopping_response_id'] 🟡🟡🟡
-🟡🟡🟡 Config extracted: {'APPLICATION_ROOT': '/', 'BACKGROUND_TASK_SHUTDOWN_TIMEOUT': 5, 'BODY_TIMEOUT': 60, 'DEBUG': True, 'ENV': None, 'EXPLAIN_TEMPLATE_LOADING': False, 'MAX_CONTENT_LENGTH': 16777216, 'MAX_COOKIE_SIZE': 4093, 'MAX_FORM_MEMORY_SIZE': 500000, 'MAX_FORM_PARTS': 1000, 'PERMANENT_SESSION_LIFETIME': datetime.timedelta(days=31), 'PREFER_SECURE_URLS': False, 'PRESERVE_CONTEXT_ON_EXCEPTION': None, 'PROPAGATE_EXCEPTIONS': None, 'PROVIDE_AUTOMATIC_OPTIONS': True, 'RESPONSE_TIMEOUT': 60, 'SECRET_KEY': '3b8a4665b373558cddee0c362d73d0688eb717a1c025cc89975bb308fc9412f7', 'SEND_FILE_MAX_AGE_DEFAULT': datetime.timedelta(seconds=43200), 'SERVER_NAME': None, 'SESSION_COOKIE_DOMAIN': None, 'SESSION_COOKIE_HTTPONLY': True, 'SESSION_COOKIE_NAME': 'session', 'SESSION_COOKIE_PATH': None, 'SESSION_COOKIE_SAMESITE': None, 'SESSION_COOKIE_SECURE': False, 'SESSION_REFRESH_EACH_REQUEST': True, 'TEMPLATES_AUTO_RELOAD': None, 'TESTING': False, 'TRAP_BAD_REQUEST_ERRORS': None, 'TRAP_HTTP_EXCEPTIONS': False, 'API_KEYS': [''], 'API_KEY_AUTH_ENABLED': False, 'API_PREFIX': '/api', 'CACHE_DEFAULT_TIMEOUT': 300, 'CACHE_REDIS_URL': 'redis://localhost:6379/0', 'CACHE_TYPE': 'redis', 'COMPRESS_RESPONSES': True, 'CORS_ALLOW_HEADERS': ['Content-Type', 'Authorization'], 'CORS_EXPOSE_HEADERS': ['Content-Type'], 'CORS_METHODS': ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 'CORS_ORIGINS': ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001', 'https://flight-pearl.vercel.app'], 'CORS_SUPPORTS_CREDENTIALS': True, 'JWT_ACCESS_TOKEN_EXPIRES': 3600, 'JWT_SECRET_KEY': 'jwt-secret-key-change-in-production', 'LOG_FORMAT': '%(asctime)s - %(name)s - %(levelname)s - %(message)s', 'LOG_LEVEL': 'INFO', 'OAUTH2_TOKEN_EXPIRY_BUFFER': 60, 'RATELIMIT_DEFAULT': '200 per day;50 per hour;10 per minute', 'REDIS_URL': 'redis://localhost:6379/0', 'REQUEST_DEDUPLICATION_ENABLED': True, 'REQUEST_DEDUPLICATION_TTL': 5, 'REQUEST_TIMEOUT': 30, 'VERTEIL_API_BASE_URL': 'https://api.stage.verteil.com', 'VERTEIL_CLIENT_ID': None, 'VERTEIL_CLIENT_SECRET': None, 'VERTEIL_OFFICE_ID': 'OFF3746', 'VERTEIL_PASSWORD': 'UZrNcyxpIFn2TOdiU5uc9kZrqJwxU44KdlyFBpiDOaaNom1xSySEtQmRq9IcDq3c', 'VERTEIL_THIRD_PARTY_ID': 'KQ', 'VERTEIL_USERNAME': 'reatravel_apitestuser'} 🟡🟡🟡
+🟡🟡🟡 Config extracted: {'APPLICATION_ROOT': '/', 'BACKGROUND_TASK_SHUTDOWN_TIMEOUT': 5, 'BODY_TIMEOUT': 60, 'DEBUG': True, 'ENV': None, 'EXPLAIN_TEMPLATE_LOADING': False, 'MAX_CONTENT_LENGTH': 16777216, 'MAX_COOKIE_SIZE': 4093, 'MAX_FORM_MEMORY_SIZE': 500000, 'MAX_FORM_PARTS': 1000, 'PERMANENT_SESSION_LIFETIME': datetime.timedelta(days=31), 'PREFER_SECURE_URLS': False, 'PRESERVE_CONTEXT_ON_EXCEPTION': None, 'PROPAGATE_EXCEPTIONS': None, 'PROVIDE_AUTOMATIC_OPTIONS': True, 'RESPONSE_TIMEOUT': 60, 'SECRET_KEY': '3b8a4665b373558cddee0c362d73d0688eb717a1c025cc89975bb308fc9412f7', 'SEND_FILE_MAX_AGE_DEFAULT': datetime.timedelta(seconds=43200), 'SERVER_NAME': None, 'SESSION_COOKIE_DOMAIN': None, 'SESSION_COOKIE_HTTPONLY': True, 'SESSION_COOKIE_NAME': 'session', 'SESSION_COOKIE_PATH': None, 'SESSION_COOKIE_SAMESITE': None, 'SESSION_COOKIE_SECURE': False, 'SESSION_REFRESH_EACH_REQUEST': True, 'TEMPLATES_AUTO_RELOAD': None, 'TESTING': False, 'TRAP_BAD_REQUEST_ERRORS': None, 'TRAP_HTTP_EXCEPTIONS': False, 'API_KEYS': [''], 'API_KEY_AUTH_ENABLED': False, 'API_PREFIX': '/api', 'CACHE_DEFAULT_TIMEOUT': 300, 'CACHE_REDIS_URL': 'redis://localhost:6379/0', 'CACHE_TYPE': 'redis', 'COMPRESS_RESPONSES': True, 'CORS_ALLOW_HEADERS': ['Content-Type', 'Authorization'], 'CORS_EXPOSE_HEADERS': ['Content-Type'], 'CORS_METHODS': ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 'CORS_ORIGINS': ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001', 'https://flight-pearl.vercel.app'], 'CORS_SUPPORTS_CREDENTIALS': True, 'JWT_ACCESS_TOKEN_EXPIRES': 3600, 'JWT_SECRET_KEY': 'jwt-secret-key-change-in-production', 'LOG_FORMAT': '%(asctime)s - %(name)s - %(levelname)s - %(message)s', 'LOG_LEVEL': 'INFO', 'OAUTH2_TOKEN_EXPIRY_BUFFER': 60, 'RATELIMIT_DEFAULT': '200 per day;50 per hour;10 per minute', 'REDIS_URL': 'redis://localhost:6379/0', 'REQUEST_DEDUPLICATION_ENABLED': True, 'REQUEST_DEDUPLICATION_TTL': 5, 'REQUEST_TIMEOUT': 30, 'VERTEIL_API_BASE_URL': 'https://api.stage.verteil.com', 'VERTEIL_CLIENT_ID': None, 'VERTEIL_CLIENT_SECRET': None, 'VERTEIL_OFFICE_ID': 'OFF3746', 'VERTEIL_PASSWORD': 'UZrNcyxpIFn2TOdiU5uc9kZrqJwxU44KdlyFBpiDOaaNom1xSySEtQmRq9IcDq3c', 'VERTEIL_THIRD_PARTY_ID': 'KQ', 'VERTEIL_USERNAME': 'reatravel_apitestuser'} 🟡🟡🟡      
 INFO:services.flight.booking:🔥🔥🔥 process_order_create called, creating FlightBookingService instance 🔥🔥🔥
 🔥🔥🔥 process_order_create called, creating FlightBookingService instance 🔥🔥🔥
-[2025-07-02 12:58:28,583] INFO in core: FlightService initialized with necessary OAuth configurations.
+[2025-07-02 13:27:18,709] INFO in core: FlightService initialized with necessary OAuth configurations.
 INFO:services.flight.core:FlightService initialized with necessary OAuth configurations.
-INFO:services.flight.booking:🔥🔥🔥 FlightBookingService instance created: <class 'services.flight.booking.FlightBookingService'> 🔥🔥🔥
+INFO:services.flight.booking:🔥🔥🔥 FlightBookingService instance created: <class 'services.flight.booking.FlightBookingService'> 🔥🔥 🔥
 🔥🔥🔥 FlightBookingService instance created: <class 'services.flight.booking.FlightBookingService'> 🔥🔥🔥
 INFO:services.flight.booking:🔥🔥🔥 About to call service.create_booking 🔥🔥🔥
 🔥🔥🔥 About to call service.create_booking 🔥🔥🔥
@@ -62,58 +62,59 @@ INFO:services.flight.booking:🔥🔥🔥 About to call service.create_booking �
   - passengers count: 1
   - payment_info: {'payment_method': 'CASH'}
   - contact_info: {'phone': '1234567890', 'phoneCountryCode': '+1', 'email': 'john.doe@example.com', 'street': '123 Main Street', 'city': 'New York', 'state': 'NY', 'postalCode': '10001', 'countryCode': 'US'}
-  - request_id: 1d9de359-3ab8-40f8-93ff-2d65b2a46617
+  - request_id: bafc4765-aacb-437f-9e0d-2b53221935dd
   - offer_id: 1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL
   - shopping_response_id: None
 🟢🟢🟢 FIRST LINE OF create_booking METHOD 🟢🟢🟢
-INFO:services.flight.booking:🚀🚀🚀 MODIFIED create_booking method called with request_id: 1d9de359-3ab8-40f8-93ff-2d65b2a46617 🚀🚀🚀
-🚀🚀🚀 MODIFIED create_booking method called with request_id: 1d9de359-3ab8-40f8-93ff-2d65b2a46617 🚀🚀🚀
+INFO:services.flight.booking:🚀🚀🚀 MODIFIED create_booking method called with request_id: bafc4765-aacb-437f-9e0d-2b53221935dd 🚀🚀🚀 
+🚀🚀🚀 MODIFIED create_booking method called with request_id: bafc4765-aacb-437f-9e0d-2b53221935dd 🚀🚀🚀
 [PRINT DEBUG] create_booking method ENTRY POINT - before any processing
 INFO:services.flight.booking:[DEBUG] create_booking method ENTRY POINT - before any processing
 INFO:services.flight.booking:[DEBUG] create_booking - about to validate input
 INFO:services.flight.booking:[DEBUG] create_booking - validation passed
-INFO:services.flight.booking:[DEBUG] create_booking called (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
+INFO:services.flight.booking:[DEBUG] create_booking called (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
 INFO:services.flight.booking:[DEBUG] create_booking parameters - offer_id: 1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL, shopping_response_id: None
 INFO:services.flight.booking:[DEBUG] create_booking flight_price_response keys: ['DataLists', 'Document', 'PricedFlightOffers', 'ShoppingResponseID']
-INFO:services.flight.booking:[DEBUG] About to call _build_booking_payload (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)   
-[PRINT DEBUG] About to call _build_booking_payload (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
-[PRINT DEBUG] _build_booking_payload called (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
-INFO:services.flight.booking:[DEBUG] _build_booking_payload called (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
+INFO:services.flight.booking:[DEBUG] About to call _build_booking_payload (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
+[PRINT DEBUG] About to call _build_booking_payload (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
+[PRINT DEBUG] _build_booking_payload called (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
+INFO:services.flight.booking:[DEBUG] _build_booking_payload called (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
 INFO:services.flight.booking:[DEBUG] _build_booking_payload parameters - offer_id: 1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL, shopping_response_id: None
-INFO:services.flight.booking:[DEBUG] Checking generate_order_create_rq availability (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): <function generate_order_create_rq at 0x0000016B937B6340>
-INFO:services.flight.booking:[DEBUG] generate_order_create_rq function is available (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): <class 'function'>
-INFO:services.flight.booking:[DEBUG] Attempting to use proper OrderCreate builder (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
+INFO:services.flight.booking:[DEBUG] Checking generate_order_create_rq availability (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): <function generate_order_create_rq at 0x00000234E5DB6160>
+INFO:services.flight.booking:[DEBUG] generate_order_create_rq function is available (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): <class 'function'>
+INFO:services.flight.booking:[DEBUG] Attempting to use proper OrderCreate builder (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)        
 INFO:services.flight.booking:[DEBUG] Flight price response keys being passed to builder: ['DataLists', 'Document', 'PricedFlightOffers', 'ShoppingResponseID']
 INFO:services.flight.booking:[DEBUG] Flight price response type: <class 'dict'>
-INFO:services.flight.booking:Building OrderCreate payload using request builder for request 1d9de359-3ab8-40f8-93ff-2d65b2a46617
-INFO:services.flight.booking:[DEBUG] Flight price response present (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): True    
-INFO:services.flight.booking:[DEBUG] Passengers count (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): 1
-INFO:services.flight.booking:[DEBUG] Payment method (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): CASH
-INFO:services.flight.booking:[DEBUG] Contact info present (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): True
-INFO:services.flight.booking:[DEBUG] Extracted offer_id from frontend (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): 1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL
-INFO:services.flight.booking:[DEBUG] Extracted shopping_response_id from frontend (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): None
-INFO:services.flight.booking:[DEBUG] Trying to find cache by scanning for shopping_response_id: None (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
-INFO:services.flight.booking:[DEBUG] Frontend data appears to be raw flight price response (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
-INFO:services.flight.booking:[DEBUG] Retrieved raw flight price response from cache (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
+INFO:services.flight.booking:Building OrderCreate payload using request builder for request bafc4765-aacb-437f-9e0d-2b53221935dd       
+INFO:services.flight.booking:[DEBUG] Flight price response present (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): True
+INFO:services.flight.booking:[DEBUG] Passengers count (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): 1
+INFO:services.flight.booking:[DEBUG] Payment method (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): CASH
+INFO:services.flight.booking:[DEBUG] Contact info present (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): True
+INFO:services.flight.booking:[DEBUG] Extracted offer_id from frontend (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): 1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL
+INFO:services.flight.booking:[DEBUG] Extracted shopping_response_id from frontend (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): None  
+INFO:services.flight.booking:[DEBUG] Trying to find cache by scanning for shopping_response_id: None (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
+INFO:services.flight.booking:[DEBUG] Frontend data appears to be raw flight price response (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
+INFO:services.flight.booking:[DEBUG] Retrieved raw flight price response from cache (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)      
 INFO:services.flight.booking:[DEBUG] Raw flight price response keys: ['DataLists', 'Document', 'PricedFlightOffers', 'ShoppingResponseID']
-INFO:services.flight.booking:[DEBUG] Raw response has proper PricedFlightOffers with OfferPrice entries - using raw response (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
+INFO:services.flight.booking:[DEBUG] Raw response has proper PricedFlightOffers with OfferPrice entries - using raw response (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
 INFO:services.flight.booking:[ANALYSIS] flight_price_response top-level keys: ['DataLists', 'Document', 'PricedFlightOffers', 'ShoppingResponseID']
 INFO:services.flight.booking:[ANALYSIS] PricedFlightOffers found in flight_price_response
 INFO:services.flight.booking:[ANALYSIS] Found 1 PricedFlightOffers
 INFO:services.flight.booking:[ANALYSIS] DataLists found in flight_price_response
 INFO:services.flight.booking:[ANALYSIS] DataLists keys: ['AnonymousTravelerList', 'FlightSegmentList']
 INFO:services.flight.booking:[ANALYSIS] AnonymousTravelerList found in DataLists
-INFO:services.flight.booking:[ANALYSIS] ShoppingResponseID found in flight_price_response: test-shopping-response-id      
+INFO:services.flight.booking:[ANALYSIS] ShoppingResponseID found in flight_price_response: test-shopping-response-id
 INFO:services.flight.booking:[ANALYSIS] 'data' key NOT found in flight_price_response
-INFO:services.flight.booking:[DEBUG] Transformed passenger (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): Unknown Unknown 
-INFO:services.flight.booking:[DEBUG] Enhancing flight_price_response with extracted IDs (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
-INFO:services.flight.booking:[DEBUG] Created PricedFlightOffers structure with OfferID: 1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
-INFO:services.flight.booking:[DEBUG] Added OfferPrice structure to PricedFlightOffer (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
-INFO:services.flight.booking:[DEBUG] Transformed passengers count (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): 1        
-INFO:services.flight.booking:[DEBUG] Transformed payment method (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): None       
-INFO:services.flight.booking:[DEBUG] Enhanced flight price response top-level keys (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): ['DataLists', 'Document', 'PricedFlightOffers', 'ShoppingResponseID']
-INFO:services.flight.booking:[DEBUG] ShoppingResponseID in enhanced response (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): test-shopping-response-id
-INFO:services.flight.booking:[DEBUG] First PricedFlightOffer OfferID (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617): {'value': '1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL', 'Owner': 'QR', 'Channel': 'NDC'}
+INFO:services.flight.booking:[DEBUG] Transformed passenger (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): Unknown Unknown
+INFO:services.flight.booking:[DEBUG] Enhancing flight_price_response with extracted IDs (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)  
+INFO:services.flight.booking:[DEBUG] Injecting OfferID 1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL into existing PricedFlightOffers structure (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
+INFO:services.flight.booking:[DEBUG] Updated existing OfferID in PricedFlightOffers (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)      
+INFO:services.flight.booking:[DEBUG] OfferID injection completed - letting build_ordercreate_rq.py handle the rest (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
+INFO:services.flight.booking:[DEBUG] Transformed passengers count (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): 1
+INFO:services.flight.booking:[DEBUG] Transformed payment method (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): None
+INFO:services.flight.booking:[DEBUG] Enhanced flight price response top-level keys (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): ['DataLists', 'Document', 'PricedFlightOffers', 'ShoppingResponseID']
+INFO:services.flight.booking:[DEBUG] ShoppingResponseID in enhanced response (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): test-shopping-response-id
+INFO:services.flight.booking:[DEBUG] First PricedFlightOffer OfferID (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd): {'value': '1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL', 'Owner': 'QR', 'Channel': 'NDC'}
 INFO:services.flight.booking:[DEBUG] About to call generate_order_create_rq with enhanced_flight_price_response keys: ['DataLists', 'Document', 'PricedFlightOffers', 'ShoppingResponseID']
 INFO:services.flight.booking:[DEBUG] Enhanced flight_price_response has 4 top-level keys
 INFO:services.flight.booking:[DEBUG] Transformed passengers count: 1
@@ -121,48 +122,73 @@ INFO:services.flight.booking:[DEBUG] Transformed payment keys: ['MethodType', 'c
 INFO:services.flight.booking:[DEBUG] ===== CALLING generate_order_create_rq FUNCTION =====
 INFO:build_ordercreate_rq:[DEBUG] build_ordercreate_rq - Input flight_price_response keys: ['DataLists', 'Document', 'PricedFlightOffers', 'ShoppingResponseID']
 INFO:build_ordercreate_rq:[DEBUG] build_ordercreate_rq - Input flight_price_response type: <class 'dict'>
+INFO:build_ordercreate_rq:[DEBUG] build_ordercreate_rq - Input passengers_data count: 1
+INFO:build_ordercreate_rq:[DEBUG] build_ordercreate_rq - Input payment_input_info keys: ['MethodType', 'currency', 'Details']
+INFO:build_ordercreate_rq:[DEBUG] build_ordercreate_rq - FUNCTION ENTRY POINT
 INFO:build_ordercreate_rq:[DEBUG] build_ordercreate_rq - Using direct structure, keys: ['DataLists', 'Document', 'PricedFlightOffers', 'ShoppingResponseID']
 INFO:build_ordercreate_rq:[DEBUG] build_ordercreate_rq - ShoppingResponseID node: test-shopping-response-id
+INFO:build_ordercreate_rq:[DEBUG] build_ordercreate_rq - ShoppingResponseID node type: <class 'str'>
+INFO:build_ordercreate_rq:[DEBUG] build_ordercreate_rq - Using string ShoppingResponseID: test-shopping-response-id
+INFO:build_ordercreate_rq:[DEBUG] build_ordercreate_rq - Final extracted ResponseID value: test-shopping-response-id
+INFO:build_ordercreate_rq:[DEBUG] build_ordercreate_rq - PricedFlightOffers structure: <class 'list'>, length: 1
+INFO:build_ordercreate_rq:[DEBUG] Selected PricedFlightOffer keys: ['OfferID', 'OfferPrice']
+INFO:build_ordercreate_rq:[DEBUG] OfferPrice found: True
+INFO:build_ordercreate_rq:[DEBUG] First OfferPrice entry keys: ['RequestedDate', 'TotalAmount']
+INFO:build_ordercreate_rq:[DEBUG] OfferItemID missing in OfferPrice entries - will generate them
+INFO:build_ordercreate_rq:[DEBUG] Generated OfferItemID: 1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL-1-1
+INFO:build_ordercreate_rq:[DEBUG] Processing OfferItemID: 1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL-1-1
+INFO:build_ordercreate_rq:[DEBUG] build_detailed_offer_item - offer_price_entry_fprs keys: ['RequestedDate', 'TotalAmount', 'OfferItemID']
+INFO:build_ordercreate_rq:[DEBUG] build_detailed_offer_item - requested_date_fprs: 2025-07-02
 ERROR:services.flight.booking:[DEBUG] ===== EXCEPTION IN generate_order_create_rq FUNCTION =====
 ERROR:services.flight.booking:Error using OrderCreate request builder: 'str' object has no attribute 'get'
 ERROR:services.flight.booking:Request builder error details: 'str' object has no attribute 'get'
 ERROR:services.flight.booking:Request builder traceback: Traceback (most recent call last):
-  File "C:\Users\User\Desktop\FLIGHT\Backend\services\flight\booking.py", line 966, in _build_booking_payload
+  File "C:\Users\User\Desktop\FLIGHT\Backend\services\flight\booking.py", line 930, in _build_booking_payload
     payload = current_func(
         flight_price_response=enhanced_flight_price_response,
         passengers_data=transformed_passengers,
         payment_input_info=transformed_payment
     )
-  File "C:\Users\User\Desktop\FLIGHT\Backend\scripts\build_ordercreate_rq.py", line 149, in generate_order_create_rq      
-    fpr_response_id_value = fpr_shopping_response_id_node.get('ResponseID', {}).get('value')
-                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\Desktop\FLIGHT\Backend\scripts\build_ordercreate_rq.py", line 290, in generate_order_create_rq
+    build_detailed_offer_item(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        actual_flight_price_response,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        order_create_rq["Query"]["OrderItems"]["OfferItem"]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\User\Desktop\FLIGHT\Backend\scripts\build_ordercreate_rq.py", line 329, in build_detailed_offer_item
+    price_detail_fprs = requested_date_fprs.get("PriceDetail", {})
+                        ^^^^^^^^^^^^^^^^^^^^^^^
 AttributeError: 'str' object has no attribute 'get'
 
 ERROR:services.flight.booking:[DEBUG] ===== FALLING BACK TO MANUAL CONSTRUCTION =====
-INFO:services.flight.booking:[DEBUG] _build_fallback_payload called (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
+INFO:services.flight.booking:[DEBUG] _build_fallback_payload called (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
 INFO:services.flight.booking:[DEBUG] _build_fallback_payload parameters - offer_id: 1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL, shopping_response_id: None
 INFO:services.flight.booking:[DEBUG] Fallback payload - Flight price response structure keys: ['DataLists', 'Document', 'PricedFlightOffers', 'ShoppingResponseID']
 INFO:services.flight.booking:[DEBUG] Fallback payload - Using extracted shopping_response_id: None
-INFO:services.flight.booking:[DEBUG] Fallback payload - Using extracted offer_id: 1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL     
+INFO:services.flight.booking:[DEBUG] Fallback payload - Using extracted offer_id: 1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL
 INFO:services.flight.booking:[DEBUG] Found ShoppingResponseID in direct field: test-shopping-response-id
-INFO:services.flight.booking:[DEBUG] Final extracted OfferItemIDs: []
-INFO:services.flight.booking:[DEBUG] Finished calling _build_booking_payload (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
-[PRINT DEBUG] Finished calling _build_booking_payload (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)
-INFO:services.flight.booking:[DEBUG] Attempting to extract airline code from flight_price_response with keys: ['DataLists', 'Document', 'PricedFlightOffers', 'ShoppingResponseID']    
-WARNING:services.flight.booking:Could not extract airline code from FlightPrice response. Available top-level keys: ['DataLists', 'Document', 'PricedFlightOffers', 'ShoppingResponseID']
-WARNING:services.flight.booking:[DEBUG] Flight price response has 4 top-level keys
-INFO:services.flight.booking:Extracted airline code 'None' for booking (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617)      
+INFO:services.flight.booking:[DEBUG] Found OfferItemIDs at top-level: ['1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL-1-1']
+INFO:services.flight.booking:[DEBUG] Final extracted OfferItemIDs: ['1H1KQZ_GNV1II47RJNSXHL19XQF91I7GOUL-1-1']
+INFO:services.flight.booking:[DEBUG] Finished calling _build_booking_payload (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
+[PRINT DEBUG] Finished calling _build_booking_payload (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
+INFO:services.flight.booking:[DEBUG] Attempting to extract airline code from flight_price_response with keys: ['DataLists', 'Document', 'PricedFlightOffers', 'ShoppingResponseID']
+INFO:services.flight.booking:Found airline code 'QR' in FlightPrice response OfferID.Owner
+INFO:services.flight.booking:Extracted airline code 'QR' for booking (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd)
 INFO:utils.auth:Fetching new OAuth2 token...
 INFO:utils.auth:Successfully obtained new token. Expires in 43199 seconds.
-[2025-07-02 12:58:29,829] INFO in core: Making POST request to https://api.stage.verteil.com/entrygate/rest/request:orderCreate for service OrderCreate (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617).
-INFO:services.flight.core:Making POST request to https://api.stage.verteil.com/entrygate/rest/request:orderCreate for service OrderCreate (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617).
-[2025-07-02 12:58:29,830] INFO in core: [DEBUG] Airline code used: None
-INFO:services.flight.core:[DEBUG] Airline code used: None    
-[2025-07-02 12:58:30,676] INFO in core: Successfully received API response for OrderCreate (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617) with status 200
-INFO:services.flight.core:Successfully received API response for OrderCreate (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617) with status 200
-[2025-07-02 12:58:30,677] INFO in core: [DEBUG] ===== COMPLETE ORDERCREATE API RESPONSE (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617) =====
-INFO:services.flight.core:[DEBUG] ===== COMPLETE ORDERCREATE API RESPONSE (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617) =====
-[2025-07-02 12:58:30,679] INFO in core: [DEBUG] Complete OrderCreate API response: {
+[2025-07-02 13:27:20,009] INFO in core: Making POST request to https://api.stage.verteil.com/entrygate/rest/request:orderCreate for service OrderCreate (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd).
+INFO:services.flight.core:Making POST request to https://api.stage.verteil.com/entrygate/rest/request:orderCreate for service OrderCreate (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd).
+[2025-07-02 13:27:20,010] INFO in core: [DEBUG] Airline code used: QR
+INFO:services.flight.core:[DEBUG] Airline code used: QR
+[2025-07-02 13:27:20,858] INFO in core: Successfully received API response for OrderCreate (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd) with status 200
+INFO:services.flight.core:Successfully received API response for OrderCreate (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd) with status 200
+[2025-07-02 13:27:20,860] INFO in core: [DEBUG] ===== COMPLETE ORDERCREATE API RESPONSE (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd) =====
+INFO:services.flight.core:[DEBUG] ===== COMPLETE ORDERCREATE API RESPONSE (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd) =====
+[2025-07-02 13:27:20,861] INFO in core: [DEBUG] Complete OrderCreate API response: {
   "VdcErrors": {
     "Error": [
       {}
@@ -176,15 +202,15 @@ INFO:services.flight.core:[DEBUG] Complete OrderCreate API response: {
     ]
   }
 }
-[2025-07-02 12:58:30,680] INFO in core: [DEBUG] ===== END ORDERCREATE API RESPONSE (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617) =====
-INFO:services.flight.core:[DEBUG] ===== END ORDERCREATE API RESPONSE (ReqID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617) =====  
+[2025-07-02 13:27:20,863] INFO in core: [DEBUG] ===== END ORDERCREATE API RESPONSE (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd) ===== 
+INFO:services.flight.core:[DEBUG] ===== END ORDERCREATE API RESPONSE (ReqID: bafc4765-aacb-437f-9e0d-2b53221935dd) =====
 INFO:services.flight.booking:[DEBUG] ===== PROCESSING ORDERCREATE RESPONSE =====
-INFO:services.flight.booking:[DEBUG] Response type: dict     
+INFO:services.flight.booking:[DEBUG] Response type: dict
 INFO:services.flight.booking:[DEBUG] Response top-level keys: ['VdcErrors']
 INFO:services.flight.booking:[DEBUG] No Response section found or response is not a dict
 INFO:services.flight.booking:[DEBUG] ===== END RESPONSE ANALYSIS =====
-INFO:services.flight.booking:Successfully processed OrderCreate response with new data contract. Booking reference: None  
+INFO:services.flight.booking:Successfully processed OrderCreate response with new data contract. Booking reference: None
 🟢🟢🟢 create_booking returned successfully! 🟢🟢🟢
 INFO:services.flight.booking:🟢🟢🟢 create_booking returned successfully! 🟢🟢🟢
-INFO:routes.verteil_flights:Order created successfully - Request ID: 1d9de359-3ab8-40f8-93ff-2d65b2a46617
-[2025-07-02 12:58:30 +0300] [14128] [INFO] 127.0.0.1:61436 POST /api/verteil/order-create 1.1 200 1157 2234243
+INFO:routes.verteil_flights:Order created successfully - Request ID: bafc4765-aacb-437f-9e0d-2b53221935dd
+[2025-07-02 13:27:20 +0300] [15892] [INFO] 127.0.0.1:62016 POST /api/verteil/order-create 1.1 200 1157 2306589

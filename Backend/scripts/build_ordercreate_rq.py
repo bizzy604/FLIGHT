@@ -1,10 +1,7 @@
 # --- START OF FILE build_ordercreate_rq.py (Consolidated) ---
 import json
-import logging
 from typing import Dict, Any, List
 from datetime import datetime # Keep for potential future use, e.g. logging
-
-logger = logging.getLogger(__name__)
 
 def create_passenger_mapping(flight_price_response: Dict[str, Any], passengers_data: List[Dict[str, Any]]) -> Dict[int, str]:
     """
@@ -33,32 +30,12 @@ def create_passenger_mapping(flight_price_response: Dict[str, Any], passengers_d
     
     # Create a mapping of PTC to list of ObjectKeys
     ptc_to_object_keys = {}
-
-    # Handle different AnonymousTravelerList structures
-    data_lists = flight_price_response.get("DataLists", {})
-    anonymous_traveler_list = data_lists.get("AnonymousTravelerList", [])
-
-    # Check if it's a dict with AnonymousTraveler key or directly a list
-    if isinstance(anonymous_traveler_list, dict):
-        anonymous_travelers = anonymous_traveler_list.get("AnonymousTraveler", [])
-    elif isinstance(anonymous_traveler_list, list):
-        anonymous_travelers = anonymous_traveler_list
-    else:
-        anonymous_travelers = []
-
+    anonymous_travelers = flight_price_response.get("DataLists", {}).get("AnonymousTravelerList", {}).get("AnonymousTraveler", [])
     if not isinstance(anonymous_travelers, list):
         anonymous_travelers = [anonymous_travelers] if anonymous_travelers else []
     
     for traveler in anonymous_travelers:
-        # Handle different PTC structures
-        ptc_value = traveler.get("PTC")
-        if isinstance(ptc_value, dict):
-            ptc = ptc_value.get("value")
-        elif isinstance(ptc_value, str):
-            ptc = ptc_value
-        else:
-            ptc = None
-
+        ptc = traveler.get("PTC", {}).get("value")
         object_key = traveler.get("ObjectKey")
         if ptc and object_key:
             if ptc not in ptc_to_object_keys:
@@ -120,9 +97,6 @@ def generate_order_create_rq(
     # DEBUG: Log the input data structure
     logger.info(f"[DEBUG] build_ordercreate_rq - Input flight_price_response keys: {list(flight_price_response.keys()) if isinstance(flight_price_response, dict) else 'Not a dict'}")
     logger.info(f"[DEBUG] build_ordercreate_rq - Input flight_price_response type: {type(flight_price_response)}")
-    logger.info(f"[DEBUG] build_ordercreate_rq - Input passengers_data count: {len(passengers_data) if passengers_data else 0}")
-    logger.info(f"[DEBUG] build_ordercreate_rq - Input payment_input_info keys: {list(payment_input_info.keys()) if isinstance(payment_input_info, dict) else 'Not a dict'}")
-    logger.info(f"[DEBUG] build_ordercreate_rq - FUNCTION ENTRY POINT")
     
     # --- 1. Extract Key Information from FlightPriceResponse ---
     # Handle nested data structure from frontend
@@ -148,25 +122,12 @@ def generate_order_create_rq(
     
     fpr_shopping_response_id_node = actual_flight_price_response.get('ShoppingResponseID', {})
     logger.info(f"[DEBUG] build_ordercreate_rq - ShoppingResponseID node: {fpr_shopping_response_id_node}")
-    logger.info(f"[DEBUG] build_ordercreate_rq - ShoppingResponseID node type: {type(fpr_shopping_response_id_node)}")
-
-    # Handle both string and dictionary formats for ShoppingResponseID
-    if isinstance(fpr_shopping_response_id_node, str):
-        # Direct string format: "test-shopping-response-id"
-        fpr_response_id_value = fpr_shopping_response_id_node
-        logger.info(f"[DEBUG] build_ordercreate_rq - Using string ShoppingResponseID: {fpr_response_id_value}")
-    elif isinstance(fpr_shopping_response_id_node, dict):
-        # Dictionary format: {"ResponseID": {"value": "test-shopping-response-id"}}
-        fpr_response_id_value = fpr_shopping_response_id_node.get('ResponseID', {}).get('value')
-        logger.info(f"[DEBUG] build_ordercreate_rq - Using dict ShoppingResponseID: {fpr_response_id_value}")
-    else:
-        fpr_response_id_value = None
-        logger.warning(f"[DEBUG] build_ordercreate_rq - Unknown ShoppingResponseID format: {type(fpr_shopping_response_id_node)}")
-
-    logger.info(f"[DEBUG] build_ordercreate_rq - Final extracted ResponseID value: {fpr_response_id_value}")
+    
+    fpr_response_id_value = fpr_shopping_response_id_node.get('ResponseID', {}).get('value')
+    logger.info(f"[DEBUG] build_ordercreate_rq - Extracted ResponseID value: {fpr_response_id_value}")
 
     if not fpr_response_id_value:
-        logger.error(f"[DEBUG] build_ordercreate_rq - ShoppingResponseID extraction failed. Available keys: {list(flight_price_response.keys()) if isinstance(flight_price_response, dict) else 'Not a dict'}")
+        logger.error(f"[DEBUG] build_ordercreate_rq - ShoppingResponseID extraction failed. Full structure: {json.dumps(flight_price_response, indent=2, default=str)}")
         raise ValueError("ShoppingResponseID (value) missing from FlightPriceResponse")
 
     priced_flight_offers = actual_flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
@@ -247,26 +208,6 @@ def generate_order_create_rq(
     if not isinstance(offer_price_list_fprs, list):
         offer_price_list_fprs = [offer_price_list_fprs] if offer_price_list_fprs else []
 
-    # Debug: Log the structure of the selected offer
-    logger.info(f"[DEBUG] Selected PricedFlightOffer keys: {list(selected_priced_offer.keys())}")
-    logger.info(f"[DEBUG] OfferPrice found: {bool(offer_price_list_fprs)}")
-    if offer_price_list_fprs:
-        logger.info(f"[DEBUG] First OfferPrice entry keys: {list(offer_price_list_fprs[0].keys()) if offer_price_list_fprs else 'None'}")
-        # Check if OfferItemID is present
-        first_offer_price = offer_price_list_fprs[0]
-        if 'OfferItemID' not in first_offer_price:
-            logger.info(f"[DEBUG] OfferItemID missing in OfferPrice entries - will generate them")
-            # Generate OfferItemID for each OfferPrice entry
-            for i, offer_price_entry in enumerate(offer_price_list_fprs):
-                if 'OfferItemID' not in offer_price_entry:
-                    generated_offer_item_id = f"{selected_offer_id_value}-{i+1}-1"
-                    offer_price_entry['OfferItemID'] = generated_offer_item_id
-                    logger.info(f"[DEBUG] Generated OfferItemID: {generated_offer_item_id}")
-        else:
-            logger.info(f"[DEBUG] OfferItemID present in OfferPrice entries")
-    else:
-        logger.info(f"[DEBUG] OfferPrice value in selected offer: {selected_priced_offer.get('OfferPrice', 'NOT_FOUND')}")
-
     if not offer_price_list_fprs:
         raise ValueError("No OfferPrice entries found in the selected PricedFlightOffer")
 
@@ -275,10 +216,8 @@ def generate_order_create_rq(
     for offer_price_entry_fprs in offer_price_list_fprs:
         fprs_offer_item_id_value = offer_price_entry_fprs.get("OfferItemID")
         if not fprs_offer_item_id_value:
-            logger.warning(f"Missing OfferItemID in an OfferPrice entry: {offer_price_entry_fprs}")
+            print(f"Warning: Missing OfferItemID in an OfferPrice entry: {offer_price_entry_fprs}")
             continue
-
-        logger.info(f"[DEBUG] Processing OfferItemID: {fprs_offer_item_id_value}")
 
         all_created_offer_item_ids_for_shopping_response.append({
             "OfferItemID": {
@@ -299,17 +238,9 @@ def generate_order_create_rq(
         all_created_offer_item_ids_for_shopping_response
 
     # --- 4. Process Other Sections ---
-    logger.info(f"[DEBUG] build_ordercreate_rq - About to process passengers")
     process_passengers_for_order_create(passengers_data, order_create_rq["Query"]["Passengers"]["Passenger"])
-    logger.info(f"[DEBUG] build_ordercreate_rq - About to process payments")
     process_payments_for_order_create(payment_input_info, order_create_rq["Query"]["Payments"]["Payment"], actual_flight_price_response)
-
-    logger.info(f"[DEBUG] build_ordercreate_rq - About to return order_create_rq")
-    logger.info(f"[DEBUG] build_ordercreate_rq - order_create_rq type: {type(order_create_rq)}")
-    logger.info(f"[DEBUG] build_ordercreate_rq - order_create_rq is None: {order_create_rq is None}")
-    if order_create_rq and isinstance(order_create_rq, dict):
-        logger.info(f"[DEBUG] build_ordercreate_rq - order_create_rq top-level keys: {list(order_create_rq.keys())}")
-
+    
     return order_create_rq
 
 def build_detailed_offer_item(
@@ -340,7 +271,6 @@ def build_detailed_offer_item(
 
     if not current_traveler_refs_for_this_item:
         print(f"Warning: No TravelerReferences for OfferItemID {exact_offer_item_id}. Skipping OfferItem detail.")
-        logger.error(f"[DEBUG] build_detailed_offer_item - EARLY RETURN: No TravelerReferences for OfferItemID {exact_offer_item_id}")
         return
 
     detailed_flight_item = {
@@ -426,7 +356,6 @@ def process_passengers_for_order_create(
 ):
     if not passengers_input_data:
         print("Warning: No passenger data provided for OrderCreateRQ.")
-        logger.error(f"[DEBUG] process_passengers_for_order_create - EARLY RETURN: No passenger data provided")
         return
 
     # First, count infants and adults
@@ -537,7 +466,6 @@ def process_payments_for_order_create(
 ):
     if not payment_input_info:
         print("Warning: No payment info for OrderCreateRQ. Defaulting to Cash for testing.")
-        logger.error(f"[DEBUG] process_payments_for_order_create - EARLY RETURN: No payment info provided")
         order_rq_payment_list.append({"Amount": {"Code": "USD", "value": 0}, "Method": {"Cash": {"CashInd": True}}})
         return
 

@@ -268,9 +268,20 @@ export default function PaymentPage() {
       
       // Validate that we received a proper booking reference
       // Backend response structure: { data: { bookingReference: "..." } }
-      const bookingReference = bookingResult.bookingReference || bookingResult.booking_reference || bookingResult.order_id
+      console.log('[DEBUG] Full bookingResult structure:', JSON.stringify(bookingResult, null, 2))
+
+      const bookingReference = bookingResult.bookingReference ||
+                              bookingResult.booking_reference ||
+                              bookingResult.order_id ||
+                              bookingResult.data?.bookingReference ||
+                              bookingResult.data?.booking_reference ||
+                              bookingResult.data?.order_id
+
+      console.log('[DEBUG] Extracted booking reference:', bookingReference)
+
       if (!bookingReference) {
         console.error('Booking result structure:', bookingResult)
+        console.error('Available keys in bookingResult:', Object.keys(bookingResult))
         throw new Error("Booking was processed but no booking reference was returned")
       }
 

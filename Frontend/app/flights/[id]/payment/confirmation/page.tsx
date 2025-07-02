@@ -25,6 +25,8 @@ export default function ConfirmationPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [booking, setBooking] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+  const [dataRecovered, setDataRecovered] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
 
   // Helper function to validate and ensure booking data structure
   const validateBookingData = (data: any) => {
@@ -60,11 +62,59 @@ export default function ConfirmationPage() {
     return validatedData
   }
 
-  // Fetch booking data from session storage or API
+  // Handle client-side hydration
   useEffect(() => {
+    setIsHydrated(true)
+  }, [])
+
+  // Development-only: Auto-recovery mechanism for hot reloads
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'development' || !isHydrated || booking) return
+
+    const checkForRecovery = () => {
+      const bookingReference = searchParams.get("reference")
+      if (!bookingReference) return
+
+      const completedBookingData = getBookingData()
+      if (completedBookingData) {
+        const backendBookingRef = completedBookingData.data?.bookingReference ||
+                                 completedBookingData.booking_reference ||
+                                 completedBookingData.order_id ||
+                                 completedBookingData.OrderID
+
+        if (backendBookingRef === bookingReference) {
+          console.log('[DevRecovery] Auto-recovered booking data after hot reload')
+          const validatedBooking = validateBookingData(completedBookingData)
+          setBooking(validatedBooking)
+          setDataRecovered(true)
+          setIsLoading(false)
+        }
+      }
+    }
+
+    // Check immediately and then periodically
+    checkForRecovery()
+    const interval = setInterval(checkForRecovery, 500)
+
+    // Clean up after 5 seconds
+    const timeout = setTimeout(() => {
+      clearInterval(interval)
+    }, 5000)
+
+    return () => {
+      clearInterval(interval)
+      clearTimeout(timeout)
+    }
+  }, [isHydrated, booking, searchParams])
+
+  // Enhanced data recovery mechanism that handles hot reloads
+  useEffect(() => {
+    // Don't run until hydrated to prevent SSR/client mismatch
+    if (!isHydrated) return
     const fetchBooking = async () => {
       try {
         setIsLoading(true)
+        setError(null)
 
         // Get the booking reference from URL query parameter
         const bookingReference = searchParams.get("reference")
@@ -73,26 +123,58 @@ export default function ConfirmationPage() {
           throw new Error("Booking reference not found")
         }
 
-        // First try to get completed booking from hybrid storage (session + local)
+        // Enhanced storage recovery with multiple attempts
+        let completedBookingData = null
+        let recoveryMethod = "none"
+
+        // Attempt 1: Try immediate retrieval
         const storageInfo = getStorageInfo()
         console.log("Storage info:", storageInfo)
-        
-        const completedBookingData = getBookingData()
+
+        completedBookingData = getBookingData()
+
+        // Attempt 2: If no data found, wait a bit and try again (handles hot reload timing)
+        if (!completedBookingData && process.env.NODE_ENV === 'development') {
+          console.log("No data found on first attempt, retrying after delay...")
+          await new Promise(resolve => setTimeout(resolve, 100))
+          completedBookingData = getBookingData()
+          if (completedBookingData) {
+            recoveryMethod = "delayed_retry"
+          }
+        }
 
         if (completedBookingData) {
           console.log("Retrieved booking from hybrid storage:", completedBookingData)
-          
-          // Show user feedback if data was recovered from localStorage or persistent backup
+
+          // Determine recovery method for user feedback
           if (!storageInfo.hasSessionData && storageInfo.hasLocalData && !storageInfo.localDataExpired) {
+            recoveryMethod = "localStorage"
+          } else if (!storageInfo.hasSessionData && !storageInfo.hasLocalData && storageInfo.hasPersistentData && !storageInfo.persistentDataExpired) {
+            recoveryMethod = "persistent_backup"
+          } else if (storageInfo.hasSessionData) {
+            recoveryMethod = "sessionStorage"
+          }
+
+          // Show appropriate user feedback
+          if (recoveryMethod === "localStorage") {
+            setDataRecovered(true)
             toast({
               title: "Booking Data Recovered",
               description: "Your booking details were successfully restored after the page refresh.",
               variant: "default",
             })
-          } else if (!storageInfo.hasSessionData && !storageInfo.hasLocalData && storageInfo.hasPersistentData && !storageInfo.persistentDataExpired) {
+          } else if (recoveryMethod === "persistent_backup") {
+            setDataRecovered(true)
             toast({
               title: "Booking Data Restored",
               description: "Your booking details were restored from development backup after hot reload.",
+              variant: "default",
+            })
+          } else if (recoveryMethod === "delayed_retry") {
+            setDataRecovered(true)
+            toast({
+              title: "Data Synchronized",
+              description: "Your booking details have been synchronized successfully.",
               variant: "default",
             })
           }
@@ -162,10 +244,10 @@ export default function ConfirmationPage() {
     }
 
     fetchBooking()
-  }, [searchParams, flightId])
+  }, [searchParams, flightId, isHydrated])
 
-  // Show loading spinner while checking authentication or loading data
-  if (isLoading) {
+  // Show loading spinner while checking authentication, hydrating, or loading data
+  if (!isHydrated || isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <LoadingSpinner className="h-12 w-12" />
@@ -250,6 +332,23 @@ export default function ConfirmationPage() {
             </Link>
 
             <h1 className="mt-4 text-2xl font-bold md:text-3xl">Booking Confirmation</h1>
+
+            {dataRecovered && (
+              <div className="mt-4 rounded-md bg-green-50 border border-green-200 p-3">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-green-800">
+                      Booking data successfully recovered and synchronized.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <PaymentConfirmation booking={booking} />
