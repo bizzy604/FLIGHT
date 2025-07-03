@@ -89,10 +89,38 @@ export default function ManageBookingsPage() {
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       result = result.filter(
-        (booking) =>
-          booking.bookingReference?.toLowerCase().includes(query) ||
-          booking.flightDetails?.outbound?.departure?.city?.toLowerCase().includes(query) ||
-          booking.flightDetails?.outbound?.arrival?.city?.toLowerCase().includes(query),
+        (booking) => {
+          // Search by booking reference
+          if (booking.bookingReference?.toLowerCase().includes(query)) {
+            return true;
+          }
+
+          // Search by flight details (legacy structure)
+          if (booking.flightDetails?.outbound?.departure?.city?.toLowerCase().includes(query) ||
+              booking.flightDetails?.outbound?.arrival?.city?.toLowerCase().includes(query)) {
+            return true;
+          }
+
+          // Search by new data structure - routeSegments.segments
+          if (booking.routeSegments?.segments) {
+            for (const segment of booking.routeSegments.segments) {
+              if (segment.departure_airport?.toLowerCase().includes(query) ||
+                  segment.arrival_airport?.toLowerCase().includes(query) ||
+                  segment.airline_name?.toLowerCase().includes(query) ||
+                  segment.flight_number?.toLowerCase().includes(query)) {
+                return true;
+              }
+            }
+          }
+
+          // Search by top-level routeSegments fields
+          if (booking.routeSegments?.origin?.toLowerCase().includes(query) ||
+              booking.routeSegments?.destination?.toLowerCase().includes(query)) {
+            return true;
+          }
+
+          return false;
+        }
       )
     }
 
@@ -211,8 +239,22 @@ export default function ManageBookingsPage() {
               {filteredBookings.length > 0 ? (
                 <BookingsList
                   bookings={filteredBookings.filter(
-                    (b) =>
-                      b.status !== "cancelled" && new Date(b.flightDetails?.outbound?.departure?.date) >= new Date(),
+                    (b) => {
+                      if (b.status === "cancelled") return false;
+
+                      // Try to get departure date from new structure first
+                      if (b.routeSegments?.segments?.[0]?.departure_datetime) {
+                        return new Date(b.routeSegments.segments[0].departure_datetime) >= new Date();
+                      }
+
+                      // Fallback to legacy structure
+                      if (b.flightDetails?.outbound?.departure?.date) {
+                        return new Date(b.flightDetails.outbound.departure.date) >= new Date();
+                      }
+
+                      // If no date found, assume it's upcoming
+                      return true;
+                    }
                   )}
                   onCancelBooking={handleCancelBooking}
                 />
@@ -226,12 +268,35 @@ export default function ManageBookingsPage() {
             </TabsContent>
 
             <TabsContent value="past">
-              {filteredBookings.filter((b) => new Date(b.flightDetails?.outbound?.departure?.date) < new Date())
-                .length > 0 ? (
+              {filteredBookings.filter((b) => {
+                // Try to get departure date from new structure first
+                if (b.routeSegments?.segments?.[0]?.departure_datetime) {
+                  return new Date(b.routeSegments.segments[0].departure_datetime) < new Date();
+                }
+
+                // Fallback to legacy structure
+                if (b.flightDetails?.outbound?.departure?.date) {
+                  return new Date(b.flightDetails.outbound.departure.date) < new Date();
+                }
+
+                // If no date found, assume it's not past
+                return false;
+              }).length > 0 ? (
                 <BookingsList
-                  bookings={filteredBookings.filter(
-                    (b) => new Date(b.flightDetails?.outbound?.departure?.date) < new Date(),
-                  )}
+                  bookings={filteredBookings.filter((b) => {
+                    // Try to get departure date from new structure first
+                    if (b.routeSegments?.segments?.[0]?.departure_datetime) {
+                      return new Date(b.routeSegments.segments[0].departure_datetime) < new Date();
+                    }
+
+                    // Fallback to legacy structure
+                    if (b.flightDetails?.outbound?.departure?.date) {
+                      return new Date(b.flightDetails.outbound.departure.date) < new Date();
+                    }
+
+                    // If no date found, assume it's not past
+                    return false;
+                  })}
                   onCancelBooking={handleCancelBooking}
                   isPast
                 />

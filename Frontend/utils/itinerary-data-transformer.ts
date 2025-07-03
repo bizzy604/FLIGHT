@@ -28,6 +28,7 @@ export interface FlightSegment {
   flightNumber: string;
   airline: string;
   airlineCode: string;
+  airlineLogo?: string;
   aircraft: string;
   aircraftCode: string;
   departure: {
@@ -522,6 +523,7 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any): Itine
         flightNumber: `${flight.MarketingCarrier?.AirlineID?.value || ''} ${flight.MarketingCarrier?.FlightNumber?.value || ''}`.trim(),
         airline: flight.MarketingCarrier?.Name || 'Unknown Airline',
         airlineCode: flight.MarketingCarrier?.AirlineID?.value || '',
+        airlineLogo: `/airlines/${flight.MarketingCarrier?.AirlineID?.value || 'default'}.svg`,
         aircraft: flight.Equipment?.Name || 'Unknown',
         aircraftCode: flight.Equipment?.AircraftCode?.value || '',
         departure: {

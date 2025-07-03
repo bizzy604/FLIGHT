@@ -1,32 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-
-// Mock data - replace with actual database query in production
-const mockBookings: Record<string, any> = {
-  '123': {
-    id: '123',
-    passengerName: 'John Doe',
-    flightNumber: 'AL 2847',
-    departure: {
-      city: 'NYC',
-      airport: 'LaGuardia Airport',
-      time: '07:25 AM EST',
-      terminal: 'B',
-      gate: 'C14',
-    },
-    arrival: {
-      city: 'LAX',
-      airport: 'Los Angeles Intl',
-      time: '10:57 AM PST',
-    },
-    seat: '12A',
-    boardingTime: '06:45',
-    confirmation: 'AX7K92',
-    duration: '5h 32m',
-    class: 'BUSINESS',
-    amenities: ['WIFI', 'MEAL'],
-  },
-};
+import { prisma } from '@/lib/prisma';
 
 export async function GET(
   request: Request,
@@ -34,24 +8,43 @@ export async function GET(
 ) {
   try {
     const { userId } = await auth();
-    
-    if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
-    }
+
+    // For development purposes, allow unauthenticated requests
+    // In production, you would want to remove this and require authentication
+    const userIdToUse = userId || "dev-user-id";
 
     const bookingId = params.bookingId;
-    const booking = mockBookings[bookingId];
+
+    // Build the where clause - match the logic from bookings list API
+    const where: any = {
+      OR: [
+        { bookingReference: bookingId },
+        { id: parseInt(bookingId) || 0 }
+      ]
+    };
+
+    // Only filter by userId if authenticated (same logic as bookings list)
+    if (userId) {
+      where.userId = userId;
+    }
+
+    // Try to find booking by booking reference first, then by ID
+    let booking = await prisma.booking.findFirst({
+      where,
+      include: {
+        payments: true
+      }
+    });
 
     if (!booking) {
       return new NextResponse('Booking not found', { status: 404 });
     }
 
-    // In a real app, verify the user has access to this booking
-    // For now, we'll just return the mock data
-    
+
+
     return NextResponse.json(booking);
   } catch (error) {
-
+    console.error('Error fetching booking:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

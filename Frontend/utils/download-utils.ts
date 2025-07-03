@@ -25,13 +25,19 @@ export const downloadFromDataUrl = (dataUrl: string, filename: string) => {
  */
 export const generatePDFFromComponent = async (elementId: string, filename: string = 'itinerary.pdf'): Promise<void> => {
   try {
+    console.log(`🔍 Looking for element with ID: ${elementId}`);
     const element = document.getElementById(elementId);
     if (!element) {
+      console.error(`❌ Element with ID ${elementId} not found`);
       throw new Error(`Element with ID ${elementId} not found`);
     }
 
+    console.log(`✅ Found element:`, element);
+    console.log(`📏 Element dimensions: ${element.offsetWidth}x${element.offsetHeight}`);
+
     // Get the HTML content of the element
     const htmlContent = element.outerHTML;
+    console.log(`📄 HTML content length: ${htmlContent.length} characters`);
 
     // Create a complete HTML document for PDF generation
     const fullHtmlContent = `
@@ -135,18 +141,23 @@ export const generatePDFFromComponent = async (elementId: string, filename: stri
     `;
 
     // Open in new window and trigger print
+    console.log(`🖨️ Opening print window for: ${filename}`);
     const printWindow = window.open('', '_blank');
     if (printWindow) {
+      console.log(`✅ Print window opened successfully`);
       printWindow.document.write(fullHtmlContent);
       printWindow.document.close();
 
       // Wait for content to load then print
       printWindow.onload = () => {
+        console.log(`📄 Print window content loaded, triggering print...`);
         setTimeout(() => {
           printWindow.print();
+          console.log(`🖨️ Print dialog triggered`);
         }, 500);
       };
     } else {
+      console.log(`⚠️ Print window blocked, using fallback method`);
       // Fallback to current window print
       const originalContent = document.body.innerHTML;
       document.body.innerHTML = htmlContent;

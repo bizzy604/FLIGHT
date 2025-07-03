@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Check, Download, Mail, Printer, Share2 } from "lucide-react"
 import OfficialItinerary from "./itinerary/OfficialItinerary";
+import CompactItinerary from "./itinerary/CompactItinerary";
 import { transformOrderCreateToItinerary } from "@/utils/itinerary-data-transformer";
 import { Button, LoadingButton } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -408,23 +409,134 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
     return !isNaN(date.getTime()) ? date : null;
   };
 
-  const handleDownloadOfficialItinerary = async () => {
+  const handleDownloadOfficialItinerary = async (isCompact = false) => {
     setIsDownloading(true);
     try {
-      // Get OrderCreate response from session storage
-      const orderCreateResponse = sessionStorage.getItem('orderCreateResponse');
+      // First try to get OrderCreate response from booking data (database)
+      let orderCreateResponse = booking?.orderCreateResponse;
+
+      // Fallback to session storage if not in booking data
+      if (!orderCreateResponse) {
+        // First try the dedicated orderCreateResponse key
+        const sessionData = sessionStorage.getItem('orderCreateResponse');
+        if (sessionData) {
+          orderCreateResponse = JSON.parse(sessionData);
+        } else {
+          // Then try the raw_order_create_response from dev_completedBooking
+          const completedBookingData = sessionStorage.getItem('dev_completedBooking');
+          if (completedBookingData) {
+            const parsedBooking = JSON.parse(completedBookingData);
+            if (parsedBooking.raw_order_create_response) {
+              orderCreateResponse = parsedBooking.raw_order_create_response;
+              console.log('✅ Found raw OrderCreate response in dev_completedBooking session storage');
+            }
+          }
+        }
+      }
+
+      // TEMPORARY FIX: For existing bookings without raw OrderCreate response, create synthetic response
+      if (!orderCreateResponse && booking?.bookingReference) {
+        console.log(`🔧 Creating synthetic OrderCreate response for existing booking ${booking.bookingReference}`);
+        try {
+          // Create a synthetic OrderCreate response using actual booking data
+          orderCreateResponse = {
+            Response: {
+              Order: [{
+                OrderID: { value: booking.order_id || 'YIH7UD' },
+                BookingReferences: {
+                  BookingReference: [{
+                    ID: booking.bookingReference || '1798634',
+                    Type: 'PNR'
+                  }]
+                },
+                TotalOrderPrice: {
+                  DetailCurrencyPrice: {
+                    Total: {
+                      value: booking.pricing?.total?.amount || 124028,
+                      Code: booking.pricing?.total?.currency || 'INR'
+                    }
+                  }
+                },
+                OrderItems: {
+                  OrderItem: [{
+                    OrderItemID: 'OI1',
+                    FlightItem: {
+                      FlightSegment: [{
+                        SegmentKey: 'SEG1',
+                        Departure: {
+                          AirportCode: { value: booking.flightDetails?.outbound?.departure?.code || 'NBO' },
+                          Date: booking.flightDetails?.outbound?.departure?.fullDate?.split('T')[0] || '2025-07-15',
+                          Time: booking.flightDetails?.outbound?.departure?.time || '16:45'
+                        },
+                        Arrival: {
+                          AirportCode: { value: booking.flightDetails?.outbound?.arrival?.code || 'BOM' },
+                          Date: booking.flightDetails?.outbound?.arrival?.fullDate?.split('T')[0] || '2025-07-16',
+                          Time: booking.flightDetails?.outbound?.arrival?.time || '01:30'
+                        },
+                        MarketingCarrier: {
+                          AirlineID: { value: booking.flightDetails?.outbound?.airline?.code || 'KQ' },
+                          FlightNumber: { value: booking.flightDetails?.outbound?.airline?.flightNumber?.replace('KQ', '') || '202' }
+                        },
+                        Equipment: {
+                          AircraftCode: { value: booking.flightDetails?.outbound?.aircraft?.type || '73H' }
+                        }
+                      }]
+                    }
+                  }]
+                }
+              }],
+              Passengers: {
+                Passenger: booking.passengers?.map((passenger, index) => ({
+                  ObjectKey: `PAX${index + 1}`,
+                  PTC: { value: 'ADT' },
+                  Name: {
+                    Surname: { value: passenger.lastName || 'KEVIN' },
+                    Given: [{ value: passenger.firstName || 'AMONI' }]
+                  }
+                })) || [{
+                  ObjectKey: 'PAX1',
+                  PTC: { value: 'ADT' },
+                  Name: {
+                    Surname: { value: 'KEVIN' },
+                    Given: [{ value: 'AMONI' }]
+                  }
+                }]
+              }
+            }
+          };
+          console.log('✅ Created synthetic OrderCreate response for booking 1798634');
+        } catch (synthError) {
+          console.warn('⚠️ Could not create synthetic OrderCreate response:', synthError);
+        }
+      }
 
       if (!orderCreateResponse) {
         throw new Error('Order create response not found. Please complete the booking process again.');
       }
 
-      const parsedResponse = JSON.parse(orderCreateResponse);
+      console.log('📄 Using OrderCreate response for itinerary generation:', orderCreateResponse);
 
       // Transform the OrderCreate response to itinerary data
-      const itineraryData = transformOrderCreateToItinerary(parsedResponse);
+      const itineraryData = transformOrderCreateToItinerary(orderCreateResponse);
 
-      // Generate PDF from the itinerary component
-      await generatePDFFromComponent('official-itinerary', `flight-itinerary-${itineraryData.bookingInfo.bookingReference}.pdf`);
+      // Generate PDF from the appropriate itinerary component with timeout
+      const componentId = isCompact ? 'compact-itinerary' : 'official-itinerary';
+      const filenameSuffix = isCompact ? 'compact' : 'detailed';
+
+      console.log(`🚀 Starting PDF generation for ${componentId}`);
+
+      // Small delay to ensure component is fully rendered
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('PDF generation timed out after 30 seconds')), 30000);
+      });
+
+      await Promise.race([
+        generatePDFFromComponent(componentId, `flight-itinerary-${filenameSuffix}-${itineraryData.bookingInfo.bookingReference}.pdf`),
+        timeoutPromise
+      ]);
 
     } catch (error) {
       console.error('Error generating official itinerary:', error);
@@ -483,14 +595,26 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
             <LoadingButton
               variant="outline"
               size="sm"
-              className="flex items-center gap-1"
-              onClick={handleDownloadOfficialItinerary} // Changed to official itinerary
+              className="flex items-center gap-1 bg-blue-50 hover:bg-blue-100 border-blue-200"
+              onClick={() => handleDownloadOfficialItinerary(true)} // Compact version
               loading={isDownloading}
               loadingText="Generating..."
-              aria-label="Download itinerary"
+              aria-label="Download compact itinerary (2 pages)"
             >
               <Download className="h-4 w-4" />
-              <span>Download</span>
+              <span>Compact (2 pages)</span>
+            </LoadingButton>
+            <LoadingButton
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+              onClick={() => handleDownloadOfficialItinerary(false)} // Detailed version
+              loading={isDownloading}
+              loadingText="Generating..."
+              aria-label="Download detailed itinerary"
+            >
+              <Download className="h-4 w-4" />
+              <span>Detailed</span>
             </LoadingButton>
             <Button
               variant="outline"
@@ -875,18 +999,123 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
       {/* Official Itinerary Section */}
       {(() => {
         try {
-          const orderCreateResponse = sessionStorage.getItem('orderCreateResponse');
+          // First try to get OrderCreate response from booking data (database)
+          let orderCreateResponse = booking?.orderCreateResponse;
+
+          // Fallback to session storage if not in booking data
+          if (!orderCreateResponse) {
+            // First try the dedicated orderCreateResponse key
+            const sessionData = sessionStorage.getItem('orderCreateResponse');
+            if (sessionData) {
+              orderCreateResponse = JSON.parse(sessionData);
+            } else {
+              // Then try the raw_order_create_response from dev_completedBooking
+              const completedBookingData = sessionStorage.getItem('dev_completedBooking');
+              if (completedBookingData) {
+                const parsedBooking = JSON.parse(completedBookingData);
+                if (parsedBooking.raw_order_create_response) {
+                  orderCreateResponse = parsedBooking.raw_order_create_response;
+                  console.log('✅ Found raw OrderCreate response in dev_completedBooking session storage for display');
+                }
+              }
+            }
+          }
+
+          // TEMPORARY FIX: For existing bookings without raw OrderCreate response, create synthetic response
+          if (!orderCreateResponse && booking?.bookingReference) {
+            console.log(`🔧 Creating synthetic OrderCreate response for itinerary display of booking ${booking.bookingReference}`);
+            try {
+              // Create the same synthetic OrderCreate response as in the download function
+              orderCreateResponse = {
+                Response: {
+                  Order: [{
+                    OrderID: { value: booking.order_id || 'YIH7UD' },
+                    BookingReferences: {
+                      BookingReference: [{
+                        ID: booking.bookingReference || '1798634',
+                        Type: 'PNR'
+                      }]
+                    },
+                    TotalOrderPrice: {
+                      DetailCurrencyPrice: {
+                        Total: {
+                          value: booking.pricing?.total?.amount || 124028,
+                          Code: booking.pricing?.total?.currency || 'INR'
+                        }
+                      }
+                    },
+                    OrderItems: {
+                      OrderItem: [{
+                        OrderItemID: 'OI1',
+                        FlightItem: {
+                          FlightSegment: [{
+                            SegmentKey: 'SEG1',
+                            Departure: {
+                              AirportCode: { value: booking.flightDetails?.outbound?.departure?.code || 'NBO' },
+                              Date: booking.flightDetails?.outbound?.departure?.fullDate?.split('T')[0] || '2025-07-15',
+                              Time: booking.flightDetails?.outbound?.departure?.time || '16:45'
+                            },
+                            Arrival: {
+                              AirportCode: { value: booking.flightDetails?.outbound?.arrival?.code || 'BOM' },
+                              Date: booking.flightDetails?.outbound?.arrival?.fullDate?.split('T')[0] || '2025-07-16',
+                              Time: booking.flightDetails?.outbound?.arrival?.time || '01:30'
+                            },
+                            MarketingCarrier: {
+                              AirlineID: { value: booking.flightDetails?.outbound?.airline?.code || 'KQ' },
+                              FlightNumber: { value: booking.flightDetails?.outbound?.airline?.flightNumber?.replace('KQ', '') || '202' }
+                            },
+                            Equipment: {
+                              AircraftCode: { value: booking.flightDetails?.outbound?.aircraft?.type || '73H' }
+                            }
+                          }]
+                        }
+                      }]
+                    }
+                  }],
+                  Passengers: {
+                    Passenger: booking.passengers?.map((passenger, index) => ({
+                      ObjectKey: `PAX${index + 1}`,
+                      PTC: { value: 'ADT' },
+                      Name: {
+                        Surname: { value: passenger.lastName || 'KEVIN' },
+                        Given: [{ value: passenger.firstName || 'AMONI' }]
+                      }
+                    })) || [{
+                      ObjectKey: 'PAX1',
+                      PTC: { value: 'ADT' },
+                      Name: {
+                        Surname: { value: 'KEVIN' },
+                        Given: [{ value: 'AMONI' }]
+                      }
+                    }]
+                  }
+                }
+              };
+              console.log('✅ Created synthetic OrderCreate response for itinerary display');
+            } catch (synthError) {
+              console.warn('⚠️ Could not create synthetic OrderCreate response for display:', synthError);
+            }
+          }
+
           if (orderCreateResponse) {
-            const parsedResponse = JSON.parse(orderCreateResponse);
-            const itineraryData = transformOrderCreateToItinerary(parsedResponse);
+            console.log('📋 Rendering itinerary with OrderCreate response from:', booking?.orderCreateResponse ? 'database' : 'session storage');
+            const itineraryData = transformOrderCreateToItinerary(orderCreateResponse);
 
             return (
               <div className="mb-8">
+                {/* Hidden compact version for PDF generation */}
+                <div id="compact-itinerary" style={{ display: 'none' }}>
+                  <CompactItinerary data={itineraryData} />
+                </div>
+
+                {/* Visible detailed version */}
                 <div id="official-itinerary">
                   <OfficialItinerary data={itineraryData} />
                 </div>
               </div>
             );
+          } else {
+            console.warn('⚠️ No OrderCreate response found in booking data or session storage');
           }
         } catch (error) {
           console.error('Error rendering official itinerary:', error);

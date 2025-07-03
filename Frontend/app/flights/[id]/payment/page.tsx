@@ -198,11 +198,19 @@ export default function PaymentPage() {
         // Store the successful booking data using hybrid storage
         const bookingResult = response.data.data
         storeBookingData(bookingResult)
-        
+
+        // Store raw OrderCreate response in session storage for itinerary generation
+        if (response.data.raw_order_create_response) {
+          sessionStorage.setItem('orderCreateResponse', JSON.stringify(response.data.raw_order_create_response))
+          console.log('✅ Stored raw OrderCreate response in session storage for itinerary generation')
+        } else {
+          console.warn('⚠️ No raw OrderCreate response received from backend')
+        }
+
         // Clear pending booking data
         sessionStorage.removeItem("pendingBookingData")
         sessionStorage.removeItem("selectedFlightOffer")
-        
+
         return bookingResult
       } else {
         throw new Error(response.data.error || response.data.message || 'Booking creation failed')

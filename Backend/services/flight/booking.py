@@ -158,9 +158,11 @@ class FlightBookingService(FlightService):
             )
             
             # Process and return the response
+            processed_data = self._process_booking_response(response)
             return {
                 'status': 'success',
-                'data': self._process_booking_response(response),
+                'data': processed_data,
+                'raw_order_create_response': response,  # Include raw NDC response for itinerary generation
                 'request_id': request_id
             }
             
