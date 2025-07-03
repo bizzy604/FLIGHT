@@ -103,20 +103,27 @@ class FlightService:
 
     async def _get_headers(self, service_name: str, airline_code: Optional[str] = None) -> Dict[str, str]:
         access_token = await self._get_access_token()
-        
-        # Use dynamic airline code for FlightPrice and OrderCreate operations
-        # For AirShopping, use the default from config
-        third_party_id = airline_code if airline_code else self.config.get('VERTEIL_THIRD_PARTY_ID', '')
-        
-        return {
+
+        headers = {
             'Content-Type': 'application/json',
             'Accept': '*/*',
-            'Authorization': f'Bearer {access_token}', # Optional: Keep if Verteil uses/recommends it
+            'Authorization': f'Bearer {access_token}',
             'OfficeId': self.config.get('VERTEIL_OFFICE_ID'),
-            'ThirdpartyId': third_party_id,
             'service': service_name,
-            'User-Agent': 'FlightBookingPortal/1.0'
+            'User-Agent': 'PostmanRuntime/7.41',  # Match Postman exactly
+            'Cache-Control': 'no-cache',  # Add missing Postman header
+            'Accept-Encoding': 'gzip, deflate, br',  # Add missing Postman header
+            'Connection': 'keep-alive'  # Add missing Postman header
         }
+
+        # For AirShopping: Completely omit ThirdpartyId header to get all airlines
+        # For other services: Use specific airline code or default
+        if service_name != 'AirShopping':
+            # For FlightPrice and OrderCreate operations, use specific airline code
+            third_party_id = airline_code if airline_code else self.config.get('VERTEIL_THIRD_PARTY_ID', '')
+            headers['ThirdpartyId'] = third_party_id
+
+        return headers
 
     @async_rate_limited(limit=100, window=60) # Decorators from original code
     @async_cache(timeout=300)                 # Decorators from original code
@@ -144,13 +151,7 @@ class FlightService:
             log_request_id = payload['request_id']
 
         logger.info(f"Making {method} request to {url} for service {service_name} (ReqID: {log_request_id}).")
-        # Temporarily disable verbose logging to see debug logs clearly
-        # logger.info(f"Final payload for {service_name} (ReqID: {log_request_id}): {json.dumps(api_payload, indent=2)}")
-        # logger.info(f"Request URL: {url}")
-        # logger.info(f"Request method: {method}")
-        # logger.info(f"[DEBUG] Complete request headers (ReqID: {log_request_id}): {json.dumps(dict(headers), indent=2, default=str)}")
-        logger.info(f"[DEBUG] Airline code used: {airline_code}")
-        # logger.debug(f"Payload for ReqID {log_request_id}: {json.dumps(api_payload)}") # Avoid logging sensitive data in prod
+
 
         max_retries = int(self.config.get('VERTEIL_MAX_RETRIES', 3))
         retry_delay_base = int(self.config.get('VERTEIL_RETRY_DELAY', 1))
@@ -196,20 +197,14 @@ class FlightService:
                     if response.status == 200:
                         logger.info(f"Successfully received API response for {service_name} (ReqID: {log_request_id}) with status {response.status}")
 
-                        # DEBUG: Log the complete API response for OrderCreate to debug booking issues
-                        if service_name == "OrderCreate":
-                            logger.info(f"[DEBUG] ===== COMPLETE ORDERCREATE API RESPONSE (ReqID: {log_request_id}) =====")
-                            try:
-                                response_json = json.dumps(response_data, indent=2, default=str)
-                                # Log first 3000 characters to see the structure
-                                if len(response_json) > 3000:
-                                    logger.info(f"[DEBUG] OrderCreate API response (first 3000 chars): {response_json[:3000]}...")
-                                    logger.info(f"[DEBUG] OrderCreate API response total length: {len(response_json)} characters")
-                                else:
-                                    logger.info(f"[DEBUG] Complete OrderCreate API response: {response_json}")
-                            except Exception as e:
-                                logger.error(f"[DEBUG] Failed to serialize OrderCreate API response: {str(e)}")
-                            logger.info(f"[DEBUG] ===== END ORDERCREATE API RESPONSE (ReqID: {log_request_id}) =====")
+                        # Log airline codes found in AirShopping response for debugging
+                        if service_name == "AirShopping":
+                            if 'DataLists' in response_data and 'AirlineList' in response_data['DataLists']:
+                                airlines = response_data['DataLists']['AirlineList']
+                                airline_codes = [airline.get('AirlineID', 'Unknown') for airline in airlines] if isinstance(airlines, list) else []
+                                logger.info(f"Airlines found in response: {airline_codes}")
+                            else:
+                                logger.info(f"No AirlineList found in DataLists")
 
                         return response_data # Success
             

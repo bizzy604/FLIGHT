@@ -38,12 +38,7 @@ def build_airshopping_request(
     Returns:
         Dictionary containing the AirShopping request payload
     """
-    # Debug logging for cabin preferences
-    logger.info(f"[DEBUG] build_airshopping_request called with:")
-    logger.info(f"[DEBUG] - trip_type: {trip_type}")
-    logger.info(f"[DEBUG] - cabin_preference_code: {cabin_preference_code}")
-    logger.info(f"[DEBUG] - cabin_preferences: {cabin_preferences}")
-    logger.info(f"[DEBUG] - od_segments: {od_segments}")
+
     
     # Input validation
     if num_adults <= 0:
@@ -94,19 +89,14 @@ def build_airshopping_request(
 
     # Prepare cabin preferences
     cabin_types = []
-    logger.info(f"[DEBUG] Building cabin preferences for {len(od_references)} segments")
-    
     for i, od_ref in enumerate(od_references):
         # Use per-segment cabin preference if provided, otherwise use the single cabin code
         cabin_code = cabin_preferences[i] if cabin_preferences and i < len(cabin_preferences) else cabin_preference_code
-        logger.info(f"[DEBUG] Segment {i+1} ({od_ref}): Using cabin code '{cabin_code}'")
-        
+
         cabin_types.append({
             "Code": cabin_code,
             "OriginDestinationReferences": [od_ref]
         })
-    
-    logger.info(f"[DEBUG] Final cabin_types structure: {json.dumps(cabin_types, indent=2)}")
     
     cabin_preferences_obj = {
         "CabinType": cabin_types
@@ -153,7 +143,7 @@ def build_airshopping_request(
         }
     }
 
-    logger.info(f"[DEBUG] Final airshopping_request CabinPreferences: {json.dumps(airshopping_request['Preference']['CabinPreferences'], indent=2)}")
+
     
     return airshopping_request
 

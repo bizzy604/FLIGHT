@@ -1,0 +1,422 @@
+"""
+Enhanced Air Shopping Response Transformer
+
+This module provides enhanced transformation functionality for air shopping responses
+with support for both single-airline and multi-airline responses. It integrates with
+the Phase 1 core infrastructure modules for airline detection, reference extraction,
+and airline mapping.
+
+Author: FLIGHT Application
+Created: 2025-07-02
+"""
+
+import logging
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+# Import Phase 1 core infrastructure modules
+from utils.multi_airline_detector import MultiAirlineDetector
+from utils.reference_extractor import EnhancedReferenceExtractor
+from services.airline_mapping_service import AirlineMappingService
+
+# Import existing utilities for backward compatibility
+from utils.air_shopping_transformer import _transform_departure_arrival
+from utils.airline_data import get_airline_name, get_airline_logo_url
+
+logger = logging.getLogger(__name__)
+
+
+class EnhancedAirShoppingTransformer:
+    """
+    Enhanced transformer for air shopping responses with multi-airline support.
+    """
+    
+    def __init__(self, response: Dict[str, Any]):
+        """
+        Initialize the enhanced transformer.
+        
+        Args:
+            response (Dict[str, Any]): The raw air shopping response
+        """
+        self.response = response
+        self.is_multi_airline = MultiAirlineDetector.is_multi_airline_response(response)
+        self.reference_extractor = EnhancedReferenceExtractor(response)
+        self.refs = self.reference_extractor.extract_references()
+        
+        logger.info(f"Initialized enhanced transformer for {'multi' if self.is_multi_airline else 'single'}-airline response")
+    
+    def transform_for_results(self) -> Dict[str, Any]:
+        """
+        Transform the air shopping response for the results page.
+        
+        Returns:
+            Dict[str, Any]: Transformed response with flight offers
+        """
+        try:
+            offers = []
+            
+            if self.is_multi_airline:
+                offers = self._transform_multi_airline_offers()
+            else:
+                offers = self._transform_single_airline_offers()
+            
+            # Sort offers by price (ascending)
+            offers.sort(key=lambda x: float(x.get('price', 0)))
+            
+            # Add index-based IDs for frontend compatibility
+            for index, offer in enumerate(offers):
+                offer['id'] = str(index)
+                offer['offer_index'] = index
+            
+            result = {
+                'offers': offers,
+                'raw_response': self.response,
+                'metadata': {
+                    'is_multi_airline': self.is_multi_airline,
+                    'airline_count': len(self.refs.get('airline_codes', [])) if self.is_multi_airline else 1,
+                    'total_offers': len(offers),
+                    'transformation_timestamp': datetime.now().isoformat()
+                }
+            }
+            
+            if self.is_multi_airline:
+                result['metadata']['supported_airlines'] = [
+                    code for code in self.refs.get('airline_codes', [])
+                    if AirlineMappingService.validate_airline_code(code)
+                ]
+                result['metadata']['shopping_response_ids'] = self.refs.get('shopping_response_ids', {})
+            
+            logger.info(f"Successfully transformed {len(offers)} offers for results page")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error transforming air shopping response: {e}", exc_info=True)
+            return {
+                'offers': [],
+                'raw_response': self.response,
+                'error': str(e),
+                'metadata': {
+                    'is_multi_airline': self.is_multi_airline,
+                    'transformation_failed': True
+                }
+            }
+    
+    def _transform_multi_airline_offers(self) -> List[Dict[str, Any]]:
+        """
+        Transform offers for multi-airline response.
+        
+        Returns:
+            List[Dict[str, Any]]: List of transformed offers
+        """
+        logger.info("Transforming multi-airline offers")
+        offers = []
+        
+        # Get offers from the response
+        offers_group = self.response.get('OffersGroup', {})
+        airline_offers_list = offers_group.get('AirlineOffers', [])
+        
+        if not isinstance(airline_offers_list, list):
+            airline_offers_list = [airline_offers_list] if airline_offers_list else []
+        
+        for airline_offer_group in airline_offers_list:
+            # Extract airline code from the offer group
+            airline_code = self._extract_airline_code_from_offer_group(airline_offer_group)
+            
+            # Validate airline is supported
+            if not AirlineMappingService.validate_airline_code(airline_code):
+                logger.warning(f"Skipping unsupported airline: {airline_code}")
+                continue
+            
+            # Get airline-specific references
+            airline_refs = self.reference_extractor.get_airline_references(airline_code)
+            if not airline_refs:
+                logger.warning(f"No references found for airline: {airline_code}")
+                continue
+            
+            # Transform offers for this airline
+            airline_offers = airline_offer_group.get('AirlineOffer', [])
+            if not isinstance(airline_offers, list):
+                airline_offers = [airline_offers] if airline_offers else []
+            
+            for offer in airline_offers:
+                priced_offer = offer.get('PricedOffer')
+                if priced_offer:
+                    transformed = self._transform_offer_with_airline_context(
+                        priced_offer, airline_code, airline_refs, offer
+                    )
+                    if transformed:
+                        offers.append(transformed)
+        
+        logger.info(f"Transformed {len(offers)} multi-airline offers")
+        return offers
+    
+    def _transform_single_airline_offers(self) -> List[Dict[str, Any]]:
+        """
+        Transform offers for single-airline response (backward compatibility).
+        
+        Returns:
+            List[Dict[str, Any]]: List of transformed offers
+        """
+        logger.info("Transforming single-airline offers")
+        offers = []
+        
+        # Use global references for single-airline
+        global_refs = {
+            'segments': self.refs.get('segments', {}),
+            'passengers': self.refs.get('passengers', {}),
+            'flights': self.refs.get('flights', {})
+        }
+        
+        # Get offers from the response
+        offers_group = self.response.get('OffersGroup', {})
+        airline_offers_list = offers_group.get('AirlineOffers', [])
+        
+        if not isinstance(airline_offers_list, list):
+            airline_offers_list = [airline_offers_list] if airline_offers_list else []
+        
+        for airline_offer_group in airline_offers_list:
+            airline_offers = airline_offer_group.get('AirlineOffer', [])
+            if not isinstance(airline_offers, list):
+                airline_offers = [airline_offers] if airline_offers else []
+            
+            for offer in airline_offers:
+                priced_offer = offer.get('PricedOffer')
+                if priced_offer:
+                    # Extract airline code from offer
+                    airline_code = offer.get('OfferID', {}).get('Owner', '??')
+                    
+                    transformed = self._transform_offer_with_airline_context(
+                        priced_offer, airline_code, global_refs, offer
+                    )
+                    if transformed:
+                        offers.append(transformed)
+        
+        logger.info(f"Transformed {len(offers)} single-airline offers")
+        return offers
+    
+    def _transform_offer_with_airline_context(
+        self, 
+        priced_offer: Dict[str, Any], 
+        airline_code: str, 
+        refs: Dict[str, Any], 
+        offer: Optional[Dict[str, Any]] = None
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Transform a single offer with airline context.
+        
+        Args:
+            priced_offer: The priced offer data
+            airline_code: The airline code for this offer
+            refs: Reference data (airline-specific or global)
+            offer: The original offer data
+            
+        Returns:
+            Optional[Dict[str, Any]]: Transformed offer or None if transformation fails
+        """
+        try:
+            # Extract price information
+            first_offer_price = priced_offer.get('OfferPrice', [{}])[0]
+            price_detail = first_offer_price.get('RequestedDate', {}).get('PriceDetail', {})
+            total_amount = price_detail.get('TotalAmount', {}).get('SimpleCurrencyPrice', {})
+            
+            # Extract segments for this offer
+            all_segments_data = []
+            for assoc in first_offer_price.get('RequestedDate', {}).get('Associations', []):
+                for seg_ref in assoc.get('ApplicableFlight', {}).get('FlightSegmentReference', []):
+                    segment_key = seg_ref.get('ref')
+                    
+                    # Try to get segment from airline-specific refs first, then global
+                    segment_data = None
+                    if isinstance(refs, dict) and 'segments' in refs:
+                        segment_data = refs['segments'].get(segment_key)
+                    
+                    # Fallback to global lookup if not found
+                    if not segment_data and self.is_multi_airline:
+                        segment_data = self.reference_extractor.get_reference_by_key(segment_key, 'segments')
+                    
+                    if segment_data:
+                        all_segments_data.append(segment_data)
+            
+            if not all_segments_data:
+                logger.warning(f"No segments found for offer from airline {airline_code}")
+                return None
+            
+            # Sort segments by departure time
+            all_segments_data.sort(key=lambda s: s.get('Departure', {}).get('Date', ''))
+            
+            first_seg_data = all_segments_data[0]
+            last_seg_data = all_segments_data[-1]
+            
+            # Calculate duration and stops
+            dep_time = datetime.fromisoformat(first_seg_data.get('Departure', {}).get('Date', ''))
+            arr_time = datetime.fromisoformat(last_seg_data.get('Arrival', {}).get('Date', ''))
+            duration_delta = arr_time - dep_time
+            total_hours, remainder = divmod(duration_delta.total_seconds(), 3600)
+            total_minutes, _ = divmod(remainder, 60)
+            
+            stops_count = len(all_segments_data) - 1
+            
+            # Build stop details
+            stop_details = []
+            if stops_count > 0:
+                for i in range(len(all_segments_data) - 1):
+                    current_seg = all_segments_data[i]
+                    next_seg = all_segments_data[i + 1]
+                    
+                    stop_airport = current_seg.get('Arrival', {}).get('AirportCode', {}).get('value', '')
+                    arr_time_stop = datetime.fromisoformat(current_seg.get('Arrival', {}).get('Date', ''))
+                    dep_time_stop = datetime.fromisoformat(next_seg.get('Departure', {}).get('Date', ''))
+                    layover_duration = dep_time_stop - arr_time_stop
+                    layover_hours, layover_remainder = divmod(layover_duration.total_seconds(), 3600)
+                    layover_minutes, _ = divmod(layover_remainder, 60)
+                    
+                    stop_details.append({
+                        'airport': stop_airport,
+                        'duration': f"{int(layover_hours)}h {int(layover_minutes)}m"
+                    })
+            
+            # Transform segments for detailed view
+            transformed_segments = []
+            for seg_data in all_segments_data:
+                transformed_segments.append({
+                    'departure': _transform_departure_arrival(seg_data.get('Departure', {})),
+                    'arrival': _transform_departure_arrival(seg_data.get('Arrival', {})),
+                    'airline': {
+                        'code': airline_code,
+                        'name': AirlineMappingService.get_airline_display_name(airline_code),
+                        'flightNumber': f"{airline_code}{seg_data.get('MarketingCarrier', {}).get('FlightNumber', {}).get('value', '')}"
+                    },
+                    'aircraft': seg_data.get('Equipment', {}).get('AircraftCode', {}).get('value', 'Unknown'),
+                    'duration': seg_data.get('FlightDetail', {}).get('FlightDuration', {}).get('value', 'Unknown')
+                })
+            
+            # Get offer ID
+            offer_id = offer.get('OfferID', {}).get('value', f"offer_{airline_code}_{len(all_segments_data)}")
+            
+            # Build departure and arrival data
+            departure_data = _transform_departure_arrival(first_seg_data.get('Departure', {}))
+            arrival_data = _transform_departure_arrival(last_seg_data.get('Arrival', {}))
+            
+            # Get ThirdParty ID for this airline
+            third_party_id = AirlineMappingService.get_third_party_id(airline_code)
+            
+            # Get airline-specific ShoppingResponseID
+            shopping_response_id = self.reference_extractor.get_shopping_response_id(airline_code)
+            
+            return {
+                "id": offer_id,
+                "price": total_amount.get('value', 0),
+                "currency": total_amount.get('Code', 'USD'),
+                "airline": {
+                    "code": airline_code,
+                    "name": AirlineMappingService.get_airline_display_name(airline_code),
+                    "logo": get_airline_logo_url(airline_code),
+                    "flightNumber": f"{airline_code}{first_seg_data.get('MarketingCarrier', {}).get('FlightNumber', {}).get('value', '')}"
+                },
+                "departure": departure_data,
+                "arrival": arrival_data,
+                "duration": f"{int(total_hours)}h {int(total_minutes)}m",
+                "stops": stops_count,
+                "stopDetails": stop_details,
+                "segments": transformed_segments,
+                # Enhanced multi-airline context
+                "airline_context": {
+                    "third_party_id": third_party_id,
+                    "shopping_response_id": shopping_response_id,
+                    "is_supported": AirlineMappingService.validate_airline_code(airline_code),
+                    "region": AirlineMappingService.get_airline_info(airline_code).get('region'),
+                    "supported_features": AirlineMappingService.get_airline_info(airline_code).get('supported_features', [])
+                },
+                # Basic baggage info (can be enhanced later)
+                "baggage": {
+                    "checked": {"pieces": 1, "weight": "23kg"},
+                    "carryon": {"pieces": 1, "weight": "7kg"}
+                },
+                # Basic fare info
+                "fare": {
+                    "type": "Economy",  # Can be enhanced based on cabin class
+                    "refundable": False,  # Default value
+                    "changeable": False   # Default value
+                },
+                # Price breakdown for frontend display
+                "priceBreakdown": {
+                    "baseFare": total_amount.get('value', 0) * 0.8,  # Estimate 80% as base fare
+                    "taxes": total_amount.get('value', 0) * 0.15,    # Estimate 15% as taxes
+                    "fees": total_amount.get('value', 0) * 0.05,     # Estimate 5% as fees
+                    "totalPrice": total_amount.get('value', 0),
+                    "currency": total_amount.get('Code', 'USD')
+                },
+                # Store original offer ID for reference
+                "original_offer_id": offer_id
+            }
+            
+        except Exception as e:
+            logger.error(f"Error transforming offer for airline {airline_code}: {e}", exc_info=True)
+            return None
+    
+    def _extract_airline_code_from_offer_group(self, airline_offer_group: Dict[str, Any]) -> str:
+        """
+        Extract airline code from airline offer group.
+        
+        Args:
+            airline_offer_group: The airline offer group data
+            
+        Returns:
+            str: The airline code
+        """
+        # Try to get from first offer in the group
+        airline_offers = airline_offer_group.get('AirlineOffer', [])
+        if not isinstance(airline_offers, list):
+            airline_offers = [airline_offers] if airline_offers else []
+        
+        if airline_offers:
+            first_offer = airline_offers[0]
+            airline_code = first_offer.get('OfferID', {}).get('Owner', '??')
+            return airline_code
+        
+        return '??'
+    
+    def get_airline_statistics(self) -> Dict[str, Any]:
+        """
+        Get statistics about airlines in the response.
+        
+        Returns:
+            Dict[str, Any]: Airline statistics
+        """
+        if self.is_multi_airline:
+            airline_codes = self.refs.get('airline_codes', [])
+            supported_airlines = [
+                code for code in airline_codes
+                if AirlineMappingService.validate_airline_code(code)
+            ]
+            
+            return {
+                'total_airlines': len(airline_codes),
+                'supported_airlines': len(supported_airlines),
+                'airline_codes': airline_codes,
+                'supported_codes': supported_airlines,
+                'unsupported_codes': [code for code in airline_codes if code not in supported_airlines]
+            }
+        else:
+            return {
+                'total_airlines': 1,
+                'supported_airlines': 1,
+                'is_single_airline': True
+            }
+
+
+def transform_air_shopping_for_results_enhanced(response: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Enhanced transformation function for air shopping responses.
+    
+    This function serves as the main entry point for transforming air shopping
+    responses with multi-airline support while maintaining backward compatibility.
+    
+    Args:
+        response (Dict[str, Any]): The raw air shopping response
+        
+    Returns:
+        Dict[str, Any]: Transformed response with flight offers
+    """
+    transformer = EnhancedAirShoppingTransformer(response)
+    return transformer.transform_for_results()

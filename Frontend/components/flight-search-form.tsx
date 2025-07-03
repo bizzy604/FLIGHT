@@ -19,10 +19,10 @@ import { Input } from "@/components/ui/input";
 
 // Constants moved outside the component
 const cabinTypes = [
-  { value: "Y", label: "Economy" },
-  { value: "W", label: "Premium Economy" },
-  { value: "C", label: "Business Class" },
-  { value: "F", label: "First Class" },
+  { value: "ECONOMY", label: "Economy" },
+  { value: "PREMIUM_ECONOMY", label: "Premium Economy" },
+  { value: "BUSINESS", label: "Business Class" },
+  { value: "FIRST", label: "First Class" },
 ]
 
 const airports = [
@@ -53,9 +53,9 @@ export function FlightSearchForm() {
     children: 0,
     infants: 0
   })
-  const [cabinType, setCabinType] = React.useState("Y")
-  const [outboundCabinType, setOutboundCabinType] = React.useState("Y")
-  const [returnCabinType, setReturnCabinType] = React.useState("Y")
+  const [cabinType, setCabinType] = React.useState("ECONOMY")
+  const [outboundCabinType, setOutboundCabinType] = React.useState("ECONOMY")
+  const [returnCabinType, setReturnCabinType] = React.useState("ECONOMY")
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [results, setResults] = React.useState<FlightOffer[]>([])

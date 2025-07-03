@@ -8,23 +8,13 @@ import { Slider } from "@/components/ui/slider"
 import { Separator } from "@/components/ui/separator"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
-// Mock data for airlines
-const airlineOptions = [
-  { id: "sw", name: "SkyWay Airlines" },
-  { id: "ga", name: "Global Airways" },
-  { id: "pa", name: "Pacific Air" },
-  { id: "ae", name: "Atlantic Express" },
-  { id: "ua", name: "United Airlines" },
-  { id: "dl", name: "Delta Air Lines" },
-  { id: "ac", name: "Air Canada" }
-]
-
 // Define props interface for the FlightFilters component
 interface FlightFiltersProps {
   priceRange: [number, number]
   onPriceRangeChange: (range: [number, number]) => void
   airlines: string[]
   onAirlinesChange: (airlines: string[]) => void
+  availableAirlines: { id: string; name: string }[]
   stops: number[]
   onStopsChange: (stops: number[]) => void
   departureTime: string[]
@@ -37,6 +27,7 @@ export function FlightFilters({
   onPriceRangeChange,
   airlines,
   onAirlinesChange,
+  availableAirlines,
   stops,
   onStopsChange,
   departureTime,
@@ -212,27 +203,33 @@ export function FlightFilters({
         </CollapsibleTrigger>
         <CollapsibleContent className="pt-2">
           <div className="space-y-2">
-            {airlineOptions.map((airline) => (
-              <div key={airline.id} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`airline-${airline.id}`}
-                  checked={airlines.includes(airline.name)}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      onAirlinesChange([...airlines, airline.name])
-                    } else {
-                      onAirlinesChange(airlines.filter((name) => name !== airline.name))
-                    }
-                  }}
-                />
-                <label
-                  htmlFor={`airline-${airline.id}`}
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  {airline.name}
-                </label>
+            {availableAirlines.length > 0 ? (
+              availableAirlines.map((airline) => (
+                <div key={airline.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`airline-${airline.id}`}
+                    checked={airlines.includes(airline.name)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        onAirlinesChange([...airlines, airline.name])
+                      } else {
+                        onAirlinesChange(airlines.filter((name) => name !== airline.name))
+                      }
+                    }}
+                  />
+                  <label
+                    htmlFor={`airline-${airline.id}`}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {airline.name}
+                  </label>
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-muted-foreground">
+                Loading airlines...
               </div>
-            ))}
+            )}
           </div>
         </CollapsibleContent>
       </Collapsible>

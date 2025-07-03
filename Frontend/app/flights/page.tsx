@@ -106,6 +106,7 @@ const initialFilters: FlightFiltersState = {
 function SearchParamsWrapper() {
   const [flights, setFlights] = useState<FlightOffer[]>([])
   const [allFlights, setAllFlights] = useState<FlightOffer[]>([])
+  const [availableAirlines, setAvailableAirlines] = useState<{id: string, name: string}[]>([])
   const [filters, setFilters] = useState<FlightFiltersState>(initialFilters)
   const [loading, setLoading] = useState(true)
   const searchParams = useSearchParams()
@@ -133,9 +134,9 @@ function SearchParamsWrapper() {
   const adults = Number(searchParams.get('adults')) || 1
   const children = Number(searchParams.get('children')) || 0
   const infants = Number(searchParams.get('infants')) || 0
-  const cabinClass = searchParams.get('cabinClass') || 'Y'
-  const outboundCabinClass = searchParams.get('outboundCabinClass') || 'Y'
-  const returnCabinClass = searchParams.get('returnCabinClass') || 'Y'
+  const cabinClass = searchParams.get('cabinClass') || 'ECONOMY'
+  const outboundCabinClass = searchParams.get('outboundCabinClass') || 'ECONOMY'
+  const returnCabinClass = searchParams.get('returnCabinClass') || 'ECONOMY'
   const tripType = searchParams.get('tripType') || 'one-way'
 
   const handleFilterChange = (newFilters: Partial<FlightFiltersState>) => {
@@ -158,7 +159,8 @@ function SearchParamsWrapper() {
     
     console.log('Current filters:', filters);
     console.log('Available flights:', allFlights.length);
-    
+    console.log('Current filters:', filters);
+
     // First apply filters
     const filteredFlights = allFlights.filter(flight => {
       // Only apply price filter if it's been explicitly set (not the default values)
@@ -172,7 +174,7 @@ function SearchParamsWrapper() {
       }
       
       // Airlines filter - only apply if airlines are selected
-      if (filters.airlines.length > 0 && !filters.airlines.includes(flight.airline.name)) {
+      if (filters.airlines.length > 0 && flight.airline && flight.airline.name && !filters.airlines.includes(flight.airline.name)) {
         return false;
       }
       
@@ -405,7 +407,23 @@ function SearchParamsWrapper() {
           penalties: offer.penalties,
           time_limits: offer.time_limits || {} // Include offer expiration information
         }));
-        
+
+        // Extract unique airlines from the real flight data
+        const uniqueAirlines = new Map<string, {id: string, name: string}>();
+        directFlights.forEach(flight => {
+          if (flight.airline && flight.airline.code && flight.airline.name) {
+            uniqueAirlines.set(flight.airline.code, {
+              id: flight.airline.code,
+              name: flight.airline.name
+            });
+          }
+        });
+
+        // Convert to array and sort by name
+        const airlineOptions = Array.from(uniqueAirlines.values()).sort((a, b) => a.name.localeCompare(b.name));
+        console.log('Extracted airlines from API data:', airlineOptions);
+
+        setAvailableAirlines(airlineOptions);
         setAllFlights(directFlights);
       } catch (error) {
         console.error('Error fetching flights:', error);
@@ -481,7 +499,7 @@ function SearchParamsWrapper() {
           <div className="grid gap-4 sm:gap-6 lg:gap-8 lg:grid-cols-[300px_1fr] xl:grid-cols-[320px_1fr]">
             {/* Filters Sidebar */}
             <div className="hidden lg:block">
-              <div className="sticky top-24 rounded-lg border p-4 lg:p-6 bg-white shadow-sm">
+              <div className="sticky top-24 rounded-lg border p-4 lg:p-6 bg-card shadow-sm">
                 <div className="mb-4 lg:mb-6 flex items-center justify-between">
                   <h2 className="text-lg lg:text-xl font-semibold">Filters</h2>
                   <Button
@@ -502,11 +520,12 @@ function SearchParamsWrapper() {
                     </div>
                   }
                 >
-                  <FlightFilters 
+                  <FlightFilters
                     priceRange={filters.priceRange}
                     onPriceRangeChange={(range) => handleFilterChange({ priceRange: range })}
                     airlines={filters.airlines}
                     onAirlinesChange={(airlines) => handleFilterChange({ airlines })}
+                    availableAirlines={availableAirlines}
                     stops={filters.stops}
                     onStopsChange={(stops) => handleFilterChange({ stops })}
                     departureTime={filters.departureTime}
@@ -570,7 +589,7 @@ function SearchParamsWrapper() {
                       />
                     ))
                   ) : (
-                    <div className="rounded-lg border p-6 sm:p-8 lg:p-12 text-center bg-white shadow-sm">
+                    <div className="rounded-lg border p-6 sm:p-8 lg:p-12 text-center bg-card shadow-sm">
                       <h3 className="mb-2 sm:mb-4 text-lg sm:text-xl lg:text-2xl font-semibold">No flights found</h3>
                       <p className="text-sm sm:text-base text-muted-foreground">Try adjusting your search criteria</p>
                     </div>

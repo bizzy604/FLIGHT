@@ -1,7 +1,180 @@
 # --- START OF FILE build_ordercreate_rq.py (Consolidated) ---
 import json
-from typing import Dict, Any, List
+import re
+from typing import Dict, Any, List, Optional
 from datetime import datetime # Keep for potential future use, e.g. logging
+
+def _is_multi_airline_flight_price_response(flight_price_response: Dict[str, Any]) -> bool:
+    """
+    Check if the flight price response is from a multi-airline context.
+
+    Args:
+        flight_price_response: The FlightPrice response
+
+    Returns:
+        bool: True if multi-airline response, False otherwise
+    """
+    try:
+        # Check for airline-prefixed references in DataLists
+        data_lists = flight_price_response.get('DataLists', {})
+        travelers = data_lists.get('AnonymousTravelerList', {}).get('AnonymousTraveler', [])
+        if not isinstance(travelers, list):
+            travelers = [travelers] if travelers else []
+
+        for traveler in travelers:
+            object_key = traveler.get('ObjectKey', '')
+            # Look for airline-prefixed keys like "KL-PAX1", "QR-PAX1"
+            if re.match(r'^[A-Z]{2,3}-', object_key):
+                return True
+
+        # Check ShoppingResponseID structure
+        shopping_response_id = flight_price_response.get('ShoppingResponseID', {})
+        if isinstance(shopping_response_id, dict):
+            response_id_value = shopping_response_id.get('ResponseID', {}).get('value', '')
+            # Multi-airline shopping response IDs typically end with airline code
+            if '-' in response_id_value and len(response_id_value.split('-')[-1]) <= 3:
+                return True
+
+        return False
+
+    except Exception as e:
+        print(f"Error detecting multi-airline flight price response: {e}")
+        return False
+
+def _extract_airline_from_flight_price_response(flight_price_response: Dict[str, Any]) -> Optional[str]:
+    """
+    Extract airline code from flight price response.
+
+    Args:
+        flight_price_response: The FlightPrice response
+
+    Returns:
+        str: The airline code or None if not found
+    """
+    try:
+        # Method 1: Extract from ShoppingResponseID
+        shopping_response_id = flight_price_response.get('ShoppingResponseID', {})
+        if isinstance(shopping_response_id, dict):
+            owner = shopping_response_id.get('Owner')
+            if owner:
+                return owner
+
+            # Try to extract from ResponseID value (format: base-id-AIRLINE)
+            response_id_value = shopping_response_id.get('ResponseID', {}).get('value', '')
+            if '-' in response_id_value:
+                airline_code = response_id_value.split('-')[-1]
+                if len(airline_code) <= 3:  # Valid airline code length
+                    return airline_code
+
+        # Method 2: Extract from PricedFlightOffers
+        priced_offers = flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
+        if not isinstance(priced_offers, list):
+            priced_offers = [priced_offers] if priced_offers else []
+
+        if priced_offers:
+            first_offer = priced_offers[0]
+            offer_id = first_offer.get('OfferID', {})
+            owner = offer_id.get('Owner')
+            if owner:
+                return owner
+
+        return None
+
+    except Exception as e:
+        print(f"Error extracting airline from flight price response: {e}")
+        return None
+
+def _filter_airline_specific_data_for_order_create(flight_price_response: Dict[str, Any], airline_code: str) -> Dict[str, Any]:
+    """
+    Filter flight price response data to only include airline-specific elements for OrderCreate.
+
+    Args:
+        flight_price_response: The original FlightPrice response
+        airline_code: The airline code to filter for
+
+    Returns:
+        Dict: Filtered flight price response with only airline-specific data
+    """
+    try:
+        # Create a deep copy to avoid modifying the original
+        filtered_response = json.loads(json.dumps(flight_price_response))
+
+        # Filter DataLists
+        data_lists = filtered_response.get('DataLists', {})
+
+        # Filter AnonymousTravelerList
+        travelers = data_lists.get('AnonymousTravelerList', {}).get('AnonymousTraveler', [])
+        if not isinstance(travelers, list):
+            travelers = [travelers] if travelers else []
+
+        filtered_travelers = []
+        traveler_key_mapping = {}
+
+        for traveler in travelers:
+            object_key = traveler.get('ObjectKey', '')
+            # Include travelers that belong to this airline or have no airline prefix
+            if object_key.startswith(f"{airline_code}-") or not re.match(r'^[A-Z]{2,3}-', object_key):
+                # Transform airline-prefixed keys to standard keys
+                if object_key.startswith(f"{airline_code}-"):
+                    new_key = object_key.replace(f"{airline_code}-", "")
+                    traveler_copy = traveler.copy()
+                    traveler_copy['ObjectKey'] = new_key
+                    traveler_key_mapping[object_key] = new_key
+                    filtered_travelers.append(traveler_copy)
+                else:
+                    filtered_travelers.append(traveler)
+
+        if filtered_travelers:
+            data_lists['AnonymousTravelerList']['AnonymousTraveler'] = filtered_travelers
+
+        # Filter FlightSegmentList
+        segments = data_lists.get('FlightSegmentList', {}).get('FlightSegment', [])
+        if not isinstance(segments, list):
+            segments = [segments] if segments else []
+
+        filtered_segments = []
+        for segment in segments:
+            segment_key = segment.get('SegmentKey', '')
+            # Include segments that belong to this airline or have no airline prefix
+            if segment_key.startswith(f"{airline_code}-") or not re.match(r'^[A-Z]{2,3}-', segment_key):
+                # Transform airline-prefixed keys to standard keys
+                if segment_key.startswith(f"{airline_code}-"):
+                    segment_copy = segment.copy()
+                    segment_copy['SegmentKey'] = segment_key.replace(f"{airline_code}-", "")
+                    filtered_segments.append(segment_copy)
+                else:
+                    filtered_segments.append(segment)
+
+        if filtered_segments:
+            data_lists['FlightSegmentList']['FlightSegment'] = filtered_segments
+
+        # Filter FlightList
+        flights = data_lists.get('FlightList', {}).get('Flight', [])
+        if not isinstance(flights, list):
+            flights = [flights] if flights else []
+
+        filtered_flights = []
+        for flight in flights:
+            flight_key = flight.get('FlightKey', '')
+            # Include flights that belong to this airline or have no airline prefix
+            if flight_key.startswith(f"{airline_code}-") or not re.match(r'^[A-Z]{2,3}-', flight_key):
+                # Transform airline-prefixed keys to standard keys
+                if flight_key.startswith(f"{airline_code}-"):
+                    flight_copy = flight.copy()
+                    flight_copy['FlightKey'] = flight_key.replace(f"{airline_code}-", "")
+                    filtered_flights.append(flight_copy)
+                else:
+                    filtered_flights.append(flight)
+
+        if filtered_flights:
+            data_lists['FlightList']['Flight'] = filtered_flights
+
+        print(f"Filtered OrderCreate data for airline {airline_code}: {len(filtered_travelers)} travelers, {len(filtered_segments)} segments, {len(filtered_flights)} flights")
+        return filtered_response
+
+    except Exception as e:
+        print(f"Error filtering airline-specific data for OrderCreate: {e}")
+        return flight_price_response
 
 def create_passenger_mapping(flight_price_response: Dict[str, Any], passengers_data: List[Dict[str, Any]]) -> Dict[int, str]:
     """
@@ -74,29 +247,43 @@ def create_passenger_mapping(flight_price_response: Dict[str, Any], passengers_d
 
 def generate_order_create_rq(
     flight_price_response: Dict[str, Any],
-    passengers_data: List[Dict[str, Any]], 
-    payment_input_info: Dict[str, Any]     
+    passengers_data: List[Dict[str, Any]],
+    payment_input_info: Dict[str, Any]
 ) -> Dict[str, Any]:
     """
-    Generate OrderCreateRQ from FlightPriceResponse with dynamic passenger (including documents) 
-    and payment data.
-    
+    Enhanced OrderCreate request builder with multi-airline support.
+
     Args:
         flight_price_response: The FlightPriceResponse JSON as a Python dictionary.
         passengers_data: A list of dictionaries, where each dictionary contains
                          details for one passenger.
         payment_input_info: A dictionary containing payment details.
-        
+
     Returns:
         dict: The generated OrderCreateRQ as a Python dictionary.
     """
     import json
     import logging
     logger = logging.getLogger(__name__)
-    
+
     # DEBUG: Log the input data structure
     logger.info(f"[DEBUG] build_ordercreate_rq - Input flight_price_response keys: {list(flight_price_response.keys()) if isinstance(flight_price_response, dict) else 'Not a dict'}")
     logger.info(f"[DEBUG] build_ordercreate_rq - Input flight_price_response type: {type(flight_price_response)}")
+
+    # Check if this is a multi-airline flight price response
+    is_multi_airline = _is_multi_airline_flight_price_response(flight_price_response)
+    logger.info(f"[DEBUG] Multi-airline OrderCreate detected: {is_multi_airline}")
+
+    # Extract airline code for filtering
+    airline_code = None
+    if is_multi_airline:
+        airline_code = _extract_airline_from_flight_price_response(flight_price_response)
+        logger.info(f"[DEBUG] Extracted airline code for OrderCreate: {airline_code}")
+
+        if airline_code:
+            # Filter the flight price response to only include airline-specific data
+            flight_price_response = _filter_airline_specific_data_for_order_create(flight_price_response, airline_code)
+            logger.info(f"[DEBUG] Filtered flight price response for airline {airline_code}")
     
     # --- 1. Extract Key Information from FlightPriceResponse ---
     # Handle nested data structure from frontend

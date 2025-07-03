@@ -79,69 +79,32 @@ function FlightDetailsPageContent() {
         // Debug: Log the complete structure of the stored data
         console.log('[DEBUG] Complete stored data structure:', JSON.stringify(rawAirShoppingResponse, null, 2));
 
-        // Try multiple possible paths for ShoppingResponseID based on the backend response structure
-        let shoppingResponseId = '';
+        // For multi-airline responses, let the backend handle ShoppingResponseID extraction
+        // The backend will determine the airline from the offer index and extract the correct ID
+        console.log('[DEBUG] Multi-airline response detected - backend will handle ShoppingResponseID extraction');
 
-        // Path 1: Direct access (if the raw response was stored directly)
-        if (rawAirShoppingResponse?.ShoppingResponseID?.ResponseID?.value) {
-          shoppingResponseId = rawAirShoppingResponse.ShoppingResponseID.ResponseID.value;
-          console.log('[DEBUG] Found ShoppingResponseID via direct path:', shoppingResponseId);
-        }
-        // Path 2: Backend response structure - data.raw_response (correct path after fix)
-        else if (rawAirShoppingResponse?.data?.raw_response?.ShoppingResponseID?.ResponseID?.value) {
-          shoppingResponseId = rawAirShoppingResponse.data.raw_response.ShoppingResponseID.ResponseID.value;
-          console.log('[DEBUG] Found ShoppingResponseID via data.raw_response path:', shoppingResponseId);
-        }
-        // Path 3: Backend response structure - data level
-        else if (rawAirShoppingResponse?.data?.ShoppingResponseID?.ResponseID?.value) {
-          shoppingResponseId = rawAirShoppingResponse.data.ShoppingResponseID.ResponseID.value;
-          console.log('[DEBUG] Found ShoppingResponseID via data path:', shoppingResponseId);
-        }
-        // Path 4: Extract from Metadata section (since backend doesn't extract it)
-        else {
-          console.log('[DEBUG] Attempting to extract ShoppingResponseID from Metadata section...');
-          const rawResponse = rawAirShoppingResponse?.data?.raw_response;
-          if (rawResponse?.Metadata?.Other?.OtherMetadata) {
-            try {
-              const otherMetadataList = rawResponse.Metadata.Other.OtherMetadata;
-              for (const otherMetadata of otherMetadataList) {
-                const descMetadataList = otherMetadata?.DescriptionMetadatas?.DescriptionMetadata || [];
-                for (const descMetadata of descMetadataList) {
-                  if (descMetadata?.MetadataKey === "SHOPPING_RESPONSE_IDS") {
-                    const augPoints = descMetadata?.AugmentationPoint?.AugPoint || [];
-                    if (augPoints.length > 0) {
-                      const augPoint = augPoints[0];
-                      if (augPoint?.Key) {
-                        shoppingResponseId = augPoint.Key;
-                        console.log('[DEBUG] Extracted ShoppingResponseID from Metadata:', shoppingResponseId);
-                        break;
-                      }
-                    }
-                  }
-                }
-                if (shoppingResponseId) break;
-              }
-            } catch (e) {
-              console.error('[DEBUG] Error extracting from Metadata:', e);
-            }
-          }
-        }
-
-        if (!shoppingResponseId) {
-          console.error('[DEBUG] Failed to find ShoppingResponseID. Checking all possible paths...');
-          console.error('[DEBUG] rawAirShoppingResponse keys:', Object.keys(rawAirShoppingResponse || {}));
-          console.error('[DEBUG] rawAirShoppingResponse.data keys:', Object.keys(rawAirShoppingResponse?.data || {}));
-          console.error('[DEBUG] rawAirShoppingResponse.data.raw_response keys:', Object.keys(rawAirShoppingResponse?.data?.raw_response || {}));
-          throw new Error("Shopping Response ID is missing from the search data. Please try searching for flights again.");
-        }
+        // We'll pass a placeholder that the backend will replace with the correct airline-specific ID
+        let shoppingResponseId = 'BACKEND_WILL_EXTRACT';
 
         // Extract the actual raw response to send to the API
         let actualRawResponse = rawAirShoppingResponse;
 
-        // Since we fixed the storage to store apiResponse.data, the correct path is now data.raw_response
-        if (rawAirShoppingResponse?.data?.raw_response) {
+        console.log('[DEBUG] Raw air shopping response structure:', {
+          hasData: !!rawAirShoppingResponse?.data,
+          hasRawResponse: !!rawAirShoppingResponse?.data?.raw_response,
+          dataKeys: rawAirShoppingResponse?.data ? Object.keys(rawAirShoppingResponse.data) : 'N/A',
+          topLevelKeys: rawAirShoppingResponse ? Object.keys(rawAirShoppingResponse) : 'N/A'
+        });
+
+        // Check for raw_response at different possible locations
+        if (rawAirShoppingResponse?.raw_response) {
+          // Direct access to raw_response (current structure)
+          actualRawResponse = rawAirShoppingResponse.raw_response;
+          console.log('[DEBUG] Using direct raw_response for API call');
+        } else if (rawAirShoppingResponse?.data?.raw_response) {
+          // Nested under data.raw_response
           actualRawResponse = rawAirShoppingResponse.data.raw_response;
-          console.log('[DEBUG] Using extracted raw_response for API call');
+          console.log('[DEBUG] Using nested data.raw_response for API call');
         } else if (rawAirShoppingResponse?.data && !rawAirShoppingResponse?.data?.raw_response) {
           // If data exists but no raw_response, the data itself might be the raw response
           actualRawResponse = rawAirShoppingResponse.data;

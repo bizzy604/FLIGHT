@@ -1,0 +1,212 @@
+{
+  "DataLists": {
+    "FareGroup": [
+      {
+        "ListKey": "KQ-FG-614992635425950",
+        "FareBasisCode": {
+          "Code": "DFFKE3"
+        }
+      },
+      {
+        "ListKey": "KQ-FG-614992635405380",
+        "FareBasisCode": {
+          "Code": "ISFKE"
+        }
+      }
+    ],
+    "AnonymousTravelerList": {
+      "AnonymousTraveler": [
+        {
+          "ObjectKey": "PAX1",
+          "PTC": {
+            "value": "ADT"
+          }
+        }
+      ]
+    }
+  },
+  "Query": {
+    "OriginDestination": [
+      {
+        "Flight": [
+          {
+            "SegmentKey": "KQ-SEG16",
+            "Departure": {
+              "AirportCode": {
+                "value": "CDG"
+              },
+              "Date": "2025-07-29T10:55:00.000",
+              "Time": "10:55",
+              "Terminal": {
+                "Name": "2E"
+              }
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "NBO"
+              },
+              "Date": "2025-07-29T20:20:00.000",
+              "Time": "20:20",
+              "Terminal": {
+                "Name": "1A"
+              }
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "KQ"
+              },
+              "Name": "Kenya Airways",
+              "FlightNumber": {
+                "value": "113"
+              }
+            },
+            "OperatingCarrier": {
+              "AirlineID": {
+                "value": "KQ"
+              },
+              "Name": "Kenya Airways"
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT8H25M"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "Flight": [
+          {
+            "SegmentKey": "KQ-SEG3",
+            "Departure": {
+              "AirportCode": {
+                "value": "NBO"
+              },
+              "Date": "2025-07-20T09:50:00.000",
+              "Time": "09:50",
+              "Terminal": {
+                "Name": "1A"
+              }
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "CDG"
+              },
+              "Date": "2025-07-20T17:30:00.000",
+              "Time": "17:30",
+              "Terminal": {
+                "Name": "2E"
+              }
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "KQ"
+              },
+              "Name": "Kenya Airways",
+              "FlightNumber": {
+                "value": "114"
+              }
+            },
+            "OperatingCarrier": {
+              "AirlineID": {
+                "value": "KQ"
+              },
+              "Name": "Kenya Airways"
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT8H40M"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "Offers": {
+      "Offer": [
+        {
+          "OfferID": {
+            "value": "1H1KQZ_4VMV73VMG5V4M2SAU2JAG6MTZ6GY",
+            "Owner": "KQ",
+            "Channel": "NDC"
+          },
+          "OfferItemIDs": {
+            "OfferItemID": [
+              {
+                "value": "1H1KQZ_4VMV73VMG5V4M2SAU2JAG6MTZ6GY-1",
+                "refs": [
+                  "KQ-PAX1"
+                ]
+              }
+            ]
+          },
+          "refs": [
+            {
+              "Ref": "VDC-AIRLINE-SRID"
+            },
+            {
+              "Ref": "VDC-PR-GH1XgqEEzWi733eDnPIn"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "ShoppingResponseID": {
+    "Owner": "KQ",
+    "ResponseID": {
+      "value": "KHeTPicQy4tEL7llk8Y-1aqPKZq4H1OlpuX9mMPRoEg-KQ"
+    }
+  },
+  "Travelers": {
+    "Traveler": [
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "Metadata": {
+    "Other": {
+      "OtherMetadata": [
+        {
+          "PriceMetadatas": {
+            "PriceMetadata": [
+              {
+                "MetadataKey": "VDC-AIRLINE-SRID",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "value": "eyJRUiI6IjFIMVFSWl9BVFJPRTBSMjJRN0tBNkdUM0E5MlNMQ1ZKOEUzIiwiS0wiOiJFOGdPb1NMR29TZFgxeE5ybUhvbyIsIkFGIjoiRlJETTdVeVhmcmxxQ3pKa01lRFciLCJFSyI6Ilg3OEFERjBBOS01NTYxLTRBRkItOEFBMSIsIktRIjoiMUgxS1FaX1Y2N0VYME1JQklEWDdDREdVRlBUSk5VNkFJVzUiLCJMSEciOiJYNjI4RjI0MTQtOUQ5Ny00MjgyLTk2NkMiLCJFVCI6IjYxVlBJUFBXQTNYU1EyMyJ9",
+                        "type": "java.util.HashMap"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-PR-GH1XgqEEzWi733eDnPIn",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
+                        "value": "bcDTzx9Q8lDc2cZgNL42GyIsAiwvpOrXGirWqpW+SKTwhlsm0UwFXEV5ojTpr6mde0GmY2gBCtSI1E341kSWc7yNuM1fIFo7NWqVHuigCeRESJeNn5by65Yb7laLhFcamudUIcZCjj5S7WMgYAosGJF+IoSyTFVSMezdIytv2d6iLo0A6JRKegQLyMTa2NpPVxYLh4rHHiBerJ1sdCrZFRmzPgZF3JioOR7xm4ho6din5fOg+40SNFxP7fULCB5nHZ6Ak4sWIUoQgFaGCPnsc5K2N8gteXhEcb9pphDEPpKpOGsLg8yCuwfv+oeTJZ7dqlHwOJ0Nb8dLnnJZn7SmKafabjupMedDkKG0bX7b69/43Pmupz6jqnDEAxhikRYDYaSD1C/dHcs="
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

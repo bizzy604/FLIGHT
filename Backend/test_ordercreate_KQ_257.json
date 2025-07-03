@@ -1,0 +1,147 @@
+{
+  "Query": {
+    "OrderItems": {
+      "ShoppingResponse": {
+        "Owner": "KQ",
+        "ResponseID": {
+          "value": "KHeTPicQy4tEL7llk8Y-1aqPKZq4H1OlpuX9mMPRoEg-KQ"
+        },
+        "Offers": {
+          "Offer": [
+            {
+              "OfferID": {
+                "ObjectKey": "MOCK_OFFER_257",
+                "value": "MOCK_OFFER_257",
+                "Owner": "KQ",
+                "Channel": "NDC"
+              },
+              "OfferItems": {
+                "OfferItem": [
+                  {
+                    "OfferItemID": {
+                      "Owner": "KQ",
+                      "value": {
+                        "Owner": "KQ",
+                        "value": "MOCK_ITEM_257"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "OfferItem": [
+        {
+          "OfferItemID": {
+            "Owner": "KQ",
+            "value": {
+              "Owner": "KQ",
+              "value": "MOCK_ITEM_257"
+            }
+          },
+          "OfferItemType": {
+            "DetailedFlightItem": [
+              {
+                "Price": {
+                  "BaseAmount": {},
+                  "Taxes": {
+                    "Total": {}
+                  }
+                },
+                "OriginDestination": [],
+                "refs": [
+                  "PAX1"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "DataLists": {
+      "FareList": {
+        "FareGroup": []
+      }
+    },
+    "Passengers": {
+      "Passenger": [
+        {
+          "ObjectKey": "PAX1",
+          "PTC": {
+            "value": "ADT"
+          },
+          "Name": {
+            "Title": null,
+            "Given": [],
+            "Surname": {
+              "value": null
+            }
+          },
+          "Gender": {
+            "value": null
+          },
+          "Age": {
+            "BirthDate": {
+              "value": null
+            }
+          }
+        }
+      ]
+    },
+    "Payments": {
+      "Payment": [
+        {
+          "Amount": {
+            "Code": "USD",
+            "value": 500.0
+          },
+          "Method": {
+            "Cash": {
+              "CashInd": true
+            }
+          }
+        }
+      ]
+    },
+    "Metadata": {
+      "Other": {
+        "OtherMetadata": [
+          {
+            "PriceMetadatas": {
+              "PriceMetadata": [
+                {
+                  "MetadataKey": "VDC-AIRLINE-SRID",
+                  "AugmentationPoint": {
+                    "AugPoint": [
+                      {
+                        "any": {
+                          "value": "eyJRUiI6IjFIMVFSWl9BVFJPRTBSMjJRN0tBNkdUM0E5MlNMQ1ZKOEUzIiwiS0wiOiJFOGdPb1NMR29TZFgxeE5ybUhvbyIsIkFGIjoiRlJETTdVeVhmcmxxQ3pKa01lRFciLCJFSyI6Ilg3OEFERjBBOS01NTYxLTRBRkItOEFBMSIsIktRIjoiMUgxS1FaX1Y2N0VYME1JQklEWDdDREdVRlBUSk5VNkFJVzUiLCJMSEciOiJYNjI4RjI0MTQtOUQ5Ny00MjgyLTk2NkMiLCJFVCI6IjYxVlBJUFBXQTNYU1EyMyJ9",
+                          "type": "java.util.HashMap"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "MetadataKey": "VDC-PR-GH1XgqEEzWi733eDnPIn",
+                  "AugmentationPoint": {
+                    "AugPoint": [
+                      {
+                        "any": {
+                          "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
+                          "value": "bcDTzx9Q8lDc2cZgNL42GyIsAiwvpOrXGirWqpW+SKTwhlsm0UwFXEV5ojTpr6mde0GmY2gBCtSI1E341kSWc7yNuM1fIFo7NWqVHuigCeRESJeNn5by65Yb7laLhFcamudUIcZCjj5S7WMgYAosGJF+IoSyTFVSMezdIytv2d6iLo0A6JRKegQLyMTa2NpPVxYLh4rHHiBerJ1sdCrZFRmzPgZF3JioOR7xm4ho6din5fOg+40SNFxP7fULCB5nHZ6Ak4sWIUoQgFaGCPnsc5K2N8gteXhEcb9pphDEPpKpOGsLg8yCuwfv+oeTJZ7dqlHwOJ0Nb8dLnnJZn7SmKafabjupMedDkKG0bX7b69/43Pmupz6jqnDEAxhikRYDYaSD1C/dHcs="
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

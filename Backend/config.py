@@ -40,6 +40,9 @@ class Config:
     VERTEIL_CLIENT_SECRET = os.environ.get('VERTEIL_CLIENT_SECRET')
     VERTEIL_OFFICE_ID = os.environ.get('VERTEIL_OFFICE_ID', 'OFF3746')
     VERTEIL_THIRD_PARTY_ID = os.environ.get('VERTEIL_THIRD_PARTY_ID', 'KQ')
+    # Multi-airline search configuration - if not set, falls back to VERTEIL_THIRD_PARTY_ID
+    # Try empty string for multi-airline searches, or set to specific aggregator code
+    VERTEIL_MULTI_AIRLINE_ID = os.environ.get('VERTEIL_MULTI_AIRLINE_ID', '')
 
     # Redis configuration
     REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')

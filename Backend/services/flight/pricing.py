@@ -20,6 +20,10 @@ from services.flight.decorators import async_cache, async_rate_limited
 from services.flight.exceptions import FlightServiceError, ValidationError
 from services.flight.types import PricingResponse, SearchCriteria
 
+# Import Phase 1 core infrastructure for multi-airline support
+from utils.multi_airline_detector import MultiAirlineDetector
+from utils.reference_extractor import EnhancedReferenceExtractor
+
 logger = logging.getLogger(__name__)
 
 class FlightPricingService(FlightService):
@@ -56,16 +60,49 @@ class FlightPricingService(FlightService):
         
         try:
             # Validate input
-            if not airshopping_response or not offer_id or not shopping_response_id:
+            if not airshopping_response or not offer_id:
                 raise ValidationError("Missing required parameters for flight pricing")
+
+            # Allow frontend to pass placeholder for shopping_response_id in multi-airline scenarios
+            if not shopping_response_id or shopping_response_id == 'BACKEND_WILL_EXTRACT':
+                logger.info("Frontend requested backend to extract ShoppingResponseID from multi-airline response")
             
             # Generate a request ID if not provided
             request_id = request_id or str(uuid.uuid4())
             
+            # Debug: Log the structure of the air shopping response
+            logger.info(f"[DEBUG] Air shopping response keys: {list(airshopping_response.keys())}")
+            if 'DataLists' in airshopping_response:
+                data_lists = airshopping_response['DataLists']
+                logger.info(f"[DEBUG] DataLists keys: {list(data_lists.keys())}")
+                if 'AnonymousTravelerList' in data_lists:
+                    travelers = data_lists['AnonymousTravelerList']
+                    if isinstance(travelers, dict) and 'AnonymousTraveler' in travelers:
+                        traveler_list = travelers['AnonymousTraveler']
+                        if isinstance(traveler_list, list) and len(traveler_list) > 0:
+                            first_traveler = traveler_list[0]
+                            logger.info(f"[DEBUG] First traveler ObjectKey: {first_traveler.get('ObjectKey', 'N/A')}")
+
             # Extract airline code from the offer
             airline_code = self._extract_airline_code_from_offer(airshopping_response, offer_id)
             logger.info(f"Extracted airline code '{airline_code}' for offer {offer_id} (ReqID: {request_id})")
-            
+
+            # Get airline-specific ShoppingResponseID for multi-airline support
+            if airline_code:
+                airline_shopping_response_id = self._get_shopping_response_id_for_airline(airshopping_response, airline_code)
+                if airline_shopping_response_id:
+                    # Use airline-specific ShoppingResponseID if available
+                    shopping_response_id = airline_shopping_response_id
+                    logger.info(f"Using airline-specific ShoppingResponseID for {airline_code}: {shopping_response_id}")
+                elif shopping_response_id == 'BACKEND_WILL_EXTRACT':
+                    # Frontend requested backend extraction but we couldn't find airline-specific ID
+                    raise ValidationError(f"Could not extract airline-specific ShoppingResponseID for airline {airline_code}")
+                else:
+                    logger.info(f"Using provided ShoppingResponseID: {shopping_response_id}")
+            elif shopping_response_id == 'BACKEND_WILL_EXTRACT':
+                # Frontend requested backend extraction but we couldn't determine airline
+                raise ValidationError("Could not determine airline code for ShoppingResponseID extraction")
+
             # [PASSENGER DEBUG] Log passenger data from air shopping response
             if 'DataLists' in airshopping_response and 'AnonymousTravelerList' in airshopping_response['DataLists']:
                 traveler_list = airshopping_response['DataLists']['AnonymousTravelerList']
@@ -132,122 +169,220 @@ class FlightPricingService(FlightService):
     
     def _extract_airline_code_from_offer(self, airshopping_response: Dict[str, Any], offer_id: str) -> Optional[str]:
         """
-        Extract airline code from the AirShopping response for a specific offer.
-        
+        Enhanced airline code extraction with multi-airline support.
+
         Args:
             airshopping_response: The AirShopping response containing offers
-            offer_id: The ID of the offer to extract airline code from
-            
+            offer_id: The ID of the offer to extract airline code from (can be index for multi-airline)
+
         Returns:
             The airline code (e.g., 'KQ', 'WY') or None if not found
         """
         try:
-            logger.info(f"[DEBUG] Starting airline code extraction for offer_id: {offer_id}")
-            
-            # Log the full response structure for debugging
-            logger.debug(f"[DEBUG] Full airshopping_response keys: {list(airshopping_response.keys())}")
-            
+            logger.info(f"Starting enhanced airline code extraction for offer_id: {offer_id}")
+
+            # Detect response type
+            is_multi_airline = MultiAirlineDetector.is_multi_airline_response(airshopping_response)
+
+            if is_multi_airline:
+                return self._extract_airline_from_multi_airline_offer(airshopping_response, offer_id)
+            else:
+                return self._extract_airline_from_single_airline_offer(airshopping_response, offer_id)
+
+        except Exception as e:
+            logger.error(f"Error extracting airline code for offer {offer_id}: {str(e)}", exc_info=True)
+            return None
+
+    def _extract_airline_from_multi_airline_offer(self, airshopping_response: Dict[str, Any], offer_id: str) -> Optional[str]:
+        """
+        Extract airline code from multi-airline response using offer index.
+
+        Args:
+            airshopping_response: The multi-airline AirShopping response
+            offer_id: The offer index (as string) from frontend
+
+        Returns:
+            The airline code or None if not found
+        """
+        try:
+            # Convert offer_id (index) to integer
+            offer_index = int(offer_id)
+            logger.info(f"Extracting airline code from multi-airline offer at index {offer_index}")
+
+            # Recreate the flattened offers array (matching transformer logic)
+            offers_group = airshopping_response.get('OffersGroup', {})
+            airline_offers_list = offers_group.get('AirlineOffers', [])
+
+            logger.info(f"[DEBUG] OffersGroup keys: {list(offers_group.keys())}")
+            logger.info(f"[DEBUG] AirlineOffers type: {type(airline_offers_list)}, length: {len(airline_offers_list) if isinstance(airline_offers_list, list) else 'N/A'}")
+
+            all_offers = []
+            for i, airline_offer_group in enumerate(airline_offers_list):
+                logger.info(f"[DEBUG] AirlineOffer group {i} keys: {list(airline_offer_group.keys()) if isinstance(airline_offer_group, dict) else 'Not a dict'}")
+                airline_offers = airline_offer_group.get('AirlineOffer', [])
+                logger.info(f"[DEBUG] AirlineOffer group {i} has {len(airline_offers) if isinstance(airline_offers, list) else 'N/A'} offers")
+
+                for j, offer in enumerate(airline_offers):
+                    if offer.get('PricedOffer'):
+                        all_offers.append(offer)
+                        if j < 3:  # Log first 3 offers
+                            offer_id_info = offer.get('OfferID', {})
+                            logger.info(f"[DEBUG] Offer {len(all_offers)-1}: OfferID Owner = {offer_id_info.get('Owner', 'N/A')}")
+
+            # Get the offer at the specified index
+            logger.info(f"[DEBUG] Total offers found: {len(all_offers)}, requested index: {offer_index}")
+
+            if 0 <= offer_index < len(all_offers):
+                selected_offer = all_offers[offer_index]
+                offer_id_data = selected_offer.get('OfferID', {})
+                airline_code = offer_id_data.get('Owner')
+
+                logger.info(f"[DEBUG] Selected offer OfferID structure: {offer_id_data}")
+                logger.info(f"[DEBUG] Extracted airline code: {airline_code}")
+
+                if airline_code:
+                    logger.info(f"Extracted airline code '{airline_code}' from multi-airline offer index {offer_index}")
+                    return airline_code
+                else:
+                    logger.warning(f"No Owner found in OfferID for multi-airline offer index {offer_index}")
+                    return None
+            else:
+                logger.error(f"Multi-airline offer index {offer_index} out of range (total offers: {len(all_offers)})")
+                return None
+
+        except (ValueError, TypeError) as e:
+            logger.error(f"Invalid offer_id format for multi-airline: {offer_id}, error: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Error extracting airline code from multi-airline offer: {e}")
+            return None
+
+    def _extract_airline_from_single_airline_offer(self, airshopping_response: Dict[str, Any], offer_id: str) -> Optional[str]:
+        """
+        Extract airline code from single-airline response (legacy logic).
+
+        Args:
+            airshopping_response: The single-airline AirShopping response
+            offer_id: The offer ID to search for
+
+        Returns:
+            The airline code or None if not found
+        """
+        try:
+            logger.info(f"Extracting airline code from single-airline offer: {offer_id}")
+
             # Handle both wrapped and unwrapped response formats
             if 'AirShoppingRS' in airshopping_response:
-                logger.debug("[DEBUG] Found AirShoppingRS wrapper")
                 offers_group = airshopping_response['AirShoppingRS'].get('OffersGroup', {})
             else:
-                logger.debug("[DEBUG] No AirShoppingRS wrapper found, using response directly")
                 offers_group = airshopping_response.get('OffersGroup', {})
-            
-            logger.debug(f"[DEBUG] OffersGroup keys: {list(offers_group.keys())}")
-            
+
             # Look for the specific offer
             air_line_offers = offers_group.get('AirlineOffers', [])
             if not isinstance(air_line_offers, list):
                 air_line_offers = [air_line_offers]
-            
-            logger.info(f"[DEBUG] Found {len(air_line_offers)} AirlineOffers entries")
-            
-            # First pass: Look for exact offer match
+
+            # Search for exact offer match
             for i, airline_offer in enumerate(air_line_offers):
-                logger.debug(f"[DEBUG] Processing AirlineOffers[{i}] with keys: {list(airline_offer.keys())}")
-                
-                # The structure is AirlineOffers -> AirlineOffer (not 'Offer')
                 offers = airline_offer.get('AirlineOffer', [])
                 if not isinstance(offers, list):
                     offers = [offers]
-                
-                logger.info(f"[DEBUG] Found {len(offers)} offers in AirlineOffers[{i}].AirlineOffer")
-                
+
                 for j, offer in enumerate(offers):
-                    logger.debug(f"[DEBUG] Processing offer {j} with keys: {list(offer.keys())}")
-                    
                     # Extract OfferID value properly
                     offer_id_obj = offer.get('OfferID', {})
                     current_offer_id = offer_id_obj.get('value', '') if isinstance(offer_id_obj, dict) else offer_id_obj
-                    
-                    logger.debug(f"[DEBUG] Comparing offer_id: {offer_id} with current_offer_id: {current_offer_id}")
-                    
+
                     if current_offer_id == offer_id:
-                        logger.info(f"[DEBUG] Found matching offer at AirlineOffers[{i}].AirlineOffer[{j}]")
-                        
+                        logger.info(f"Found matching single-airline offer at AirlineOffers[{i}].AirlineOffer[{j}]")
+
                         # Try multiple paths for airline code extraction
                         # 1. From Owner at airline_offer level
                         owner = airline_offer.get('Owner', {})
                         if isinstance(owner, dict):
                             airline_code = owner.get('value')
                             if airline_code:
-                                logger.info(f"[DEBUG] Found airline code '{airline_code}' for offer {offer_id} from Owner")
+                                logger.info(f"Found airline code '{airline_code}' from Owner")
                                 return airline_code
-                        
+
                         # 2. From ValidatingCarrier in the offer
                         validating_carrier = offer.get('ValidatingCarrier', {})
                         if isinstance(validating_carrier, dict):
                             airline_code = validating_carrier.get('value')
                             if airline_code:
-                                logger.info(f"[DEBUG] Found airline code '{airline_code}' for offer {offer_id} from ValidatingCarrier")
+                                logger.info(f"Found airline code '{airline_code}' from ValidatingCarrier")
                                 return airline_code
-                        
+
                         # 3. From FlightSegments if available
                         flight_segments = offer.get('FlightSegments', [])
                         if isinstance(flight_segments, list) and flight_segments:
-                            for k, segment in enumerate(flight_segments):
-                                logger.debug(f"[DEBUG] Processing FlightSegment {k} with keys: {list(segment.keys())}")
+                            for segment in flight_segments:
                                 operating_carrier = segment.get('OperatingCarrier', {})
                                 if isinstance(operating_carrier, dict):
                                     airline_code = operating_carrier.get('value')
                                     if airline_code:
-                                        logger.info(f"[DEBUG] Found airline code '{airline_code}' for offer {offer_id} from FlightSegments[{k}].OperatingCarrier")
+                                        logger.info(f"Found airline code '{airline_code}' from OperatingCarrier")
                                         return airline_code
-                        
-                        # 4. From MarketingCarrier if available
-                        if isinstance(flight_segments, list) and flight_segments:
-                            for k, segment in enumerate(flight_segments):
-                                marketing_carrier = segment.get('MarketingCarrier', {})
-                                if isinstance(marketing_carrier, dict):
-                                    airline_code = marketing_carrier.get('value')
-                                    if airline_code:
-                                        logger.info(f"[DEBUG] Found airline code '{airline_code}' for offer {offer_id} from FlightSegments[{k}].MarketingCarrier")
-                                        return airline_code
-            
-            # If we reach here, the specific offer was not found
-            logger.warning(f"[DEBUG] Could not find offer {offer_id} in AirShopping response")
-            
-            # Log all offer IDs for debugging
-            all_offer_ids = []
-            for airline_offer in air_line_offers:
-                offers = airline_offer.get('AirlineOffer', [])
-                if not isinstance(offers, list):
-                    offers = [offers]
-                for offer in offers:
-                    offer_id_obj = offer.get('OfferID', {})
-                    current_offer_id = offer_id_obj.get('value', '') if isinstance(offer_id_obj, dict) else offer_id_obj
-                    all_offer_ids.append(current_offer_id)
-            
-            logger.warning(f"[DEBUG] Available offer IDs in response: {all_offer_ids}")
-            
+
+            logger.warning(f"Could not find single-airline offer {offer_id} in AirShopping response")
             return None
-            
+
         except Exception as e:
-            logger.error(f"Error extracting airline code for offer {offer_id}: {str(e)}", exc_info=True)
+            logger.error(f"Error extracting airline code from single-airline offer: {e}")
             return None
-    
+
+    def _get_shopping_response_id_for_airline(self, airshopping_response: Dict[str, Any], airline_code: str) -> Optional[str]:
+        """
+        Get the airline-specific ShoppingResponseID for multi-airline responses.
+
+        Args:
+            airshopping_response: The AirShopping response
+            airline_code: The airline code to get ShoppingResponseID for
+
+        Returns:
+            The airline-specific ShoppingResponseID or None if not found
+        """
+        try:
+            logger.info(f"Getting ShoppingResponseID for airline: {airline_code}")
+
+            # Check if this is a multi-airline response
+            is_multi_airline = MultiAirlineDetector.is_multi_airline_response(airshopping_response)
+
+            if is_multi_airline:
+                # Use the enhanced reference extractor to get airline-specific ShoppingResponseIDs
+                extractor = EnhancedReferenceExtractor(airshopping_response)
+                refs = extractor.extract_references()
+
+                shopping_ids = refs.get('shopping_response_ids', {})
+                airline_shopping_id = shopping_ids.get(airline_code)
+
+                if airline_shopping_id:
+                    logger.info(f"Found airline-specific ShoppingResponseID for {airline_code}: {airline_shopping_id}")
+                    return airline_shopping_id
+                else:
+                    logger.warning(f"No ShoppingResponseID found for airline {airline_code}")
+                    # Fallback to first available ShoppingResponseID
+                    if shopping_ids:
+                        fallback_id = next(iter(shopping_ids.values()))
+                        logger.info(f"Using fallback ShoppingResponseID: {fallback_id}")
+                        return fallback_id
+                    return None
+            else:
+                # For single-airline responses, use the standard ShoppingResponseID
+                shopping_response = airshopping_response.get('ShoppingResponse', {})
+                shopping_response_id = shopping_response.get('ShoppingResponseID', {}).get('value')
+
+                if shopping_response_id:
+                    logger.info(f"Found single-airline ShoppingResponseID: {shopping_response_id}")
+                    return shopping_response_id
+                else:
+                    logger.warning("No ShoppingResponseID found in single-airline response")
+                    return None
+
+        except Exception as e:
+            logger.error(f"Error getting ShoppingResponseID for airline {airline_code}: {e}")
+            return None
+
     def _build_pricing_payload(
         self,
         airshopping_response: Dict[str, Any],

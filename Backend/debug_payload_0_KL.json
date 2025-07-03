@@ -1,0 +1,280 @@
+{
+  "DataLists": {
+    "FareGroup": [
+      {
+        "ListKey": "KL-FG-ORS6SBRA-70J",
+        "FareBasisCode": {
+          "Code": "ORS6SBRA"
+        }
+      }
+    ],
+    "AnonymousTravelerList": {
+      "AnonymousTraveler": [
+        {
+          "ObjectKey": "PAX1",
+          "PTC": {
+            "value": "ADT"
+          }
+        }
+      ]
+    }
+  },
+  "Query": {
+    "OriginDestination": [
+      {
+        "Flight": [
+          {
+            "SegmentKey": "KL-SEG1",
+            "Departure": {
+              "AirportCode": {
+                "value": "NBO"
+              },
+              "Date": "2025-07-20T00:00:00.000",
+              "Time": "23:59",
+              "Terminal": {
+                "Name": "1A"
+              }
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "AMS"
+              },
+              "Date": "2025-07-21T00:00:00.000",
+              "Time": "07:55",
+              "Terminal": {}
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "KL"
+              },
+              "FlightNumber": {
+                "value": "566"
+              }
+            },
+            "OperatingCarrier": {
+              "AirlineID": {
+                "value": "KL"
+              },
+              "Name": "KLM"
+            },
+            "Equipment": {
+              "AircraftCode": {
+                "value": "781"
+              }
+            }
+          },
+          {
+            "SegmentKey": "KL-SEG2",
+            "Departure": {
+              "AirportCode": {
+                "value": "AMS"
+              },
+              "Date": "2025-07-21T00:00:00.000",
+              "Time": "09:30",
+              "Terminal": {}
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "CDG"
+              },
+              "Date": "2025-07-21T00:00:00.000",
+              "Time": "10:50",
+              "Terminal": {
+                "Name": "2F"
+              }
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "KL"
+              },
+              "FlightNumber": {
+                "value": "2003"
+              }
+            },
+            "OperatingCarrier": {
+              "AirlineID": {
+                "value": "AF"
+              },
+              "Name": "Air France"
+            },
+            "Equipment": {
+              "AircraftCode": {
+                "value": "320"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "Flight": [
+          {
+            "SegmentKey": "KL-SEG3",
+            "Departure": {
+              "AirportCode": {
+                "value": "CDG"
+              },
+              "Date": "2025-07-29T00:00:00.000",
+              "Time": "09:15",
+              "Terminal": {
+                "Name": "2F"
+              }
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "AMS"
+              },
+              "Date": "2025-07-29T00:00:00.000",
+              "Time": "10:40",
+              "Terminal": {}
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "KL"
+              },
+              "FlightNumber": {
+                "value": "2437"
+              }
+            },
+            "OperatingCarrier": {
+              "AirlineID": {
+                "value": "AF"
+              },
+              "Name": "Air France"
+            },
+            "Equipment": {
+              "AircraftCode": {
+                "value": "223"
+              }
+            }
+          },
+          {
+            "SegmentKey": "KL-SEG4",
+            "Departure": {
+              "AirportCode": {
+                "value": "AMS"
+              },
+              "Date": "2025-07-29T00:00:00.000",
+              "Time": "12:30",
+              "Terminal": {}
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "NBO"
+              },
+              "Date": "2025-07-29T00:00:00.000",
+              "Time": "22:00",
+              "Terminal": {
+                "Name": "1A"
+              }
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "KL"
+              },
+              "FlightNumber": {
+                "value": "565"
+              }
+            },
+            "OperatingCarrier": {
+              "AirlineID": {
+                "value": "KL"
+              },
+              "Name": "KLM"
+            },
+            "Equipment": {
+              "AircraftCode": {
+                "value": "781"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "Offers": {
+      "Offer": [
+        {
+          "OfferID": {
+            "value": "adbfc38a-3e32-47cf-bfc3-8a3e32970001",
+            "Owner": "KL",
+            "Channel": "NDC"
+          },
+          "OfferItemIDs": {
+            "OfferItemID": [
+              {
+                "value": "ec79e092-c4bd-4e50-b9e0-92c4bd3e50be",
+                "refs": [
+                  "KL-PAX1"
+                ]
+              }
+            ]
+          },
+          "refs": [
+            {
+              "Ref": "VDC-AIRLINE-SRID"
+            },
+            {
+              "Ref": "VDC-PR-LJzDeTEhJtZkxNfXNWbN"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "ShoppingResponseID": {
+    "Owner": "KL",
+    "ResponseID": {
+      "value": "KHeTPicQy4tEL7llk8Y-1aqPKZq4H1OlpuX9mMPRoEg-KL"
+    }
+  },
+  "Travelers": {
+    "Traveler": [
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "Metadata": {
+    "Other": {
+      "OtherMetadata": [
+        {
+          "PriceMetadatas": {
+            "PriceMetadata": [
+              {
+                "MetadataKey": "VDC-AIRLINE-SRID",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "value": "eyJRUiI6IjFIMVFSWl9BVFJPRTBSMjJRN0tBNkdUM0E5MlNMQ1ZKOEUzIiwiS0wiOiJFOGdPb1NMR29TZFgxeE5ybUhvbyIsIkFGIjoiRlJETTdVeVhmcmxxQ3pKa01lRFciLCJFSyI6Ilg3OEFERjBBOS01NTYxLTRBRkItOEFBMSIsIktRIjoiMUgxS1FaX1Y2N0VYME1JQklEWDdDREdVRlBUSk5VNkFJVzUiLCJMSEciOiJYNjI4RjI0MTQtOUQ5Ny00MjgyLTk2NkMiLCJFVCI6IjYxVlBJUFBXQTNYU1EyMyJ9",
+                        "type": "java.util.HashMap"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-PR-LJzDeTEhJtZkxNfXNWbN",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
+                        "value": "bcDTzx9Q8lDc2cZgNL42GyIsAiwvpOrXGirWqpW+SKTwhlsm0UwFXBVV8Rnbxs7IAD+VZ2l6c6Te5FTXgnTkC7amyu9aXzdWMx38DeauX/9fXZqxvY347dED51CKgFUejusHZJgSiCVD5iR0ITpAcJEbTrn2BhJPHv7dPCNu28DBYbEI6MF3Z0MW59bax9pfEEFg0uDMdxRnxJBfCUXcCyzKG1c+3LCvWnLGkKcZg9fY0p302OdaME4BqqdGUjp/Fa/b2cx1Xzxz6CDWUbf7T5qgXJYFeRBKH6gN22fHLf23OEJI1dmBjgvszoSIcsqavFr0P58UeZ0E3Sc00LmyNLa5OWbkaKpZmrSvLiuT59X9w+3j9jvc7ZdpIaTbQz3JSmHpoHAJj6sHnDpRd2C2VDYIeiI="
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

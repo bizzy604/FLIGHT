@@ -198,14 +198,101 @@ class FlightBookingService(FlightService):
                 logger.info(f"Found airline code '{owner}' in OrderCreate payload ShoppingResponse.Owner")
                 return owner
             
+            # For multi-airline responses, extract from flight price response structure
+            if self._is_multi_airline_flight_price_response(original_flight_price_response):
+                return self._extract_airline_from_multi_airline_price_response(original_flight_price_response)
+
             # Fallback to the original extraction method
             return self._extract_airline_code_from_price_response(original_flight_price_response)
-            
+
         except Exception as e:
             logger.error(f"Error extracting airline code from enhanced payload: {str(e)}", exc_info=True)
-            # Fallback to original method
-            return self._extract_airline_code_from_price_response(original_flight_price_response)
-    
+            return 'UNKNOWN'
+
+    def _is_multi_airline_flight_price_response(self, flight_price_response: Dict[str, Any]) -> bool:
+        """
+        Check if the flight price response is from a multi-airline context.
+
+        Args:
+            flight_price_response: The FlightPrice response
+
+        Returns:
+            bool: True if multi-airline response, False otherwise
+        """
+        try:
+            # Check for multiple airline codes in ShoppingResponseID
+            shopping_response_id = flight_price_response.get('ShoppingResponseID', {})
+            if isinstance(shopping_response_id, dict):
+                response_id_value = shopping_response_id.get('ResponseID', {}).get('value', '')
+                # Multi-airline shopping response IDs typically end with airline code
+                if '-' in response_id_value and len(response_id_value.split('-')[-1]) <= 3:
+                    return True
+
+            # Check for airline-prefixed references in DataLists
+            data_lists = flight_price_response.get('DataLists', {})
+            travelers = data_lists.get('AnonymousTravelerList', {}).get('AnonymousTraveler', [])
+            if not isinstance(travelers, list):
+                travelers = [travelers] if travelers else []
+
+            for traveler in travelers:
+                object_key = traveler.get('ObjectKey', '')
+                # Look for airline-prefixed keys like "KL-PAX1", "QR-PAX1"
+                if '-' in object_key and len(object_key.split('-')[0]) <= 3:
+                    return True
+
+            return False
+
+        except Exception as e:
+            logger.error(f"Error detecting multi-airline flight price response: {e}")
+            return False
+
+    def _extract_airline_from_multi_airline_price_response(self, flight_price_response: Dict[str, Any]) -> Optional[str]:
+        """
+        Extract airline code from multi-airline flight price response.
+
+        Args:
+            flight_price_response: The FlightPrice response
+
+        Returns:
+            str: The airline code or None if not found
+        """
+        try:
+            # Method 1: Extract from ShoppingResponseID
+            shopping_response_id = flight_price_response.get('ShoppingResponseID', {})
+            if isinstance(shopping_response_id, dict):
+                owner = shopping_response_id.get('Owner')
+                if owner:
+                    logger.info(f"Extracted airline code '{owner}' from multi-airline FlightPrice ShoppingResponseID.Owner")
+                    return owner
+
+                # Try to extract from ResponseID value (format: base-id-AIRLINE)
+                response_id_value = shopping_response_id.get('ResponseID', {}).get('value', '')
+                if '-' in response_id_value:
+                    airline_code = response_id_value.split('-')[-1]
+                    if len(airline_code) <= 3:  # Valid airline code length
+                        logger.info(f"Extracted airline code '{airline_code}' from multi-airline FlightPrice ResponseID")
+                        return airline_code
+
+            # Method 2: Extract from PricedFlightOffers
+            priced_offers = flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
+            if not isinstance(priced_offers, list):
+                priced_offers = [priced_offers] if priced_offers else []
+
+            if priced_offers:
+                first_offer = priced_offers[0]
+                offer_id = first_offer.get('OfferID', {})
+                owner = offer_id.get('Owner')
+                if owner:
+                    logger.info(f"Extracted airline code '{owner}' from multi-airline FlightPrice OfferID.Owner")
+                    return owner
+
+            logger.warning("Could not extract airline code from multi-airline flight price response")
+            return None
+
+        except Exception as e:
+            logger.error(f"Error extracting airline from multi-airline price response: {e}")
+            return None
+
     def _extract_airline_code_from_price_response(self, flight_price_response: Dict[str, Any]) -> Optional[str]:
         """
         Extract the airline code from the flight price response for dynamic thirdPartyId.

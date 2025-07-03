@@ -15,6 +15,10 @@ from functools import wraps
 import time
 from collections import OrderedDict
 
+# Import enhanced air shopping services
+from services.flight.air_shopping import process_air_shopping_enhanced, process_air_shopping_basic
+from services.flight.search import process_air_shopping  # Legacy compatibility
+
 # Simple in-memory request deduplication cache
 class RequestDeduplicationCache:
     def __init__(self, max_size=100, ttl=5):
@@ -119,6 +123,160 @@ def _create_error_response(
         response['details'] = details
     return response
 
+@bp.route('/air-shopping-test-postman', methods=['POST', 'OPTIONS'])
+@route_cors(
+    allow_origin=ALLOWED_ORIGINS,
+    allow_methods=["POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"]
+)
+async def air_shopping_test_postman():
+    """Test endpoint using exact Postman request body structure"""
+    if request.method == 'OPTIONS':
+        return '', 200
+
+    try:
+        # Use exact Postman request body structure
+        postman_payload = {
+            "Preference": {
+                "CabinPreferences": {
+                    "CabinType": [
+                        {"Code": "C", "OriginDestinationReferences": ["OD1"]},
+                        {"Code": "C", "OriginDestinationReferences": ["OD2"]}
+                    ]
+                },
+                "FarePreferences": {
+                    "Types": {"Type": [{"Code": "PUBL"}]}
+                },
+                "PricingMethodPreference": {"BestPricingOption": "Y"}
+            },
+            "ResponseParameters": {
+                "SortOrder": [
+                    {"Order": "ASCENDING", "Parameter": "PRICE"},
+                    {"Order": "ASCENDING", "Parameter": "STOP"},
+                    {"Order": "ASCENDING", "Parameter": "DEPARTURE_TIME"}
+                ],
+                "ShopResultPreference": "FULL"
+            },
+            "Travelers": {
+                "Traveler": [{"AnonymousTraveler": [{"PTC": {"value": "ADT"}}]}]
+            },
+            "CoreQuery": {
+                "OriginDestinations": {
+                    "OriginDestination": [
+                        {
+                            "OriginDestinationKey": "OD1",
+                            "Departure": {"AirportCode": {"value": "NBO"}, "Date": "2025-07-20"},
+                            "Arrival": {"AirportCode": {"value": "CDG"}}
+                        },
+                        {
+                            "OriginDestinationKey": "OD2",
+                            "Departure": {"AirportCode": {"value": "CDG"}, "Date": "2025-07-29"},
+                            "Arrival": {"AirportCode": {"value": "NBO"}}
+                        }
+                    ]
+                }
+            }
+        }
+
+        logger.info(f"[TEST] Using exact Postman request body structure")
+        logger.info(f"[TEST] Round-trip: NBO->CDG->NBO, Business class, 2025-07-20/29")
+
+        # Use the core flight service directly
+        from services.flight.core import FlightService
+
+        # Initialize the service with current app config
+        service = FlightService(current_app.config)
+
+        # Make the request directly with the exact Postman payload
+        response = await service._make_request(
+            endpoint='/entrygate/rest/request:airShopping',
+            payload=postman_payload,
+            service_name='AirShopping',
+            method='POST'
+        )
+
+        logger.info(f"[TEST] ✅ SUCCESS! Postman payload test returned flight data!")
+        logger.info(f"[TEST] Response contains {len(str(response))} characters of data")
+
+        return jsonify({
+            'success': True,
+            'message': '✅ SUCCESS! Postman payload test returned real flight data!',
+            'response_size': len(str(response)),
+            'has_flight_data': 'VDC-PR-' in str(response)  # Check for flight pricing data
+        }), 200
+
+    except Exception as e:
+        logger.error(f"[TEST] Postman payload test failed: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/air-shopping-test-regular', methods=['POST', 'OPTIONS'])
+@route_cors(
+    allow_origin=ALLOWED_ORIGINS,
+    allow_methods=["POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"]
+)
+async def air_shopping_test_regular():
+    """Test endpoint using regular air-shopping with updated payload structure"""
+    if request.method == 'OPTIONS':
+        return '', 200
+
+    try:
+        # Use the same search criteria as the working Postman test
+        test_request = {
+            "tripType": "ROUND_TRIP",
+            "odSegments": [
+                {"origin": "NBO", "destination": "CDG", "departureDate": "2025-07-20"},
+                {"origin": "CDG", "destination": "NBO", "departureDate": "2025-07-29"}
+            ],
+            "numAdults": 1,
+            "numChildren": 0,
+            "numInfants": 0,
+            "cabinClass": "BUSINESS"  # Business class like Postman
+        }
+
+        logger.info(f"[TEST] Testing regular air-shopping with updated payload structure")
+        logger.info(f"[TEST] Round-trip: NBO->CDG->NBO, Business class, 2025-07-20/29")
+
+        # Process through the enhanced air-shopping flow
+        # Add configuration to the request data
+        test_request['config'] = dict(current_app.config)
+        test_request['enhanced'] = True  # Use enhanced mode for testing
+        result = await process_air_shopping_enhanced(test_request)
+
+        logger.info(f"[TEST] Regular air-shopping test result: {result.get('status', 'unknown')}")
+
+        if result.get('status') == 'success':
+            data = result.get('data', {})
+            offers = data.get('offers', [])
+            logger.info(f"[TEST] ✅ SUCCESS! Regular air-shopping returned {len(offers)} flight offers!")
+
+            return jsonify({
+                'success': True,
+                'message': f'✅ SUCCESS! Regular air-shopping returned {len(offers)} flight offers!',
+                'offers_count': len(offers),
+                'has_offers': len(offers) > 0
+            }), 200
+        else:
+            logger.error(f"[TEST] ❌ FAILED! Regular air-shopping returned error: {result.get('error', 'unknown')}")
+            return jsonify({
+                'success': False,
+                'message': f'❌ FAILED! Regular air-shopping returned error',
+                'error': result.get('error', 'unknown')
+            }), 500
+
+    except Exception as e:
+        logger.error(f"[TEST] Error in regular air-shopping test: {str(e)}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': 'Regular air-shopping test failed'
+        }), 500
+
+
 @bp.route('/air-shopping', methods=['GET', 'POST', 'OPTIONS'])
 @route_cors(
     allow_origin=ALLOWED_ORIGINS,
@@ -204,9 +362,7 @@ async def air_shopping():
         else:
             data = await request.get_json() or {}
             
-        # Early logging to debug the issue
-        logger.info(f"[DEBUG] Request method: {request.method}")
-        logger.info(f"[DEBUG] Raw request data: {data}")
+
             
         # Convert frontend parameter names to backend equivalents
         parameter_mapping = {
@@ -286,10 +442,15 @@ async def air_shopping():
                     converted_data['odSegments'] = [outbound_segment, return_segment]
                     logger.info(f"[DEBUG] Split round trip segment into two: {converted_data['odSegments']}")
         
-        # Convert cabin class codes to preference names
+        # Convert cabin class names to preference names (frontend sends names like 'BUSINESS')
         cabin_code_mapping = {
+            'ECONOMY': 'ECONOMY',
+            'PREMIUM_ECONOMY': 'PREMIUM_ECONOMY',
+            'BUSINESS': 'BUSINESS',
+            'FIRST': 'FIRST',
+            # Legacy support for codes (in case any old code still sends codes)
             'Y': 'ECONOMY',
-            'W': 'PREMIUM_ECONOMY', 
+            'W': 'PREMIUM_ECONOMY',
             'C': 'BUSINESS',
             'F': 'FIRST'
         }
@@ -308,36 +469,63 @@ async def air_shopping():
                 # Remove global cabin preference to avoid conflicts
                 converted_data.pop('cabinPreference', None)
         elif 'cabin_class' in converted_data:
-            # Handle single cabin class for one-way trips
+            # Handle single cabin class for one-way trips (from URL parameter cabinClass)
             cabin_code = converted_data['cabin_class']
             converted_data['cabinPreference'] = cabin_code_mapping.get(cabin_code, 'ECONOMY')
             logger.info(f"[DEBUG] Mapped cabin class {cabin_code} to {converted_data['cabinPreference']}")
+        elif 'cabinPreference' in converted_data:
+            # Handle cabin preference for one-way trips (from POST body cabinPreference)
+            cabin_preference = converted_data['cabinPreference']
+            # Ensure the cabin preference is properly mapped using the same mapping
+            converted_data['cabinPreference'] = cabin_code_mapping.get(cabin_preference, 'ECONOMY')
+            logger.info(f"[DEBUG] Mapped cabin preference {cabin_preference} to {converted_data['cabinPreference']}")
+        else:
+            # Debug: Log what keys are available if cabin mapping fails
+            logger.info(f"[DEBUG] No cabin class mapping applied. Available keys: {list(converted_data.keys())}")
+            if 'cabin_class' in converted_data:
+                logger.info(f"[DEBUG] cabin_class value: {converted_data['cabin_class']}")
+            if 'cabinClass' in converted_data:
+                logger.info(f"[DEBUG] cabinClass value: {converted_data['cabinClass']}")
+            if 'cabinPreference' in converted_data:
+                logger.info(f"[DEBUG] cabinPreference value: {converted_data['cabinPreference']}")
+            if 'outbound_cabin_class' in converted_data:
+                logger.info(f"[DEBUG] outbound_cabin_class value: {converted_data['outbound_cabin_class']}")
+            if 'return_cabin_class' in converted_data:
+                logger.info(f"[DEBUG] return_cabin_class value: {converted_data['return_cabin_class']}")
             
         # Log the incoming request for debugging
         logger.info(f"Original request data: {data}")
         logger.info(f"Converted request data: {converted_data}")
 
-        # [PASSENGER DEBUG] Log passenger counts specifically
-        logger.info(f"[PASSENGER DEBUG] Backend Route - Received air shopping request:")
-        logger.info(f"[PASSENGER DEBUG] Passenger counts: num_adults={converted_data.get('num_adults')}, num_children={converted_data.get('num_children')}, num_infants={converted_data.get('num_infants')}")
-        logger.info(f"[PASSENGER DEBUG] Total passengers: {(converted_data.get('num_adults', 0) + converted_data.get('num_children', 0) + converted_data.get('num_infants', 0))}")
-        logger.info(f"[PASSENGER DEBUG] All converted_data keys: {list(converted_data.keys())}")
-        logger.info(f"[PASSENGER DEBUG] Full converted_data: {converted_data}")
 
-        # Process the request with the flight service
+
+        # Process the request with the enhanced flight service
+        # Check if enhanced mode is requested (default: enhanced for multi-airline support)
+        use_enhanced = converted_data.get('enhanced', True)  # Default to enhanced mode
+
         # Add configuration to the request data
         converted_data['config'] = dict(current_app.config)
-        result = await process_air_shopping(converted_data)
-        
+
+        if use_enhanced:
+            # Use enhanced air shopping with multi-airline support
+            logger.info(f"Using enhanced air shopping service - Request ID: {request_id}")
+            result = await process_air_shopping_enhanced(converted_data)
+        else:
+            # Use basic air shopping for legacy compatibility
+            logger.info(f"Using basic air shopping service - Request ID: {request_id}")
+            result = await process_air_shopping_basic(converted_data)
+
         # Log success
-        logger.info(f"Successfully processed air shopping request - Request ID: {request_id}")
-        
-        # Return the result
-        response = jsonify({
-            'status': 'success',
-            'data': result,
-            'request_id': request_id
-        })
+        service_type = "enhanced" if use_enhanced else "basic"
+        logger.info(f"Successfully processed {service_type} air shopping request - Request ID: {request_id}")
+
+        # Return the result (enhanced service already includes status and request_id)
+        if result.get('status') == 'success':
+            response = jsonify(result)
+        else:
+            # Handle error response
+            response = jsonify(result)
+            response.status_code = 500
         
         return response
         

@@ -87,7 +87,7 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
             onChange={onDarkModeToggle}
           />
           <div className="w-12 h-6 bg-slate-300 rounded-full peer-checked:bg-blue-700 relative transition-colors duration-300">
-            <span className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md peer-checked:translate-x-6 transition-transform duration-300 flex items-center justify-center">
+            <span className="absolute top-0.5 left-0.5 w-5 h-5 bg-card rounded-full shadow-md peer-checked:translate-x-6 transition-transform duration-300 flex items-center justify-center">
               {isDarkMode ? (
                 <Moon className="w-3 h-3 text-slate-700" />
               ) : (
@@ -163,7 +163,7 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
         <button 
           id="airlineBtn" 
           onClick={onToggleAirlineMenu}
-          className="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between text-sm font-semibold shadow-sm hover:border-blue-700 transition-colors duration-200"
+          className="w-full bg-card border-2 border-border rounded-xl px-4 py-3 flex items-center justify-between text-sm font-semibold shadow-sm hover:border-blue-700 transition-colors duration-200"
         >
           <span id="selectedAirline">{airline}</span>
           <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${
@@ -172,7 +172,7 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
         </button>
         
         {showAirlineMenu && (
-          <div className="absolute z-20 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
+          <div className="absolute z-20 mt-2 w-full bg-card border border-border rounded-xl shadow-xl overflow-hidden">
             <ul className="text-sm">
               {airlines.map((item) => (
                 <li 

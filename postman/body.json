@@ -1,0 +1,96 @@
+{
+    "Preference": {
+        "CabinPreferences": {
+            "CabinType": [
+                {
+                    "Code": "C",
+                    "OriginDestinationReferences": [
+                        "OD1"
+                    ]
+                },
+                {
+                    "Code": "C",
+                    "OriginDestinationReferences": [
+                        "OD2"
+                    ]
+                }
+            ]
+        },
+        "FarePreferences": {
+            "Types": {
+                "Type": [
+                    {
+                        "Code": "PUBL"
+                    }
+                ]
+            }
+        },
+        "PricingMethodPreference": {
+            "BestPricingOption": "Y"
+        }
+    },
+    "ResponseParameters": {
+        "SortOrder": [
+            {
+                "Order": "ASCENDING",
+                "Parameter": "PRICE"
+            },
+            {
+                "Order": "ASCENDING",
+                "Parameter": "STOP"
+            },
+            {
+                "Order": "ASCENDING",
+                "Parameter": "DEPARTURE_TIME"
+            }
+        ],
+        "ShopResultPreference": "FULL"
+    },
+    "Travelers": {
+        "Traveler": [
+            {
+                "AnonymousTraveler": [
+                    {
+                        "PTC": {
+                            "value": "ADT"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "CoreQuery": {
+        "OriginDestinations": {
+            "OriginDestination": [
+                {
+                    "OriginDestinationKey": "OD1",
+                    "Departure": {
+                        "AirportCode": {
+                            "value": "NBO"
+                        },
+                        "Date": "2025-07-20"
+                    },
+                    "Arrival": {
+                        "AirportCode": {
+                            "value": "CDG"
+                        }
+                    }
+                },
+                {
+                    "OriginDestinationKey": "OD2",
+                    "Departure": {
+                        "AirportCode": {
+                            "value": "CDG"
+                        },
+                        "Date": "2025-07-29"
+                    },
+                    "Arrival": {
+                        "AirportCode": {
+                            "value": "NBO"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

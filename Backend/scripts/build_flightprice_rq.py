@@ -1,8 +1,20 @@
 # --- START OF FILE build_flightpriceRQ.py ---
 
 import json
+import logging
 # Ensure other necessary imports like sys, Path are handled if you run this standalone via main()
 # For just the functions, json is the main one.
+
+# Import Phase 1 core infrastructure for multi-airline support
+try:
+    from utils.multi_airline_detector import MultiAirlineDetector
+    from utils.reference_extractor import EnhancedReferenceExtractor
+except ImportError:
+    # Fallback for standalone execution
+    MultiAirlineDetector = None
+    EnhancedReferenceExtractor = None
+
+logger = logging.getLogger(__name__)
 
 def filter_price_metadata(price_metadatas_container, all_offer_refs_set):
     """
@@ -54,19 +66,113 @@ def filter_price_metadata(price_metadatas_container, all_offer_refs_set):
 
 def build_flight_price_request(airshopping_response, selected_offer_index=0, selected_airline_owner=None):
     """
-    Generate a complete FlightPrice request from the AirShopping response.
-    
+    Enhanced FlightPrice request builder with multi-airline support.
+
     Args:
         airshopping_response (dict): The AirShopping response
-        selected_offer_index (int): Index of the selected offer in AirlineOffers
-        selected_airline_owner (str, optional): The airline owner code (e.g., 'KQ', 'BA'). 
-                                               If not provided, will use the first airline.
-        
+        selected_offer_index (int): Index of the selected offer (for multi-airline: global index)
+        selected_airline_owner (str, optional): The airline owner code (e.g., 'KQ', 'BA').
+                                               If not provided, will be auto-detected.
+
     Returns:
         dict: FlightPrice request payload
     """
     if not isinstance(airshopping_response, dict):
         raise ValueError("Invalid airshopping_response format")
+
+    logger.info(f"Building flight price request for offer index {selected_offer_index}")
+
+    # Detect response type and extract airline context
+    is_multi_airline = False
+    if MultiAirlineDetector:
+        is_multi_airline = MultiAirlineDetector.is_multi_airline_response(airshopping_response)
+        logger.info(f"Response type: {'multi-airline' if is_multi_airline else 'single-airline'}")
+
+    if is_multi_airline:
+        return _build_multi_airline_flight_price_request(
+            airshopping_response, selected_offer_index, selected_airline_owner
+        )
+    else:
+        return _build_single_airline_flight_price_request(
+            airshopping_response, selected_offer_index, selected_airline_owner
+        )
+
+
+def _build_multi_airline_flight_price_request(airshopping_response, selected_offer_index, selected_airline_owner=None):
+    """
+    Build FlightPrice request for multi-airline response.
+
+    Args:
+        airshopping_response (dict): The multi-airline AirShopping response
+        selected_offer_index (int): Global index of the selected offer
+        selected_airline_owner (str, optional): The airline owner code
+
+    Returns:
+        dict: FlightPrice request payload
+    """
+    logger.info(f"Building multi-airline flight price request for global offer index {selected_offer_index}")
+
+    offers_group = airshopping_response.get("OffersGroup", {})
+    data_lists = airshopping_response.get("DataLists", {})
+
+    try:
+        # Recreate the flattened offers array (matching transformer logic)
+        airline_offers_list = offers_group.get("AirlineOffers", [])
+        all_offers = []
+        airline_mapping = {}  # Maps global index to (airline_offers_node, local_index)
+
+        global_index = 0
+        for airline_offers_node in airline_offers_list:
+            airline_offers = airline_offers_node.get("AirlineOffer", [])
+            if not isinstance(airline_offers, list):
+                airline_offers = [airline_offers]
+
+            for local_index, offer in enumerate(airline_offers):
+                if offer.get("PricedOffer"):  # Only include priced offers
+                    all_offers.append(offer)
+                    airline_mapping[global_index] = (airline_offers_node, local_index)
+                    global_index += 1
+
+        # Validate the selected index
+        if selected_offer_index >= len(all_offers):
+            raise ValueError(f"Multi-airline offer index {selected_offer_index} out of range (total: {len(all_offers)})")
+
+        # Get the selected offer and its airline context
+        selected_offer = all_offers[selected_offer_index]
+        selected_airline_offers_node, local_offer_index = airline_mapping[selected_offer_index]
+
+        # Extract airline owner from the selected offer's OfferID
+        airline_owner = selected_offer.get("OfferID", {}).get("Owner", "")
+        if not airline_owner:
+            # Fallback: try to get from AirlineOffers node (legacy structure)
+            airline_owner = selected_airline_offers_node.get("Owner", {}).get("value", "")
+        logger.info(f"Selected multi-airline offer from airline {airline_owner} at local index {local_offer_index}")
+
+        # Get airline-specific ShoppingResponseID
+        shopping_response_id = _get_airline_shopping_response_id(airshopping_response, airline_owner)
+
+    except (IndexError, KeyError, TypeError) as e:
+        raise ValueError(f"Error accessing multi-airline offer at index {selected_offer_index}: {str(e)}")
+
+    # Continue with common offer processing logic
+    return _build_common_flight_price_request(
+        airshopping_response, selected_offer, airline_owner, shopping_response_id, data_lists
+    )
+
+
+def _build_single_airline_flight_price_request(airshopping_response, selected_offer_index, selected_airline_owner=None):
+    """
+    Build FlightPrice request for single-airline response (legacy logic).
+
+    Args:
+        airshopping_response (dict): The single-airline AirShopping response
+        selected_offer_index (int): Index of the selected offer in AirlineOffers
+        selected_airline_owner (str, optional): The airline owner code
+
+    Returns:
+        dict: FlightPrice request payload
+    """
+    logger.info(f"Building single-airline flight price request for offer index {selected_offer_index}")
 
     offers_group = airshopping_response.get("OffersGroup", {})
     data_lists = airshopping_response.get("DataLists", {})
@@ -75,7 +181,7 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0, sel
         airline_offers_list_container = offers_group.get("AirlineOffers", [])
         if not airline_offers_list_container or not isinstance(airline_offers_list_container, list):
             raise ValueError("No AirlineOffers found or invalid format in AirShoppingRS")
-        
+
         # Find the correct AirlineOffers entry based on selected_airline_owner
         selected_airline_offers_node = None
         if selected_airline_owner:
@@ -90,19 +196,184 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0, sel
         else:
             # Default to first entry if no specific airline owner is provided
             selected_airline_offers_node = airline_offers_list_container[0]
-        
+
         actual_airline_offers = selected_airline_offers_node.get("AirlineOffer", [])
-        
+
         if not actual_airline_offers or not isinstance(actual_airline_offers, list) or selected_offer_index >= len(actual_airline_offers):
             raise ValueError(f"AirlineOffer list is empty or selected_offer_index {selected_offer_index} is out of bounds.")
-            
+
         selected_offer = actual_airline_offers[selected_offer_index]
-        
-        # Extract the airline owner from the selected airline offers node
-        airline_owner = selected_airline_offers_node.get("Owner", {}).get("value", "")
-        
+
+        # Extract the airline owner from the selected offer's OfferID
+        airline_owner = selected_offer.get("OfferID", {}).get("Owner", "")
+        if not airline_owner:
+            # Fallback: try to get from AirlineOffers node (legacy structure)
+            airline_owner = selected_airline_offers_node.get("Owner", {}).get("value", "")
+
+        # Get standard ShoppingResponseID
+        shopping_response = airshopping_response.get("ShoppingResponse", {})
+        shopping_response_id = shopping_response.get("ShoppingResponseID", {}).get("value", "")
+
     except (IndexError, KeyError, TypeError) as e:
         raise ValueError(f"Error accessing selected AirlineOffer in AirShoppingRS: {str(e)}")
+
+    # Continue with common offer processing logic
+    return _build_common_flight_price_request(
+        airshopping_response, selected_offer, airline_owner, shopping_response_id, data_lists
+    )
+
+
+def _get_airline_shopping_response_id(airshopping_response, airline_code):
+    """
+    Get airline-specific ShoppingResponseID for multi-airline responses.
+
+    Args:
+        airshopping_response (dict): The AirShopping response
+        airline_code (str): The airline code
+
+    Returns:
+        str: The airline-specific ShoppingResponseID
+    """
+    try:
+        if EnhancedReferenceExtractor:
+            extractor = EnhancedReferenceExtractor(airshopping_response)
+            refs = extractor.extract_references()
+            shopping_ids = refs.get('shopping_response_ids', {})
+
+            airline_shopping_id = shopping_ids.get(airline_code)
+            if airline_shopping_id:
+                logger.info(f"Found airline-specific ShoppingResponseID for {airline_code}: {airline_shopping_id}")
+                return airline_shopping_id
+            else:
+                # Fallback to first available ShoppingResponseID
+                if shopping_ids:
+                    fallback_id = next(iter(shopping_ids.values()))
+                    logger.info(f"Using fallback ShoppingResponseID: {fallback_id}")
+                    return fallback_id
+
+        # Final fallback to standard ShoppingResponseID
+        shopping_response = airshopping_response.get("ShoppingResponse", {})
+        shopping_response_id = shopping_response.get("ShoppingResponseID", {}).get("value", "")
+        logger.info(f"Using standard ShoppingResponseID: {shopping_response_id}")
+        return shopping_response_id
+
+    except Exception as e:
+        logger.error(f"Error getting ShoppingResponseID for airline {airline_code}: {e}")
+        return ""
+
+
+def _filter_airline_specific_data(data_lists, airline_owner):
+    """
+    Filter DataLists to only include data relevant to the selected airline.
+
+    Args:
+        data_lists (dict): The DataLists from the AirShopping response
+        airline_owner (str): The airline owner code (e.g., 'QR', 'KL')
+
+    Returns:
+        tuple: (filtered_data_lists, traveler_key_mapping)
+    """
+    logger.info(f"Filtering DataLists for airline: {airline_owner}")
+
+    filtered_data_lists = {}
+
+    # Filter AnonymousTravelerList to only include airline-specific travelers
+    anonymous_travelers = data_lists.get("AnonymousTravelerList", {}).get("AnonymousTraveler", [])
+    if not isinstance(anonymous_travelers, list):
+        anonymous_travelers = [anonymous_travelers] if anonymous_travelers else []
+
+    filtered_travelers = []
+    traveler_key_mapping = {}  # Maps airline-prefixed keys to standard keys
+
+    for i, traveler in enumerate(anonymous_travelers):
+        if isinstance(traveler, dict):
+            object_key = traveler.get("ObjectKey", "")
+
+            # Check if this traveler belongs to the selected airline
+            if object_key.startswith(f"{airline_owner}-"):
+                # Transform airline-prefixed key to standard key
+                standard_key = object_key.replace(f"{airline_owner}-", "")
+                traveler_key_mapping[object_key] = standard_key
+
+                # Create filtered traveler with standard key
+                filtered_traveler = traveler.copy()
+                filtered_traveler["ObjectKey"] = standard_key
+                filtered_travelers.append(filtered_traveler)
+
+                logger.debug(f"Included traveler: {object_key} -> {standard_key}")
+
+    if filtered_travelers:
+        filtered_data_lists["AnonymousTravelerList"] = {
+            "AnonymousTraveler": filtered_travelers
+        }
+        logger.info(f"Filtered {len(filtered_travelers)} travelers for airline {airline_owner}")
+    else:
+        logger.warning(f"No travelers found for airline {airline_owner}")
+        filtered_data_lists["AnonymousTravelerList"] = {}
+
+    # Filter other DataLists sections if they contain airline-specific data
+    # Check for FlightSegmentList filtering
+    flight_segments = data_lists.get("FlightSegmentList", {}).get("FlightSegment", [])
+    if not isinstance(flight_segments, list):
+        flight_segments = [flight_segments] if flight_segments else []
+
+    filtered_segments = []
+    for segment in flight_segments:
+        if isinstance(segment, dict):
+            segment_key = segment.get("SegmentKey", "")
+            # Check if this segment belongs to the selected airline
+            if segment_key.startswith(f"{airline_owner}-"):
+                filtered_segments.append(segment)
+                logger.debug(f"Included segment: {segment_key}")
+
+    if filtered_segments:
+        filtered_data_lists["FlightSegmentList"] = {
+            "FlightSegment": filtered_segments
+        }
+        logger.info(f"Filtered {len(filtered_segments)} flight segments for airline {airline_owner}")
+
+    # Check for FlightList filtering
+    flights = data_lists.get("FlightList", {}).get("Flight", [])
+    if not isinstance(flights, list):
+        flights = [flights] if flights else []
+
+    filtered_flights = []
+    for flight in flights:
+        if isinstance(flight, dict):
+            flight_key = flight.get("FlightKey", "")
+            # Check if this flight belongs to the selected airline
+            if flight_key.startswith(f"{airline_owner}-"):
+                filtered_flights.append(flight)
+                logger.debug(f"Included flight: {flight_key}")
+
+    if filtered_flights:
+        filtered_data_lists["FlightList"] = {
+            "Flight": filtered_flights
+        }
+        logger.info(f"Filtered {len(filtered_flights)} flights for airline {airline_owner}")
+
+    return filtered_data_lists, traveler_key_mapping
+
+
+def _build_common_flight_price_request(airshopping_response, selected_offer, airline_owner, shopping_response_id, data_lists):
+    """
+    Build the common parts of the FlightPrice request payload.
+
+    Args:
+        airshopping_response (dict): The AirShopping response
+        selected_offer (dict): The selected offer
+        airline_owner (str): The airline owner code
+        shopping_response_id (str): The ShoppingResponseID to use
+        data_lists (dict): The DataLists from the response
+
+    Returns:
+        dict: FlightPrice request payload
+    """
+    logger.info(f"Building common flight price request for airline {airline_owner}")
+
+    # Filter DataLists to only include airline-specific data
+    filtered_data_lists, traveler_key_mapping = _filter_airline_specific_data(data_lists, airline_owner)
+    logger.info(f"Traveler key mapping: {traveler_key_mapping}")
 
     all_offer_refs_for_metadata_filtering = set()
 
@@ -115,7 +386,7 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0, sel
         elif isinstance(ref_item, str):
             all_offer_refs_for_metadata_filtering.add(str(ref_item))
 
-    priced_offer_detail = selected_offer.get("PricedOffer", {}) 
+    priced_offer_detail = selected_offer.get("PricedOffer", {})
     offer_prices_from_priced_offer = priced_offer_detail.get("OfferPrice", [])
     if not isinstance(offer_prices_from_priced_offer, list):
         offer_prices_from_priced_offer = [offer_prices_from_priced_offer] if offer_prices_from_priced_offer else []
@@ -163,7 +434,7 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0, sel
             for fg_ref_val_str in fg_internal_refs:
                 if isinstance(fg_ref_val_str, str):
                     all_offer_refs_for_metadata_filtering.add(fg_ref_val_str)
-            
+
             new_fare_group_for_rq = {
                 "ListKey": list_key,
                 "FareBasisCode": fare_group_item.get("FareBasisCode", {}),
@@ -172,20 +443,18 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0, sel
             fare_list_for_rq.append(new_fare_group_for_rq)
 
     query_offer_id_node = selected_offer.get("OfferID", {})
-    print(f"[DEBUG] Selected offer OfferID node: {query_offer_id_node}")
-    print(f"[DEBUG] Selected offer index: {selected_offer_index}")
-    print(f"[DEBUG] Selected offer keys: {list(selected_offer.keys())}")
+    logger.info(f"Selected offer OfferID node: {query_offer_id_node}")
 
     if not query_offer_id_node.get("value") or not query_offer_id_node.get("Owner"):
         raise ValueError("Selected offer is missing required OfferID fields for Query")
 
-    print(f"[DEBUG] Using OfferID for airline API: {query_offer_id_node.get('value')} (Owner: {query_offer_id_node.get('Owner')})")
+    logger.info(f"Using OfferID for airline API: {query_offer_id_node.get('value')} (Owner: {query_offer_id_node.get('Owner')})")
 
     query_offer = {
         "OfferID": query_offer_id_node,
         "OfferItemIDs": {"OfferItemID": []}
     }
-    
+
     if "refs" in selected_offer:
         query_offer_refs = []
         for ref_item in offer_top_level_refs:
@@ -203,7 +472,7 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0, sel
         associations_list = requested_date_node.get("Associations", [])
         if not isinstance(associations_list, list):
             associations_list = [associations_list] if associations_list else []
-        
+
         if associations_list:
             assoc_traveler_node = associations_list[0].get("AssociatedTraveler", {})
             p_refs = assoc_traveler_node.get("TravelerReferences", [])
@@ -211,7 +480,7 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0, sel
                 current_pax_refs = [p_refs] if p_refs else []
             else:
                 current_pax_refs = p_refs
-        
+
         if offer_item_id_value and current_pax_refs:
             query_offer["OfferItemIDs"]["OfferItemID"].append({
                 "value": offer_item_id_value,
@@ -264,21 +533,27 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0, sel
             origin_destinations_for_rq.append({"Flight": od_flights})
 
     travelers_for_rq = []
-    anonymous_travelers_list_asrs = data_lists.get("AnonymousTravelerList", {}).get("AnonymousTraveler", [])
-    if not isinstance(anonymous_travelers_list_asrs, list):
-        anonymous_travelers_list_asrs = [anonymous_travelers_list_asrs] if anonymous_travelers_list_asrs else []
-    for traveler in anonymous_travelers_list_asrs: # Use the list from AirShoppingRS DataLists
+    # Use filtered travelers instead of all travelers from original response
+    filtered_travelers_list = filtered_data_lists.get("AnonymousTravelerList", {}).get("AnonymousTraveler", [])
+    if not isinstance(filtered_travelers_list, list):
+        filtered_travelers_list = [filtered_travelers_list] if filtered_travelers_list else []
+
+    for traveler in filtered_travelers_list: # Use the filtered list for the specific airline
         if isinstance(traveler, dict) and "PTC" in traveler:
              # Construct the format expected in FlightPriceRQ.Travelers.Traveler
             travelers_for_rq.append({"AnonymousTraveler": [{"PTC": traveler.get("PTC", [])}]})
 
+    logger.info(f"Built {len(travelers_for_rq)} travelers for FlightPrice request")
 
-    shopping_response_id_node = airshopping_response.get("ShoppingResponseID", {}) # From top level of AirShoppingRS
+
+    # Use the provided shopping_response_id (airline-specific or standard)
+    shopping_response_id_node = {"value": shopping_response_id} if shopping_response_id else {}
+
     try:
         # Find the shopping response ID for the specific airline owner
         metadata_section = airshopping_response.get("Metadata", {})
         other_metadata_list = metadata_section.get("Other", {}).get("OtherMetadata", [])
-        
+
         sr_id_val = None
         sr_owner_val = None
         
@@ -307,21 +582,26 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0, sel
         
         if sr_id_val and sr_owner_val:
             shopping_response_id_node = {"Owner": sr_owner_val, "ResponseID": {"value": sr_id_val}}
-            print(f"Found ShoppingResponseID for airline {sr_owner_val}: {sr_id_val}")
+            logger.info(f"Found ShoppingResponseID for airline {sr_owner_val}: {sr_id_val}")
         else:
-            print(f"Critical Warning: ShoppingResponseID could not be found for airline owner: {airline_owner}")
-            # Fallback to the original logic for backward compatibility
-            try:
-                sr_id_val = airshopping_response["Metadata"]["Other"]["OtherMetadata"][0]["DescriptionMetadatas"]["DescriptionMetadata"][0]["AugmentationPoint"]["AugPoint"][0]["Key"]
-                sr_owner_val = airshopping_response["Metadata"]["Other"]["OtherMetadata"][0]["DescriptionMetadatas"]["DescriptionMetadata"][0]["AugmentationPoint"]["AugPoint"][0]["Owner"]            
-                shopping_response_id_node = {"Owner": sr_owner_val, "ResponseID": {"value": sr_id_val}}
-                print(f"Fallback: Using first available ShoppingResponseID for owner: {sr_owner_val}")
-            except (KeyError, IndexError, TypeError):
-                print("Critical Warning: ShoppingResponseID could not be determined for FlightPriceRQ from any source.")
-                shopping_response_id_node = None
-                
+            logger.warning(f"ShoppingResponseID could not be found for airline owner: {airline_owner}")
+            # Use the provided shopping_response_id if available
+            if shopping_response_id:
+                shopping_response_id_node = {"value": shopping_response_id}
+                logger.info(f"Using provided ShoppingResponseID: {shopping_response_id}")
+            else:
+                # Fallback to the original logic for backward compatibility
+                try:
+                    sr_id_val = airshopping_response["Metadata"]["Other"]["OtherMetadata"][0]["DescriptionMetadatas"]["DescriptionMetadata"][0]["AugmentationPoint"]["AugPoint"][0]["Key"]
+                    sr_owner_val = airshopping_response["Metadata"]["Other"]["OtherMetadata"][0]["DescriptionMetadatas"]["DescriptionMetadata"][0]["AugmentationPoint"]["AugPoint"][0]["Owner"]
+                    shopping_response_id_node = {"Owner": sr_owner_val, "ResponseID": {"value": sr_id_val}}
+                    logger.info(f"Fallback: Using first available ShoppingResponseID for owner: {sr_owner_val}")
+                except (KeyError, IndexError, TypeError):
+                    logger.warning("ShoppingResponseID could not be determined for FlightPriceRQ from any source.")
+                    shopping_response_id_node = None
+
     except (KeyError, IndexError, TypeError) as e:
-        print(f"Error extracting ShoppingResponseID: {str(e)}")
+        logger.error(f"Error extracting ShoppingResponseID: {str(e)}")
         shopping_response_id_node = None
 
 
@@ -348,7 +628,7 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0, sel
     flight_price_request = {
         "DataLists": {
             "FareGroup": fare_list_for_rq,
-            "AnonymousTravelerList": data_lists.get("AnonymousTravelerList", {}) # From AirShoppingRS DataLists
+            "AnonymousTravelerList": filtered_data_lists.get("AnonymousTravelerList", {}) # Use filtered airline-specific data
         },
         "Query": {
             "OriginDestination": origin_destinations_for_rq,
@@ -364,6 +644,9 @@ def build_flight_price_request(airshopping_response, selected_offer_index=0, sel
             }
         }} if filtered_price_metadata_section else {})
     }
+
+    logger.info(f"Successfully built flight price request for airline {airline_owner}")
+    return flight_price_request
     
     return flight_price_request
 
@@ -414,31 +697,38 @@ if __name__ == "__main__":
 
 # --- USAGE EXAMPLES ---
 """
-Usage Examples for Multi-Airline Support:
+Enhanced Usage Examples for Multi-Airline Support:
 
-1. Default behavior (uses first airline):
+1. Multi-airline response with global offer index (recommended):
+   result = build_flight_price_request(airshopping_response, selected_offer_index=5)
+   # Automatically detects multi-airline response and handles global indexing
+
+2. Single-airline response (legacy compatibility):
    result = build_flight_price_request(airshopping_response, selected_offer_index=0)
+   # Uses traditional single-airline logic
 
-2. Specify a particular airline (e.g., Kenya Airways):
+3. Specify a particular airline for single-airline response:
    result = build_flight_price_request(
-       airshopping_response, 
-       selected_offer_index=0, 
+       airshopping_response,
+       selected_offer_index=0,
        selected_airline_owner='KQ'
    )
 
-3. Specify another airline (e.g., British Airways):
-   result = build_flight_price_request(
-       airshopping_response, 
-       selected_offer_index=0, 
-       selected_airline_owner='BA'
-   )
-
-The function will automatically:
-- Find the correct AirlineOffers entry for the specified airline
-- Extract the appropriate ShoppingResponseID for that airline from the metadata
+The enhanced function will automatically:
+- Detect whether the response is multi-airline or single-airline
+- For multi-airline: Use global offer indexing and extract airline-specific ShoppingResponseID
+- For single-airline: Use traditional airline-specific logic
+- Extract the appropriate ShoppingResponseID for the selected airline
 - Build the FlightPriceRQ with the correct airline-specific information
 
-Note: If the specified airline_owner is not found, the function will raise a ValueError.
+Multi-airline features:
+- Global offer indexing across all airlines
+- Automatic airline detection from selected offer
+- Airline-specific ShoppingResponseID extraction
+- Backward compatibility with single-airline responses
+
+Note: For multi-airline responses, the selected_offer_index represents the global index
+across all flattened offers from all airlines.
 """
 
 # --- END OF FILE build_flightpriceRQ.py ---

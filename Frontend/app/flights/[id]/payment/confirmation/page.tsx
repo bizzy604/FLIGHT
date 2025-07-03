@@ -30,14 +30,14 @@ export default function ConfirmationPage() {
 
   // Helper function to validate and ensure booking data structure
   const validateBookingData = (data: any) => {
-    console.log("Validating booking data:", data)
+
     
     // Check if data is nested under 'data' property (backend response structure)
     const actualData = data?.data || data
     
     // If the data is already in the correct format (from backend), use it directly
     if (actualData && (actualData.bookingReference || actualData.booking_reference) && actualData.flightDetails) {
-      console.log("Data is already in correct format from backend")
+
       return actualData
     }
     
@@ -58,7 +58,7 @@ export default function ConfirmationPage() {
       raw_response: data
     }
     
-    console.log("Validated booking data:", validatedData)
+
     return validatedData
   }
 
@@ -83,7 +83,7 @@ export default function ConfirmationPage() {
                                  completedBookingData.OrderID
 
         if (backendBookingRef === bookingReference) {
-          console.log('[DevRecovery] Auto-recovered booking data after hot reload')
+
           const validatedBooking = validateBookingData(completedBookingData)
           setBooking(validatedBooking)
           setDataRecovered(true)
@@ -129,13 +129,13 @@ export default function ConfirmationPage() {
 
         // Attempt 1: Try immediate retrieval
         const storageInfo = getStorageInfo()
-        console.log("Storage info:", storageInfo)
+
 
         completedBookingData = getBookingData()
 
         // Attempt 2: If no data found, wait a bit and try again (handles hot reload timing)
         if (!completedBookingData && process.env.NODE_ENV === 'development') {
-          console.log("No data found on first attempt, retrying after delay...")
+
           await new Promise(resolve => setTimeout(resolve, 100))
           completedBookingData = getBookingData()
           if (completedBookingData) {
@@ -144,7 +144,7 @@ export default function ConfirmationPage() {
         }
 
         if (completedBookingData) {
-          console.log("Retrieved booking from hybrid storage:", completedBookingData)
+
 
           // Determine recovery method for user feedback
           if (!storageInfo.hasSessionData && storageInfo.hasLocalData && !storageInfo.localDataExpired) {
@@ -190,7 +190,7 @@ export default function ConfirmationPage() {
           
           // Use the structured data directly from hybrid storage
           const validatedBooking = validateBookingData(completedBookingData)
-          console.log("Validated booking from hybrid storage:", validatedBooking)
+
           setBooking(validatedBooking)
           setIsLoading(false)
           return
@@ -203,21 +203,18 @@ export default function ConfirmationPage() {
           const response = await api.get(`/api/verteil/booking/${bookingReference}`)
           
           if (response.data.status === 'success') {
-            console.log("Booking data from API:", response.data.data)
-            
             // Use the structured data directly from backend API
             const validatedBooking = validateBookingData(response.data.data)
-            console.log("Validated booking from API:", validatedBooking)
             setBooking(validatedBooking)
           } else {
             throw new Error(response.data.error || 'Booking not found')
           }
         } catch (apiError) {
-          console.error('API fetch failed:', apiError)
+
           throw new Error("Booking not found. Please check your booking reference.")
         }
       } catch (err) {
-        console.error("Error fetching booking:", err)
+
         
         // Check if localStorage data was expired and provide helpful message
         const storageInfo = getStorageInfo()
@@ -306,7 +303,7 @@ export default function ConfirmationPage() {
     )
   }
 
-  console.log("Final booking object passed to PaymentConfirmation:", booking) // Added log
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

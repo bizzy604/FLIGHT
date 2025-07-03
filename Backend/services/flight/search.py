@@ -51,12 +51,7 @@ class FlightSearchService(FlightService):
                 request_id=request_id
             )
             
-            # [PASSENGER DEBUG] Log passenger data summary
-            if response_data and 'DataLists' in response_data and 'AnonymousTravelerList' in response_data['DataLists']:
-                traveler_list = response_data['DataLists']['AnonymousTravelerList']
-                logger.info(f"[PASSENGER DEBUG] Found {len(traveler_list) if isinstance(traveler_list, list) else 1} travelers in API response")
-            else:
-                logger.info(f"[PASSENGER DEBUG] No AnonymousTravelerList found in API response")
+
 
             logger.info(f"Successfully received raw AirShopping response for request_id: {request_id}")
             return response_data
@@ -86,10 +81,7 @@ class FlightSearchService(FlightService):
             raw_trip_type = criteria.get('trip_type').upper()
             trip_type = trip_type_mapping.get(raw_trip_type, 'ONE_WAY')
 
-        logger.info(f"[DEBUG] Original tripType from criteria: '{criteria.get('tripType')}'")
-        logger.info(f"[DEBUG] Original trip_type from criteria: '{criteria.get('trip_type')}'")
-        logger.info(f"[DEBUG] Mapped trip_type: '{trip_type}'")
-        logger.info(f"[DEBUG] Number of odSegments: {len(criteria.get('odSegments', []))}")
+
 
         cabin_mapping = {'ECONOMY': 'Y', 'BUSINESS': 'C', 'FIRST': 'F', 'PREMIUM_ECONOMY': 'W'}
         
@@ -97,20 +89,27 @@ class FlightSearchService(FlightService):
         for seg in criteria['odSegments']:
             od_segments.append({'Origin': seg['origin'], 'Destination': seg['destination'], 'DepartureDate': seg['departureDate']})
             
-        # [PASSENGER DEBUG] Log the criteria object to see what keys are available
-        logger.info(f"[PASSENGER DEBUG] Backend Service - Received criteria:")
-        logger.info(f"[PASSENGER DEBUG] Criteria keys: {list(criteria.keys())}")
-        logger.info(f"[PASSENGER DEBUG] Full criteria: {criteria}")
+
 
         num_adults = criteria.get('num_adults', 1)
         num_children = criteria.get('num_children', 0)
         num_infants = criteria.get('num_infants', 0)
-        cabin_code = cabin_mapping.get(criteria.get('cabinPreference', 'ECONOMY').upper(), 'Y')
+        # Extract cabin preference from segments (for round trips) or global parameter (for one-way)
+        cabin_preference = 'ECONOMY'  # default
+        if criteria.get('odSegments') and len(criteria['odSegments']) == 2:
+            # For round trips (2 segments), use cabin preference from first segment
+            first_segment = criteria['odSegments'][0]
+            cabin_preference = first_segment.get('cabinPreference', 'ECONOMY')
+            logger.info(f"[DEBUG] Round-trip: Using cabin preference from first segment: '{cabin_preference}'")
+        else:
+            # For one-way flights (1 segment) or fallback, use global parameters
+            cabin_preference = criteria.get('cabinClass') or criteria.get('cabinPreference', 'ECONOMY')
+            logger.info(f"[DEBUG] One-way: Using global cabin preference: '{cabin_preference}'")
 
-        # [PASSENGER DEBUG] Log passenger counts before building payload
-        logger.info(f"[PASSENGER DEBUG] Backend Service - Building air shopping payload:")
-        logger.info(f"[PASSENGER DEBUG] Passenger counts: num_adults={num_adults}, num_children={num_children}, num_infants={num_infants}")
-        logger.info(f"[PASSENGER DEBUG] Total passengers: {num_adults + num_children + num_infants}")
+        cabin_code = cabin_mapping.get(cabin_preference.upper(), 'Y')
+        logger.info(f"[DEBUG] Cabin preference: '{cabin_preference}' -> cabin_code: '{cabin_code}'")
+
+
 
         payload = build_airshopping_request(
             trip_type=trip_type, od_segments=od_segments, num_adults=num_adults,
@@ -118,34 +117,31 @@ class FlightSearchService(FlightService):
             cabin_preference_code=cabin_code, fare_type_code="PUBL"
         )
 
-        # [PASSENGER DEBUG] Log the built payload travelers section
-        if 'Travelers' in payload and 'Traveler' in payload['Travelers']:
-            travelers = payload['Travelers']['Traveler']
-            logger.info(f"[PASSENGER DEBUG] Built payload contains {len(travelers)} travelers:")
-            for i, traveler in enumerate(travelers):
-                ptc = traveler.get('AnonymousTraveler', [{}])[0].get('PTC', {}).get('value', 'Unknown')
-                logger.info(f"[PASSENGER DEBUG] Traveler {i+1}: PTC={ptc}")
+
 
         return payload
 
 
 async def process_air_shopping(search_criteria: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Orchestrator function that gets raw data and then transforms it.
+    Legacy orchestrator function that gets raw data and then transforms it.
+
+    DEPRECATED: Use AirShoppingService for new implementations.
+    This function is maintained for backward compatibility only.
     """
     from quart import current_app
-    # Import the new, dedicated transformer for this page
+    # Import the legacy transformer for backward compatibility
     from utils.air_shopping_transformer import transform_air_shopping_for_results
-    
+
     config = current_app.config
     service = FlightSearchService(config)
     try:
         # 1. Get the RAW response from the airline
         raw_response = await service.search_flights_raw(search_criteria)
-        
+
         # 2. Transform the raw response into the simple format for the results page
         transformed_data = transform_air_shopping_for_results(raw_response)
-        
+
         # 3. Return a successful structure
         return {
             'status': 'success',
