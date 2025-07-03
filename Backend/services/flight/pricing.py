@@ -449,16 +449,57 @@ class FlightPricingService(FlightService):
                 unwrapped_response = original_response
 
             if is_index_based:
-                # NEW INDEX-BASED APPROACH: Use the index directly
-                logger.info(f"[DEBUG] Using index-based approach: selecting offer at index {selected_offer_index}")
+                # NEW INDEX-BASED APPROACH: Map display index to original index
+                display_index = selected_offer_index
+                logger.info(f"[DEBUG] Using index-based approach: display index {display_index}")
 
-                # Validate that the index is within bounds
+                # Try to get transformed offers to map display index to original index
+                transformed_offers = None
+
+                # Check if we have the complete backend response structure
+                if 'offers' in airshopping_response:
+                    transformed_offers = airshopping_response['offers']
+                elif 'data' in airshopping_response and isinstance(airshopping_response['data'], dict):
+                    data_section = airshopping_response['data']
+                    if 'offers' in data_section:
+                        transformed_offers = data_section['offers']
+                    elif 'data' in data_section and 'offers' in data_section['data']:
+                        transformed_offers = data_section['data']['offers']
+                else:
+                    # If we don't have transformed offers, recreate them to get the mapping
+                    try:
+                        from transformers.enhanced_air_shopping_transformer import transform_air_shopping_for_results_enhanced
+                        transformed_result = transform_air_shopping_for_results_enhanced(unwrapped_response)
+                        transformed_offers = transformed_result.get('offers', [])
+                        logger.info(f"Recreated {len(transformed_offers)} transformed offers for index mapping")
+                    except Exception as e:
+                        logger.warning(f"Failed to recreate transformed offers: {e}")
+                        transformed_offers = None
+
+                if transformed_offers and isinstance(transformed_offers, list):
+                    # Map display index to original index using transformed offers
+                    if 0 <= display_index < len(transformed_offers):
+                        selected_offer = transformed_offers[display_index]
+                        original_index = selected_offer.get('original_index')
+                        if original_index is not None:
+                            selected_offer_index = original_index
+                            logger.info(f"Mapped display index {display_index} to original index {selected_offer_index}")
+                        else:
+                            logger.warning(f"No original_index found in offer at display index {display_index}, using display index")
+                            selected_offer_index = display_index
+                    else:
+                        raise ValueError(f"Display index {display_index} is out of bounds. Total transformed offers: {len(transformed_offers)}")
+                else:
+                    logger.warning("No transformed offers found, using display index as original index")
+                    selected_offer_index = display_index
+
+                # Validate that the original index is within bounds of raw response
                 offers_group = unwrapped_response.get('OffersGroup', {})
                 airline_offers_list = offers_group.get('AirlineOffers', [])
                 if not isinstance(airline_offers_list, list):
                     airline_offers_list = [airline_offers_list]
 
-                # Count total offers to validate index
+                # Count total offers to validate original index
                 total_offers = 0
                 for airline_offers_entry in airline_offers_list:
                     if isinstance(airline_offers_entry, dict):
@@ -468,9 +509,9 @@ class FlightPricingService(FlightService):
                         total_offers += len(airline_offers)
 
                 if selected_offer_index >= total_offers:
-                    raise ValueError(f"Index {selected_offer_index} is out of bounds. Total offers: {total_offers}")
+                    raise ValueError(f"Original index {selected_offer_index} is out of bounds. Total offers in raw response: {total_offers}")
 
-                logger.info(f"[DEBUG] Index {selected_offer_index} is valid (total offers: {total_offers})")
+                logger.info(f"[DEBUG] Original index {selected_offer_index} is valid (total offers: {total_offers})")
 
             else:
                 # LEGACY OFFERID-BASED APPROACH: Keep the complex mapping for backward compatibility
@@ -856,13 +897,16 @@ class FlightPricingService(FlightService):
             
             # Return appropriate error response
             return {
-                'priced_offers': basic_offers,
-                'total_offers': len(basic_offers),
-                'raw_response': response,
-                'transformation_status': 'failed',
-                'transformation_error': str(e),
-                'error_type': error_type,
-                'cache_key': f"flight_price_response:{request_id or 'unknown'}"
+                'status': 'error',
+                'data': {
+                    'priced_offers': basic_offers,
+                    'total_offers': len(basic_offers),
+                    'raw_response': response,
+                    'transformation_status': 'failed',
+                    'transformation_error': str(e),
+                    'error_type': error_type,
+                    'cache_key': f"flight_price_response:{request_id or 'unknown'}"
+                }
             }
 
 

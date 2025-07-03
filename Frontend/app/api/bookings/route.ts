@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
-import { prisma } from "@/utils/db"
+import { prisma } from "@/utils/prisma"
 import { handleApiError } from "@/utils/error-handler"
 
 export async function GET(request: NextRequest) {

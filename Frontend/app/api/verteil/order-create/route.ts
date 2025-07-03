@@ -3,16 +3,8 @@ import { prisma } from '@/utils/prisma';
 import { auth } from '@clerk/nextjs/server';
 
 export async function POST(request: NextRequest) {
-  console.log('[[ DEBUG ]] Next.js /api/verteil/order-create route HIT'); // Added for debugging
   try {
     const body = await request.json();
-    
-    // DEBUG: Log request summary (without verbose content)
-    console.log('[[ DEBUG ]] Frontend data received by Next.js API route');
-    console.log('[[ DEBUG ]] Flight offer present:', !!body.flight_offer);
-    console.log('[[ DEBUG ]] Passengers count:', body.passengers ? body.passengers.length : 0);
-    console.log('[[ DEBUG ]] Payment method:', body.payment ? body.payment.method : 'None');
-    console.log('[[ DEBUG ]] Contact info present:', !!body.contact_info);
     
     // Extract data from the request body (no transformation needed - backend handles it)
     const passengers = body.passengers;
@@ -35,34 +27,21 @@ export async function POST(request: NextRequest) {
     
     // Check if flight_offer contains raw_flight_price_response
     if (body.flight_offer && body.flight_offer.raw_flight_price_response) {
-      console.log('[[ DEBUG ]] Using raw flight_price_response:', !!body.flight_offer.raw_flight_price_response);
-      console.log('[[ DEBUG ]] Raw response keys:', Object.keys(body.flight_offer.raw_flight_price_response));
       backendRequestBody.flight_price_response = body.flight_offer.raw_flight_price_response;
-    } else {
-      console.log('[[ DEBUG ]] No raw flight price response found in flight_offer');
     }
-    
+
     // Add ShoppingResponseID if available
     if (body.flight_offer && body.flight_offer.shopping_response_id) {
-      console.log('[[ DEBUG ]] Using ShoppingResponseID:', body.flight_offer.shopping_response_id);
       backendRequestBody.ShoppingResponseID = body.flight_offer.shopping_response_id;
-    } else {
-      console.log('[[ DEBUG ]] No shopping_response_id found in flight_offer');
     }
-    
+
     // Add OfferID if available - try both offer_id and order_id
     if (body.flight_offer && (body.flight_offer.offer_id || body.flight_offer.order_id)) {
       const offerId = body.flight_offer.offer_id || body.flight_offer.order_id;
-      console.log('[[ DEBUG ]] Using OfferID:', offerId);
       backendRequestBody.OfferID = offerId;
-    } else {
-      console.log('[[ DEBUG ]] No offer_id or order_id found in flight_offer');
     }
     
-    console.log('[[ DEBUG ]] Backend request body:', JSON.stringify(backendRequestBody, null, 2));
-    
     const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
-    console.log('[[ DEBUG ]] Forwarding to backend URL:', `${backendUrl}/api/verteil/order-create`);
     
     const response = await fetch(`${backendUrl}/api/verteil/order-create`, {
       method: 'POST',
@@ -73,10 +52,6 @@ export async function POST(request: NextRequest) {
     });
     
     const data = await response.json();
-    
-    // DEBUG: Log the response from backend
-    console.log('[[ DEBUG ]] Backend response status:', response.status);
-    console.log('[[ DEBUG ]] Backend response data:', JSON.stringify(data, null, 2));
     
     // Store booking data in database if successful
     let dbBookingId = null;
@@ -200,13 +175,16 @@ export async function POST(request: NextRequest) {
               phone: contactInfo.phone || ''
             },
             totalAmount,
-            status: 'confirmed'
+            status: 'confirmed',
+            // Store the complete OrderCreate response for itinerary generation
+            orderCreateResponse: data.data,
+            // Store original flight offer for reference
+            originalFlightOffer: flightOffer
           }
         });
         
         dbBookingId = dbBooking.id;
-        console.log('[[ DEBUG ]] Booking stored in database with ID:', dbBookingId);
-        
+
         // Create payment record if payment info exists
         if (paymentInfo.method && paymentInfo.method !== 'CASH') {
           await prisma.payment.create({
@@ -219,11 +197,9 @@ export async function POST(request: NextRequest) {
               paymentIntentId: `pi_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
             }
           });
-          console.log('[[ DEBUG ]] Payment record created for booking:', dbBooking.id);
         }
-        
+
       } catch (dbError) {
-        console.error('[[ DEBUG ]] Error storing booking in database:', dbError);
         // Don't fail the entire request if database storage fails
       }
     }
@@ -244,11 +220,8 @@ export async function POST(request: NextRequest) {
       }
     };
     
-    console.log('[[ DEBUG ]] Response with debug info:', JSON.stringify(responseWithDebug, null, 2));
-    
     return NextResponse.json(responseWithDebug, { status: response.status });
   } catch (error) {
-    console.error('Error forwarding order-create request:', error);
     return NextResponse.json(
       { 
         error: 'Internal server error',

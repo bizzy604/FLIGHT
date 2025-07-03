@@ -7,6 +7,8 @@ import { useParams, useSearchParams } from "next/navigation"
 import { ChevronLeft, AlertCircle, Loader2 } from "lucide-react"
 
 import { api } from "@/utils/api-client"
+import { logger } from "@/utils/logger"
+import { validateAndRecoverFlightData } from "@/utils/flight-data-validator"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -44,14 +46,9 @@ function FlightDetailsPageContent() {
   const children = Number(searchParams.get('children')) || 0
   const infants = Number(searchParams.get('infants')) || 0
 
-  // Debug: Log the received flight ID and passenger counts
-  console.log('[DEBUG] Flight details page - received flightId:', flightId)
-  console.log('[DEBUG] Flight details page - params:', params)
-  console.log('[DEBUG] Passenger counts from URL - adults:', adults, 'children:', children, 'infants:', infants)
-
   // Check for invalid flight ID
   if (!flightId || flightId === 'null' || flightId === 'undefined') {
-    console.error('[ERROR] Invalid flight ID received:', flightId)
+    // Invalid flight ID - will be handled in the component
   }
 
   const [isLoading, setIsLoading] = useState(true)
@@ -63,25 +60,24 @@ function FlightDetailsPageContent() {
       setIsLoading(true)
       setError(null)
       try {
-        let rawAirShoppingResponse = null;
-        const currentFlightDataKey = localStorage.getItem('currentFlightDataKey');
-        if (currentFlightDataKey) {
-            const storedData = JSON.parse(localStorage.getItem(currentFlightDataKey) || '{}');
-            if (storedData.expiresAt && storedData.expiresAt > Date.now()) {
-                rawAirShoppingResponse = storedData.airShoppingResponse;
-            }
+        // Use the flight data validator for robust data recovery
+        const validationResult = validateAndRecoverFlightData();
+
+        if (!validationResult.isValid) {
+          throw new Error(validationResult.error || "No flight search data found. Your session may have expired. Please start a new search.");
         }
 
-        if (!rawAirShoppingResponse) {
-          throw new Error("No flight search data found. Your session may have expired. Please start a new search.");
-        }
+        const rawAirShoppingResponse = validationResult.data?.airShoppingResponse;
+        const searchParams = validationResult.data?.searchParams;
 
-        // Debug: Log the complete structure of the stored data
-        console.log('[DEBUG] Complete stored data structure:', JSON.stringify(rawAirShoppingResponse, null, 2));
+        if (validationResult.recoveredFromKey) {
+          logger.info(`✅ Flight data recovered from key: ${validationResult.recoveredFromKey}`);
+        } else {
+          logger.info('✅ Flight data retrieved successfully');
+        }
 
         // For multi-airline responses, let the backend handle ShoppingResponseID extraction
         // The backend will determine the airline from the offer index and extract the correct ID
-        console.log('[DEBUG] Multi-airline response detected - backend will handle ShoppingResponseID extraction');
 
         // We'll pass a placeholder that the backend will replace with the correct airline-specific ID
         let shoppingResponseId = 'BACKEND_WILL_EXTRACT';
@@ -89,30 +85,21 @@ function FlightDetailsPageContent() {
         // Extract the actual raw response to send to the API
         let actualRawResponse = rawAirShoppingResponse;
 
-        console.log('[DEBUG] Raw air shopping response structure:', {
-          hasData: !!rawAirShoppingResponse?.data,
-          hasRawResponse: !!rawAirShoppingResponse?.data?.raw_response,
-          dataKeys: rawAirShoppingResponse?.data ? Object.keys(rawAirShoppingResponse.data) : 'N/A',
-          topLevelKeys: rawAirShoppingResponse ? Object.keys(rawAirShoppingResponse) : 'N/A'
-        });
+
 
         // Check for raw_response at different possible locations
         if (rawAirShoppingResponse?.raw_response) {
           // Direct access to raw_response (current structure)
           actualRawResponse = rawAirShoppingResponse.raw_response;
-          console.log('[DEBUG] Using direct raw_response for API call');
         } else if (rawAirShoppingResponse?.data?.raw_response) {
           // Nested under data.raw_response
           actualRawResponse = rawAirShoppingResponse.data.raw_response;
-          console.log('[DEBUG] Using nested data.raw_response for API call');
         } else if (rawAirShoppingResponse?.data && !rawAirShoppingResponse?.data?.raw_response) {
           // If data exists but no raw_response, the data itself might be the raw response
           actualRawResponse = rawAirShoppingResponse.data;
-          console.log('[DEBUG] Using data as raw_response for API call');
         } else {
           // Fallback: use the entire stored response
           actualRawResponse = rawAirShoppingResponse;
-          console.log('[DEBUG] Using entire stored response as fallback for API call');
         }
 
         // Validate flight ID before making API call
@@ -128,7 +115,7 @@ function FlightDetailsPageContent() {
           throw new Error(`Invalid flight index: ${flightId}. Please select a flight again.`);
         }
 
-        console.log('[DEBUG] Making API call with flight index:', flightIndex);
+
 
         const response = await api.getFlightPrice(
           flightIndex,
@@ -136,25 +123,32 @@ function FlightDetailsPageContent() {
           actualRawResponse
         );
 
-        // Debug: Log the actual response structure
-        console.log('[DEBUG] Flight price response structure:', {
-          hasData: !!response.data,
-          httpStatus: response.status,
-          dataKeys: response.data ? Object.keys(response.data) : 'No data',
-          backendStatus: response.data?.status,
-          hasDataData: response.data ? !!response.data.data : false,
-          dataDataKeys: response.data?.data ? Object.keys(response.data.data) : 'No data.data',
-          hasPricedOffers: response.data?.data ? !!response.data.data.priced_offers : false,
-          pricedOffersLength: response.data?.data?.priced_offers ? response.data.data.priced_offers.length : 0
-        });
 
-        // Debug: Log the complete response data to see what's actually returned
-        console.log('[DEBUG] Complete response.data:', JSON.stringify(response.data, null, 2));
 
         // Backend returns { status: "success", data: { priced_offers: [...], total_offers: number, ... } }
         // Note: response.status is HTTP status (200), response.data.status is backend status ("success")
         // The actual priced_offers are in response.data.data.priced_offers
-        if (!response.data || response.data.status !== 'success' || !response.data.data || !response.data.data.priced_offers || !Array.isArray(response.data.data.priced_offers) || response.data.data.priced_offers.length === 0) {
+        if (!response.data) {
+           throw new Error("Received an invalid response from the pricing service.");
+        }
+
+        // Handle API errors (e.g., Emirates internal server error)
+        if (response.data.status === 'error') {
+          const errorData = response.data.data || {};
+          const errorType = errorData.error_type || 'unknown';
+          const errorMessage = errorData.transformation_error || 'Unknown error occurred';
+
+          if (errorType === 'api_error') {
+            // Extract airline from error message or flight data
+            const airline = flight?.airline || 'this airline';
+            throw new Error(`Sorry, ${airline} flights are temporarily unavailable due to a technical issue. Please try selecting a different airline or contact support.`);
+          } else {
+            throw new Error(`Pricing error: ${errorMessage}`);
+          }
+        }
+
+        // Handle successful response
+        if (response.data.status !== 'success' || !response.data.data || !response.data.data.priced_offers || !Array.isArray(response.data.data.priced_offers) || response.data.data.priced_offers.length === 0) {
            throw new Error("Received an invalid response from the pricing service.");
         }
 
@@ -173,15 +167,17 @@ function FlightDetailsPageContent() {
         // The backend returns it as 'raw_response' in the data object
         if (response.data.data.raw_response) {
           sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(response.data.data.raw_response));
-          console.log('[DEBUG] Stored raw flight price response for order creation');
-        } else {
-          console.warn('[WARNING] No raw flight price response found in API response');
-          console.log('[DEBUG] Available keys in response.data.data:', Object.keys(response.data.data || {}));
         }
 
       } catch (err) {
-        console.error("Error fetching flight price:", err);
-        setError(err instanceof Error ? err.message : "Failed to fetch flight price data");
+        const errorMessage = err instanceof Error ? err.message : "Failed to fetch flight price data";
+        setError(errorMessage);
+        console.error('Error fetching flight price:', err);
+
+        // If it's a session/data error, provide helpful guidance
+        if (errorMessage.includes('session may have expired') || errorMessage.includes('search data')) {
+          logger.info('🔄 User needs to start a new search due to expired/missing data');
+        }
       } finally {
         setIsLoading(false);
       }

@@ -38,26 +38,21 @@ export default function PaymentPage() {
         // Get pending booking data from session storage
         const storedPendingBooking = sessionStorage.getItem("pendingBookingData")
         if (!storedPendingBooking) {
-          console.error("No pending booking data found")
           router.push(`/flights/${flightId}`)
           return
         }
 
         const pendingBooking = JSON.parse(storedPendingBooking)
-        
+
         // Get flight offer data from session storage (set during flight selection)
         const storedFlightOffer = sessionStorage.getItem("selectedFlightOffer")
         if (!storedFlightOffer) {
-          console.error("No flight offer data found")
           router.push(`/flights/${flightId}`)
           return
         }
 
         // The stored flight offer should be the priced offer from flight details page
         const pricedOffer = JSON.parse(storedFlightOffer)
-
-        // Debug: Log the priced offer structure
-        console.log('Complete Priced Offer Structure:', JSON.stringify(pricedOffer, null, 2))
 
         // Extract pricing from the priced offer structure (same as flight details page)
         let currency = "USD"
@@ -81,52 +76,31 @@ export default function PaymentPage() {
 
         if (pricedOffer.raw_flight_price_response && pricedOffer.shopping_response_id) {
           // Data is already properly structured from the booking form
-          console.log('[DEBUG] Using pre-structured flight offer data from booking form');
           flightOfferWithRawResponse = pricedOffer;
         } else {
           // Fallback: extract from old structure (for backward compatibility)
-          console.log('[DEBUG] Fallback: extracting from old data structure');
-
           const rawFlightPriceResponse = pricedOffer?.data?.raw_response
-          console.log('[DEBUG] Extracted raw flight price response:', !!rawFlightPriceResponse);
 
           // Extract ShoppingResponseID and OrderID from raw response for backend
           let shoppingResponseId = null;
           let orderId = null;
 
-          // Debug: Log the complete raw response structure
-          console.log('[DEBUG] Complete raw response structure:', JSON.stringify(rawFlightPriceResponse, null, 2));
-
           // Try multiple possible paths for ShoppingResponseID based on terminal logs
           if (rawFlightPriceResponse?.ShoppingResponseID?.ResponseID?.value) {
             shoppingResponseId = rawFlightPriceResponse.ShoppingResponseID.ResponseID.value;
-            console.log('[DEBUG] Extracted ShoppingResponseID from direct path:', shoppingResponseId);
           } else if (rawFlightPriceResponse?.data?.ShoppingResponseID?.ResponseID?.value) {
             shoppingResponseId = rawFlightPriceResponse.data.ShoppingResponseID.ResponseID.value;
-            console.log('[DEBUG] Extracted ShoppingResponseID from data path:', shoppingResponseId);
           } else if (rawFlightPriceResponse?.data?.raw_response?.ShoppingResponseID?.ResponseID?.value) {
             shoppingResponseId = rawFlightPriceResponse.data.raw_response.ShoppingResponseID.ResponseID.value;
-            console.log('[DEBUG] Extracted ShoppingResponseID from nested path:', shoppingResponseId);
-          } else {
-            console.error('[ERROR] ShoppingResponseID not found in any expected path');
-            console.log('[DEBUG] Raw response structure keys:', Object.keys(rawFlightPriceResponse || {}));
-            if (rawFlightPriceResponse?.data) {
-              console.log('[DEBUG] Raw response data keys:', Object.keys(rawFlightPriceResponse.data || {}));
-            }
           }
 
           // Try multiple possible paths for OfferID
           if (rawFlightPriceResponse?.PricedFlightOffers?.PricedFlightOffer?.[0]?.OfferID?.value) {
             orderId = rawFlightPriceResponse.PricedFlightOffers.PricedFlightOffer[0].OfferID.value;
-            console.log('[DEBUG] Extracted OrderID from direct path:', orderId);
           } else if (rawFlightPriceResponse?.data?.PricedFlightOffers?.PricedFlightOffer?.[0]?.OfferID?.value) {
             orderId = rawFlightPriceResponse.data.PricedFlightOffers.PricedFlightOffer[0].OfferID.value;
-            console.log('[DEBUG] Extracted OrderID from data path:', orderId);
           } else if (rawFlightPriceResponse?.data?.raw_response?.PricedFlightOffers?.PricedFlightOffer?.[0]?.OfferID?.value) {
             orderId = rawFlightPriceResponse.data.raw_response.PricedFlightOffers.PricedFlightOffer[0].OfferID.value;
-            console.log('[DEBUG] Extracted OrderID from nested path:', orderId);
-          } else {
-            console.error('[ERROR] OrderID not found in any expected path');
           }
 
           flightOfferWithRawResponse = {
@@ -155,7 +129,6 @@ export default function PaymentPage() {
         
         setBooking(bookingData)
       } catch (error) {
-        console.error("Error fetching booking data:", error)
         router.push(`/flights/${flightId}`)
       } finally {
         setIsLoading(false)
@@ -210,13 +183,7 @@ export default function PaymentPage() {
       // For other payment methods like 'cash', no additional data from paymentData is added by default.
       // If other methods require specific fields from paymentData, they should be explicitly and safely added here.
 
-      // Debug: Log booking data summary
-      console.log('[DEBUG] Data being sent to backend:')
-      console.log('[DEBUG] Flight Offer Raw Response:', !!booking.flightOffer?.raw_flight_price_response)
-      console.log('[DEBUG] Shopping Response ID:', booking.flightOffer?.shopping_response_id)
-      console.log('[DEBUG] Passengers count:', booking.passengers?.length || 0)
-      console.log('[DEBUG] Payment method:', paymentInfo?.payment_method || 'None')
-      console.log('[DEBUG] Contact info present:', !!booking.contactInfo)
+
 
       const response = await api.createBooking(
         booking.flightOffer,
@@ -225,15 +192,7 @@ export default function PaymentPage() {
         booking.contactInfo
       )
 
-      // Log the complete response for debugging
-      console.log('[DEBUG] Backend response:', JSON.stringify(response.data, null, 2))
-      console.log('[DEBUG] Response status:', response.data.status)
-      console.log('[DEBUG] Response data keys:', Object.keys(response.data))
-      
-      // Log debug info from Next.js API route
-      if (response.data.debug_info) {
-        console.log('[DEBUG] Next.js API Route Debug Info:', JSON.stringify(response.data.debug_info, null, 2))
-      }
+
 
       if (response.data.status === 'success') {
         // Store the successful booking data using hybrid storage
@@ -246,11 +205,9 @@ export default function PaymentPage() {
         
         return bookingResult
       } else {
-        console.error('[DEBUG] Booking failed. Response data:', response.data)
         throw new Error(response.data.error || response.data.message || 'Booking creation failed')
       }
     } catch (error) {
-      console.error('Error creating booking:', error)
       throw error
     }
   }
@@ -271,8 +228,6 @@ export default function PaymentPage() {
       
       // Validate that we received a proper booking reference
       // Backend response structure: { data: { bookingReference: "..." } }
-      console.log('[DEBUG] Full bookingResult structure:', JSON.stringify(bookingResult, null, 2))
-
       const bookingReference = bookingResult.bookingReference ||
                               bookingResult.booking_reference ||
                               bookingResult.order_id ||
@@ -280,11 +235,7 @@ export default function PaymentPage() {
                               bookingResult.data?.booking_reference ||
                               bookingResult.data?.order_id
 
-      console.log('[DEBUG] Extracted booking reference:', bookingReference)
-
       if (!bookingReference) {
-        console.error('Booking result structure:', bookingResult)
-        console.error('Available keys in bookingResult:', Object.keys(bookingResult))
         throw new Error("Booking was processed but no booking reference was returned")
       }
 
@@ -312,7 +263,6 @@ export default function PaymentPage() {
          router.push(`/flights/${encodeURIComponent(flightId)}/payment/confirmation?reference=${bookingReference}`)
        }, 2000)
     } catch (error) {
-      console.error('Payment processing error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
       setError(`Payment failed: ${errorMessage}`)
       setPaymentStatus("error")
@@ -473,19 +423,15 @@ export default function PaymentPage() {
                           returnDate: booking.flightOffer?.direction === 'roundtrip' ? booking.flightOffer?.flight_segments?.return?.[0]?.departure_datetime : undefined
                         }}
                         onPaymentSuccess={async (paymentData?: any) => {
-                          console.log('Card details captured successfully:', paymentData)
-                          console.log('Now proceeding to create booking with airline...')
                           try {
                             // Call the backend to actually book the flight with the captured payment data
                             await handlePaymentSuccess(paymentData)
                           } catch (error) {
-                            console.error('Backend booking failed:', error)
                             setError(`Card payment captured but booking failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
                             setPaymentStatus("error")
                           }
-                        }} 
+                        }}
                         onPaymentError={(error: string) => {
-                          console.error('Payment error:', error)
                           // Update booking status to failed
                           setBooking((prev: any) => ({
                             ...prev,

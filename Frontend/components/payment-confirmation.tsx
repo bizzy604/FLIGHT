@@ -4,12 +4,12 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Check, Download, Mail, Printer, Share2 } from "lucide-react"
-import ReactDOMServer from 'react-dom/server'; 
-import BoardingPass from "./boarding-pass/BoardingPass"; 
+import OfficialItinerary from "./itinerary/OfficialItinerary";
+import { transformOrderCreateToItinerary } from "@/utils/itinerary-data-transformer";
 import { Button, LoadingButton } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent } from "@/components/ui/card"
-import { downloadFromDataUrl, componentToDataUrl } from "@/utils/download-utils"
+import { generatePDFFromComponent } from "@/utils/download-utils"
 
 interface PaymentConfirmationProps {
   booking: any // Using any for brevity, but would use a proper type in a real app
@@ -19,50 +19,7 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
   const [isDownloading, setIsDownloading] = useState(false)
   const [isEmailing, setIsEmailing] = useState(false)
 
-  // Function to download booking confirmation
-  const downloadBookingConfirmation = async () => {
-    try {
-      // Extract passenger and flight information from booking
-      const passenger = booking.passengers?.[0] || {};
-      const flight = booking.flights?.[0] || {};
-      const segment = flight.segments?.[0] || {};
-      
-      // Create boarding pass props from booking data
-      const boardingPassProps = {
-        passengerName: `${passenger.firstName} ${passenger.lastName}`,
-        flightNumber: flight.flightNumber || 'N/A',
-        departureCity: segment.departure?.city || 'N/A',
-        departureAirport: segment.departure?.airportCode || 'N/A',
-        departureTime: segment.departure?.time || '--:--',
-        departureDate: segment.departure?.date || '',
-        arrivalCity: segment.arrival?.city || 'N/A',
-        arrivalAirport: segment.arrival?.airportCode || 'N/A',
-        arrivalTime: segment.arrival?.time || '--:--',
-        arrivalDate: segment.arrival?.date || '',
-        seat: booking.seat || '--',
-        boardingTime: segment.boardingTime || '--:--',
-        terminal: segment.departure?.terminal || '--',
-        gate: segment.departure?.gate || '--',
-        confirmation: booking.referenceNumber || 'N/A',
-        duration: flight.duration || '--h --m',
-        classType: booking.cabinClass || 'ECONOMY',
-        amenities: booking.amenities || [],
-        isStatic: true
-      };
-      
-      // Convert boarding pass component to data URL
-      const boardingPass = <BoardingPass {...boardingPassProps} />;
-      const dataUrl = await componentToDataUrl(boardingPass);
-      
-      // Generate a filename with booking reference
-      const fileName = `boarding-pass-${booking.referenceNumber || 'confirmation'}.png`;
-      
-      // Trigger download
-      downloadFromDataUrl(dataUrl, fileName);
-    } catch (error) {
-      console.error('Error downloading boarding pass:', error);
-    }
-  };
+
 
   // Debug function to log session storage contents
   const debugSessionStorage = () => {
@@ -331,9 +288,22 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
     
     // Check API format
     if (bookingData.contactInfo) {
+      // Handle phone number object or string
+      let phoneValue = 'N/A';
+      if (bookingData.contactInfo.phone) {
+        if (typeof bookingData.contactInfo.phone === 'object') {
+          phoneValue = bookingData.contactInfo.phone.formatted ||
+                      bookingData.contactInfo.phone.number ||
+                      `${bookingData.contactInfo.phone.countryCode || ''}${bookingData.contactInfo.phone.number || ''}` ||
+                      'N/A';
+        } else {
+          phoneValue = bookingData.contactInfo.phone;
+        }
+      }
+
       return {
         email: bookingData.contactInfo.email || 'N/A',
-        phone: bookingData.contactInfo.phone || 'N/A'
+        phone: phoneValue
       }
     }
     
@@ -415,9 +385,7 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
     return bookingData.extras || []
   }
 
-  const handleDownload = () => {
-    downloadBookingConfirmation()
-  }
+
 
   // Helper function to parse potentially malformed date strings
   const parseDate = (dateString: string | undefined | null): Date | null => {
@@ -440,168 +408,33 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
     return !isNaN(date.getTime()) ? date : null;
   };
 
-  const handleDownloadBoardingPass = async () => {
+  const handleDownloadOfficialItinerary = async () => {
     setIsDownloading(true);
     try {
-      // Get data from session storage using helper functions
-      const flightDetails = getFlightDetails(booking);
-      const passengerData = getPassengerData(booking);
-      const contactInfo = getContactInfo(booking);
-    
-    // Use the first passenger for boarding pass
-    const passenger = passengerData && passengerData.length > 0 ? passengerData[0] : null
-    
-    try {
-      // Check if this is a round trip flight
-      const hasReturnFlight = flightDetails && flightDetails.return;
+      // Get OrderCreate response from session storage
+      const orderCreateResponse = sessionStorage.getItem('orderCreateResponse');
 
-      // Extract date information for outbound flight
-      const outboundDepartureDateTime = parseDate(flightDetails?.outbound?.departure?.datetime) || 
-        parseDate(flightDetails?.outbound?.departure?.date) || 
-        parseDate(flightDetails?.outbound?.departure?.fullDate);
-      const outboundDepartureDate = outboundDepartureDateTime ? 
-        outboundDepartureDateTime.toLocaleDateString([], { month: 'short', day: 'numeric' }) : null;
-      
-      const outboundArrivalDateTime = parseDate(flightDetails?.outbound?.arrival?.datetime) || 
-        parseDate(flightDetails?.outbound?.arrival?.date) || 
-        parseDate(flightDetails?.outbound?.arrival?.fullDate);
-      const outboundArrivalDate = outboundArrivalDateTime ? 
-        outboundArrivalDateTime.toLocaleDateString([], { month: 'short', day: 'numeric' }) : null;
-      
-      // Create outbound boarding pass
-      const outboundBoardingPassProps = {
-        passengerName: passenger ? `${passenger.firstName || 'N/A'} ${passenger.lastName || 'N/A'}` : 'N/A',
-        flightNumber: flightDetails?.outbound?.airline?.flightNumber || 'N/A',
-        departureCity: flightDetails?.outbound?.departure?.city || 'N/A',
-        departureAirport: flightDetails?.outbound?.departure?.airport || 'N/A',
-        departureTime: flightDetails?.outbound?.departure?.time || 'N/A',
-        departureDate: outboundDepartureDate || undefined,
-        arrivalCity: flightDetails?.outbound?.arrival?.city || 'N/A',
-        arrivalAirport: flightDetails?.outbound?.arrival?.airport || 'N/A',
-        arrivalTime: flightDetails?.outbound?.arrival?.time || 'N/A',
-        arrivalDate: outboundArrivalDate || undefined,
-        seat: passenger?.seatNumber || 'N/A',
-        boardingTime: flightDetails?.outbound?.boardingTime || 'N/A',
-        terminal: flightDetails?.outbound?.departure?.terminal || 'N/A',
-        gate: flightDetails?.outbound?.departure?.gate || 'N/A',
-        confirmation: booking.bookingReference || booking.id || 'N/A',
-        duration: flightDetails?.outbound?.duration || 'N/A',
-        classType: flightDetails?.class || 'Economy',
-        amenities: booking.extras?.map((extra: any) => extra.description || extra.name) || []
-      };
-      
-      // Create a temporary props object for rendering, excluding interactive elements for static HTML
-      const staticOutboundBoardingPassProps = { ...outboundBoardingPassProps, isStatic: true };
-      
-      const outboundBoardingPassHtml = ReactDOMServer.renderToStaticMarkup(
-        <BoardingPass {...staticOutboundBoardingPassProps} />
-      );
-      
-      // Generate HTML for outbound flight
-      const outboundHtml = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Outbound Boarding Pass</title><script src="https://cdn.tailwindcss.com"></script><style>
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  display: flex; /* Ensure body can be a flex container */
-  flex-direction: column; /* Stack children vertically */
-  align-items: center; /* Center children horizontally */
-  justify-content: center; /* Center children vertically */
-  background-color: #f3f4f6; /* Added a light gray background for better visibility */
-}
-</style></head><body>${outboundBoardingPassHtml}</body></html>`;
-      
-      // Create blob and download outbound boarding pass
-      const outboundBlob = new Blob([outboundHtml], { type: 'text/html' });
-      const outboundUrl = URL.createObjectURL(outboundBlob);
-      const outboundLink = document.createElement('a');
-      outboundLink.href = outboundUrl;
-      outboundLink.download = `boarding-pass-outbound-${booking.bookingReference || booking.id}.html`;
-      document.body.appendChild(outboundLink);
-      outboundLink.click();
-      document.body.removeChild(outboundLink);
-      URL.revokeObjectURL(outboundUrl);
-      
-      // If this is a round trip, also generate return boarding pass
-      if (hasReturnFlight) {
-        // Extract date information for return flight
-        const returnDepartureDateTime = parseDate(flightDetails?.return?.departure?.datetime) || 
-          parseDate(flightDetails?.return?.departure?.date) || 
-          parseDate(flightDetails?.return?.departure?.fullDate);
-        const returnDepartureDate = returnDepartureDateTime ? 
-          returnDepartureDateTime.toLocaleDateString([], { month: 'short', day: 'numeric' }) : null;
-        
-        const returnArrivalDateTime = parseDate(flightDetails?.return?.arrival?.datetime) || 
-          parseDate(flightDetails?.return?.arrival?.date) || 
-          parseDate(flightDetails?.return?.arrival?.fullDate);
-        const returnArrivalDate = returnArrivalDateTime ? 
-          returnArrivalDateTime.toLocaleDateString([], { month: 'short', day: 'numeric' }) : null;
-        
-        // Create return boarding pass props
-        const returnBoardingPassProps = {
-          passengerName: passenger ? `${passenger.firstName || 'N/A'} ${passenger.lastName || 'N/A'}` : 'N/A',
-          flightNumber: flightDetails?.return?.airline?.flightNumber || 'N/A',
-          departureCity: flightDetails?.return?.departure?.city || 'N/A',
-          departureAirport: flightDetails?.return?.departure?.airport || 'N/A',
-          departureTime: flightDetails?.return?.departure?.time || 'N/A',
-          departureDate: returnDepartureDate || undefined,
-          arrivalCity: flightDetails?.return?.arrival?.city || 'N/A',
-          arrivalAirport: flightDetails?.return?.arrival?.airport || 'N/A',
-          arrivalTime: flightDetails?.return?.arrival?.time || 'N/A',
-          arrivalDate: returnArrivalDate || undefined,
-          seat: passenger?.returnSeatNumber || passenger?.seatNumber || 'N/A',
-          boardingTime: flightDetails?.return?.boardingTime || 'N/A',
-          terminal: flightDetails?.return?.departure?.terminal || 'N/A',
-          gate: flightDetails?.return?.departure?.gate || 'N/A',
-          confirmation: booking.bookingReference || booking.id || 'N/A',
-          duration: flightDetails?.return?.duration || 'N/A',
-          classType: flightDetails?.class || 'Economy',
-          amenities: booking.extras?.map((extra: any) => extra.description || extra.name) || []
-        };
-        
-        // Create a temporary props object for rendering, excluding interactive elements for static HTML
-        const staticReturnBoardingPassProps = { ...returnBoardingPassProps, isStatic: true };
-        
-        const returnBoardingPassHtml = ReactDOMServer.renderToStaticMarkup(
-          <BoardingPass {...staticReturnBoardingPassProps} />
-        );
-        
-        // Generate HTML for return flight
-        const returnHtml = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Return Boarding Pass</title><script src="https://cdn.tailwindcss.com"></script><style>
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  display: flex; /* Ensure body can be a flex container */
-  flex-direction: column; /* Stack children vertically */
-  align-items: center; /* Center children horizontally */
-  justify-content: center; /* Center children vertically */
-  background-color: #f3f4f6; /* Added a light gray background for better visibility */
-}
-</style></head><body>${returnBoardingPassHtml}</body></html>`;
-        
-        // Create blob and download return boarding pass
-        const returnBlob = new Blob([returnHtml], { type: 'text/html' });
-        const returnUrl = URL.createObjectURL(returnBlob);
-        const returnLink = document.createElement('a');
-        returnLink.href = returnUrl;
-        returnLink.download = `boarding-pass-return-${booking.bookingReference || booking.id}.html`;
-        document.body.appendChild(returnLink);
-        returnLink.click();
-        document.body.removeChild(returnLink);
-        URL.revokeObjectURL(returnUrl);
+      if (!orderCreateResponse) {
+        throw new Error('Order create response not found. Please complete the booking process again.');
       }
+
+      const parsedResponse = JSON.parse(orderCreateResponse);
+
+      // Transform the OrderCreate response to itinerary data
+      const itineraryData = transformOrderCreateToItinerary(parsedResponse);
+
+      // Generate PDF from the itinerary component
+      await generatePDFFromComponent('official-itinerary', `flight-itinerary-${itineraryData.bookingInfo.bookingReference}.pdf`);
+
     } catch (error) {
-      console.error('Error generating HTML boarding pass:', error);
-      alert(error instanceof Error ? error.message : 'Failed to generate HTML boarding pass. Please try again.');
-    }
-    } catch (error) {
-      console.error('Error in handleDownloadBoardingPass:', error);
-      alert('Failed to generate boarding pass. Please try again.');
+      console.error('Error generating official itinerary:', error);
+      alert(error instanceof Error ? error.message : 'Failed to generate itinerary. Please try again.');
     } finally {
       setIsDownloading(false);
     }
   };
+
+  // Old boarding pass function removed - now using official itinerary system
 
   const handleEmailItinerary = async () => {
     setIsEmailing(true);
@@ -651,7 +484,7 @@ html, body {
               variant="outline"
               size="sm"
               className="flex items-center gap-1"
-              onClick={handleDownloadBoardingPass} // Changed to handleDownloadBoardingPass
+              onClick={handleDownloadOfficialItinerary} // Changed to official itinerary
               loading={isDownloading}
               loadingText="Generating..."
               aria-label="Download itinerary"
@@ -893,9 +726,17 @@ html, body {
                       <span className="font-medium">Email:</span> {contactInfo.email}
                     </p>
                     <p>
-                      <span className="font-medium">Phone:</span> {typeof contactInfo.phone === 'object' && contactInfo.phone?.formatted 
-                        ? contactInfo.phone.formatted 
-                        : contactInfo.phone}
+                      <span className="font-medium">Phone:</span> {(() => {
+                        if (typeof contactInfo.phone === 'object' && contactInfo.phone !== null) {
+                          // Handle phone object with different possible structures
+                          return contactInfo.phone.formatted ||
+                                 contactInfo.phone.number ||
+                                 `${contactInfo.phone.countryCode || ''}${contactInfo.phone.number || ''}` ||
+                                 'N/A';
+                        }
+                        // Handle string phone numbers
+                        return contactInfo.phone || 'N/A';
+                      })()}
                     </p>
                   </>
                 );
@@ -1030,6 +871,28 @@ html, body {
           </div>
         </div>
       </div>
+
+      {/* Official Itinerary Section */}
+      {(() => {
+        try {
+          const orderCreateResponse = sessionStorage.getItem('orderCreateResponse');
+          if (orderCreateResponse) {
+            const parsedResponse = JSON.parse(orderCreateResponse);
+            const itineraryData = transformOrderCreateToItinerary(parsedResponse);
+
+            return (
+              <div className="mb-8">
+                <div id="official-itinerary">
+                  <OfficialItinerary data={itineraryData} />
+                </div>
+              </div>
+            );
+          }
+        } catch (error) {
+          console.error('Error rendering official itinerary:', error);
+        }
+        return null;
+      })()}
 
       <div className="mb-8 space-y-4 rounded-lg border bg-muted/30 p-6">
         <h3 className="text-lg font-medium">What's Next?</h3>

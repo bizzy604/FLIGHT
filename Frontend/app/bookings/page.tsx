@@ -9,7 +9,7 @@ import { LoadingSpinner } from '@/components/loading-spinner';
 import { Plane, Ticket, Calendar, Clock, MapPin, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 
-// Mock data - replace with actual API call
+// Database booking type
 type Booking = {
   id: string;
   passengerName: string;
@@ -29,50 +29,13 @@ type Booking = {
   confirmation: string;
   duration: string;
   class: string;
+  bookingReference: string;
+  status: string;
+  createdAt: string;
+  totalAmount: number;
+  currency: string;
+  airlineCode: string;
 };
-
-const mockBookings: Booking[] = [
-  {
-    id: '123',
-    passengerName: 'John Doe',
-    flightNumber: 'AL 2847',
-    departure: {
-      city: 'New York',
-      airport: 'LGA',
-      time: '07:25 AM',
-      date: '2024-06-15',
-    },
-    arrival: {
-      city: 'Los Angeles',
-      airport: 'LAX',
-      time: '10:57 AM',
-    },
-    seat: '12A',
-    confirmation: 'AX7K92',
-    duration: '5h 32m',
-    class: 'Business',
-  },
-  {
-    id: '124',
-    passengerName: 'John Doe',
-    flightNumber: 'AL 1234',
-    departure: {
-      city: 'San Francisco',
-      airport: 'SFO',
-      time: '02:15 PM',
-      date: '2024-07-01',
-    },
-    arrival: {
-      city: 'New York',
-      airport: 'JFK',
-      time: '10:30 PM',
-    },
-    seat: '8C',
-    confirmation: 'BX9M45',
-    duration: '5h 15m',
-    class: 'Economy',
-  },
-];
 
 export default function BookingsPage() {
   const { user, isLoaded } = useUser();
@@ -86,24 +49,81 @@ export default function BookingsPage() {
 
     const fetchBookings = async () => {
       try {
-        // In a real app, fetch bookings from your API
-        // const response = await fetch('/api/bookings', {
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   credentials: 'include',
-        // });
-        // const data = await response.json();
-        // setBookings(data);
-        
-        // Using mock data for now
-        setTimeout(() => {
-          setBookings(mockBookings);
-          setIsLoading(false);
-        }, 800); // Simulate network delay
+        setIsLoading(true);
+        setError(null);
+
+        // Fetch bookings from the API
+        const response = await fetch('/api/bookings', {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Handle the response format from the existing API
+        if (data.bookings && Array.isArray(data.bookings)) {
+          // Transform database bookings to the expected format
+          const transformedBookings = data.bookings.map((booking: any) => {
+            // Extract flight details from the stored data
+            const flightDetails = booking.flightDetails || {};
+            const outbound = flightDetails.outbound || {};
+            const returnFlight = flightDetails.return || {};
+
+            // Try to extract flight numbers from stored data
+            let flightNumber = 'Unknown';
+            if (outbound.airline?.flightNumber) {
+              flightNumber = `${outbound.airline.code || ''} ${outbound.airline.flightNumber}`.trim();
+            }
+
+            // Extract departure and arrival info
+            const departure = {
+              city: outbound.departure?.city || 'Unknown',
+              airport: outbound.departure?.airport || 'Unknown',
+              time: outbound.departure?.time || 'Unknown',
+              date: outbound.departure?.date || booking.createdAt?.split('T')[0] || 'Unknown'
+            };
+
+            const arrival = {
+              city: outbound.arrival?.city || 'Unknown',
+              airport: outbound.arrival?.airport || 'Unknown',
+              time: outbound.arrival?.time || 'Unknown'
+            };
+
+            return {
+              id: booking.id,
+              passengerName: booking.passengerDetails?.passengers?.[0]?.firstName + ' ' +
+                           booking.passengerDetails?.passengers?.[0]?.lastName || 'Unknown Passenger',
+              flightNumber,
+              departure,
+              arrival,
+              seat: 'TBD', // Seat assignment would be in booking details
+              confirmation: booking.bookingReference,
+              duration: outbound.duration || 'Unknown',
+              class: outbound.cabinClass || 'Economy',
+              bookingReference: booking.bookingReference,
+              status: booking.status,
+              createdAt: booking.createdAt,
+              totalAmount: booking.totalAmount,
+              currency: 'USD', // Default currency
+              airlineCode: outbound.airline?.code || 'Unknown'
+            };
+          });
+
+          setBookings(transformedBookings);
+        } else {
+          // No bookings found
+          setBookings([]);
+        }
       } catch (err) {
         console.error('Error fetching bookings:', err);
         setError('Failed to load bookings. Please try again later.');
+      } finally {
         setIsLoading(false);
       }
     };
@@ -214,12 +234,12 @@ export default function BookingsPage() {
                 </div>
               </CardContent>
               <CardFooter className="bg-gray-50 px-6 py-3">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="ml-auto"
-                  onClick={() => router.push(`/bookings/${booking.id}`)}
+                  onClick={() => router.push(`/bookings/${booking.id}/itinerary`)}
                 >
-                  View Boarding Pass <ArrowRight className="w-4 h-4 ml-2" />
+                  View Itinerary <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </CardFooter>
             </Card>

@@ -153,13 +153,8 @@ function SearchParamsWrapper() {
   // Apply filters and pagination to flight data
   useEffect(() => {
     if (allFlights.length === 0) {
-      console.log('No flights available to filter');
       return;
     }
-    
-    console.log('Current filters:', filters);
-    console.log('Available flights:', allFlights.length);
-    console.log('Current filters:', filters);
 
     // First apply filters
     const filteredFlights = allFlights.filter(flight => {
@@ -188,7 +183,7 @@ function SearchParamsWrapper() {
       return true;
     });
     
-    console.log('Filtered flights:', filteredFlights.length);
+
     
     // Apply sorting
     const sortedFlights = [...filteredFlights].sort((a, b) => {
@@ -209,13 +204,11 @@ function SearchParamsWrapper() {
     
     // Set the paginated flights
     const paginatedFlights = sortedFlights.slice(startIdx, endIdx);
-    console.log('Setting paginated flights:', paginatedFlights.length, 'displayed out of', sortedFlights.length);
     setFlights(paginatedFlights);
   }, [allFlights, filters.priceRange, filters.airlines, filters.stops, filters.departureTime, sortOption, currentPage]);
 
   // Load flight data from API based on search parameters
   useEffect(() => {
-    console.log('Loading flight data...');
     // Reset pagination when loading new data
     setCurrentPage(1);
     setLoading(true);
@@ -280,41 +273,25 @@ function SearchParamsWrapper() {
         // Backend returns response.data with nested data structure
         const apiResponse = response.data;
         let apiFlights: any[] = [];
-        
-        // Debug: Log response structure (remove in production)
-        console.log('API response received with', apiResponse?.data?.data?.offers?.length || 0, 'offers');
-        
-        // The actual structure is response.data.data.data.offers (triple nested)
-        if (apiResponse && apiResponse.data && apiResponse.data.data && apiResponse.data.data.offers) {
-          apiFlights = apiResponse.data.data.offers;
-          console.log('Found offers in apiResponse.data.data.offers:', apiFlights.length);
-        } else if (apiResponse && apiResponse.data && apiResponse.data.offers) {
-          // Fallback: response.data.data.offers
+
+        // The actual structure is response.data.data.offers
+        if (apiResponse && apiResponse.data && apiResponse.data.offers) {
           apiFlights = apiResponse.data.offers;
-          console.log('Found offers in apiResponse.data.offers:', apiFlights.length);
         } else if (Array.isArray(apiResponse)) {
           // Fallback: response.data is directly an array
           apiFlights = apiResponse;
-          console.log('Using apiResponse as direct array:', apiFlights.length);
-        } else {
-          console.log('No offers found. API response structure:', {
-            hasData: !!apiResponse.data,
-            dataKeys: apiResponse.data ? Object.keys(apiResponse.data) : [],
-            isArray: Array.isArray(apiResponse)
-          });
         }
+        
+        // Clear ALL previous flight data before storing new search results
+        // This prevents conflicts with old search data
+        console.log('🧹 Clearing all previous flight data before storing new search...');
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('flightData_') || key.startsWith('flight_') || key === 'currentFlightDataKey' || key === 'currentFlightKey' || key === 'returnFlightKey') {
+            localStorage.removeItem(key);
+            console.log(`🧹 Cleared previous data: ${key}`);
+          }
+        });
 
-        // Debug: Log the first flight object to see its structure
-        if (apiFlights && apiFlights.length > 0) {
-          console.log('[DEBUG] First flight object structure:', {
-            id: apiFlights[0].id,
-            keys: Object.keys(apiFlights[0]),
-            hasId: !!apiFlights[0].id
-          });
-        }
-        
-        // console.log('Extracted flights:', apiFlights.length, 'offers');
-        
         // Store complete flight data in localStorage for flight details page
         // This includes the complete airShoppingResponse needed for pricing API calls
         const flightDataForStorage = {
@@ -335,7 +312,7 @@ function SearchParamsWrapper() {
             returnCabinClass
           },
           timestamp: Date.now(),
-          expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24 hours expiration
+          expiresAt: Date.now() + (30 * 60 * 1000) // 30 minutes expiration
         };
         
         // Create a unique storage key based on search parameters
@@ -354,33 +331,33 @@ function SearchParamsWrapper() {
             const keysToRemove = flightDataKeys.slice(0, flightDataKeys.length - MAX_STORAGE_ITEMS + 1);
             keysToRemove.forEach(key => {
               localStorage.removeItem(key);
-              console.log('Removed older flight data to make space:', key);
             });
           }
 
           localStorage.setItem(storageKey, JSON.stringify(flightDataForStorage));
           // Store the current storage key for easy retrieval
           localStorage.setItem('currentFlightDataKey', storageKey);
-          console.log('Flight data stored in localStorage with key:', storageKey);
           
-          // Clean up old flight data (older than 24 hours)
+          // Clean up any remaining old flight data (older than 30 minutes) and corrupted data
           const now = Date.now();
           Object.keys(localStorage).forEach(key => {
-            if (key.startsWith('flightData_')) {
+            if (key.startsWith('flightData_') || key.startsWith('flight_')) {
               try {
                 const data = JSON.parse(localStorage.getItem(key) || '{}');
                 if (data.expiresAt && data.expiresAt < now) {
                   localStorage.removeItem(key);
-                  console.log('Removed expired flight data:', key);
+                  console.log(`🧹 Cleaned up expired data: ${key}`);
                 }
               } catch (e) {
                 // Remove corrupted data
                 localStorage.removeItem(key);
+                console.log(`🧹 Cleaned up corrupted data: ${key}`);
               }
             }
           });
+
+          console.log(`✅ Successfully stored flight data with key: ${storageKey}`);
         } catch (storageError) {
-          console.warn('Failed to store flight data in localStorage:', storageError);
           // Continue execution even if storage fails
         }
         
@@ -421,12 +398,10 @@ function SearchParamsWrapper() {
 
         // Convert to array and sort by name
         const airlineOptions = Array.from(uniqueAirlines.values()).sort((a, b) => a.name.localeCompare(b.name));
-        console.log('Extracted airlines from API data:', airlineOptions);
 
         setAvailableAirlines(airlineOptions);
         setAllFlights(directFlights);
       } catch (error) {
-        console.error('Error fetching flights:', error);
         // You might want to show an error message to the user
       } finally {
         setLoading(false);
@@ -438,12 +413,8 @@ function SearchParamsWrapper() {
     // Create a unique search key
     const searchKey = `flightResults_${origin}_${destination}_${departDate}_${adults}_${children}_${infants}_${tripType === 'round-trip' ? `${outboundCabinClass}_${returnCabinClass}` : cabinClass}`;
 
-    // Log search parameters
-    // console.log('Search params:', { origin, destination, departDate, returnDate, adults, children, infants, cabinClass, outboundCabinClass, returnCabinClass, tripType });
-    
     // Clear session storage to force API fetch
     sessionStorage.removeItem(searchKey);
-    console.log('Cleared stored flights for debugging');
     
 
   }, [searchParams]);

@@ -27,6 +27,8 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { FlightOffer, FlightSegmentDetails, Penalty } from "@/types/flight-api"
+import { validateAndRecoverFlightData } from "@/utils/flight-data-validator"
+import { logger } from "@/utils/logger"
 
 interface EnhancedFlightCardProps {
   flight: FlightOffer
@@ -65,7 +67,6 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
         return { status: 'warning', message: `Expires in ${minutesUntilExpiration}m` };
       }
     } catch (error) {
-      console.warn('Error parsing offer expiration time:', error);
     }
 
     return null;
@@ -107,11 +108,28 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
         localStorage.setItem('returnFlightKey', returnKey);
       }
 
+      // Validate and recover flight search data using the robust validator
+      const validationResult = validateAndRecoverFlightData();
+      if (!validationResult.isValid || !validationResult.data) {
+        logger.error('❌ Flight data validation failed:', validationResult.error);
+        throw new Error(validationResult.error || 'Flight search data not found. Please start a new search.');
+      }
+
+      if (validationResult.recovered) {
+        logger.info('✅ Flight data recovered from alternate key:', validationResult.recoveredFrom);
+      } else {
+        logger.info('✅ Flight data validation passed');
+      }
+
       // Add a small delay to show the loading state
       await new Promise(resolve => setTimeout(resolve, 500));
 
     } catch (error) {
-      console.error('Error storing flight data:', error);
+      console.error('❌ Error during flight selection:', error);
+      // Show user-friendly error
+      alert(error.message || 'Error selecting flight. Please try again.');
+      setIsSelecting(false);
+      return; // Don't navigate if there's an error
     } finally {
       setIsSelecting(false);
     }
@@ -133,13 +151,7 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
       if (searchParams.cabinClass) params.set('cabinClass', searchParams.cabinClass);
     }
 
-    // Debug: Log the flight ID being used in the URL
-    console.log('[DEBUG] Building flight URL with flight.id:', flight.id);
-    console.log('[DEBUG] Flight object keys:', Object.keys(flight));
-
     if (!flight.id) {
-      console.error('[ERROR] Flight ID is null/undefined! Cannot build URL.');
-      console.error('[ERROR] Full flight object:', flight);
       return '/flights/error';
     }
 

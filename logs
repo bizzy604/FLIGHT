@@ -5,330 +5,175 @@ Successfully loaded 9803 airports from C:\Users\User\Desktop\FLIGHT\airports.csv
  * Debug mode: True
  * Please use an ASGI server (e.g. Hypercorn) directly in production
  * Running on http://0.0.0.0:5000 (CTRL + C to quit)
-[2025-07-03 02:19:57,722] INFO in app: Route: static -> /static/<path:filename>
+[2025-07-03 20:16:59,274] INFO in app: Route: static -> /static/<path:filename>
 INFO:app:Route: static -> /static/<path:filename>
-[2025-07-03 02:19:57,722] INFO in app: Route: verteil_flights.air_shopping_test_postman -> /api/verteil/air-shopping-test-postman
+[2025-07-03 20:16:59,275] INFO in app: Route: verteil_flights.air_shopping_test_postman -> /api/verteil/air-shopping-test-postman
 INFO:app:Route: verteil_flights.air_shopping_test_postman -> /api/verteil/air-shopping-test-postman
-[2025-07-03 02:19:57,722] INFO in app: Route: verteil_flights.air_shopping_test_regular -> /api/verteil/air-shopping-test-regular
+[2025-07-03 20:16:59,275] INFO in app: Route: verteil_flights.air_shopping_test_regular -> /api/verteil/air-shopping-test-regular
 INFO:app:Route: verteil_flights.air_shopping_test_regular -> /api/verteil/air-shopping-test-regular
-[2025-07-03 02:19:57,723] INFO in app: Route: verteil_flights.air_shopping -> /api/verteil/air-shopping
+[2025-07-03 20:16:59,276] INFO in app: Route: verteil_flights.air_shopping -> /api/verteil/air-shopping
 INFO:app:Route: verteil_flights.air_shopping -> /api/verteil/air-shopping
-[2025-07-03 02:19:57,723] INFO in app: Route: verteil_flights.flight_price -> /api/verteil/flight-price
+[2025-07-03 20:16:59,276] INFO in app: Route: verteil_flights.flight_price -> /api/verteil/flight-price
 INFO:app:Route: verteil_flights.flight_price -> /api/verteil/flight-price
-[2025-07-03 02:19:57,723] INFO in app: Route: verteil_flights.create_order -> /api/verteil/order-create
+[2025-07-03 20:16:59,277] INFO in app: Route: verteil_flights.create_order -> /api/verteil/order-create
 INFO:app:Route: verteil_flights.create_order -> /api/verteil/order-create
-[2025-07-03 02:19:57,724] INFO in app: Route: debug.get_token_status -> /debug/token
+[2025-07-03 20:16:59,279] INFO in app: Route: debug.get_token_status -> /debug/token
 INFO:app:Route: debug.get_token_status -> /debug/token
-[2025-07-03 02:19:57,724] INFO in app: Route: debug.clear_token -> /debug/clear-token
+[2025-07-03 20:16:59,280] INFO in app: Route: debug.clear_token -> /debug/clear-token
 INFO:app:Route: debug.clear_token -> /debug/clear-token
-[2025-07-03 02:19:57,725] INFO in app: Route: airport_routes.airport_autocomplete -> /api/airports/autocomplete
+[2025-07-03 20:16:59,280] INFO in app: Route: airport_routes.airport_autocomplete -> /api/airports/autocomplete
 INFO:app:Route: airport_routes.airport_autocomplete -> /api/airports/autocomplete
-[2025-07-03 02:19:57,725] INFO in app: Route: health_check -> /api/health
+[2025-07-03 20:16:59,281] INFO in app: Route: health_check -> /api/health
 INFO:app:Route: health_check -> /api/health
-[2025-07-03 02:19:57,726] INFO in app: Route: list_routes -> /api/debug/routes
+[2025-07-03 20:16:59,281] INFO in app: Route: list_routes -> /api/debug/routes
 INFO:app:Route: list_routes -> /api/debug/routes
-[2025-07-03 02:19:57 +0300] [10712] [INFO] Running on http://0.0.0.0:5000 (CTRL + C to quit)
+[2025-07-03 20:16:59 +0300] [22248] [INFO] Running on http://0.0.0.0:5000 (CTRL + C to quit)
 INFO:hypercorn.error:Running on http://0.0.0.0:5000 (CTRL + C to quit)
+INFO:routes.verteil_flights:Incoming request: OPTIONS /api/verteil/air-shopping
+INFO:routes.verteil_flights:Headers: {'Remote-Addr': '127.0.0.1', 'Host': 'localhost:5000', 'Connection': 'keep-alive', 'Accept': '*/*', 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'content-type', 'Origin': 'http://localhost:3000', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Site': 'same-site', 'Sec-Fetch-Dest': 'empty', 'Referer': 'http://localhost:3000/', 'Accept-Encoding': 'gzip, deflate, br, zstd', 'Accept-Language': 'en-US,en;q=0.9'}
+INFO:routes.verteil_flights:Origin: http://localhost:3000
+INFO:routes.verteil_flights:Access-Control-Request-Method: POST
+[2025-07-03 20:17:05 +0300] [22248] [INFO] 127.0.0.1:58672 OPTIONS /api/verteil/air-shopping 1.1 200 0 13054
 INFO:routes.verteil_flights:Incoming request: POST /api/verteil/air-shopping
-INFO:routes.verteil_flights:Headers: {'Remote-Addr': '127.0.0.1', 'Host': 'localhost:5000', 'Connection': 'keep-alive', 'Content-Length': '281', 'Sec-Ch-Ua-Platform': '"Android"', 'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36', 'Accept': 'application/json', 'Sec-Ch-Ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"', 'Content-Type': 'application/json', 'Sec-Ch-Ua-Mobile': '?1', 'Origin': 'http://localhost:3000', 'Sec-Fetch-Site': 'same-site', 'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Dest': 'empty', 'Referer': 'http://localhost:3000/', 'Accept-Encoding': 'gzip, deflate, br, zstd', 'Accept-Language': 'en-US,en;q=0.9'}
+INFO:routes.verteil_flights:Headers: {'Remote-Addr': '127.0.0.1', 'Host': 'localhost:5000', 'Connection': 'keep-alive', 'Content-Length': '281', 'Sec-Ch-Ua-Platform': '"Windows"', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'Accept': 'application/json', 'Sec-Ch-Ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"', 'Content-Type': 'application/json', 'Sec-Ch-Ua-Mobile': '?0', 'Origin': 'http://localhost:3000', 'Sec-Fetch-Site': 'same-site', 'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Dest': 'empty', 'Referer': 'http://localhost:3000/', 'Accept-Encoding': 'gzip, deflate, br, zstd', 'Accept-Language': 'en-US,en;q=0.9'}
 INFO:routes.verteil_flights:Origin: http://localhost:3000
 INFO:routes.verteil_flights:Access-Control-Request-Method: None
-INFO:routes.verteil_flights:Air shopping request received - Request ID: 49593cdb-ee7f-4706-a5fe-433a1eb24154
-INFO:routes.verteil_flights:[DEBUG] Split round trip segment into two: [{'origin': 'NBO', 'destination': 'AUH', 'departureDate': '2025-07-07'}, {'origin': 'AUH', 'destination': 'NBO', 'departureDate': '2025-07-25'}]
+INFO:routes.verteil_flights:Air shopping request received - Request ID: 09101d65-a343-469b-a0d1-97ac430742c1
+INFO:routes.verteil_flights:[DEBUG] Split round trip segment into two: [{'origin': 'BOM', 'destination': 'DXB', 'departureDate': '2025-07-06'}, {'origin': 'DXB', 'destination': 'BOM', 'departureDate': '2025-07-27'}]
 INFO:routes.verteil_flights:[DEBUG] Mapped outbound cabin BUSINESS to BUSINESS
 INFO:routes.verteil_flights:[DEBUG] Mapped return cabin BUSINESS to BUSINESS
-INFO:routes.verteil_flights:Original request data: {'tripType': 'ROUND_TRIP', 'odSegments': [{'origin': 'NBO', 'destination': 'AUH', 'departureDate': '2025-07-07', 'returnDate': '2025-07-25'}], 'numAdults': 1, 'numChildren': 0, 'numInfants': 0, 'outboundCabinClass': 'BUSINESS', 'returnCabinClass': 'BUSINESS', 'enableRoundtrip': True, 'directOnly': False}
-INFO:routes.verteil_flights:Converted request data: {'trip_type': 'ROUND_TRIP', 'odSegments': [{'origin': 'NBO', 'destination': 'AUH', 'departureDate': '2025-07-07', 'cabinPreference': 'BUSINESS'}, {'origin': 'AUH', 'destination': 'NBO', 'departureDate': '2025-07-25', 'cabinPreference': 'BUSINESS'}], 'num_adults': 1, 'num_children': 0, 'num_infants': 0, 'outbound_cabin_class': 'BUSINESS', 'return_cabin_class': 'BUSINESS', 'enableRoundtrip': True, 'directOnly': False}
-INFO:routes.verteil_flights:Using enhanced air shopping service - Request ID: 49593cdb-ee7f-4706-a5fe-433a1eb24154
-[2025-07-03 02:20:03,703] INFO in core: FlightService initialized with necessary OAuth configurations.
+INFO:routes.verteil_flights:Original request data: {'tripType': 'ROUND_TRIP', 'odSegments': [{'origin': 'BOM', 'destination': 'DXB', 'departureDate': '2025-07-06', 'returnDate': '2025-07-27'}], 'numAdults': 2, 'numChildren': 1, 'numInfants': 1, 'outboundCabinClass': 'BUSINESS', 'returnCabinClass': 'BUSINESS', 'enableRoundtrip': True, 'directOnly': False}
+INFO:routes.verteil_flights:Converted request data: {'trip_type': 'ROUND_TRIP', 'odSegments': [{'origin': 'BOM', 'destination': 'DXB', 'departureDate': '2025-07-06', 'cabinPreference': 'BUSINESS'}, {'origin': 'DXB', 'destination': 'BOM', 'departureDate': '2025-07-27', 'cabinPreference': 'BUSINESS'}], 'num_adults': 2, 'num_children': 1, 'num_infants': 1, 'outbound_cabin_class': 'BUSINESS', 'return_cabin_class': 'BUSINESS', 'enableRoundtrip': True, 'directOnly': False}
+INFO:routes.verteil_flights:Using enhanced air shopping service - Request ID: 09101d65-a343-469b-a0d1-97ac430742c1
+[2025-07-03 20:17:05,785] INFO in core: FlightService initialized with necessary OAuth configurations.
 INFO:services.flight.core:FlightService initialized with necessary OAuth configurations.
 INFO:services.flight.air_shopping:Initialized AirShoppingService with multi-airline support
-[2025-07-03 02:20:03,718] INFO in core: FlightService initialized with necessary OAuth configurations.
+[2025-07-03 20:17:05,801] INFO in core: FlightService initialized with necessary OAuth configurations.
 INFO:services.flight.core:FlightService initialized with necessary OAuth configurations.
-INFO:services.flight.air_shopping:Starting enhanced air shopping search - Request ID: be2f50ec-51f6-44ba-89b4-1152fa150046
-[2025-07-03 02:20:03,723] INFO in search: [DEBUG] Round-trip: Using cabin preference from first segment: 'BUSINESS'
+INFO:services.flight.air_shopping:Starting enhanced air shopping search - Request ID: 9efd9d3d-9175-4efb-8b02-8064f629620e
+[2025-07-03 20:17:05,806] INFO in search: [DEBUG] Round-trip: Using cabin preference from first segment: 'BUSINESS'
 INFO:services.flight.search:[DEBUG] Round-trip: Using cabin preference from first segment: 'BUSINESS'
-[2025-07-03 02:20:03,724] INFO in search: [DEBUG] Cabin preference: 'BUSINESS' -> cabin_code: 'C'
+[2025-07-03 20:17:05,807] INFO in search: [DEBUG] Cabin preference: 'BUSINESS' -> cabin_code: 'C'
 INFO:services.flight.search:[DEBUG] Cabin preference: 'BUSINESS' -> cabin_code: 'C'
 INFO:utils.auth:Fetching new OAuth2 token...
 INFO:utils.auth:Successfully obtained new token. Expires in 43199 seconds.
-[2025-07-03 02:20:05,533] INFO in core: Making POST request to https://api.stage.verteil.com/entrygate/rest/request:airShopping for service AirShopping (ReqID: 66482544-3332-4fc1-b634-56009a5842d2).
-INFO:services.flight.core:Making POST request to https://api.stage.verteil.com/entrygate/rest/request:airShopping for service AirShopping (ReqID: 66482544-3332-4fc1-b634-56009a5842d2).
-[2025-07-03 02:20:09,506] INFO in core: Successfully received API response for AirShopping (ReqID: 66482544-3332-4fc1-b634-56009a5842d2) with status 200
-INFO:services.flight.core:Successfully received API response for AirShopping (ReqID: 66482544-3332-4fc1-b634-56009a5842d2) with status 200
-[2025-07-03 02:20:09,507] INFO in core: No AirlineList found in DataLists
+[2025-07-03 20:17:07,856] INFO in core: Making POST request to https://api.stage.verteil.com/entrygate/rest/request:airShopping for service AirShopping (ReqID: ddb76c23-87a3-4e26-9cc6-f3be7f8b5300).
+INFO:services.flight.core:Making POST request to https://api.stage.verteil.com/entrygate/rest/request:airShopping for service AirShopping (ReqID: ddb76c23-87a3-4e26-9cc6-f3be7f8b5300).
+[2025-07-03 20:17:30,987] INFO in core: Successfully received API response for AirShopping (ReqID: ddb76c23-87a3-4e26-9cc6-f3be7f8b5300) with status 200
+INFO:services.flight.core:Successfully received API response for AirShopping (ReqID: ddb76c23-87a3-4e26-9cc6-f3be7f8b5300) with status 200
+[2025-07-03 20:17:30,988] INFO in core: No AirlineList found in DataLists
 INFO:services.flight.core:No AirlineList found in DataLists
-[2025-07-03 02:20:09,508] INFO in search: Successfully received raw AirShopping response for request_id: 66482544-3332-4fc1-b634-56009a5842d2
-INFO:services.flight.search:Successfully received raw AirShopping response for request_id: 66482544-3332-4fc1-b634-56009a5842d2        
-INFO:services.flight.air_shopping:Raw search completed in 5.787s - Request ID: be2f50ec-51f6-44ba-89b4-1152fa150046
-INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['Document', 'OffersGroup', 'DataLists', 'Metadata', 'Errors']
-INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightSegmentList', 'FlightList', 'OriginDestinationList', 'PenaltyList', 'PriceClassList']
-INFO:utils.multi_airline_detector:[DEBUG] Found 1 travelers
+[2025-07-03 20:17:30,989] INFO in search: Successfully received raw AirShopping response for request_id: ddb76c23-87a3-4e26-9cc6-f3be7f8b5300
+INFO:services.flight.search:Successfully received raw AirShopping response for request_id: ddb76c23-87a3-4e26-9cc6-f3be7f8b5300        
+INFO:services.flight.air_shopping:Raw search completed in 25.184s - Request ID: 9efd9d3d-9175-4efb-8b02-8064f629620e
+INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['Warnings', 'OffersGroup', 'DataLists', 'Metadata', 'Errors']
+INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightSegmentList', 'FlightList', 'OriginDestinationList', 'MediaList', 'PenaltyList', 'PriceClassList']
+INFO:utils.multi_airline_detector:[DEBUG] Found 24 travelers
 INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
 INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
 INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
-INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['Document', 'OffersGroup', 'DataLists', 'Metadata', 'Errors']
-INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightSegmentList', 'FlightList', 'OriginDestinationList', 'PenaltyList', 'PriceClassList']
-INFO:utils.multi_airline_detector:[DEBUG] Found 1 travelers
+INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['Warnings', 'OffersGroup', 'DataLists', 'Metadata', 'Errors']
+INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightSegmentList', 'FlightList', 'OriginDestinationList', 'MediaList', 'PenaltyList', 'PriceClassList']
+INFO:utils.multi_airline_detector:[DEBUG] Found 24 travelers
 INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
 INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
 INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
 INFO:utils.reference_extractor:Initialized reference extractor for multi-airline response
 INFO:utils.reference_extractor:Extracting multi-airline references
-INFO:utils.multi_airline_detector:Extracted airline codes: ['QR']
-INFO:utils.reference_extractor:Extracted multi-airline references for 1 airlines
+INFO:utils.multi_airline_detector:Extracted airline codes: ['CX', 'EK', 'ET', 'KQ', 'QR', 'WY']
+INFO:utils.reference_extractor:Extracted multi-airline references for 6 airlines
 INFO:utils.reference_extractor:Successfully extracted references
 INFO:transformers.enhanced_air_shopping_transformer:Initialized enhanced transformer for multi-airline response
 INFO:transformers.enhanced_air_shopping_transformer:Transforming multi-airline offers
-INFO:transformers.enhanced_air_shopping_transformer:Transformed 180 multi-airline offers
-INFO:transformers.enhanced_air_shopping_transformer:Successfully transformed 180 offers for results page
-INFO:services.flight.air_shopping:Enhanced transformation completed in 0.028s - 180 offers, Multi-airline: True - Request ID: be2f50ec-51f6-44ba-89b4-1152fa150046
-INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['Document', 'OffersGroup', 'DataLists', 'Metadata', 'Errors']
-INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightSegmentList', 'FlightList', 'OriginDestinationList', 'PenaltyList', 'PriceClassList']
-INFO:utils.multi_airline_detector:[DEBUG] Found 1 travelers
+INFO:transformers.enhanced_air_shopping_transformer:Transformed 854 multi-airline offers
+INFO:transformers.enhanced_air_shopping_transformer:Successfully transformed 854 offers for results page
+INFO:services.flight.air_shopping:Enhanced transformation completed in 0.090s - 854 offers, Multi-airline: True - Request ID: 9efd9d3d-9175-4efb-8b02-8064f629620e
+INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['Warnings', 'OffersGroup', 'DataLists', 'Metadata', 'Errors']
+INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightSegmentList', 'FlightList', 'OriginDestinationList', 'MediaList', 'PenaltyList', 'PriceClassList']
+INFO:utils.multi_airline_detector:[DEBUG] Found 24 travelers
 INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
 INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
 INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
-INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['Document', 'OffersGroup', 'DataLists', 'Metadata', 'Errors']
-INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightSegmentList', 'FlightList', 'OriginDestinationList', 'PenaltyList', 'PriceClassList']
-INFO:utils.multi_airline_detector:[DEBUG] Found 1 travelers
+INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['Warnings', 'OffersGroup', 'DataLists', 'Metadata', 'Errors']
+INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightSegmentList', 'FlightList', 'OriginDestinationList', 'MediaList', 'PenaltyList', 'PriceClassList']
+INFO:utils.multi_airline_detector:[DEBUG] Found 24 travelers
 INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
 INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
 INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
 INFO:utils.reference_extractor:Initialized reference extractor for multi-airline response
 INFO:utils.reference_extractor:Extracting multi-airline references
-INFO:utils.multi_airline_detector:Extracted airline codes: ['QR']
-INFO:utils.reference_extractor:Extracted multi-airline references for 1 airlines
+INFO:utils.multi_airline_detector:Extracted airline codes: ['CX', 'EK', 'ET', 'KQ', 'QR', 'WY']
+INFO:utils.reference_extractor:Extracted multi-airline references for 6 airlines
 INFO:utils.reference_extractor:Successfully extracted references
 INFO:utils.multi_airline_flight_card_generator:Initialized flight card generator for multi-airline response
-INFO:utils.multi_airline_flight_card_generator:Generated 180 enhanced flight cards
-INFO:services.flight.air_shopping:Enhanced flight cards generated in 0.263s - 180 cards - Request ID: be2f50ec-51f6-44ba-89b4-1152fa150046
-INFO:services.flight.air_shopping:Enhanced air shopping completed successfully in 6.079s - Request ID: be2f50ec-51f6-44ba-89b4-1152fa150046
-INFO:routes.verteil_flights:Successfully processed enhanced air shopping request - Request ID: 49593cdb-ee7f-4706-a5fe-433a1eb24154
-[2025-07-03 02:20:09 +0300] [10712] [INFO] 127.0.0.1:64904 POST /api/verteil/air-shopping 1.1 200 4192081 6299573
+INFO:utils.multi_airline_flight_card_generator:Generated 854 enhanced flight cards
+INFO:services.flight.air_shopping:Enhanced flight cards generated in 2.184s - 854 cards - Request ID: 9efd9d3d-9175-4efb-8b02-8064f629620e
+INFO:services.flight.air_shopping:Enhanced air shopping completed successfully in 27.460s - Request ID: 9efd9d3d-9175-4efb-8b02-8064f629620e
+INFO:routes.verteil_flights:Successfully processed enhanced air shopping request - Request ID: 09101d65-a343-469b-a0d1-97ac430742c1
+[2025-07-03 20:17:33 +0300] [22248] [INFO] 127.0.0.1:58672 POST /api/verteil/air-shopping 1.1 200 32932396 27813053
+INFO:routes.verteil_flights:Incoming request: OPTIONS /api/verteil/flight-price
+INFO:routes.verteil_flights:Headers: {'Remote-Addr': '127.0.0.1', 'Host': 'localhost:5000', 'Connection': 'keep-alive', 'Accept': '*/*', 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'content-type', 'Origin': 'http://localhost:3000', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Site': 'same-site', 'Sec-Fetch-Dest': 'empty', 'Referer': 'http://localhost:3000/', 'Accept-Encoding': 'gzip, deflate, br, zstd', 'Accept-Language': 'en-US,en;q=0.9'}
+INFO:routes.verteil_flights:Origin: http://localhost:3000
+INFO:routes.verteil_flights:Access-Control-Request-Method: POST
+[2025-07-03 20:18:08 +0300] [22248] [INFO] 127.0.0.1:58706 OPTIONS /api/verteil/flight-price 1.1 200 0 11238
+INFO:routes.verteil_flights:Incoming request: OPTIONS /api/verteil/flight-price
+INFO:routes.verteil_flights:Headers: {'Remote-Addr': '127.0.0.1', 'Host': 'localhost:5000', 'Connection': 'keep-alive', 'Accept': '*/*', 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'content-type', 'Origin': 'http://localhost:3000', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Site': 'same-site', 'Sec-Fetch-Dest': 'empty', 'Referer': 'http://localhost:3000/', 'Accept-Encoding': 'gzip, deflate, br, zstd', 'Accept-Language': 'en-US,en;q=0.9'}
+INFO:routes.verteil_flights:Origin: http://localhost:3000
+INFO:routes.verteil_flights:Access-Control-Request-Method: POST
+[2025-07-03 20:18:08 +0300] [22248] [INFO] 127.0.0.1:58707 OPTIONS /api/verteil/flight-price 1.1 200 0 18325
 INFO:routes.verteil_flights:Incoming request: POST /api/verteil/flight-price
-INFO:routes.verteil_flights:Headers: {'Remote-Addr': '127.0.0.1', 'Host': 'localhost:5000', 'Connection': 'keep-alive', 'Content-Length': '878614', 'Sec-Ch-Ua-Platform': '"Windows"', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'Accept': 'application/json', 'Sec-Ch-Ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"', 'Content-Type': 'application/json', 'Sec-Ch-Ua-Mobile': '?0', 'Origin': 'http://localhost:3000', 'Sec-Fetch-Site': 'same-site', 'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Dest': 'empty', 'Referer': 'http://localhost:3000/', 'Accept-Encoding': 'gzip, deflate, br, zstd', 'Accept-Language': 'en-US,en;q=0.9'}
+INFO:routes.verteil_flights:Headers: {'Remote-Addr': '127.0.0.1', 'Host': 'localhost:5000', 'Connection': 'keep-alive', 'Content-Length': '859', 'Sec-Ch-Ua-Platform': '"Windows"', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'Accept': 'application/json', 'Sec-Ch-Ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"', 'Content-Type': 'application/json', 'Sec-Ch-Ua-Mobile': '?0', 'Origin': 'http://localhost:3000', 'Sec-Fetch-Site': 'same-site', 'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Dest': 'empty', 'Referer': 'http://localhost:3000/', 'Accept-Encoding': 'gzip, deflate, br, zstd', 'Accept-Language': 'en-US,en;q=0.9'}
 INFO:routes.verteil_flights:Origin: http://localhost:3000
 INFO:routes.verteil_flights:Access-Control-Request-Method: None
+INFO:routes.verteil_flights:Flight price request received - Request ID: 7c6fbec3-fd22-47dd-b1b5-d5bbc424b964
+INFO:routes.verteil_flights:Request data keys: ['offer_id', 'shopping_response_id', 'air_shopping_response'] - Request ID: 7c6fbec3-fd22-47dd-b1b5-d5bbc424b964
+INFO:routes.verteil_flights:Processing flight price request - Offer ID: 60, Shopping Response ID: BACKEND_WILL_EXTRACT - Request ID: 7c6fbec3-fd22-47dd-b1b5-d5bbc424b964
+INFO:routes.verteil_flights:[DEBUG] Flight price request - Offer ID: 60, Type: str
+INFO:services.flight.pricing:[INFO] Processing flight price request for offer ID: 60
+[2025-07-03 20:18:08,193] INFO in core: FlightService initialized with necessary OAuth configurations.
+INFO:services.flight.core:FlightService initialized with necessary OAuth configurations.
+INFO:services.flight.pricing:[INFO] Starting flight price request for offer ID: 60
+INFO:services.flight.pricing:Frontend requested backend to extract ShoppingResponseID from multi-airline response
+INFO:services.flight.pricing:[DEBUG] Air shopping response keys: ['VdcErrors']
+INFO:services.flight.pricing:Starting enhanced airline code extraction for offer_id: 60
+INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['VdcErrors']
+INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: []
+INFO:utils.multi_airline_detector:[DEBUG] Found 0 travelers
+INFO:utils.multi_airline_detector:[DEBUG] Found 0 segments
+INFO:utils.multi_airline_detector:[DEBUG] No airline-prefixed references found
+INFO:utils.multi_airline_detector:Single-airline response detected
+INFO:services.flight.pricing:Extracting airline code from single-airline offer: 60
+WARNING:services.flight.pricing:Could not find single-airline offer 60 in AirShopping response
+INFO:services.flight.pricing:Extracted airline code 'None' for offer 60 (ReqID: 7c6fbec3-fd22-47dd-b1b5-d5bbc424b964)
+ERROR:services.flight.pricing:Validation error in get_flight_price: Could not determine airline code for ShoppingResponseID extraction 
+INFO:routes.verteil_flights:Flight price request completed with status: error - Request ID: 7c6fbec3-fd22-47dd-b1b5-d5bbc424b964       
+ERROR:routes.verteil_flights:Error in flight price request: Could not determine airline code for ShoppingResponseID extraction - Request ID: 7c6fbec3-fd22-47dd-b1b5-d5bbc424b964
+[2025-07-03 20:18:08 +0300] [22248] [INFO] 127.0.0.1:58706 POST /api/verteil/flight-price 1.1 200 161 25398
 INFO:routes.verteil_flights:Incoming request: POST /api/verteil/flight-price
-INFO:routes.verteil_flights:Headers: {'Remote-Addr': '127.0.0.1', 'Host': 'localhost:5000', 'Connection': 'keep-alive', 'Content-Length': '878614', 'Sec-Ch-Ua-Platform': '"Windows"', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'Accept': 'application/json', 'Sec-Ch-Ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"', 'Content-Type': 'application/json', 'Sec-Ch-Ua-Mobile': '?0', 'Origin': 'http://localhost:3000', 'Sec-Fetch-Site': 'same-site', 'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Dest': 'empty', 'Referer': 'http://localhost:3000/', 'Accept-Encoding': 'gzip, deflate, br, zstd', 'Accept-Language': 'en-US,en;q=0.9'}
+INFO:routes.verteil_flights:Headers: {'Remote-Addr': '127.0.0.1', 'Host': 'localhost:5000', 'Connection': 'keep-alive', 'Content-Length': '859', 'Sec-Ch-Ua-Platform': '"Windows"', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'Accept': 'application/json', 'Sec-Ch-Ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"', 'Content-Type': 'application/json', 'Sec-Ch-Ua-Mobile': '?0', 'Origin': 'http://localhost:3000', 'Sec-Fetch-Site': 'same-site', 'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Dest': 'empty', 'Referer': 'http://localhost:3000/', 'Accept-Encoding': 'gzip, deflate, br, zstd', 'Accept-Language': 'en-US,en;q=0.9'}
 INFO:routes.verteil_flights:Origin: http://localhost:3000
 INFO:routes.verteil_flights:Access-Control-Request-Method: None
-INFO:routes.verteil_flights:Flight price request received - Request ID: 6c6ebed2-4321-4a14-8fd8-77f9be53a114
-INFO:routes.verteil_flights:Request data keys: ['offer_id', 'shopping_response_id', 'air_shopping_response'] - Request ID: 6c6ebed2-4321-4a14-8fd8-77f9be53a114
-INFO:routes.verteil_flights:Processing flight price request - Offer ID: 0, Shopping Response ID: BACKEND_WILL_EXTRACT - Request ID: 6c6ebed2-4321-4a14-8fd8-77f9be53a114
-INFO:routes.verteil_flights:[DEBUG] Flight price request - Offer ID: 0, Type: str
-INFO:services.flight.pricing:[INFO] Processing flight price request for offer ID: 0
-[2025-07-03 02:20:48,832] INFO in core: FlightService initialized with necessary OAuth configurations.
+INFO:routes.verteil_flights:Flight price request received - Request ID: 63d1c828-fef6-4b5d-a3bd-70c02b236030
+INFO:routes.verteil_flights:Request data keys: ['offer_id', 'shopping_response_id', 'air_shopping_response'] - Request ID: 63d1c828-fef6-4b5d-a3bd-70c02b236030
+INFO:routes.verteil_flights:Processing flight price request - Offer ID: 60, Shopping Response ID: BACKEND_WILL_EXTRACT - Request ID: 63d1c828-fef6-4b5d-a3bd-70c02b236030
+INFO:routes.verteil_flights:[DEBUG] Flight price request - Offer ID: 60, Type: str
+INFO:services.flight.pricing:[INFO] Processing flight price request for offer ID: 60
+[2025-07-03 20:18:08,220] INFO in core: FlightService initialized with necessary OAuth configurations.
 INFO:services.flight.core:FlightService initialized with necessary OAuth configurations.
-INFO:services.flight.pricing:[INFO] Starting flight price request for offer ID: 0
+INFO:services.flight.pricing:[INFO] Starting flight price request for offer ID: 60
 INFO:services.flight.pricing:Frontend requested backend to extract ShoppingResponseID from multi-airline response
-INFO:services.flight.pricing:[DEBUG] Air shopping response keys: ['DataLists', 'Document', 'Errors', 'Metadata', 'OffersGroup']        
-INFO:services.flight.pricing:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightList', 'FlightSegmentList', 'OriginDestinationList', 'PenaltyList', 'PriceClassList']
-INFO:services.flight.pricing:[DEBUG] First traveler ObjectKey: QR-PAX1
-INFO:services.flight.pricing:Starting enhanced airline code extraction for offer_id: 0
-INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['DataLists', 'Document', 'Errors', 'Metadata', 'OffersGroup']
-INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightList', 'FlightSegmentList', 'OriginDestinationList', 'PenaltyList', 'PriceClassList']
-INFO:utils.multi_airline_detector:[DEBUG] Found 1 travelers
-INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
-INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
-INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
-INFO:services.flight.pricing:Extracting airline code from multi-airline offer at index 0
-INFO:services.flight.pricing:[DEBUG] OffersGroup keys: ['AirlineOffers']
-INFO:services.flight.pricing:[DEBUG] AirlineOffers type: <class 'list'>, length: 1
-INFO:services.flight.pricing:[DEBUG] AirlineOffer group 0 keys: ['AirlineOffer']
-INFO:services.flight.pricing:[DEBUG] AirlineOffer group 0 has 180 offers
-INFO:services.flight.pricing:[DEBUG] Offer 0: OfferID Owner = QR
-INFO:services.flight.pricing:[DEBUG] Offer 1: OfferID Owner = QR
-INFO:services.flight.pricing:[DEBUG] Offer 2: OfferID Owner = QR
-INFO:services.flight.pricing:[DEBUG] Total offers found: 180, requested index: 0
-INFO:services.flight.pricing:[DEBUG] Selected offer OfferID structure: {'Channel': 'NDC', 'Owner': 'QR', 'value': '1H1QRZ_AAFI0RBF26H4A7YPQ2KGX92GOGRS'}
-INFO:services.flight.pricing:[DEBUG] Extracted airline code: QR
-INFO:services.flight.pricing:Extracted airline code 'QR' from multi-airline offer index 0
-INFO:services.flight.pricing:Extracted airline code 'QR' for offer 0 (ReqID: 6c6ebed2-4321-4a14-8fd8-77f9be53a114)
-INFO:services.flight.pricing:Getting ShoppingResponseID for airline: QR
-INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['DataLists', 'Document', 'Errors', 'Metadata', 'OffersGroup']
-INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightList', 'FlightSegmentList', 'OriginDestinationList', 'PenaltyList', 'PriceClassList']
-INFO:utils.multi_airline_detector:[DEBUG] Found 1 travelers
-INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
-INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
-INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
-INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['DataLists', 'Document', 'Errors', 'Metadata', 'OffersGroup']
-INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightList', 'FlightSegmentList', 'OriginDestinationList', 'PenaltyList', 'PriceClassList']
-INFO:utils.multi_airline_detector:[DEBUG] Found 1 travelers
-INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
-INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
-INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
-INFO:utils.reference_extractor:Initialized reference extractor for multi-airline response
-INFO:utils.reference_extractor:Extracting multi-airline references
-INFO:utils.multi_airline_detector:Extracted airline codes: ['QR']
-INFO:utils.reference_extractor:Extracted multi-airline references for 1 airlines
-INFO:utils.reference_extractor:Successfully extracted references
-INFO:services.flight.pricing:Found airline-specific ShoppingResponseID for QR: GIiFn-tcVtefaR3bYgkfVSiBqVvP0f-52-0fXRNBReA-QR
-INFO:services.flight.pricing:Using airline-specific ShoppingResponseID for QR: GIiFn-tcVtefaR3bYgkfVSiBqVvP0f-52-0fXRNBReA-QR
-INFO:services.flight.pricing:[PASSENGER DEBUG] Flight Pricing Service - Input AnonymousTravelerList count: 1
-INFO:services.flight.pricing:[DEBUG] Starting to build pricing payload for offer_id: 0
-INFO:services.flight.pricing:[DEBUG] Using index-based approach with index: 0
-INFO:services.flight.pricing:[DEBUG] Using airshopping_response directly
-INFO:services.flight.pricing:[DEBUG] No AirShoppingRS wrapper found, using data directly
-INFO:services.flight.pricing:[DEBUG] Using index-based approach: selecting offer at index 0
-INFO:services.flight.pricing:[DEBUG] Index 0 is valid (total offers: 180)
-INFO:services.flight.pricing:Offer is valid. Time remaining: 0:29:19.114948
-INFO:services.flight.pricing:[DEBUG] Building FlightPrice payload for offer 0 at index 0
-INFO:scripts.build_flightprice_rq:Building flight price request for offer index 0
-INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['DataLists', 'Document', 'Errors', 'Metadata', 'OffersGroup']
-INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightList', 'FlightSegmentList', 'OriginDestinationList', 'PenaltyList', 'PriceClassList']
-INFO:utils.multi_airline_detector:[DEBUG] Found 1 travelers
-INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
-INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
-INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
-INFO:scripts.build_flightprice_rq:Response type: multi-airline
-INFO:scripts.build_flightprice_rq:Building multi-airline flight price request for global offer index 0
-INFO:scripts.build_flightprice_rq:Selected multi-airline offer from airline  at local index 0
-INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['DataLists', 'Document', 'Errors', 'Metadata', 'OffersGroup']
-INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightList', 'FlightSegmentList', 'OriginDestinationList', 'PenaltyList', 'PriceClassList']
-INFO:utils.multi_airline_detector:[DEBUG] Found 1 travelers
-INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
-INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
-INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
-INFO:utils.reference_extractor:Initialized reference extractor for multi-airline response
-INFO:utils.reference_extractor:Extracting multi-airline references
-INFO:utils.multi_airline_detector:Extracted airline codes: ['QR']
-INFO:utils.reference_extractor:Extracted multi-airline references for 1 airlines
-INFO:utils.reference_extractor:Successfully extracted references
-INFO:scripts.build_flightprice_rq:Using fallback ShoppingResponseID: GIiFn-tcVtefaR3bYgkfVSiBqVvP0f-52-0fXRNBReA-QR
-INFO:scripts.build_flightprice_rq:Building common flight price request for airline
-INFO:scripts.build_flightprice_rq:Selected offer OfferID node: {'Channel': 'NDC', 'Owner': 'QR', 'value': '1H1QRZ_AAFI0RBF26H4A7YPQ2KGX92GOGRS'}
-INFO:scripts.build_flightprice_rq:Using OfferID for airline API: 1H1QRZ_AAFI0RBF26H4A7YPQ2KGX92GOGRS (Owner: QR)
-WARNING:scripts.build_flightprice_rq:ShoppingResponseID could not be found for airline owner:
-INFO:scripts.build_flightprice_rq:Using provided ShoppingResponseID: GIiFn-tcVtefaR3bYgkfVSiBqVvP0f-52-0fXRNBReA-QR
-INFO:scripts.build_flightprice_rq:Successfully built flight price request for airline
-INFO:services.flight.pricing:[DEBUG] Successfully built FlightPrice payload
-INFO:services.flight.pricing:[PASSENGER DEBUG] Flight Pricing Service - Payload AnonymousTravelerList count: 1
-INFO:services.flight.pricing:[PASSENGER DEBUG] Flight Pricing Service - Payload Travelers count: 1
-INFO:services.flight.pricing:[INFO] Sending FlightPrice request for offer ID: 0
-[2025-07-03 02:20:48,904] INFO in core: Making POST request to https://api.stage.verteil.com/entrygate/rest/request:flightPrice for service FlightPrice (ReqID: 6c6ebed2-4321-4a14-8fd8-77f9be53a114).
-INFO:services.flight.core:Making POST request to https://api.stage.verteil.com/entrygate/rest/request:flightPrice for service FlightPrice (ReqID: 6c6ebed2-4321-4a14-8fd8-77f9be53a114).
-INFO:routes.verteil_flights:Flight price request received - Request ID: eebc1d06-3462-49cd-95d0-8999b0ddd8a0
-INFO:routes.verteil_flights:Request data keys: ['offer_id', 'shopping_response_id', 'air_shopping_response'] - Request ID: eebc1d06-3462-49cd-95d0-8999b0ddd8a0
-INFO:routes.verteil_flights:Processing flight price request - Offer ID: 0, Shopping Response ID: BACKEND_WILL_EXTRACT - Request ID: eebc1d06-3462-49cd-95d0-8999b0ddd8a0
-INFO:routes.verteil_flights:[DEBUG] Flight price request - Offer ID: 0, Type: str
-INFO:services.flight.pricing:[INFO] Processing flight price request for offer ID: 0
-[2025-07-03 02:20:48,947] INFO in core: FlightService initialized with necessary OAuth configurations.
-INFO:services.flight.core:FlightService initialized with necessary OAuth configurations.
-INFO:services.flight.pricing:[INFO] Starting flight price request for offer ID: 0
-INFO:services.flight.pricing:Frontend requested backend to extract ShoppingResponseID from multi-airline response
-INFO:services.flight.pricing:[DEBUG] Air shopping response keys: ['DataLists', 'Document', 'Errors', 'Metadata', 'OffersGroup']        
-INFO:services.flight.pricing:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightList', 'FlightSegmentList', 'OriginDestinationList', 'PenaltyList', 'PriceClassList']
-INFO:services.flight.pricing:[DEBUG] First traveler ObjectKey: QR-PAX1
-INFO:services.flight.pricing:Starting enhanced airline code extraction for offer_id: 0
-INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['DataLists', 'Document', 'Errors', 'Metadata', 'OffersGroup']
-INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightList', 'FlightSegmentList', 'OriginDestinationList', 'PenaltyList', 'PriceClassList']
-INFO:utils.multi_airline_detector:[DEBUG] Found 1 travelers
-INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
-INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
-INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
-INFO:services.flight.pricing:Extracting airline code from multi-airline offer at index 0
-INFO:services.flight.pricing:[DEBUG] OffersGroup keys: ['AirlineOffers']
-INFO:services.flight.pricing:[DEBUG] AirlineOffers type: <class 'list'>, length: 1
-INFO:services.flight.pricing:[DEBUG] AirlineOffer group 0 keys: ['AirlineOffer']
-INFO:services.flight.pricing:[DEBUG] AirlineOffer group 0 has 180 offers
-INFO:services.flight.pricing:[DEBUG] Offer 0: OfferID Owner = QR
-INFO:services.flight.pricing:[DEBUG] Offer 1: OfferID Owner = QR
-INFO:services.flight.pricing:[DEBUG] Offer 2: OfferID Owner = QR
-INFO:services.flight.pricing:[DEBUG] Total offers found: 180, requested index: 0
-INFO:services.flight.pricing:[DEBUG] Selected offer OfferID structure: {'Channel': 'NDC', 'Owner': 'QR', 'value': '1H1QRZ_AAFI0RBF26H4A7YPQ2KGX92GOGRS'}
-INFO:services.flight.pricing:[DEBUG] Extracted airline code: QR
-INFO:services.flight.pricing:Extracted airline code 'QR' from multi-airline offer index 0
-INFO:services.flight.pricing:Extracted airline code 'QR' for offer 0 (ReqID: eebc1d06-3462-49cd-95d0-8999b0ddd8a0)
-INFO:services.flight.pricing:Getting ShoppingResponseID for airline: QR
-INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['DataLists', 'Document', 'Errors', 'Metadata', 'OffersGroup']
-INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightList', 'FlightSegmentList', 'OriginDestinationList', 'PenaltyList', 'PriceClassList']
-INFO:utils.multi_airline_detector:[DEBUG] Found 1 travelers
-INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
-INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
-INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
-INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['DataLists', 'Document', 'Errors', 'Metadata', 'OffersGroup']
-INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightList', 'FlightSegmentList', 'OriginDestinationList', 'PenaltyList', 'PriceClassList']
-INFO:utils.multi_airline_detector:[DEBUG] Found 1 travelers
-INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
-INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
-INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
-INFO:utils.reference_extractor:Initialized reference extractor for multi-airline response
-INFO:utils.reference_extractor:Extracting multi-airline references
-INFO:utils.multi_airline_detector:Extracted airline codes: ['QR']
-INFO:utils.reference_extractor:Extracted multi-airline references for 1 airlines
-INFO:utils.reference_extractor:Successfully extracted references
-INFO:services.flight.pricing:Found airline-specific ShoppingResponseID for QR: GIiFn-tcVtefaR3bYgkfVSiBqVvP0f-52-0fXRNBReA-QR
-INFO:services.flight.pricing:Using airline-specific ShoppingResponseID for QR: GIiFn-tcVtefaR3bYgkfVSiBqVvP0f-52-0fXRNBReA-QR
-INFO:services.flight.pricing:[PASSENGER DEBUG] Flight Pricing Service - Input AnonymousTravelerList count: 1
-INFO:services.flight.pricing:[DEBUG] Starting to build pricing payload for offer_id: 0
-INFO:services.flight.pricing:[DEBUG] Using index-based approach with index: 0
-INFO:services.flight.pricing:[DEBUG] Using airshopping_response directly
-INFO:services.flight.pricing:[DEBUG] No AirShoppingRS wrapper found, using data directly
-INFO:services.flight.pricing:[DEBUG] Using index-based approach: selecting offer at index 0
-INFO:services.flight.pricing:[DEBUG] Index 0 is valid (total offers: 180)
-INFO:services.flight.pricing:Offer is valid. Time remaining: 0:29:19.001075
-INFO:services.flight.pricing:[DEBUG] Building FlightPrice payload for offer 0 at index 0
-INFO:scripts.build_flightprice_rq:Building flight price request for offer index 0
-INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['DataLists', 'Document', 'Errors', 'Metadata', 'OffersGroup']
-INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightList', 'FlightSegmentList', 'OriginDestinationList', 'PenaltyList', 'PriceClassList']
-INFO:utils.multi_airline_detector:[DEBUG] Found 1 travelers
-INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
-INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
-INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
-INFO:scripts.build_flightprice_rq:Response type: multi-airline
-INFO:scripts.build_flightprice_rq:Building multi-airline flight price request for global offer index 0
-INFO:scripts.build_flightprice_rq:Selected multi-airline offer from airline  at local index 0
-INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['DataLists', 'Document', 'Errors', 'Metadata', 'OffersGroup']
-INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightList', 'FlightSegmentList', 'OriginDestinationList', 'PenaltyList', 'PriceClassList']
-INFO:utils.multi_airline_detector:[DEBUG] Found 1 travelers
-INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
-INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
-INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
-INFO:utils.reference_extractor:Initialized reference extractor for multi-airline response
-INFO:utils.reference_extractor:Extracting multi-airline references
-INFO:utils.multi_airline_detector:Extracted airline codes: ['QR']
-INFO:utils.reference_extractor:Extracted multi-airline references for 1 airlines
-INFO:utils.reference_extractor:Successfully extracted references
-INFO:scripts.build_flightprice_rq:Using fallback ShoppingResponseID: GIiFn-tcVtefaR3bYgkfVSiBqVvP0f-52-0fXRNBReA-QR
-INFO:scripts.build_flightprice_rq:Building common flight price request for airline
-INFO:scripts.build_flightprice_rq:Selected offer OfferID node: {'Channel': 'NDC', 'Owner': 'QR', 'value': '1H1QRZ_AAFI0RBF26H4A7YPQ2KGX92GOGRS'}
-INFO:scripts.build_flightprice_rq:Using OfferID for airline API: 1H1QRZ_AAFI0RBF26H4A7YPQ2KGX92GOGRS (Owner: QR)
-WARNING:scripts.build_flightprice_rq:ShoppingResponseID could not be found for airline owner:
-INFO:scripts.build_flightprice_rq:Using provided ShoppingResponseID: GIiFn-tcVtefaR3bYgkfVSiBqVvP0f-52-0fXRNBReA-QR
-INFO:scripts.build_flightprice_rq:Successfully built flight price request for airline
-INFO:services.flight.pricing:[DEBUG] Successfully built FlightPrice payload
-INFO:services.flight.pricing:[PASSENGER DEBUG] Flight Pricing Service - Payload AnonymousTravelerList count: 1
-INFO:services.flight.pricing:[PASSENGER DEBUG] Flight Pricing Service - Payload Travelers count: 1
-INFO:services.flight.pricing:[INFO] Sending FlightPrice request for offer ID: 0
-[2025-07-03 02:20:49,069] INFO in core: Making POST request to https://api.stage.verteil.com/entrygate/rest/request:flightPrice for service FlightPrice (ReqID: eebc1d06-3462-49cd-95d0-8999b0ddd8a0).
-INFO:services.flight.core:Making POST request to https://api.stage.verteil.com/entrygate/rest/request:flightPrice for service FlightPrice (ReqID: eebc1d06-3462-49cd-95d0-8999b0ddd8a0).
-[2025-07-03 02:20:49,953] INFO in core: Successfully received API response for FlightPrice (ReqID: 6c6ebed2-4321-4a14-8fd8-77f9be53a114) with status 200
-INFO:services.flight.core:Successfully received API response for FlightPrice (ReqID: 6c6ebed2-4321-4a14-8fd8-77f9be53a114) with status 200
-INFO:services.flight.pricing:Starting to process FlightPrice response
-INFO:services.flight.pricing:[DEBUG] FlightPrice data structure keys: ['Errors']
-ERROR:services.flight.pricing:[API ERROR] FlightPrice API returned error: Code: INTERNAL_ERROR, Text: We are sorry, there is an internal error processing your request. Please contact Verteil support with transaction id: 7RgSxZ-1751498449825, Owner: Unknown
-ERROR:services.flight.pricing:Error transforming FlightPrice response: FlightPrice API returned errors: Code: INTERNAL_ERROR, Text: We are sorry, there is an internal error processing your request. Please contact Verteil support with transaction id: 7RgSxZ-1751498449825, Owner: Unknown
-Traceback (most recent call last):
-  File "C:\Users\User\Desktop\FLIGHT\Backend\services\flight\pricing.py", line 661, in _process_pricing_response
-    raise ValueError(f"FlightPrice API returned errors: {'; '.join(error_messages)}")
-ValueError: FlightPrice API returned errors: Code: INTERNAL_ERROR, Text: We are sorry, there is an internal error processing your request. Please contact Verteil support with transaction id: 7RgSxZ-1751498449825, Owner: Unknown
-INFO:services.flight.pricing:Stored flight price response in cache with key: flight_price_response:6c6ebed2-4321-4a14-8fd8-77f9be53a114
-ERROR:services.flight.pricing:FlightPrice API error: FlightPrice API returned errors: Code: INTERNAL_ERROR, Text: We are sorry, there is an internal error processing your request. Please contact Verteil support with transaction id: 7RgSxZ-1751498449825, Owner: Unknown  
-[2025-07-03 02:20:49,963] INFO in core: Successfully received API response for FlightPrice (ReqID: eebc1d06-3462-49cd-95d0-8999b0ddd8a0) with status 200
-INFO:services.flight.core:Successfully received API response for FlightPrice (ReqID: eebc1d06-3462-49cd-95d0-8999b0ddd8a0) with status 200
-INFO:services.flight.pricing:Starting to process FlightPrice response
-INFO:services.flight.pricing:[DEBUG] FlightPrice data structure keys: ['Errors']
-ERROR:services.flight.pricing:[API ERROR] FlightPrice API returned error: Code: INTERNAL_ERROR, Text: We are sorry, there is an internal error processing your request. Please contact Verteil support with transaction id: 47NoN5-1751498449834, Owner: Unknown
-ERROR:services.flight.pricing:Error transforming FlightPrice response: FlightPrice API returned errors: Code: INTERNAL_ERROR, Text: We are sorry, there is an internal error processing your request. Please contact Verteil support with transaction id: 47NoN5-1751498449834, Owner: Unknown
-Traceback (most recent call last):
-  File "C:\Users\User\Desktop\FLIGHT\Backend\services\flight\pricing.py", line 661, in _process_pricing_response
-    raise ValueError(f"FlightPrice API returned errors: {'; '.join(error_messages)}")
-ValueError: FlightPrice API returned errors: Code: INTERNAL_ERROR, Text: We are sorry, there is an internal error processing your request. Please contact Verteil support with transaction id: 47NoN5-1751498449834, Owner: Unknown
-INFO:services.flight.pricing:Stored flight price response in cache with key: flight_price_response:eebc1d06-3462-49cd-95d0-8999b0ddd8a0
-ERROR:services.flight.pricing:FlightPrice API error: FlightPrice API returned errors: Code: INTERNAL_ERROR, Text: We are sorry, there is an internal error processing your request. Please contact Verteil support with transaction id: 47NoN5-1751498449834, Owner: Unknown  
-INFO:routes.verteil_flights:Flight price request completed with status: success - Request ID: 6c6ebed2-4321-4a14-8fd8-77f9be53a114
-[2025-07-03 02:20:50 +0300] [10712] [INFO] 127.0.0.1:64945 POST /api/verteil/flight-price 1.1 200 850 1331177
-INFO:routes.verteil_flights:Flight price request completed with status: success - Request ID: eebc1d06-3462-49cd-95d0-8999b0ddd8a0     
-[2025-07-03 02:20:50 +0300] [10712] [INFO] 127.0.0.1:64946 POST /api/verteil/flight-price 1.1 200 850 1322378
+INFO:services.flight.pricing:[DEBUG] Air shopping response keys: ['VdcErrors']
+INFO:services.flight.pricing:Starting enhanced airline code extraction for offer_id: 60
+INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['VdcErrors']
+INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: []
+INFO:utils.multi_airline_detector:[DEBUG] Found 0 travelers
+INFO:utils.multi_airline_detector:[DEBUG] Found 0 segments
+INFO:utils.multi_airline_detector:[DEBUG] No airline-prefixed references found
+INFO:utils.multi_airline_detector:Single-airline response detected
+INFO:services.flight.pricing:Extracting airline code from single-airline offer: 60
+WARNING:services.flight.pricing:Could not find single-airline offer 60 in AirShopping response
+INFO:services.flight.pricing:Extracted airline code 'None' for offer 60 (ReqID: 63d1c828-fef6-4b5d-a3bd-70c02b236030)
+ERROR:services.flight.pricing:Validation error in get_flight_price: Could not determine airline code for ShoppingResponseID extraction 
+INFO:routes.verteil_flights:Flight price request completed with status: error - Request ID: 63d1c828-fef6-4b5d-a3bd-70c02b236030       
+ERROR:routes.verteil_flights:Error in flight price request: Could not determine airline code for ShoppingResponseID extraction - Request ID: 63d1c828-fef6-4b5d-a3bd-70c02b236030
+[2025-07-03 20:18:08 +0300] [22248] [INFO] 127.0.0.1:58707 POST /api/verteil/flight-price 1.1 200 161 46447

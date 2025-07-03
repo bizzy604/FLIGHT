@@ -60,13 +60,28 @@ class EnhancedAirShoppingTransformer:
             else:
                 offers = self._transform_single_airline_offers()
             
-            # Sort offers by price (ascending)
-            offers.sort(key=lambda x: float(x.get('price', 0)))
-            
-            # Add index-based IDs for frontend compatibility
-            for index, offer in enumerate(offers):
-                offer['id'] = str(index)
-                offer['offer_index'] = index
+            # For multi-airline, use the raw_response_index; for single-airline, use enumeration
+            if self.is_multi_airline:
+                # Multi-airline: raw_response_index is already set during transformation
+                for offer in offers:
+                    if 'raw_response_index' not in offer:
+                        logger.warning("Missing raw_response_index in multi-airline offer")
+                        offer['raw_response_index'] = 0
+            else:
+                # Single-airline: assign original indices before sorting
+                for index, offer in enumerate(offers):
+                    offer['raw_response_index'] = index
+
+            # DO NOT SORT - Display flights in raw response order to maintain proper index mapping
+            # offers.sort(key=lambda x: float(x.get('price', 0)))
+
+            # Add frontend display IDs (for UI) and preserve original indices for backend mapping
+            for display_index, offer in enumerate(offers):
+                offer['id'] = str(display_index)              # Frontend uses this for URL routing (display order)
+                offer['display_index'] = display_index        # For frontend display order
+                # Use raw_response_index for backend mapping to raw response
+                offer['original_index'] = offer['raw_response_index']  # Backend needs raw response index
+                offer['offer_index'] = offer['raw_response_index']     # Backward compatibility
             
             result = {
                 'offers': offers,
@@ -104,49 +119,58 @@ class EnhancedAirShoppingTransformer:
     def _transform_multi_airline_offers(self) -> List[Dict[str, Any]]:
         """
         Transform offers for multi-airline response.
-        
+
         Returns:
             List[Dict[str, Any]]: List of transformed offers
         """
         logger.info("Transforming multi-airline offers")
         offers = []
-        
+
         # Get offers from the response
         offers_group = self.response.get('OffersGroup', {})
         airline_offers_list = offers_group.get('AirlineOffers', [])
-        
+
         if not isinstance(airline_offers_list, list):
             airline_offers_list = [airline_offers_list] if airline_offers_list else []
-        
+
+        # Track the original index in the raw response
+        raw_offer_index = 0
+
         for airline_offer_group in airline_offers_list:
-            # Extract airline code from the offer group
-            airline_code = self._extract_airline_code_from_offer_group(airline_offer_group)
-            
-            # Validate airline is supported
-            if not AirlineMappingService.validate_airline_code(airline_code):
-                logger.warning(f"Skipping unsupported airline: {airline_code}")
-                continue
-            
-            # Get airline-specific references
-            airline_refs = self.reference_extractor.get_airline_references(airline_code)
-            if not airline_refs:
-                logger.warning(f"No references found for airline: {airline_code}")
-                continue
-            
             # Transform offers for this airline
             airline_offers = airline_offer_group.get('AirlineOffer', [])
             if not isinstance(airline_offers, list):
                 airline_offers = [airline_offers] if airline_offers else []
-            
+
             for offer in airline_offers:
                 priced_offer = offer.get('PricedOffer')
                 if priced_offer:
+                    # Extract airline code from individual offer (more accurate than group-level)
+                    airline_code = offer.get('OfferID', {}).get('Owner', '??')
+
+                    # Validate airline is supported
+                    if not AirlineMappingService.validate_airline_code(airline_code):
+                        logger.warning(f"Skipping unsupported airline: {airline_code}")
+                        raw_offer_index += 1  # Still increment for skipped offers
+                        continue
+
+                    # Get airline-specific references
+                    airline_refs = self.reference_extractor.get_airline_references(airline_code)
+                    if not airline_refs:
+                        logger.warning(f"No references found for airline: {airline_code}")
+                        raw_offer_index += 1  # Still increment for skipped offers
+                        continue
+
                     transformed = self._transform_offer_with_airline_context(
                         priced_offer, airline_code, airline_refs, offer
                     )
                     if transformed:
+                        # Store the original index from the raw response
+                        transformed['raw_response_index'] = raw_offer_index
                         offers.append(transformed)
-        
+
+                raw_offer_index += 1  # Increment for every offer in raw response
+
         logger.info(f"Transformed {len(offers)} multi-airline offers")
         return offers
     
@@ -173,23 +197,30 @@ class EnhancedAirShoppingTransformer:
         
         if not isinstance(airline_offers_list, list):
             airline_offers_list = [airline_offers_list] if airline_offers_list else []
-        
+
+        # Track the original index in the raw response
+        raw_offer_index = 0
+
         for airline_offer_group in airline_offers_list:
             airline_offers = airline_offer_group.get('AirlineOffer', [])
             if not isinstance(airline_offers, list):
                 airline_offers = [airline_offers] if airline_offers else []
-            
+
             for offer in airline_offers:
                 priced_offer = offer.get('PricedOffer')
                 if priced_offer:
                     # Extract airline code from offer
                     airline_code = offer.get('OfferID', {}).get('Owner', '??')
-                    
+
                     transformed = self._transform_offer_with_airline_context(
                         priced_offer, airline_code, global_refs, offer
                     )
                     if transformed:
+                        # Store the original index from the raw response
+                        transformed['raw_response_index'] = raw_offer_index
                         offers.append(transformed)
+
+                raw_offer_index += 1  # Increment for every offer in raw response
         
         logger.info(f"Transformed {len(offers)} single-airline offers")
         return offers

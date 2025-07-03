@@ -5,8 +5,6 @@ export async function GET(request: NextRequest, { params }: { params: { bookingR
   try {
     const { bookingReference } = params;
     
-    console.log('[[ DEBUG ]] Fetching booking from database with reference:', bookingReference);
-    
     // Fetch booking from local database
     const booking = await prisma.booking.findUnique({
       where: {
@@ -18,9 +16,8 @@ export async function GET(request: NextRequest, { params }: { params: { bookingR
     });
     
     if (!booking) {
-      console.log('[[ DEBUG ]] Booking not found in database:', bookingReference);
       return NextResponse.json(
-        { 
+        {
           error: '404 Not Found: The requested URL was not found on the server.',
           message: 'The requested resource was not found.',
           status: 'error'
@@ -29,15 +26,12 @@ export async function GET(request: NextRequest, { params }: { params: { bookingR
       );
     }
     
-    console.log('[[ DEBUG ]] Booking found in database:', booking.id);
-    
     // Return booking data in the expected format
     return NextResponse.json({
       status: 'success',
       data: booking
     });
   } catch (error) {
-    console.error('Error fetching booking from database:', error);
     return NextResponse.json(
       { 
         error: 'Internal server error',

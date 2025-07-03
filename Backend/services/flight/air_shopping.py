@@ -123,10 +123,10 @@ class AirShoppingService(FlightService):
             
             logger.info(f"Enhanced flight cards generated in {card_time:.3f}s - "
                        f"{len(enhanced_flight_cards)} cards - Request ID: {request_id}")
-            
+
             # Step 4: Build comprehensive response
             total_time = (datetime.now() - start_time).total_seconds()
-            
+
             response = {
                 'offers': enhanced_flight_cards,
                 'raw_response': raw_response,

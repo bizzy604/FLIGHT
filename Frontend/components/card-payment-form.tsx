@@ -173,7 +173,6 @@ export function CardPaymentForm({
         throw new Error(data.message || "Card details capture failed")
       }
     } catch (err) {
-      console.error("Error processing payment:", err)
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred"
       setError(errorMessage)
       onPaymentError(errorMessage)

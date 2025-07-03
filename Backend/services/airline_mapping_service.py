@@ -45,6 +45,9 @@ class AirlineMappingService:
         
         # Other Airlines
         'GF': 'GF',          # Gulf Air
+        'BA': 'BA',          # British Airways
+        'CX': 'CX',          # Cathay Pacific Airways
+        'WY': 'WY',          # Oman Air
     }
     
     # Airline display names for user interfaces
@@ -61,23 +64,26 @@ class AirlineMappingService:
         'TK': 'Turkish Airlines',
         'SQ': 'Singapore Airlines',
         'GF': 'Gulf Air',
+        'BA': 'British Airways',
+        'CX': 'Cathay Pacific Airways',
+        'WY': 'Oman Air',
     }
     
     # Airline regions for grouping and filtering
     AIRLINE_REGIONS = {
-        'Europe': ['KL', 'AF', 'LHG'],
-        'Middle East': ['QR', 'EK', 'EY', 'GF'],
+        'Europe': ['KL', 'AF', 'LHG', 'BA'],
+        'Middle East': ['QR', 'EK', 'EY', 'GF', 'WY'],
         'Africa': ['KQ', 'ET'],
-        'Asia': ['6E', 'TK', 'SQ'],
+        'Asia': ['6E', 'TK', 'SQ', 'CX'],
     }
     
     # Airlines that support specific features
     FEATURE_SUPPORT = {
-        'multi_airline_shopping': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'TK', 'SQ', 'GF'],
-        'flight_pricing': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'TK', 'SQ', 'GF'],
-        'order_creation': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'TK', 'SQ', 'GF'],
-        'baggage_services': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET'],
-        'seat_selection': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY'],
+        'multi_airline_shopping': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY'],
+        'flight_pricing': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY'],
+        'order_creation': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY'],
+        'baggage_services': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', 'BA', 'CX', 'WY'],
+        'seat_selection': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'BA', 'CX'],
     }
     
     @classmethod
@@ -127,7 +133,7 @@ class AirlineMappingService:
         if is_valid:
             logger.debug(f"Airline code '{normalized_code}' is valid")
         else:
-            logger.warning(f"Airline code '{normalized_code}' is not supported")
+            logger.debug(f"Airline code '{normalized_code}' is not supported (filtered out)")
         
         return is_valid
     

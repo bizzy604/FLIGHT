@@ -77,14 +77,16 @@ def create_app(test_config=None):
     # Import and register blueprints
     from routes import verteil_flights, debug
     from routes.airport_routes import airport_bp # Import the new airport blueprint
+    from routes.itinerary_routes import itinerary_bp # Import the new itinerary blueprint
 
     # Initialize routes with app
     verteil_flights.init_app(app)
-    
+
     # Register blueprints
     app.register_blueprint(verteil_flights.bp)
     app.register_blueprint(debug.bp)
     app.register_blueprint(airport_bp)  # Register the airport blueprint (prefix is in blueprint definition)
+    app.register_blueprint(itinerary_bp)  # Register the itinerary blueprint
 
     # Log registered routes for debugging
     @app.before_serving

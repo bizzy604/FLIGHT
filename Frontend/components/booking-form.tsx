@@ -273,12 +273,8 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
   }
 
   const handleContinueToPayment = async () => {
-    console.log('[DEBUG] Continue to Payment button clicked')
-    console.log('[DEBUG] isCurrentStepValid:', isCurrentStepValid)
-
     // Final validation before payment
     if (!isCurrentStepValid) {
-      console.log('[DEBUG] Current step is not valid, returning early')
       return;
     }
 
@@ -308,7 +304,6 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
     try {
       const storedFlightPriceResponse = sessionStorage.getItem('flightPriceResponseForBooking')
       if (!storedFlightPriceResponse) {
-        console.error('No flight price response found for booking - proceeding anyway')
         // Don't return - continue to payment page
       }
 
@@ -320,18 +315,12 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
       // Get the raw flight price response that the backend needs for order creation
       const storedRawFlightPriceResponse = sessionStorage.getItem('rawFlightPriceResponse')
       if (!storedRawFlightPriceResponse) {
-        console.warn('No raw flight price response found for booking - will use fallback approach')
         // Don't return - continue to payment page with available data
       }
 
       let rawFlightPriceResponse = null;
       if (storedRawFlightPriceResponse) {
         rawFlightPriceResponse = JSON.parse(storedRawFlightPriceResponse)
-        console.log('[DEBUG] Using raw flight price response for order creation:', {
-          hasShoppingResponseID: !!rawFlightPriceResponse.ShoppingResponseID,
-          hasPricedFlightOffers: !!rawFlightPriceResponse.PricedFlightOffers,
-          topLevelKeys: Object.keys(rawFlightPriceResponse)
-        })
       }
 
       // Extract shopping response ID from the raw flight price response
@@ -348,14 +337,6 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
           orderId = rawFlightPriceResponse.PricedFlightOffers.PricedFlightOffer[0].OfferID.value;
         }
 
-        console.log('[DEBUG] Extracted IDs from raw flight price response:', {
-          shoppingResponseId,
-          orderId,
-          hasShoppingResponseID: !!shoppingResponseId,
-          hasOrderID: !!orderId
-        })
-      } else {
-        console.log('[DEBUG] No raw flight price response available - using fallback approach')
       }
 
       // Prepare complete flight offer data for order creation
@@ -369,16 +350,7 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
       // Store the complete flight offer data that the payment page expects
       sessionStorage.setItem("selectedFlightOffer", JSON.stringify(flightOfferWithRawResponse))
 
-      console.log('[DEBUG] Stored complete flight offer data for payment page:', {
-        hasRawResponse: !!flightOfferWithRawResponse.raw_flight_price_response,
-        hasFlightPriceData: !!flightPriceData,
-        shoppingResponseId: shoppingResponseId,
-        orderId: orderId,
-        flightOfferKeys: Object.keys(flightOfferWithRawResponse)
-      })
-
     } catch (error) {
-      console.error('Error preparing flight offer data for payment:', error)
       // Store minimal data so payment page doesn't crash
       sessionStorage.setItem("selectedFlightOffer", JSON.stringify({
         error: 'Failed to prepare flight data',
@@ -387,20 +359,16 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
       // Continue anyway - the payment page will handle missing data
     }
 
-    console.log('[DEBUG] Attempting navigation to payment page')
-    console.log('[DEBUG] isSignedIn:', isSignedIn)
-    console.log('[DEBUG] flightId:', flightId)
+
 
     try {
       if (isSignedIn) {
         const paymentUrl = `/flights/${encodeURIComponent(flightId)}/payment`
-        console.log('[DEBUG] Navigating to payment URL:', paymentUrl)
         router.push(paymentUrl)
       } else {
         // Store the redirect URL in session storage
         const redirectUrl = `/flights/${flightId}/payment`
         const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`
-        console.log('[DEBUG] Navigating to sign-in URL:', signInUrl)
         router.push(signInUrl)
       }
     } finally {

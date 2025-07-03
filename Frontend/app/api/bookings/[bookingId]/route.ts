@@ -51,7 +51,7 @@ export async function GET(
     
     return NextResponse.json(booking);
   } catch (error) {
-    console.error('[BOOKING_GET]', error);
+
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
