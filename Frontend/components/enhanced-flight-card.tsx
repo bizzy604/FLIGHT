@@ -127,7 +127,7 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
     } catch (error) {
       console.error('❌ Error during flight selection:', error);
       // Show user-friendly error
-      alert(error.message || 'Error selecting flight. Please try again.');
+      alert(error instanceof Error ? error.message : 'Error selecting flight. Please try again.');
       setIsSelecting(false);
       return; // Don't navigate if there's an error
     } finally {

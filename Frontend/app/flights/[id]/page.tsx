@@ -70,8 +70,8 @@ function FlightDetailsPageContent() {
         const rawAirShoppingResponse = validationResult.data?.airShoppingResponse;
         const searchParams = validationResult.data?.searchParams;
 
-        if (validationResult.recoveredFromKey) {
-          logger.info(`✅ Flight data recovered from key: ${validationResult.recoveredFromKey}`);
+        if (validationResult.recoveredFrom) {
+          logger.info(`✅ Flight data recovered from key: ${validationResult.recoveredFrom}`);
         } else {
           logger.info('✅ Flight data retrieved successfully');
         }
@@ -139,9 +139,8 @@ function FlightDetailsPageContent() {
           const errorMessage = errorData.transformation_error || 'Unknown error occurred';
 
           if (errorType === 'api_error') {
-            // Extract airline from error message or flight data
-            const airline = flight?.airline || 'this airline';
-            throw new Error(`Sorry, ${airline} flights are temporarily unavailable due to a technical issue. Please try selecting a different airline or contact support.`);
+            // Extract airline from error message or use generic message
+            throw new Error(`Sorry, this airline's flights are temporarily unavailable due to a technical issue. Please try selecting a different airline or contact support.`);
           } else {
             throw new Error(`Pricing error: ${errorMessage}`);
           }

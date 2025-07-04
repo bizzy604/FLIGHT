@@ -155,13 +155,13 @@ export function BookingsList({ bookings, onCancelBooking, isPast = false }: Book
       return {
         outbound: {
           departure: {
-            time: formatTimeFromString(segment.departure_datetime),
+            time: formatTimeFromString(segment.departure_datetime || ''),
             city: origin,
             airport: origin,
             date: segment.departure_datetime || new Date().toISOString()
           },
           arrival: {
-            time: formatTimeFromString(segment.arrival_datetime),
+            time: formatTimeFromString(segment.arrival_datetime || ''),
             city: destination,
             airport: destination,
             date: segment.arrival_datetime || new Date().toISOString()
@@ -175,13 +175,13 @@ export function BookingsList({ bookings, onCancelBooking, isPast = false }: Book
         },
         return: returnFlightNumber && returnFlightNumber !== 'N/A' ? {
           departure: {
-            time: formatTimeFromString(routeSegments.segments[1]?.departure_datetime),
+            time: formatTimeFromString(routeSegments.segments[1]?.departure_datetime || ''),
             city: destination,
             airport: destination,
             date: routeSegments.segments[1]?.departure_datetime || new Date().toISOString()
           },
           arrival: {
-            time: formatTimeFromString(routeSegments.segments[1]?.arrival_datetime),
+            time: formatTimeFromString(routeSegments.segments[1]?.arrival_datetime || ''),
             city: origin,
             airport: origin,
             date: routeSegments.segments[1]?.arrival_datetime || new Date().toISOString()
@@ -208,13 +208,13 @@ export function BookingsList({ bookings, onCancelBooking, isPast = false }: Book
       return {
         outbound: {
           departure: {
-            time: formatTimeFromString(routeSegments.departureTime),
+            time: formatTimeFromString(routeSegments.departureTime || ''),
             city: origin,
             airport: origin,
             date: routeSegments.departureTime || new Date().toISOString()
           },
           arrival: {
-            time: formatTimeFromString(routeSegments.arrivalTime),
+            time: formatTimeFromString(routeSegments.arrivalTime || ''),
             city: destination,
             airport: destination,
             date: routeSegments.arrivalTime || new Date().toISOString()
@@ -228,13 +228,13 @@ export function BookingsList({ bookings, onCancelBooking, isPast = false }: Book
         },
         return: returnFlightNumber && returnFlightNumber !== 'N/A' ? {
           departure: {
-            time: formatTimeFromString(routeSegments.arrivalTime),
+            time: formatTimeFromString(routeSegments.arrivalTime || ''),
             city: destination,
             airport: destination,
             date: routeSegments.arrivalTime || new Date().toISOString()
           },
           arrival: {
-            time: formatTimeFromString(routeSegments.departureTime),
+            time: formatTimeFromString(routeSegments.departureTime || ''),
             city: origin,
             airport: origin,
             date: routeSegments.departureTime || new Date().toISOString()
