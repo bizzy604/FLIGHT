@@ -6,6 +6,7 @@ This module contains routes for interacting with the Verteil NDC API.
 import json
 import logging
 import uuid
+import os
 from typing import Dict, Any, Optional
 from datetime import datetime
 
@@ -14,6 +15,30 @@ from quart_cors import cors, route_cors
 from functools import wraps
 import time
 from collections import OrderedDict
+
+def write_frontend_data(filename: str, data: dict, description: str = ""):
+    """Write frontend request data to Output folder for debugging."""
+    try:
+        output_dir = os.path.join(os.getcwd(), "Output")
+        os.makedirs(output_dir, exist_ok=True)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        full_filename = f"FRONTEND_{filename}_{timestamp}.json"
+        filepath = os.path.join(output_dir, full_filename)
+
+        output_data = {
+            "timestamp": datetime.now().isoformat(),
+            "description": description,
+            "data": data
+        }
+
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(output_data, f, indent=2, ensure_ascii=False)
+
+        logging.info(f"[FRONTEND_OUTPUT] Written {description} to {full_filename}")
+
+    except Exception as e:
+        logging.error(f"[FRONTEND_OUTPUT] Failed to write output file {filename}: {e}")
 
 # Import enhanced air shopping services
 from services.flight.air_shopping import process_air_shopping_enhanced, process_air_shopping_basic
@@ -361,9 +386,14 @@ async def air_shopping():
             data = request.args.to_dict()
         else:
             data = await request.get_json() or {}
-            
 
-            
+        # Write frontend air shopping request data to Output folder
+        write_frontend_data(
+            filename="AIR_SHOPPING_REQUEST",
+            data=data,
+            description="Frontend Air Shopping Request Data"
+        )
+
         # Convert frontend parameter names to backend equivalents
         parameter_mapping = {
             'numAdults': 'num_adults',
@@ -519,6 +549,13 @@ async def air_shopping():
         service_type = "enhanced" if use_enhanced else "basic"
         logger.info(f"Successfully processed {service_type} air shopping request - Request ID: {request_id}")
 
+        # Write backend air shopping response data to Output folder
+        write_frontend_data(
+            filename="AIR_SHOPPING_BACKEND_RESPONSE",
+            data=result,
+            description="Backend Air Shopping Response Data"
+        )
+
         # Return the result (enhanced service already includes status and request_id)
         if result.get('status') == 'success':
             response = jsonify(result)
@@ -526,7 +563,7 @@ async def air_shopping():
             # Handle error response
             response = jsonify(result)
             response.status_code = 500
-        
+
         return response
         
     except json.JSONDecodeError as e:
@@ -587,12 +624,19 @@ async def flight_price():
     try:
         data = await request.get_json()
         logger.info(f"Flight price request received - Request ID: {request_id}")
-        
+
         # Check if data is None (invalid JSON or missing content-type)
         if data is None:
             error_msg = "Invalid request: No JSON data received. Please check Content-Type header and request body."
             logger.error(f"{error_msg} - Request ID: {request_id}")
             return jsonify(_create_error_response(error_msg, 400, request_id))
+
+        # Write frontend flight price request data to Output folder
+        write_frontend_data(
+            filename="FLIGHT_PRICE_REQUEST",
+            data=data,
+            description="Frontend Flight Price Request Data"
+        )
         
         logger.info(f"Request data keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'} - Request ID: {request_id}")
         
@@ -647,7 +691,14 @@ async def flight_price():
                 logger.info(f"Flight price request completed with status: {status} - Request ID: {request_id}")
                 if status == 'error':
                     logger.error(f"Error in flight price request: {result.get('error', 'No error details')} - Request ID: {request_id}")
-            
+
+            # Write backend flight price response data to Output folder
+            write_frontend_data(
+                filename="FLIGHT_PRICE_BACKEND_RESPONSE",
+                data=result,
+                description="Backend Flight Price Response Data"
+            )
+
             return jsonify(result)
             
         except Exception as e:
@@ -697,7 +748,14 @@ async def create_order():
         data = await request.get_json()
         if not data:
             return jsonify(_create_error_response("Request body is required", 400, request_id))
-        
+
+        # Write frontend order create request data to Output folder
+        write_frontend_data(
+            filename="ORDER_CREATE_REQUEST",
+            data=data,
+            description="Frontend Order Create Request Data"
+        )
+
         # DEBUG: Log frontend data summary
         logger.info(f"[DEBUG] Raw frontend data received (ReqID: {request_id}) - Keys: {list(data.keys()) if data else 'None'}")
         
@@ -844,6 +902,13 @@ async def create_order():
         
         # Call the booking service
         result = await process_order_create(order_data)
+
+        # Write backend order create response data to Output folder
+        write_frontend_data(
+            filename="ORDER_CREATE_BACKEND_RESPONSE",
+            data=result,
+            description="Backend Order Create Response Data"
+        )
 
         # Check if result contains an error
         if 'error' in result:

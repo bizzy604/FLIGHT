@@ -267,7 +267,64 @@ function getAirportName(code: string): string {
 }
 
 /**
- * Combines date and time for display
+ * Formats date and time from ISO string
+ */
+function formatDateTimeFromISO(isoString: string): string {
+  try {
+    if (!isoString) return 'N/A';
+    const dateObj = new Date(isoString);
+    const formattedDate = dateObj.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+    const formattedTime = dateObj.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    return `${formattedDate} ${formattedTime}`;
+  } catch {
+    return isoString;
+  }
+}
+
+/**
+ * Extracts date only from ISO string
+ */
+function formatDateOnly(isoString: string): string {
+  try {
+    if (!isoString) return '';
+    const dateObj = new Date(isoString);
+    return dateObj.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  } catch {
+    return isoString;
+  }
+}
+
+/**
+ * Extracts time only from ISO string
+ */
+function formatTimeOnly(isoString: string): string {
+  try {
+    if (!isoString) return '';
+    const dateObj = new Date(isoString);
+    return dateObj.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  } catch {
+    return isoString;
+  }
+}
+
+/**
+ * Combines date and time for display (legacy function)
  */
 function formatDateTime(date: string, time: string): string {
   try {
@@ -340,15 +397,49 @@ function extractBaggageDetails(orderCreateResponse: any): BaggageDetails {
 // Helper function to extract fare rules
 function extractFareRules(orderCreateResponse: any): PassengerFareRules[] {
   const response = orderCreateResponse.Response || orderCreateResponse;
+
+  console.log('🔍 extractFareRules - Response structure:', {
+    hasDataLists: !!response.DataLists,
+    hasPenaltyList: !!response.DataLists?.PenaltyList,
+    penaltyCount: response.DataLists?.PenaltyList?.Penalty?.length || 0,
+    hasPassengers: !!response.Passengers,
+    passengerCount: response.Passengers?.Passenger?.length || 0,
+    responseKeys: Object.keys(response || {})
+  });
+
   const penalties = response.DataLists?.PenaltyList?.Penalty || [];
   const passengers = response.Passengers?.Passenger || [];
+
+  console.log('🔍 Penalty details:', penalties.map((p: any, i: number) => ({
+    index: i,
+    objectKey: p.ObjectKey,
+    hasDetails: !!p.Details,
+    detailCount: p.Details?.Detail?.length || 0,
+    cancelFeeInd: p.CancelFeeInd,
+    refundableInd: p.RefundableInd
+  })));
+
+  console.log('🔍 Passenger details:', passengers.map((p: any, i: number) => ({
+    index: i,
+    objectKey: p.ObjectKey,
+    ptc: p.PTC?.value
+  })));
 
   const fareRulesByPassenger: Record<string, FareRule[]> = {};
 
   // Process penalties
-  penalties.forEach((penalty: any) => {
+  penalties.forEach((penalty: any, penaltyIndex: number) => {
+    console.log(`🔍 Processing penalty ${penaltyIndex}:`, {
+      objectKey: penalty.ObjectKey,
+      hasDetails: !!penalty.Details,
+      detailsStructure: penalty.Details ? Object.keys(penalty.Details) : []
+    });
+
     const details = penalty.Details?.Detail?.[0];
-    if (!details) return;
+    if (!details) {
+      console.log(`⚠️ Penalty ${penaltyIndex} has no details, skipping`);
+      return;
+    }
 
     const rule: FareRule = {
       type: details.Type as 'Cancel' | 'Change',
@@ -363,22 +454,37 @@ function extractFareRules(orderCreateResponse: any): PassengerFareRules[] {
 
     // Extract passenger reference from penalty ObjectKey
     const objectKey = penalty.ObjectKey || '';
+    console.log(`🔍 Penalty ${penaltyIndex} ObjectKey: "${objectKey}"`);
+
     const passengerMatch = objectKey.match(/PAX(\d+)/);
+    console.log(`🔍 Passenger match result:`, passengerMatch);
+
     if (passengerMatch) {
       const passengerKey = `PAX${passengerMatch[1]}`;
+      console.log(`🔍 Adding rule to passenger: ${passengerKey}`);
       if (!fareRulesByPassenger[passengerKey]) {
         fareRulesByPassenger[passengerKey] = [];
       }
       fareRulesByPassenger[passengerKey].push(rule);
+    } else {
+      console.log(`⚠️ No passenger match found for ObjectKey: "${objectKey}"`);
     }
   });
 
   // Map to passenger types
+  console.log('🔍 Final fareRulesByPassenger mapping:', fareRulesByPassenger);
+
   const result: PassengerFareRules[] = [];
-  passengers.forEach((passenger: any) => {
+  passengers.forEach((passenger: any, passengerIndex: number) => {
     const passengerKey = passenger.ObjectKey;
     const passengerType = passenger.PTC?.value || 'ADT';
     const rules = fareRulesByPassenger[passengerKey] || [];
+
+    console.log(`🔍 Processing passenger ${passengerIndex}:`, {
+      passengerKey,
+      passengerType,
+      rulesCount: rules.length
+    });
 
     if (rules.length > 0) {
       result.push({
@@ -388,6 +494,70 @@ function extractFareRules(orderCreateResponse: any): PassengerFareRules[] {
     }
   });
 
+  console.log('🔍 Final fare rules result:', result.length, 'passenger groups');
+  return result;
+}
+
+// Helper function to extract fare rules from processed flight price data
+function extractFareRulesFromProcessedData(flightPriceData: any): PassengerFareRules[] {
+  console.log('🎯 extractFareRulesFromProcessedData - Input data:', {
+    hasPassengers: !!flightPriceData.passengers,
+    passengerCount: flightPriceData.passengers?.length || 0,
+    firstPassengerHasFareRules: !!flightPriceData.passengers?.[0]?.fare_rules
+  });
+
+  const result: PassengerFareRules[] = [];
+
+  if (!flightPriceData.passengers || !Array.isArray(flightPriceData.passengers)) {
+    console.log('🎯 No passengers array found in processed data');
+    return result;
+  }
+
+  flightPriceData.passengers.forEach((passenger: any, index: number) => {
+    console.log(`🎯 Processing passenger ${index}:`, {
+      type: passenger.type,
+      hasFareRules: !!passenger.fare_rules,
+      fareRulesKeys: passenger.fare_rules ? Object.keys(passenger.fare_rules) : []
+    });
+
+    if (!passenger.fare_rules) return;
+
+    const rules: FareRule[] = [];
+    const fareRulesData = passenger.fare_rules;
+
+    // Process different rule types
+    Object.keys(fareRulesData).forEach(ruleType => {
+      const ruleCategory = fareRulesData[ruleType];
+
+      Object.keys(ruleCategory).forEach(timing => {
+        const ruleDetails = ruleCategory[timing];
+
+        const rule: FareRule = {
+          type: ruleType.includes('Cancel') ? 'Cancel' : 'Change',
+          application: timing,
+          timing: timing,
+          minAmount: ruleDetails.min_amount || 0,
+          maxAmount: ruleDetails.max_amount || 0,
+          currency: ruleDetails.currency || 'USD',
+          description: ruleDetails.interpretation || '',
+          allowed: ruleDetails.min_amount === 0 && ruleDetails.max_amount === 0
+        };
+
+        rules.push(rule);
+      });
+    });
+
+    console.log(`🎯 Extracted ${rules.length} rules for passenger ${index}`);
+
+    if (rules.length > 0) {
+      result.push({
+        passengerType: passenger.type || 'ADT',
+        rules
+      });
+    }
+  });
+
+  console.log('🎯 extractFareRulesFromProcessedData - Final result:', result.length, 'passenger groups');
   return result;
 }
 
@@ -416,11 +586,26 @@ function getTimingDescription(code: string): string {
 /**
  * Main transformation function to extract itinerary data from OrderCreate response
  */
-export function transformOrderCreateToItinerary(orderCreateResponse: any): ItineraryData {
-  const response = orderCreateResponse.Response || orderCreateResponse;
-  
+export function transformOrderCreateToItinerary(orderCreateResponse: any, originalFlightOffer?: any): ItineraryData {
+  // Validate input
+  if (!orderCreateResponse) {
+    throw new Error('OrderCreate response is null or undefined');
+  }
+
+  // Handle different response structures
+  let response;
+  if (orderCreateResponse.Response) {
+    response = orderCreateResponse.Response;
+  } else if (orderCreateResponse.Order || orderCreateResponse.Passengers || orderCreateResponse.TicketDocInfos) {
+    // Direct response structure
+    response = orderCreateResponse;
+  } else {
+    console.error('Invalid OrderCreate response structure:', orderCreateResponse);
+    throw new Error('Invalid OrderCreate response structure - missing required fields');
+  }
+
   if (!response) {
-    throw new Error('Invalid OrderCreate response structure');
+    throw new Error('Unable to extract response data from OrderCreate response');
   }
 
   // Extract booking information
@@ -529,18 +714,18 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any): Itine
         departure: {
           airport: flight.Departure?.AirportCode?.value || '',
           airportName: getAirportName(flight.Departure?.AirportCode?.value || ''),
-          date: flight.Departure?.Date || '',
-          time: flight.Departure?.Time || '',
+          date: formatDateOnly(flight.Departure?.Date || ''),
+          time: flight.Departure?.Time || formatTimeOnly(flight.Departure?.Date || ''),
           terminal: flight.Departure?.Terminal?.Name || '',
-          formattedDateTime: formatDateTime(flight.Departure?.Date || '', flight.Departure?.Time || '')
+          formattedDateTime: formatDateTimeFromISO(flight.Departure?.Date || '')
         },
         arrival: {
           airport: flight.Arrival?.AirportCode?.value || '',
           airportName: getAirportName(flight.Arrival?.AirportCode?.value || ''),
-          date: flight.Arrival?.Date || '',
-          time: flight.Arrival?.Time || '',
+          date: formatDateOnly(flight.Arrival?.Date || ''),
+          time: flight.Arrival?.Time || formatTimeOnly(flight.Arrival?.Date || ''),
           terminal: flight.Arrival?.Terminal?.Name || '',
-          formattedDateTime: formatDateTime(flight.Arrival?.Date || '', flight.Arrival?.Time || '')
+          formattedDateTime: formatDateTimeFromISO(flight.Arrival?.Date || '')
         },
         duration: flight.Details?.FlightDuration?.Value || '',
         durationFormatted: formatDuration(flight.Details?.FlightDuration?.Value || ''),
@@ -561,8 +746,29 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any): Itine
   // Extract detailed baggage allowance
   const baggageAllowance = extractBaggageDetails(response);
 
-  // Extract fare rules
-  const fareRules = extractFareRules(response);
+  // Extract fare rules - try multiple data sources
+  let fareRules: PassengerFareRules[] = [];
+
+  // First try to get fare rules from processed flight price data (session storage format)
+  if (originalFlightOffer?.passengers?.[0]?.fare_rules) {
+    console.log('🎯 Found processed fare rules in originalFlightOffer');
+    fareRules = extractFareRulesFromProcessedData(originalFlightOffer);
+    console.log('🎯 Extracted fare rules from processed data:', fareRules.length, 'passenger groups');
+  }
+
+  // Second try to get fare rules from the original flight price response
+  if (fareRules.length === 0 && originalFlightOffer?.raw_flight_price_response) {
+    console.log('🎯 Attempting to extract fare rules from FlightPrice response');
+    fareRules = extractFareRules(originalFlightOffer.raw_flight_price_response);
+    console.log('🎯 Extracted fare rules from FlightPrice:', fareRules.length, 'passenger groups');
+  }
+
+  // If no fare rules found, try from OrderCreate response
+  if (fareRules.length === 0) {
+    console.log('🎯 No fare rules in FlightPrice response, trying OrderCreate response');
+    fareRules = extractFareRules(response);
+    console.log('🎯 Extracted fare rules from OrderCreate:', fareRules.length, 'passenger groups');
+  }
 
   return {
     bookingInfo,

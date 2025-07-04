@@ -26,11 +26,18 @@ export const downloadFromDataUrl = (dataUrl: string, filename: string) => {
 export const generatePDFFromComponent = async (elementId: string, filename: string = 'itinerary.pdf'): Promise<void> => {
   try {
     console.log(`🔍 Looking for element with ID: ${elementId}`);
+    console.log(`📄 Filename: ${filename}`);
+
     const element = document.getElementById(elementId);
     if (!element) {
       console.error(`❌ Element with ID ${elementId} not found`);
+      console.log(`🔍 Available elements with IDs:`,
+        Array.from(document.querySelectorAll('[id]')).map(el => el.id).filter(id => id)
+      );
       throw new Error(`Element with ID ${elementId} not found`);
     }
+
+    console.log(`✅ Found element:`, element.tagName, element.className);
 
     console.log(`✅ Found element:`, element);
     console.log(`📏 Element dimensions: ${element.offsetWidth}x${element.offsetHeight}`);
@@ -55,10 +62,40 @@ export const generatePDFFromComponent = async (elementId: string, filename: stri
               color: black;
               line-height: 1.5;
             }
+            @page {
+              size: A5;
+              margin: 8mm;
+            }
             @media print {
-              body { margin: 0; padding: 10px; }
+              body {
+                margin: 0;
+                padding: 5px;
+                font-size: 11px !important;
+                line-height: 1.2 !important;
+              }
               .no-print { display: none !important; }
-              .print-break { page-break-before: always; }
+              .print-break {
+                page-break-before: always !important;
+                break-before: page !important;
+              }
+              /* Compact spacing for print */
+              .min-h-\\[50vh\\] {
+                min-height: auto !important;
+              }
+              /* Ensure proper page fitting */
+              #official-itinerary {
+                font-size: 11px !important;
+                line-height: 1.2 !important;
+              }
+              /* Reduce margins and padding for print */
+              .p-4 { padding: 8px !important; }
+              .p-3 { padding: 6px !important; }
+              .mb-4 { margin-bottom: 8px !important; }
+              .mb-3 { margin-bottom: 6px !important; }
+              .mb-2 { margin-bottom: 4px !important; }
+              .gap-4 { gap: 8px !important; }
+              .space-y-1 > * + * { margin-top: 2px !important; }
+              .space-y-2 > * + * { margin-top: 4px !important; }
             }
             /* Include essential Tailwind classes for PDF */
             .bg-gradient-to-r { background: linear-gradient(to right, #dbeafe, #bfdbfe); }
@@ -101,11 +138,15 @@ export const generatePDFFromComponent = async (elementId: string, filename: stri
             .justify-center { justify-content: center; }
             .text-center { text-align: center; }
             .text-right { text-align: right; }
+            .text-xs { font-size: 0.75rem; line-height: 1rem; }
             .text-sm { font-size: 0.875rem; }
             .text-lg { font-size: 1.125rem; }
             .text-xl { font-size: 1.25rem; }
             .text-2xl { font-size: 1.5rem; }
             .text-3xl { font-size: 1.875rem; }
+            .leading-tight { line-height: 1.25; }
+            .break-all { word-break: break-all; }
+            .font-mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace; }
             .font-bold { font-weight: 700; }
             .font-semibold { font-weight: 600; }
             .font-medium { font-weight: 500; }
@@ -166,9 +207,15 @@ export const generatePDFFromComponent = async (elementId: string, filename: stri
     }
 
   } catch (error) {
-    console.error('Error generating PDF:', error);
-    // Fallback to browser print
-    window.print();
+    console.error('❌ Error generating PDF:', error);
+    console.error('❌ Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      type: typeof error
+    });
+
+    // Re-throw the error so the calling function can handle it properly
+    throw error;
   }
 };
 

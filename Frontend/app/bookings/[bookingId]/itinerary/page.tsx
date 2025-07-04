@@ -48,17 +48,81 @@ export default function BookingItineraryPage() {
           // Transform stored booking data to itinerary format
           if (bookingData.orderCreateResponse) {
             try {
-              const parsedOrderCreate = typeof bookingData.orderCreateResponse === 'string' 
+              console.log('📋 Raw orderCreateResponse type:', typeof bookingData.orderCreateResponse)
+              console.log('📋 Raw orderCreateResponse preview:',
+                typeof bookingData.orderCreateResponse === 'string'
+                  ? bookingData.orderCreateResponse.substring(0, 200) + '...'
+                  : Object.keys(bookingData.orderCreateResponse || {})
+              )
+
+              const parsedOrderCreate = typeof bookingData.orderCreateResponse === 'string'
                 ? JSON.parse(bookingData.orderCreateResponse)
                 : bookingData.orderCreateResponse
 
-              const transformedData = transformOrderCreateToItinerary(parsedOrderCreate)
+              console.log('📋 Parsed orderCreateResponse keys:', Object.keys(parsedOrderCreate || {}))
+
+              // Parse originalFlightOffer if available
+              let originalFlightOffer = bookingData.originalFlightOffer
+                ? (typeof bookingData.originalFlightOffer === 'string'
+                    ? JSON.parse(bookingData.originalFlightOffer)
+                    : bookingData.originalFlightOffer)
+                : null
+
+              // Also check session storage for flightPriceResponseForBooking
+              let sessionFlightData = null;
+              console.log('📋 Checking session storage for flightPriceResponseForBooking...');
+              try {
+                const sessionData = sessionStorage.getItem('flightPriceResponseForBooking');
+                console.log('📋 Session storage raw data:', sessionData ? 'Found' : 'Not found');
+
+                if (sessionData) {
+                  sessionFlightData = JSON.parse(sessionData);
+                  console.log('📋 Found flightPriceResponseForBooking in session storage');
+                  console.log('📋 Session flight data structure:', {
+                    hasPassengers: !!sessionFlightData.passengers,
+                    passengerCount: sessionFlightData.passengers?.length || 0,
+                    hasFareRules: !!sessionFlightData.passengers?.[0]?.fare_rules,
+                    fareRulesKeys: sessionFlightData.passengers?.[0]?.fare_rules ? Object.keys(sessionFlightData.passengers[0].fare_rules) : []
+                  });
+
+                  // Use session data if originalFlightOffer doesn't have fare rules
+                  if (!originalFlightOffer?.passengers?.[0]?.fare_rules && sessionFlightData.passengers?.[0]?.fare_rules) {
+                    originalFlightOffer = sessionFlightData;
+                    console.log('📋 Using session storage data for fare rules');
+                  } else {
+                    console.log('📋 Not using session data:', {
+                      originalHasFareRules: !!originalFlightOffer?.passengers?.[0]?.fare_rules,
+                      sessionHasFareRules: !!sessionFlightData.passengers?.[0]?.fare_rules
+                    });
+                  }
+                } else {
+                  console.log('📋 No flightPriceResponseForBooking in session storage');
+                }
+              } catch (e) {
+                console.log('📋 Error accessing session storage:', e);
+              }
+
+              console.log('📋 Original flight offer available:', !!originalFlightOffer)
+              if (originalFlightOffer) {
+                console.log('📋 Original flight offer keys:', Object.keys(originalFlightOffer))
+                console.log('📋 Has raw_flight_price_response:', !!originalFlightOffer.raw_flight_price_response)
+                console.log('📋 Has processed fare_rules:', !!originalFlightOffer.passengers?.[0]?.fare_rules)
+              }
+
+              const transformedData = transformOrderCreateToItinerary(parsedOrderCreate, originalFlightOffer)
               setItineraryData(transformedData)
+              console.log('✅ Successfully transformed itinerary data')
             } catch (transformError) {
-              console.error('Error transforming booking data:', transformError)
+              console.error('❌ Error transforming booking data:', transformError)
+              console.error('❌ Transform error details:', {
+                message: transformError instanceof Error ? transformError.message : 'Unknown error',
+                stack: transformError instanceof Error ? transformError.stack : undefined
+              })
               setError('Unable to display itinerary. Booking data may be corrupted.')
             }
           } else {
+            console.warn('⚠️ No orderCreateResponse found in booking data')
+            console.log('📋 Available booking data keys:', Object.keys(bookingData || {}))
             setError('Itinerary data not available for this booking.')
           }
         } else {
@@ -82,14 +146,35 @@ export default function BookingItineraryPage() {
   }, [bookingId, isLoaded])
 
   const handleDownloadItinerary = async () => {
-    if (!itineraryData) return
+    if (!itineraryData) {
+      toast({
+        title: "Download Failed",
+        description: "Itinerary data is not available.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!itineraryData.bookingInfo || !itineraryData.bookingInfo.bookingReference) {
+      toast({
+        title: "Download Failed",
+        description: "Booking reference is not available.",
+        variant: "destructive",
+      })
+      return
+    }
 
     setIsDownloading(true)
     try {
       await generatePDFFromComponent(
-        'booking-itinerary', 
+        'booking-itinerary',
         `flight-itinerary-${itineraryData.bookingInfo.bookingReference}.pdf`
       )
+      toast({
+        title: "Download Successful",
+        description: "PDF has been generated successfully.",
+        variant: "default",
+      })
     } catch (error) {
       console.error('Error generating PDF:', error)
       toast({
