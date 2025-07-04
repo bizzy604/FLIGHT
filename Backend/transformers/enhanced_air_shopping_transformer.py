@@ -245,26 +245,62 @@ class EnhancedAirShoppingTransformer:
             Optional[Dict[str, Any]]: Transformed offer or None if transformation fails
         """
         try:
-            # Extract price information
-            first_offer_price = priced_offer.get('OfferPrice', [{}])[0]
-            price_detail = first_offer_price.get('RequestedDate', {}).get('PriceDetail', {})
-            total_amount = price_detail.get('TotalAmount', {}).get('SimpleCurrencyPrice', {})
+            # Extract price information by aggregating across all PTCs
+            total_price = 0.0
+            currency = None
+
+            # Iterate through all OfferPrice entries to aggregate pricing across PTCs
+            for offer_price in priced_offer.get('OfferPrice', []):
+                price_detail = offer_price.get('RequestedDate', {}).get('PriceDetail', {})
+                price_info = price_detail.get('TotalAmount', {}).get('SimpleCurrencyPrice', {})
+                per_pax_price = float(price_info.get('value', 0))
+
+                if currency is None:
+                    currency = price_info.get('Code')
+
+                # Count UNIQUE travelers in this OfferPrice by examining TravelerReferences
+                # For round-trip flights, each passenger appears twice (outbound + return)
+                # We need to count unique passenger IDs only
+                unique_travelers = set()
+                for assoc in offer_price.get('RequestedDate', {}).get('Associations', []):
+                    raw_refs = assoc.get('AssociatedTraveler', {}).get('TravelerReferences', [])
+                    # Handle both string and list formats for TravelerReferences
+                    if isinstance(raw_refs, str):
+                        unique_travelers.add(raw_refs)
+                    elif isinstance(raw_refs, list):
+                        for ref in raw_refs:
+                            if ref:  # Only add non-empty references
+                                unique_travelers.add(ref)
+
+                # Count unique travelers for this OfferPrice
+                traveler_count = len(unique_travelers)
+
+                # Add this OfferPrice's contribution to total
+                total_price += per_pax_price * max(1, traveler_count)  # Ensure at least 1 traveler
+
+            # Create total_amount structure for backward compatibility
+            total_amount = {
+                'value': total_price,
+                'Code': currency
+            }
             
             # Extract segments for this offer
             all_segments_data = []
+            # Use the first OfferPrice for segment extraction (segments are same across all OfferPrices)
+            first_offer_price = priced_offer.get('OfferPrice', [{}])[0]
             for assoc in first_offer_price.get('RequestedDate', {}).get('Associations', []):
                 for seg_ref in assoc.get('ApplicableFlight', {}).get('FlightSegmentReference', []):
                     segment_key = seg_ref.get('ref')
-                    
+
                     # Try to get segment from airline-specific refs first, then global
                     segment_data = None
                     if isinstance(refs, dict) and 'segments' in refs:
                         segment_data = refs['segments'].get(segment_key)
-                    
+
                     # Fallback to global lookup if not found
                     if not segment_data and self.is_multi_airline:
                         segment_data = self.reference_extractor.get_reference_by_key(segment_key, 'segments')
-                    
+
                     if segment_data:
                         all_segments_data.append(segment_data)
             
@@ -337,7 +373,7 @@ class EnhancedAirShoppingTransformer:
             return {
                 "id": offer_id,
                 "price": total_amount.get('value', 0),
-                "currency": total_amount.get('Code', 'USD'),
+                "currency": total_amount.get('Code'),
                 "airline": {
                     "code": airline_code,
                     "name": AirlineMappingService.get_airline_display_name(airline_code),
@@ -375,7 +411,7 @@ class EnhancedAirShoppingTransformer:
                     "taxes": total_amount.get('value', 0) * 0.15,    # Estimate 15% as taxes
                     "fees": total_amount.get('value', 0) * 0.05,     # Estimate 5% as fees
                     "totalPrice": total_amount.get('value', 0),
-                    "currency": total_amount.get('Code', 'USD')
+                    "currency": total_amount.get('Code')
                 },
                 # Store original offer ID for reference
                 "original_offer_id": offer_id

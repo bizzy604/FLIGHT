@@ -752,13 +752,8 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                 {flight.priceBreakdown?.currency} {flight.priceBreakdown?.totalPrice || flight.price}
               </div>
               <div className="text-sm text-muted-foreground">
-                per person
+                for all passengers
               </div>
-              {flight.priceBreakdown?.baseFare && flight.priceBreakdown.baseFare !== flight.priceBreakdown.totalPrice && (
-                <div className="text-xs text-muted-foreground line-through">
-                  {flight.priceBreakdown?.currency} {flight.priceBreakdown.baseFare}
-                </div>
-              )}
             </div>
 
             <Link href={buildFlightUrl()} className="w-full">

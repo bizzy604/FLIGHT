@@ -332,8 +332,8 @@ function extractBaggageDetails(orderCreateResponse: any): BaggageDetails {
   return {
     checkedBags: baggageInfo?.AllowableBag?.[0]?.Number || checkedBagDetails?.pieces || 1,
     carryOnBags: carryOnDetails?.pieces || 1,
-    checkedBagAllowance: checkedBagDetails,
-    carryOnAllowance: carryOnDetails
+    checkedBagAllowance: checkedBagDetails || undefined,
+    carryOnAllowance: carryOnDetails || undefined
   };
 }
 
