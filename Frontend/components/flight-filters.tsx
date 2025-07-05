@@ -15,6 +15,9 @@ interface FlightFiltersProps {
   airlines: string[]
   onAirlinesChange: (airlines: string[]) => void
   availableAirlines: { id: string; name: string }[]
+  airports: string[]
+  onAirportsChange: (airports: string[]) => void
+  availableAirports: { id: string; name: string; city?: string }[]
   stops: number[]
   onStopsChange: (stops: number[]) => void
   departureTime: string[]
@@ -28,6 +31,9 @@ export function FlightFilters({
   airlines,
   onAirlinesChange,
   availableAirlines,
+  airports,
+  onAirportsChange,
+  availableAirports,
   stops,
   onStopsChange,
   departureTime,
@@ -228,6 +234,45 @@ export function FlightFilters({
             ) : (
               <div className="text-sm text-muted-foreground">
                 Loading airlines...
+              </div>
+            )}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* Airports Filter */}
+      <Collapsible defaultOpen>
+        <CollapsibleTrigger className="flex w-full items-center justify-between">
+          <h3 className="text-sm font-medium">Destination Airports</h3>
+          <ChevronDown className="h-4 w-4" />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-2">
+          <div className="space-y-2">
+            {availableAirports.length > 0 ? (
+              availableAirports.map((airport) => (
+                <div key={airport.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`airport-${airport.id}`}
+                    checked={airports.includes(airport.id)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        onAirportsChange([...airports, airport.id])
+                      } else {
+                        onAirportsChange(airports.filter((code) => code !== airport.id))
+                      }
+                    }}
+                  />
+                  <label
+                    htmlFor={`airport-${airport.id}`}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {airport.name}
+                  </label>
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-muted-foreground">
+                Loading airports...
               </div>
             )}
           </div>

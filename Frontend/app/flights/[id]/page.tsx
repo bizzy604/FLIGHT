@@ -76,52 +76,150 @@ function FlightDetailsPageContent() {
           logger.info('✅ Flight data retrieved successfully');
         }
 
-        // For multi-airline responses, let the backend handle ShoppingResponseID extraction
-        // The backend will determine the airline from the offer index and extract the correct ID
+        // Create a unique cache key for this flight price request
+        const cacheKey = `flightPrice_${flightId}_${searchParams?.origin}_${searchParams?.destination}_${searchParams?.departDate}_${searchParams?.adults}_${searchParams?.children}_${searchParams?.infants}`;
 
-        // We'll pass a placeholder that the backend will replace with the correct airline-specific ID
-        let shoppingResponseId = 'BACKEND_WILL_EXTRACT';
+        // Check for cached flight price data first
+        const checkCachedPriceData = () => {
+          try {
+            // Clean up expired flight price cache entries
+            Object.keys(localStorage).forEach(key => {
+              if (key.startsWith('flightPrice_')) {
+                try {
+                  const data = JSON.parse(localStorage.getItem(key) || '{}');
+                  if (data.expiresAt && data.expiresAt < Date.now()) {
+                    localStorage.removeItem(key);
+                    console.log(`🗑️ Removed expired flight price cache: ${key}`);
+                  }
+                } catch (e) {
+                  // Remove corrupted cache entries
+                  localStorage.removeItem(key);
+                  console.log(`🗑️ Removed corrupted flight price cache: ${key}`);
+                }
+              }
+            });
+            // First check sessionStorage for immediate access
+            const sessionData = sessionStorage.getItem('currentFlightPrice');
+            if (sessionData) {
+              const parsedSessionData = JSON.parse(sessionData);
+              // Verify the cached data matches current flight and search parameters
+              if (parsedSessionData.flightId === flightId &&
+                  parsedSessionData.searchParams &&
+                  parsedSessionData.searchParams.origin === searchParams?.origin &&
+                  parsedSessionData.searchParams.destination === searchParams?.destination &&
+                  parsedSessionData.searchParams.departDate === searchParams?.departDate) {
 
-        // Extract the actual raw response to send to the API
-        let actualRawResponse = rawAirShoppingResponse;
+                console.log('✅ Using cached flight price data from session storage');
+
+                // Extract the priced offer from cached data
+                const cachedPricedOffer = parsedSessionData.pricedOffer;
+                if (cachedPricedOffer) {
+                  setPricedOffer(cachedPricedOffer);
+
+                  // Also restore to sessionStorage for booking
+                  sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(cachedPricedOffer));
+                  if (parsedSessionData.rawResponse) {
+                    sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(parsedSessionData.rawResponse));
+                  }
+
+                  setIsLoading(false);
+                  return true; // Data found and loaded
+                }
+              }
+            }
+
+            // Then check localStorage for persistent cache
+            const localData = localStorage.getItem(cacheKey);
+            if (localData) {
+              const parsedLocalData = JSON.parse(localData);
+              // Check if data is not too old (30 minutes)
+              const dataAge = Date.now() - parsedLocalData.timestamp;
+              const maxAge = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+              if (dataAge < maxAge && parsedLocalData.expiresAt > Date.now()) {
+                console.log('✅ Using cached flight price data from local storage');
+
+                const cachedPricedOffer = parsedLocalData.pricedOffer;
+                if (cachedPricedOffer) {
+                  setPricedOffer(cachedPricedOffer);
+
+                  // Also restore to sessionStorage for booking and faster future access
+                  sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(cachedPricedOffer));
+                  if (parsedLocalData.rawResponse) {
+                    sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(parsedLocalData.rawResponse));
+                  }
+
+                  // Store in sessionStorage for faster future access
+                  sessionStorage.setItem('currentFlightPrice', JSON.stringify(parsedLocalData));
+
+                  setIsLoading(false);
+                  return true; // Data found and loaded
+                }
+              } else {
+                console.log('🗑️ Cached flight price data expired, removing from storage');
+                localStorage.removeItem(cacheKey);
+              }
+            }
+          } catch (error) {
+            console.warn('Error checking cached flight price data:', error);
+          }
+          return false; // No valid cached data found
+        };
+
+        // Try to load cached price data first
+        const hasCachedPriceData = checkCachedPriceData();
+        console.log('🔍 Flight price cache check result:', hasCachedPriceData);
+
+        // Only fetch from API if no valid cached data exists
+        if (!hasCachedPriceData) {
+          console.log('🔄 No cached flight price data found, fetching from API');
+
+          // For multi-airline responses, let the backend handle ShoppingResponseID extraction
+          // The backend will determine the airline from the offer index and extract the correct ID
+
+          // We'll pass a placeholder that the backend will replace with the correct airline-specific ID
+          let shoppingResponseId = 'BACKEND_WILL_EXTRACT';
+
+          // Extract the actual raw response to send to the API
+          let actualRawResponse = rawAirShoppingResponse;
 
 
 
-        // Check for raw_response at different possible locations
-        if (rawAirShoppingResponse?.raw_response) {
-          // Direct access to raw_response (current structure)
-          actualRawResponse = rawAirShoppingResponse.raw_response;
-        } else if (rawAirShoppingResponse?.data?.raw_response) {
-          // Nested under data.raw_response
-          actualRawResponse = rawAirShoppingResponse.data.raw_response;
-        } else if (rawAirShoppingResponse?.data && !rawAirShoppingResponse?.data?.raw_response) {
-          // If data exists but no raw_response, the data itself might be the raw response
-          actualRawResponse = rawAirShoppingResponse.data;
-        } else {
-          // Fallback: use the entire stored response
-          actualRawResponse = rawAirShoppingResponse;
-        }
+          // Check for raw_response at different possible locations
+          if (rawAirShoppingResponse?.raw_response) {
+            // Direct access to raw_response (current structure)
+            actualRawResponse = rawAirShoppingResponse.raw_response;
+          } else if (rawAirShoppingResponse?.data?.raw_response) {
+            // Nested under data.raw_response
+            actualRawResponse = rawAirShoppingResponse.data.raw_response;
+          } else if (rawAirShoppingResponse?.data && !rawAirShoppingResponse?.data?.raw_response) {
+            // If data exists but no raw_response, the data itself might be the raw response
+            actualRawResponse = rawAirShoppingResponse.data;
+          } else {
+            // Fallback: use the entire stored response
+            actualRawResponse = rawAirShoppingResponse;
+          }
 
-        // Validate flight ID before making API call
-        if (!flightId || flightId === 'null' || flightId === 'undefined') {
-          throw new Error(`Invalid flight ID: ${flightId}. Please select a flight again.`);
-        }
+          // Validate flight ID before making API call
+          if (!flightId || flightId === 'null' || flightId === 'undefined') {
+            throw new Error(`Invalid flight ID: ${flightId}. Please select a flight again.`);
+          }
 
-        // Get flight index from stored flight data
-        let flightIndex = parseInt(flightId); // flightId is now the index (string)
+          // Get flight index from stored flight data
+          let flightIndex = parseInt(flightId); // flightId is now the index (string)
 
-        // Validate that we have a valid index
-        if (isNaN(flightIndex) || flightIndex < 0) {
-          throw new Error(`Invalid flight index: ${flightId}. Please select a flight again.`);
-        }
+          // Validate that we have a valid index
+          if (isNaN(flightIndex) || flightIndex < 0) {
+            throw new Error(`Invalid flight index: ${flightId}. Please select a flight again.`);
+          }
 
 
 
-        const response = await api.getFlightPrice(
-          flightIndex,
-          shoppingResponseId,
-          actualRawResponse
-        );
+          const response = await api.getFlightPrice(
+            flightIndex,
+            shoppingResponseId,
+            actualRawResponse
+          );
 
 
 
@@ -167,6 +265,25 @@ function FlightDetailsPageContent() {
         if (response.data.data.raw_response) {
           sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(response.data.data.raw_response));
         }
+
+        // Cache the flight price data for future use
+        const priceDataForCache = {
+          flightId: flightId,
+          pricedOffer: firstPricedOffer,
+          rawResponse: response.data.data.raw_response,
+          searchParams: searchParams,
+          timestamp: Date.now(),
+          expiresAt: Date.now() + (30 * 60 * 1000) // 30 minutes from now
+        };
+
+        // Store in sessionStorage for immediate access
+        sessionStorage.setItem('currentFlightPrice', JSON.stringify(priceDataForCache));
+
+        // Store in localStorage for persistent cache
+        localStorage.setItem(cacheKey, JSON.stringify(priceDataForCache));
+        console.log('💾 Flight price data cached successfully');
+
+        } // End of API call block
 
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Failed to fetch flight price data";
@@ -287,7 +404,10 @@ function FlightDetailsPageContent() {
       <main className="flex-1">
         <div className="container py-3 sm:py-4 md:py-6">
           <div className="mb-4 sm:mb-6">
-            <Link href="/flights" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-4">
+            <Link
+              href={`/flights?${new URLSearchParams(searchParams || {}).toString()}`}
+              className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-4"
+            >
               <ChevronLeft className="mr-1 h-4 w-4" />
               Back to Search Results
             </Link>

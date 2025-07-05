@@ -311,6 +311,66 @@ def _filter_airline_specific_data(data_lists, airline_owner):
         logger.warning(f"No travelers found for airline {airline_owner}")
         filtered_data_lists["AnonymousTravelerList"] = {}
 
+    # Filter CarryOnAllowanceList
+    carry_on_allowances = data_lists.get("CarryOnAllowanceList", {}).get("CarryOnAllowance", [])
+    if not isinstance(carry_on_allowances, list):
+        carry_on_allowances = [carry_on_allowances] if carry_on_allowances else []
+
+    filtered_carry_on = []
+    for allowance in carry_on_allowances:
+        if isinstance(allowance, dict):
+            list_key = allowance.get("ListKey", "")
+            # Check if this allowance belongs to the selected airline
+            if list_key.startswith(f"{airline_owner}-"):
+                filtered_carry_on.append(allowance)
+                logger.debug(f"Included carry-on allowance: {list_key}")
+
+    if filtered_carry_on:
+        filtered_data_lists["CarryOnAllowanceList"] = {
+            "CarryOnAllowance": filtered_carry_on
+        }
+        logger.info(f"Filtered {len(filtered_carry_on)} carry-on allowances for airline {airline_owner}")
+
+    # Filter CheckedBagAllowanceList
+    checked_bag_allowances = data_lists.get("CheckedBagAllowanceList", {}).get("CheckedBagAllowance", [])
+    if not isinstance(checked_bag_allowances, list):
+        checked_bag_allowances = [checked_bag_allowances] if checked_bag_allowances else []
+
+    filtered_checked_bag = []
+    for allowance in checked_bag_allowances:
+        if isinstance(allowance, dict):
+            list_key = allowance.get("ListKey", "")
+            # Check if this allowance belongs to the selected airline
+            if list_key.startswith(f"{airline_owner}-"):
+                filtered_checked_bag.append(allowance)
+                logger.debug(f"Included checked bag allowance: {list_key}")
+
+    if filtered_checked_bag:
+        filtered_data_lists["CheckedBagAllowanceList"] = {
+            "CheckedBagAllowance": filtered_checked_bag
+        }
+        logger.info(f"Filtered {len(filtered_checked_bag)} checked bag allowances for airline {airline_owner}")
+
+    # Filter FareList
+    fare_groups = data_lists.get("FareList", {}).get("FareGroup", [])
+    if not isinstance(fare_groups, list):
+        fare_groups = [fare_groups] if fare_groups else []
+
+    filtered_fare_groups = []
+    for fare_group in fare_groups:
+        if isinstance(fare_group, dict):
+            list_key = fare_group.get("ListKey", "")
+            # Check if this fare group belongs to the selected airline
+            if list_key.startswith(f"{airline_owner}-"):
+                filtered_fare_groups.append(fare_group)
+                logger.debug(f"Included fare group: {list_key}")
+
+    if filtered_fare_groups:
+        filtered_data_lists["FareList"] = {
+            "FareGroup": filtered_fare_groups
+        }
+        logger.info(f"Filtered {len(filtered_fare_groups)} fare groups for airline {airline_owner}")
+
     # Filter other DataLists sections if they contain airline-specific data
     # Check for FlightSegmentList filtering
     flight_segments = data_lists.get("FlightSegmentList", {}).get("FlightSegment", [])
@@ -351,6 +411,27 @@ def _filter_airline_specific_data(data_lists, airline_owner):
             "Flight": filtered_flights
         }
         logger.info(f"Filtered {len(filtered_flights)} flights for airline {airline_owner}")
+
+    # Filter OriginDestinationList
+    origin_destinations = data_lists.get("OriginDestinationList", {}).get("OriginDestination", [])
+    if not isinstance(origin_destinations, list):
+        origin_destinations = [origin_destinations] if origin_destinations else []
+
+    filtered_origin_destinations = []
+    for od in origin_destinations:
+        if isinstance(od, dict):
+            od_key = od.get("OriginDestinationKey", "")
+
+            # Check if this OriginDestination belongs to the selected airline
+            if od_key.startswith(f"{airline_owner}-"):
+                filtered_origin_destinations.append(od)
+                logger.debug(f"Included OriginDestination: {od_key}")
+
+    if filtered_origin_destinations:
+        filtered_data_lists["OriginDestinationList"] = {
+            "OriginDestination": filtered_origin_destinations
+        }
+        logger.info(f"Filtered {len(filtered_origin_destinations)} OriginDestinations for airline {airline_owner}")
 
     return filtered_data_lists, traveler_key_mapping
 
@@ -418,7 +499,8 @@ def _build_common_flight_price_request(airshopping_response, selected_offer, air
                     all_offer_refs_for_metadata_filtering.add(ref_val_str)
 
     fare_list_for_rq = []
-    all_fare_groups_from_airshopping_datalists = data_lists.get("FareList", {}).get("FareGroup", [])
+    # Use filtered fare groups instead of all fare groups from original data_lists
+    all_fare_groups_from_airshopping_datalists = filtered_data_lists.get("FareList", {}).get("FareGroup", [])
     if not isinstance(all_fare_groups_from_airshopping_datalists, list):
         all_fare_groups_from_airshopping_datalists = \
             [all_fare_groups_from_airshopping_datalists] if all_fare_groups_from_airshopping_datalists else []
@@ -516,10 +598,11 @@ def _build_common_flight_price_request(airshopping_response, selected_offer, air
                         if seg_ref_obj["ref"] not in od_groups_map[od_ref_str]:
                             od_groups_map[od_ref_str].append(seg_ref_obj["ref"])
             
-    all_segments_from_datalists = data_lists.get("FlightSegmentList", {}).get("FlightSegment", [])
+    # Use filtered flight segments instead of all segments from original data_lists
+    all_segments_from_datalists = filtered_data_lists.get("FlightSegmentList", {}).get("FlightSegment", [])
     if not isinstance(all_segments_from_datalists, list):
         all_segments_from_datalists = [all_segments_from_datalists] if all_segments_from_datalists else []
-    
+
     segment_details_map = {s.get("SegmentKey"): s for s in all_segments_from_datalists}
 
     for od_ref_key_sorted in sorted(od_groups_map.keys()): # Sort OD keys for consistent output
@@ -530,7 +613,32 @@ def _build_common_flight_price_request(airshopping_response, selected_offer, air
             if segment_detail:
                 od_flights.append(segment_detail)
         if od_flights:
-            origin_destinations_for_rq.append({"Flight": od_flights})
+            # For FlightPrice, use OriginDestinationKey and FlightReferences structure
+            # Find corresponding flight keys for these segments
+            flight_keys = []
+            flight_list = filtered_data_lists.get("FlightList", {}).get("Flight", [])
+            if not isinstance(flight_list, list):
+                flight_list = [flight_list] if flight_list else []
+
+            for flight_item in flight_list:
+                flight_segment_refs = flight_item.get("SegmentReferences", {}).get("value", [])
+                if not isinstance(flight_segment_refs, list):
+                    flight_segment_refs = [flight_segment_refs] if flight_segment_refs else []
+
+                # Check if any of our segments match this flight
+                for seg_key in segment_key_list:
+                    if seg_key in flight_segment_refs:
+                        flight_key = flight_item.get("FlightKey")
+                        if flight_key and flight_key not in flight_keys:
+                            flight_keys.append(flight_key)
+
+            if flight_keys:
+                origin_destinations_for_rq.append({
+                    "OriginDestinationKey": od_ref_key_sorted,
+                    "FlightReferences": {
+                        "value": flight_keys
+                    }
+                })
 
     travelers_for_rq = []
     # Use filtered travelers instead of all travelers from original response
@@ -625,11 +733,14 @@ def _build_common_flight_price_request(airshopping_response, selected_offer, air
         all_offer_refs_for_metadata_filtering
     )
 
+    # Build DataLists with only mandatory sections for FlightPrice requests
+    data_lists_for_rq = {
+        "FareGroup": fare_list_for_rq,
+        "AnonymousTravelerList": filtered_data_lists.get("AnonymousTravelerList", {})
+    }
+
     flight_price_request = {
-        "DataLists": {
-            "FareGroup": fare_list_for_rq,
-            "AnonymousTravelerList": filtered_data_lists.get("AnonymousTravelerList", {}) # Use filtered airline-specific data
-        },
+        "DataLists": data_lists_for_rq,
         "Query": {
             "OriginDestination": origin_destinations_for_rq,
             "Offers": {
@@ -646,8 +757,6 @@ def _build_common_flight_price_request(airshopping_response, selected_offer, air
     }
 
     logger.info(f"Successfully built flight price request for airline {airline_owner}")
-    return flight_price_request
-    
     return flight_price_request
 
 

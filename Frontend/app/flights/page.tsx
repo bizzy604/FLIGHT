@@ -93,13 +93,15 @@ interface FlightFiltersState {
   airlines: string[]
   stops: number[]
   departureTime: string[]
+  airports: string[]
 }
 
 const initialFilters: FlightFiltersState = {
   priceRange: [0, 100000], // Increased to accommodate higher price ranges in real data
   airlines: [],
   stops: [],
-  departureTime: []
+  departureTime: [],
+  airports: []
 }
 
 // Component that uses useSearchParams - needs to be wrapped in Suspense
@@ -107,6 +109,7 @@ function SearchParamsWrapper() {
   const [flights, setFlights] = useState<FlightOffer[]>([])
   const [allFlights, setAllFlights] = useState<FlightOffer[]>([])
   const [availableAirlines, setAvailableAirlines] = useState<{id: string, name: string}[]>([])
+  const [availableAirports, setAvailableAirports] = useState<{id: string, name: string, city?: string}[]>([])
   const [filters, setFilters] = useState<FlightFiltersState>(initialFilters)
   const [loading, setLoading] = useState(true)
   const searchParams = useSearchParams()
@@ -177,9 +180,17 @@ function SearchParamsWrapper() {
       if (filters.stops.length > 0 && !filters.stops.includes(flight.stops)) {
         return false;
       }
-      
+
+      // Airports filter - only apply if airports are selected
+      if (filters.airports.length > 0) {
+        const arrivalAirport = flight.arrival?.airport;
+        if (!arrivalAirport || !filters.airports.includes(arrivalAirport)) {
+          return false;
+        }
+      }
+
       // Departure time filter (would need to parse the time and check against time ranges)
-      
+
       return true;
     });
     
@@ -205,7 +216,7 @@ function SearchParamsWrapper() {
     // Set the paginated flights
     const paginatedFlights = sortedFlights.slice(startIdx, endIdx);
     setFlights(paginatedFlights);
-  }, [allFlights, filters.priceRange, filters.airlines, filters.stops, filters.departureTime, sortOption, currentPage]);
+  }, [allFlights, filters.priceRange, filters.airlines, filters.stops, filters.departureTime, filters.airports, sortOption, currentPage]);
 
   // Load flight data from API based on search parameters
   useEffect(() => {
@@ -264,10 +275,201 @@ function SearchParamsWrapper() {
       directOnly: false
     };
     
-    // Fetch flights from the API
-    const fetchFlights = async () => {
+    // Create a unique storage key based on search parameters
+    const storageKey = `flightData_${origin}_${destination}_${departDate}_${tripType}_${adults}_${children}_${infants}_${cabinClass}_${outboundCabinClass}_${returnCabinClass}`;
+
+    // Check for cached data first
+    const checkCachedData = () => {
       try {
-        const response = await api.searchFlights(flightSearchParams);
+        // First check sessionStorage for immediate access
+        const sessionData = sessionStorage.getItem('currentFlightSearch');
+        if (sessionData) {
+          const parsedSessionData = JSON.parse(sessionData);
+          // Verify the cached data matches current search parameters
+          const cachedParams = parsedSessionData.searchParams;
+          console.log('🔍 Comparing search parameters:');
+          console.log('Current:', { origin, destination, departDate, tripType, adults, children, infants });
+          console.log('Cached:', cachedParams);
+
+          if (cachedParams &&
+              cachedParams.origin === origin &&
+              cachedParams.destination === destination &&
+              cachedParams.departDate === departDate &&
+              cachedParams.tripType === tripType &&
+              cachedParams.passengers?.adults === adults &&
+              cachedParams.passengers?.children === children &&
+              cachedParams.passengers?.infants === infants) {
+
+            console.log('✅ Using cached flight data from session storage');
+            console.log('📊 Session data structure:', parsedSessionData);
+            console.log('📊 Air shopping response:', parsedSessionData.airShoppingResponse);
+
+            // Extract flights from cached data
+            const cachedFlights = parsedSessionData.airShoppingResponse?.offers || [];
+            console.log('✈️ Cached flights count:', cachedFlights.length);
+            const directFlights = cachedFlights.map((offer: any) => ({
+              id: offer.id,
+              offer_index: offer.offer_index,
+              original_offer_id: offer.original_offer_id,
+              airline: offer.airline,
+              departure: offer.departure,
+              arrival: offer.arrival,
+              duration: offer.duration,
+              stops: offer.stops,
+              stopDetails: offer.stopDetails || [],
+              price: offer.price,
+              currency: offer.currency,
+              baggage: offer.baggage,
+              fare: offer.fare,
+              aircraft: offer.aircraft,
+              segments: offer.segments,
+              priceBreakdown: offer.priceBreakdown,
+              additionalServices: offer.additionalServices,
+              fareRules: offer.fareRules,
+              penalties: offer.penalties,
+              time_limits: offer.time_limits || {}
+            }));
+
+            // Extract unique airlines
+            const uniqueAirlines = new Map<string, {id: string, name: string}>();
+            directFlights.forEach(flight => {
+              if (flight.airline && flight.airline.code && flight.airline.name) {
+                uniqueAirlines.set(flight.airline.code, {
+                  id: flight.airline.code,
+                  name: flight.airline.name
+                });
+              }
+            });
+            const airlineOptions = Array.from(uniqueAirlines.values()).sort((a, b) => a.name.localeCompare(b.name));
+
+            // Extract unique arrival airports
+            const uniqueAirports = new Map<string, {id: string, name: string, city?: string}>();
+            directFlights.forEach(flight => {
+              if (flight.arrival && flight.arrival.airport) {
+                const airportCode = flight.arrival.airport;
+                const airportName = flight.arrival.airportName || airportCode;
+
+                const displayName = flight.arrival.airportName
+                  ? `${airportCode} - ${flight.arrival.airportName}`
+                  : airportCode;
+
+                uniqueAirports.set(airportCode, {
+                  id: airportCode,
+                  name: displayName
+                });
+              }
+            });
+            const airportOptions = Array.from(uniqueAirports.values()).sort((a, b) => a.id.localeCompare(b.id));
+
+            setAvailableAirlines(airlineOptions);
+            setAvailableAirports(airportOptions);
+            setAllFlights(directFlights);
+            setLoading(false);
+            return true; // Data found and loaded
+          }
+        }
+
+        // Then check localStorage for persistent cache
+        const localData = localStorage.getItem(storageKey);
+        if (localData) {
+          const parsedLocalData = JSON.parse(localData);
+          // Check if data is not too old (30 minutes)
+          const dataAge = Date.now() - parsedLocalData.timestamp;
+          const maxAge = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+          if (dataAge < maxAge && parsedLocalData.expiresAt > Date.now()) {
+            console.log('✅ Using cached flight data from local storage');
+            console.log('📊 Local data structure:', parsedLocalData);
+            console.log('📊 Air shopping response:', parsedLocalData.airShoppingResponse);
+
+            // Extract flights from cached data
+            const cachedFlights = parsedLocalData.airShoppingResponse?.offers || [];
+            console.log('✈️ Cached flights count:', cachedFlights.length);
+            const directFlights = cachedFlights.map((offer: any) => ({
+              id: offer.id,
+              offer_index: offer.offer_index,
+              original_offer_id: offer.original_offer_id,
+              airline: offer.airline,
+              departure: offer.departure,
+              arrival: offer.arrival,
+              duration: offer.duration,
+              stops: offer.stops,
+              stopDetails: offer.stopDetails || [],
+              price: offer.price,
+              currency: offer.currency,
+              baggage: offer.baggage,
+              fare: offer.fare,
+              aircraft: offer.aircraft,
+              segments: offer.segments,
+              priceBreakdown: offer.priceBreakdown,
+              additionalServices: offer.additionalServices,
+              fareRules: offer.fareRules,
+              penalties: offer.penalties,
+              time_limits: offer.time_limits || {}
+            }));
+
+            // Extract unique airlines
+            const uniqueAirlines = new Map<string, {id: string, name: string}>();
+            directFlights.forEach(flight => {
+              if (flight.airline && flight.airline.code && flight.airline.name) {
+                uniqueAirlines.set(flight.airline.code, {
+                  id: flight.airline.code,
+                  name: flight.airline.name
+                });
+              }
+            });
+            const airlineOptions = Array.from(uniqueAirlines.values()).sort((a, b) => a.name.localeCompare(b.name));
+
+            // Extract unique arrival airports
+            const uniqueAirports = new Map<string, {id: string, name: string, city?: string}>();
+            directFlights.forEach(flight => {
+              if (flight.arrival && flight.arrival.airport) {
+                const airportCode = flight.arrival.airport;
+                const airportName = flight.arrival.airportName || airportCode;
+
+                const displayName = flight.arrival.airportName
+                  ? `${airportCode} - ${flight.arrival.airportName}`
+                  : airportCode;
+
+                uniqueAirports.set(airportCode, {
+                  id: airportCode,
+                  name: displayName
+                });
+              }
+            });
+            const airportOptions = Array.from(uniqueAirports.values()).sort((a, b) => a.id.localeCompare(b.id));
+
+            setAvailableAirlines(airlineOptions);
+            setAvailableAirports(airportOptions);
+            setAllFlights(directFlights);
+            setLoading(false);
+
+            // Also restore to sessionStorage for faster future access
+            sessionStorage.setItem('currentFlightSearch', JSON.stringify(parsedLocalData));
+            return true; // Data found and loaded
+          } else {
+            console.log('🗑️ Cached data expired, removing from storage');
+            localStorage.removeItem(storageKey);
+          }
+        }
+      } catch (error) {
+        console.warn('Error checking cached data:', error);
+      }
+      return false; // No valid cached data found
+    };
+
+    // Try to load cached data first
+    const hasCachedData = checkCachedData();
+    console.log('🔍 Cache check result:', hasCachedData);
+
+    // Only fetch from API if no valid cached data exists
+    if (!hasCachedData) {
+      console.log('🔄 No cached data found, fetching from API');
+
+      // Fetch flights from the API
+      const fetchFlights = async () => {
+        try {
+          const response = await api.searchFlights(flightSearchParams);
         
         // Transform API response to match the expected flight format
         // Backend returns response.data with nested data structure
@@ -315,9 +517,6 @@ function SearchParamsWrapper() {
           expiresAt: Date.now() + (30 * 60 * 1000) // 30 minutes expiration
         };
         
-        // Create a unique storage key based on search parameters
-        const storageKey = `flightData_${origin}_${destination}_${departDate}_${tripType}_${adults}_${children}_${infants}_${cabinClass}_${outboundCabinClass}_${returnCabinClass}`;
-        
         try {
           // Before setting a new item, check current storage size and clear old items if near quota
           // This is a simplified approach; a more robust LRU cache would be better for production
@@ -337,7 +536,10 @@ function SearchParamsWrapper() {
           localStorage.setItem(storageKey, JSON.stringify(flightDataForStorage));
           // Store the current storage key for easy retrieval
           localStorage.setItem('currentFlightDataKey', storageKey);
-          
+
+          // Also store in sessionStorage for immediate access
+          sessionStorage.setItem('currentFlightSearch', JSON.stringify(flightDataForStorage));
+
           // Clean up any remaining old flight data (older than 30 minutes) and corrupted data
           const now = Date.now();
           Object.keys(localStorage).forEach(key => {
@@ -357,7 +559,9 @@ function SearchParamsWrapper() {
           });
 
           console.log(`✅ Successfully stored flight data with key: ${storageKey}`);
+          console.log('💾 Flight data cached successfully');
         } catch (storageError) {
+          console.warn('Failed to store flight data:', storageError);
           // Continue execution even if storage fails
         }
         
@@ -399,22 +603,41 @@ function SearchParamsWrapper() {
         // Convert to array and sort by name
         const airlineOptions = Array.from(uniqueAirlines.values()).sort((a, b) => a.name.localeCompare(b.name));
 
+        // Extract unique arrival airports from the real flight data
+        const uniqueAirports = new Map<string, {id: string, name: string, city?: string}>();
+        directFlights.forEach(flight => {
+          if (flight.arrival && flight.arrival.airport) {
+            const airportCode = flight.arrival.airport;
+            const airportName = flight.arrival.airportName || airportCode;
+
+            // Create a display name that includes both code and name if available
+            const displayName = flight.arrival.airportName
+              ? `${airportCode} - ${flight.arrival.airportName}`
+              : airportCode;
+
+            uniqueAirports.set(airportCode, {
+              id: airportCode,
+              name: displayName
+            });
+          }
+        });
+
+        // Convert to array and sort by airport code
+        const airportOptions = Array.from(uniqueAirports.values()).sort((a, b) => a.id.localeCompare(b.id));
+
         setAvailableAirlines(airlineOptions);
+        setAvailableAirports(airportOptions);
         setAllFlights(directFlights);
       } catch (error) {
+        console.error('Error fetching flights:', error);
         // You might want to show an error message to the user
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchFlights();
-
-    // Create a unique search key
-    const searchKey = `flightResults_${origin}_${destination}_${departDate}_${adults}_${children}_${infants}_${tripType === 'round-trip' ? `${outboundCabinClass}_${returnCabinClass}` : cabinClass}`;
-
-    // Clear session storage to force API fetch
-    sessionStorage.removeItem(searchKey);
+    } // Close the conditional block for !hasCachedData
     
 
   }, [searchParams]);
@@ -497,6 +720,9 @@ function SearchParamsWrapper() {
                     airlines={filters.airlines}
                     onAirlinesChange={(airlines) => handleFilterChange({ airlines })}
                     availableAirlines={availableAirlines}
+                    airports={filters.airports}
+                    onAirportsChange={(airports) => handleFilterChange({ airports })}
+                    availableAirports={availableAirports}
                     stops={filters.stops}
                     onStopsChange={(stops) => handleFilterChange({ stops })}
                     departureTime={filters.departureTime}
