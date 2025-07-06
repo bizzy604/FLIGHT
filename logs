@@ -1,0 +1,143 @@
+PS C:\Users\User\Desktop\FLIGHT\Backend> python .\app.py
+INFO:services.flight.booking:Method 1: Successfully imported generate_order_create_rq
+Successfully loaded 9803 airports from C:\Users\User\Desktop\FLIGHT\airports.csv
+ * Serving Quart app 'app'
+ * Debug mode: True
+ * Please use an ASGI server (e.g. Hypercorn) directly in production
+ * Running on http://0.0.0.0:5000 (CTRL + C to quit)
+[2025-07-06 05:10:17,175] INFO in app: Route: static -> /static/<path:filename>
+INFO:app:Route: static -> /static/<path:filename>
+[2025-07-06 05:10:17,176] INFO in app: Route: verteil_flights.air_shopping_test_postman -> /api/verteil/air-shopping-test-postman
+INFO:app:Route: verteil_flights.air_shopping_test_postman -> /api/verteil/air-shopping-test-postman
+[2025-07-06 05:10:17,176] INFO in app: Route: verteil_flights.air_shopping_test_regular -> /api/verteil/air-shopping-test-regular
+INFO:app:Route: verteil_flights.air_shopping_test_regular -> /api/verteil/air-shopping-test-regular
+[2025-07-06 05:10:17,177] INFO in app: Route: verteil_flights.air_shopping -> /api/verteil/air-shopping
+INFO:app:Route: verteil_flights.air_shopping -> /api/verteil/air-shopping
+[2025-07-06 05:10:17,177] INFO in app: Route: verteil_flights.flight_price -> /api/verteil/flight-price
+INFO:app:Route: verteil_flights.flight_price -> /api/verteil/flight-price
+[2025-07-06 05:10:17,178] INFO in app: Route: verteil_flights.create_order -> /api/verteil/order-create
+INFO:app:Route: verteil_flights.create_order -> /api/verteil/order-create
+[2025-07-06 05:10:17,179] INFO in app: Route: debug.get_token_status -> /debug/token
+INFO:app:Route: debug.get_token_status -> /debug/token
+[2025-07-06 05:10:17,179] INFO in app: Route: debug.clear_token -> /debug/clear-token
+INFO:app:Route: debug.clear_token -> /debug/clear-token
+[2025-07-06 05:10:17,180] INFO in app: Route: airport_routes.airport_autocomplete -> /api/airports/autocomplete
+INFO:app:Route: airport_routes.airport_autocomplete -> /api/airports/autocomplete
+[2025-07-06 05:10:17,181] INFO in app: Route: itinerary.extract_itinerary -> /api/itinerary/extract
+INFO:app:Route: itinerary.extract_itinerary -> /api/itinerary/extract
+[2025-07-06 05:10:17,182] INFO in app: Route: itinerary.generate_pdf -> /api/itinerary/generate-pdf
+INFO:app:Route: itinerary.generate_pdf -> /api/itinerary/generate-pdf
+[2025-07-06 05:10:17,182] INFO in app: Route: itinerary.health_check -> /api/itinerary/health
+INFO:app:Route: itinerary.health_check -> /api/itinerary/health
+[2025-07-06 05:10:17,184] INFO in app: Route: health_check -> /api/health
+INFO:app:Route: health_check -> /api/health
+[2025-07-06 05:10:17,185] INFO in app: Route: list_routes -> /api/debug/routes
+INFO:app:Route: list_routes -> /api/debug/routes
+[2025-07-06 05:10:17 +0300] [12040] [INFO] Running on http://0.0.0.0:5000 (CTRL + C to quit)
+INFO:hypercorn.error:Running on http://0.0.0.0:5000 (CTRL + C to quit)
+INFO:routes.verteil_flights:Incoming request: OPTIONS /api/verteil/air-shopping
+INFO:routes.verteil_flights:Headers: {'Remote-Addr': '127.0.0.1', 'Host': 'localhost:5000', 'Connection': 'keep-alive', 'Accept': '*/*', 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'content-type', 'Origin': 'http://localhost:3000', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Site': 'same-site', 'Sec-Fetch-Dest': 'empty', 'Referer': 'http://localhost:3000/', 'Accept-Encoding': 'gzip, deflate, br, zstd', 'Accept-Language': 'en-US,en;q=0.9'}
+INFO:routes.verteil_flights:Origin: http://localhost:3000
+INFO:routes.verteil_flights:Access-Control-Request-Method: POST
+[2025-07-06 05:17:15 +0300] [12040] [INFO] 127.0.0.1:53047 OPTIONS /api/verteil/air-shopping 1.1 200 0 23783
+INFO:routes.verteil_flights:Incoming request: POST /api/verteil/air-shopping
+INFO:routes.verteil_flights:Headers: {'Remote-Addr': '127.0.0.1', 'Host': 'localhost:5000', 'Connection': 'keep-alive', 'Content-Length': '220', 'Sec-Ch-Ua-Platform': '"Windows"', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'Accept': 'application/json', 'Sec-Ch-Ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"', 'Content-Type': 'application/json', 'Sec-Ch-Ua-Mobile': '?0', 'Origin': 'http://localhost:3000', 'Sec-Fetch-Site': 'same-site', 'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Dest': 'empty', 'Referer': 'http://localhost:3000/', 'Accept-Encoding': 'gzip, deflate, br, zstd', 'Accept-Language': 'en-US,en;q=0.9'}
+INFO:routes.verteil_flights:Origin: http://localhost:3000
+INFO:routes.verteil_flights:Access-Control-Request-Method: None
+INFO:routes.verteil_flights:Air shopping request received - Request ID: d6e38240-cf3a-4c1c-b53d-df3bed38c0b0
+INFO:root:[FRONTEND_OUTPUT] Written Frontend Air Shopping Request Data to FRONTEND_AIR_SHOPPING_REQUEST_20250706_051715.json
+INFO:routes.verteil_flights:[DEBUG] Mapped cabin preference BUSINESS to BUSINESS
+INFO:routes.verteil_flights:Original request data: {'tripType': 'ONE_WAY', 'odSegments': [{'origin': 'NBO', 'destination': 'JFK', 'departureDate': '2025-07-09'}], 'numAdults': 2, 'numChildren': 1, 'numInfants': 1, 'cabinPreference': 'BUSINESS', 'enableRoundtrip': False, 'directOnly': False}
+INFO:routes.verteil_flights:Converted request data: {'trip_type': 'ONE_WAY', 'odSegments': [{'origin': 'NBO', 'destination': 'JFK', 'departureDate': '2025-07-09'}], 'num_adults': 2, 'num_children': 1, 'num_infants': 1, 'cabinPreference': 'BUSINESS', 'enableRoundtrip': False, 'directOnly': False}
+INFO:routes.verteil_flights:Using enhanced air shopping service - Request ID: d6e38240-cf3a-4c1c-b53d-df3bed38c0b0
+[2025-07-06 05:17:15,388] INFO in core: FlightService initialized with necessary OAuth configurations.
+INFO:services.flight.core:FlightService initialized with necessary OAuth configurations.
+INFO:services.flight.air_shopping:Initialized AirShoppingService with multi-airline support
+[2025-07-06 05:17:15,404] INFO in core: FlightService initialized with necessary OAuth configurations.
+INFO:services.flight.core:FlightService initialized with necessary OAuth configurations.
+INFO:services.flight.air_shopping:Starting enhanced air shopping search - Request ID: 49f696b7-efd3-454b-ab6a-2e05b7b4f1b7    
+[2025-07-06 05:17:15,411] INFO in search: [DEBUG] One-way: Using global cabin preference: 'BUSINESS'
+INFO:services.flight.search:[DEBUG] One-way: Using global cabin preference: 'BUSINESS'
+[2025-07-06 05:17:15,417] INFO in search: [DEBUG] Cabin preference: 'BUSINESS' -> cabin_code: 'C'
+INFO:services.flight.search:[DEBUG] Cabin preference: 'BUSINESS' -> cabin_code: 'C'
+INFO:utils.auth:Fetching new OAuth2 token...
+INFO:utils.auth:Successfully obtained new token. Expires in 43199 seconds.
+[2025-07-06 05:17:17,499] INFO in core: Making POST request to https://api.stage.verteil.com/entrygate/rest/request:airShopping for service AirShopping (ReqID: 9052de5e-9e46-4968-a37c-236b7c3a5976).
+INFO:services.flight.core:Making POST request to https://api.stage.verteil.com/entrygate/rest/request:airShopping for service AirShopping (ReqID: 9052de5e-9e46-4968-a37c-236b7c3a5976).
+INFO:root:[OUTPUT] Written AirShopping API Request Payload to AirShopping_REQUEST_20250706_051717.json
+[2025-07-06 05:17:27,272] INFO in core: Successfully received API response for AirShopping (ReqID: 9052de5e-9e46-4968-a37c-236b7c3a5976) with status 200
+INFO:services.flight.core:Successfully received API response for AirShopping (ReqID: 9052de5e-9e46-4968-a37c-236b7c3a5976) with status 200
+INFO:root:[OUTPUT] Written AirShopping API Response to AirShopping_RESPONSE_20250706_051727.json
+[2025-07-06 05:17:27,622] INFO in core: No AirlineList found in DataLists
+INFO:services.flight.core:No AirlineList found in DataLists
+[2025-07-06 05:17:27,623] INFO in search: Successfully received raw AirShopping response for request_id: 9052de5e-9e46-4968-a37c-236b7c3a5976
+INFO:services.flight.search:Successfully received raw AirShopping response for request_id: 9052de5e-9e46-4968-a37c-236b7c3a5976
+INFO:services.flight.air_shopping:Raw search completed in 12.215s - Request ID: 49f696b7-efd3-454b-ab6a-2e05b7b4f1b7
+INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['Document', 'Warnings', 'OffersGroup', 'DataLists', 'Metadata', 'Errors']
+INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightSegmentList', 'FlightList', 'OriginDestinationList', 'MediaList', 'PenaltyList', 'PriceClassList']
+INFO:utils.multi_airline_detector:[DEBUG] Found 32 travelers
+INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
+INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
+INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
+INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['Document', 'Warnings', 'OffersGroup', 'DataLists', 'Metadata', 'Errors']
+INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightSegmentList', 'FlightList', 'OriginDestinationList', 'MediaList', 'PenaltyList', 'PriceClassList']
+INFO:utils.multi_airline_detector:[DEBUG] Found 32 travelers
+INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
+INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
+INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
+INFO:utils.reference_extractor:Initialized reference extractor for multi-airline response
+INFO:utils.reference_extractor:Extracting multi-airline references
+INFO:utils.multi_airline_detector:Extracted airline codes: ['AF', 'CX', 'EK', 'ET', 'KL', 'KQ', 'LHG', 'QR']
+INFO:utils.reference_extractor:Extracted multi-airline references for 8 airlines
+INFO:utils.reference_extractor:Successfully extracted references
+INFO:transformers.enhanced_air_shopping_transformer:Initialized enhanced transformer for multi-airline response
+INFO:transformers.enhanced_air_shopping_transformer:Airline filtering disabled - all airlines from API response will be included
+INFO:transformers.enhanced_air_shopping_transformer:Transforming multi-airline offers
+INFO:transformers.enhanced_air_shopping_transformer:Transformed 252 multi-airline offers
+INFO:transformers.enhanced_air_shopping_transformer:Successfully transformed 252 offers for results page
+INFO:services.flight.air_shopping:Enhanced transformation completed in 0.039s - 252 offers, Multi-airline: True - Request ID: 49f696b7-efd3-454b-ab6a-2e05b7b4f1b7
+INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['Document', 'Warnings', 'OffersGroup', 'DataLists', 'Metadata', 'Errors']
+INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightSegmentList', 'FlightList', 'OriginDestinationList', 'MediaList', 'PenaltyList', 'PriceClassList']
+INFO:utils.multi_airline_detector:[DEBUG] Found 32 travelers
+INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
+INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
+INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
+INFO:utils.multi_airline_detector:[DEBUG] Checking multi-airline response. Top-level keys: ['Document', 'Warnings', 'OffersGroup', 'DataLists', 'Metadata', 'Errors']
+INFO:utils.multi_airline_detector:[DEBUG] DataLists keys: ['AnonymousTravelerList', 'CarryOnAllowanceList', 'CheckedBagAllowanceList', 'FareList', 'FlightSegmentList', 'FlightList', 'OriginDestinationList', 'MediaList', 'PenaltyList', 'PriceClassList']
+INFO:utils.multi_airline_detector:[DEBUG] Found 32 travelers
+INFO:utils.multi_airline_detector:[DEBUG] Traveler 0 ObjectKey: QR-PAX1
+INFO:utils.multi_airline_detector:[DEBUG] Found airline-prefixed traveler: QR-PAX1
+INFO:utils.multi_airline_detector:Multi-airline response detected via prefixed references
+INFO:utils.reference_extractor:Initialized reference extractor for multi-airline response
+INFO:utils.reference_extractor:Extracting multi-airline references
+INFO:utils.multi_airline_detector:Extracted airline codes: ['AF', 'CX', 'EK', 'ET', 'KL', 'KQ', 'LHG', 'QR']
+INFO:utils.reference_extractor:Extracted multi-airline references for 8 airlines
+INFO:utils.reference_extractor:Successfully extracted references
+INFO:utils.multi_airline_flight_card_generator:Initialized flight card generator for multi-airline response
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'WB'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'WB'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'WB'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'WB'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'WB'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'WB'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'WB'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'WB'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'WB'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'TP'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'TP'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'TP'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'TP'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'TP'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'TP'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'TP'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'TP'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'TP'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'TP'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'TP'
+WARNING:services.airline_mapping_service:No ThirdParty ID mapping found for airline code 'TP'
+INFO:utils.multi_airline_flight_card_generator:Generated 252 enhanced flight cards
+INFO:services.flight.air_shopping:Enhanced flight cards generated in 0.216s - 252 cards - Request ID: 49f696b7-efd3-454b-ab6a-2e05b7b4f1b7
+INFO:services.flight.air_shopping:Enhanced air shopping completed successfully in 12.471s - Request ID: 49f696b7-efd3-454b-ab6a-2e05b7b4f1b7
+INFO:routes.verteil_flights:Successfully processed enhanced air shopping request - Request ID: d6e38240-cf3a-4c1c-b53d-df3bed38c0b0
+INFO:root:[FRONTEND_OUTPUT] Written Backend Air Shopping Response Data to FRONTEND_AIR_SHOPPING_BACKEND_RESPONSE_20250706_051727.json
+[2025-07-06 05:17:28 +0300] [12040] [INFO] 127.0.0.1:53047 POST /api/verteil/air-shopping 1.1 200 9365387 13107237

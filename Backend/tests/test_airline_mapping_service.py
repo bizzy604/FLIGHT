@@ -35,6 +35,12 @@ class TestAirlineMappingService(unittest.TestCase):
             ('EK', 'EK'),
             ('KQ', 'KQ'),
             ('6E', '6E'),
+            ('SN', 'SN'),  # Brussels Airlines
+            ('LH', 'LH'),  # Lufthansa
+            ('UA', 'UA'),  # United Airlines
+            ('DL', 'DL'),  # Delta Air Lines
+            ('BA', 'BA'),  # British Airways
+            ('A3', 'A3'),  # Aegean Airlines
         ]
         
         for airline_code, expected_id in test_cases:

@@ -28,21 +28,32 @@ class AirlineMappingService:
         'KL': 'KL',          # KLM Royal Dutch Airlines
         'AF': 'AF',          # Air France
         'LHG': 'LHG',        # Lufthansa Group
-        
+        'LH': 'LH',          # Lufthansa
+        'SN': 'SN',          # Brussels Airlines
+        'BA': 'BA',          # British Airways
+
+        # North American Airlines
+        'UA': 'UA',          # United Airlines
+        'DL': 'DL',          # Delta Air Lines
+
         # Middle Eastern Airlines
         'QR': 'QR',          # Qatar Airways
         'EK': 'EK',          # Emirates
         'EY': 'EY',          # Etihad Airways
-        
+        'GF': 'GF',          # Gulf Air
+        'WY': 'WY',          # Oman Air
+
         # African Airlines
         'KQ': 'KQ',          # Kenya Airways
         'ET': 'ET',          # Ethiopian Airlines
-        
+
         # Asian Airlines
         '6E': '6E',          # IndiGo
         'IX': 'IX',          # Air India Express
         'TK': 'TK',          # Turkish Airlines
         'SQ': 'SQ',          # Singapore Airlines
+        'CX': 'CX',          # Cathay Pacific Airways
+        'A3': 'A3',          # Aegean Airlines
 
         # Other Airlines
         'GF': 'GF',          # Gulf Air
@@ -63,6 +74,13 @@ class AirlineMappingService:
         'ET': 'Ethiopian Airlines',
         '6E': 'IndiGo',
         'IX': 'Air India Express',
+        # Additional airlines from multi-airline responses
+        'SN': 'Brussels Airlines',
+        'LH': 'Lufthansa',
+        'UA': 'United Airlines',
+        'A3': 'Aegean Airlines',
+        'DL': 'Delta Air Lines',
+        'CX': 'Cathay Pacific Airways',
         'TK': 'Turkish Airlines',
         'SQ': 'Singapore Airlines',
         'GF': 'Gulf Air',
@@ -73,7 +91,8 @@ class AirlineMappingService:
     
     # Airline regions for grouping and filtering
     AIRLINE_REGIONS = {
-        'Europe': ['KL', 'AF', 'LHG', 'BA'],
+        'Europe': ['KL', 'AF', 'LHG', 'LH', 'SN', 'BA', 'A3'],
+        'North America': ['UA', 'DL'],
         'Middle East': ['QR', 'EK', 'EY', 'GF', 'WY'],
         'Africa': ['KQ', 'ET'],
         'Asia': ['6E', 'IX', 'TK', 'SQ', 'CX'],
@@ -81,11 +100,11 @@ class AirlineMappingService:
     
     # Airlines that support specific features
     FEATURE_SUPPORT = {
-        'multi_airline_shopping': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'IX', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY'],
-        'flight_pricing': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'IX', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY'],
-        'order_creation': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'IX', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY'],
-        'baggage_services': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', 'IX', 'BA', 'CX', 'WY'],
-        'seat_selection': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'IX', 'BA', 'CX'],
+        'multi_airline_shopping': ['KL', 'AF', 'LHG', 'LH', 'SN', 'UA', 'DL', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'IX', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY', 'A3'],
+        'flight_pricing': ['KL', 'AF', 'LHG', 'LH', 'SN', 'UA', 'DL', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'IX', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY', 'A3'],
+        'order_creation': ['KL', 'AF', 'LHG', 'LH', 'SN', 'UA', 'DL', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'IX', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY', 'A3'],
+        'baggage_services': ['KL', 'AF', 'LHG', 'LH', 'SN', 'UA', 'DL', 'QR', 'EK', 'EY', 'KQ', 'ET', 'IX', 'BA', 'CX', 'WY', 'A3'],
+        'seat_selection': ['KL', 'AF', 'LHG', 'LH', 'SN', 'UA', 'DL', 'QR', 'EK', 'EY', 'IX', 'BA', 'CX', 'A3'],
     }
     
     @classmethod
@@ -169,7 +188,7 @@ class AirlineMappingService:
         if display_name:
             return display_name
         else:
-            logger.warning(f"No display name found for airline code '{normalized_code}'")
+            logger.debug(f"Using fallback name for airline code '{normalized_code}'")
             return f"Airline {normalized_code}"
     
     @classmethod

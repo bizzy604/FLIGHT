@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { flightStorageManager } from "@/utils/flight-storage-manager"
 import Link from "next/link"
 import Image from "next/image"
 import { Check, Download, Mail, Printer, Share2 } from "lucide-react"
@@ -21,41 +22,50 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
 
 
 
-  // Debug function to log session storage contents
-  const debugSessionStorage = () => {
+  // Debug function to log robust storage contents
+  const debugRobustStorage = async () => {
     if (typeof window !== 'undefined') {
-      console.log('=== SESSION STORAGE DEBUG ===')
-      console.log('All session storage keys:', Object.keys(sessionStorage))
-      
-      // Check for all possible keys
-      const possibleKeys = ['dev_completedBooking', 'booking-storage', 'booking', 'bookingData', 'hybridStorage', 'booking-data']
-      
-      possibleKeys.forEach(key => {
-        const data = sessionStorage.getItem(key)
-        if (data) {
-          console.log(`${key} content:`, data)
-          try {
-            const parsed = JSON.parse(data)
-            console.log(`${key} parsed:`, parsed)
-            
-            // Check if this looks like our booking data structure
-            if (parsed.bookingReference || parsed.contactInfo || parsed.flightDetails) {
-              console.log(`*** ${key} contains booking data structure! ***`)
+      console.log('=== ROBUST STORAGE DEBUG ===')
+
+      try {
+        // Check robust storage health
+        const health = await flightStorageManager.healthCheck()
+        console.log('Storage health:', health)
+
+        // Check storage stats
+        const stats = flightStorageManager.getStorageStats()
+        console.log('Storage stats:', stats)
+
+        // Try to get booking data
+        const bookingResult = await flightStorageManager.getBookingData()
+        console.log('Booking data result:', bookingResult)
+
+        // Check for legacy session storage keys
+        const possibleKeys = ['dev_completedBooking', 'booking-storage', 'booking', 'bookingData', 'hybridStorage', 'booking-data']
+
+        possibleKeys.forEach(key => {
+          const data = sessionStorage.getItem(key)
+          if (data) {
+            console.log(`Legacy ${key} content:`, data)
+            try {
+              const parsed = JSON.parse(data)
+              console.log(`Legacy ${key} parsed:`, parsed)
+
+              // Check if this looks like our booking data structure
+              if (parsed.bookingReference || parsed.contactInfo || parsed.flightDetails) {
+                console.log(`*** Legacy ${key} contains booking data structure! ***`)
+              }
+            } catch (e) {
+              console.log(`Legacy ${key} parse error:`, e)
             }
-          } catch (e) {
-            console.log(`${key} parse error:`, e)
           }
-        }
-      })
-      
-      // Check for any other keys containing 'booking'
-      Object.keys(sessionStorage).forEach(key => {
-        if (key.toLowerCase().includes('booking') && !possibleKeys.includes(key)) {
-          console.log(`Found other booking-related key: ${key}`, sessionStorage.getItem(key))
-        }
-      })
-      
-      console.log('=== END SESSION STORAGE DEBUG ===')
+        })
+
+      } catch (error) {
+        console.error('Robust storage debug error:', error)
+      }
+
+      console.log('=== END ROBUST STORAGE DEBUG ===')
     }
   }
   
@@ -168,12 +178,19 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
     return []
   }
 
-  // Helper function to get flight details from either format
-  const getFlightDetails = (bookingData: any) => {
-    // First, try to get data from session storage if available
+  // Helper function to get flight details using robust storage
+  const getFlightDetails = async (bookingData: any) => {
+    // First, try to get data from robust storage
     if (typeof window !== 'undefined') {
       try {
-        // Try multiple possible session storage keys
+        // Try robust storage first
+        const bookingResult = await flightStorageManager.getBookingData()
+        if (bookingResult.success && bookingResult.data?.flightDetails?.outbound) {
+          console.log('Using robust storage flight details:', bookingResult.data.flightDetails)
+          return bookingResult.data.flightDetails
+        }
+
+        // Fallback to legacy session storage
         const possibleKeys = ['dev_completedBooking', 'booking-storage', 'booking', 'bookingData', 'hybridStorage', 'booking-data']
           
           for (const key of possibleKeys) {

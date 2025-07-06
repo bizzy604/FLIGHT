@@ -17,6 +17,8 @@ import { ErrorBoundary } from "@/components/error-boundary"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { toast } from "@/components/ui/use-toast"
 import { storeBookingData } from "@/utils/booking-storage"
+import { flightStorageManager } from "@/utils/flight-storage-manager"
+import { setupRobustStorage } from "@/utils/storage-integration-example"
 
 export default function PaymentPage() {
   const router = useRouter()
@@ -30,25 +32,41 @@ export default function PaymentPage() {
   const [booking, setBooking] = useState<any>(null)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
 
-  // Fetch booking data from session storage and flight offer data
+  // Fetch booking data using robust storage manager
   useEffect(() => {
     const fetchBookingData = async () => {
       setIsLoading(true)
       try {
-        // Get pending booking data from session storage
-        const storedPendingBooking = sessionStorage.getItem("pendingBookingData")
+        // Setup robust storage
+        await setupRobustStorage()
+
+        // Get pending booking data from robust storage
+        let storedPendingBooking = sessionStorage.getItem("pendingBookingData")
         if (!storedPendingBooking) {
-          router.push(`/flights/${flightId}`)
-          return
+          // Try to recover from robust storage
+          const bookingResult = await flightStorageManager.getBookingData()
+          if (bookingResult.success && bookingResult.data) {
+            storedPendingBooking = JSON.stringify(bookingResult.data)
+          } else {
+            router.push(`/flights/${flightId}`)
+            return
+          }
         }
 
         const pendingBooking = JSON.parse(storedPendingBooking)
 
-        // Get flight offer data from session storage (set during flight selection)
-        const storedFlightOffer = sessionStorage.getItem("selectedFlightOffer")
-        if (!storedFlightOffer) {
-          router.push(`/flights/${flightId}`)
-          return
+        // Get flight offer data from robust storage
+        const selectedFlightResult = await flightStorageManager.getSelectedFlight()
+        if (!selectedFlightResult.success || !selectedFlightResult.data) {
+          // Fallback to session storage
+          const storedFlightOffer = sessionStorage.getItem("selectedFlightOffer")
+          if (!storedFlightOffer) {
+            router.push(`/flights/${flightId}`)
+            return
+          }
+          setFlightOffer(JSON.parse(storedFlightOffer))
+        } else {
+          setFlightOffer(selectedFlightResult.data)
         }
 
         // The stored flight offer should be the priced offer from flight details page
@@ -195,14 +213,31 @@ export default function PaymentPage() {
 
 
       if (response.data.status === 'success') {
-        // Store the successful booking data using hybrid storage
+        // Store the successful booking data using robust storage
         const bookingResult = response.data.data
-        storeBookingData(bookingResult)
+        const storeSuccess = await storeBookingData(bookingResult)
 
-        // Store raw OrderCreate response in session storage for itinerary generation
+        if (!storeSuccess) {
+          console.warn('⚠️ Failed to store booking data, but continuing with booking process')
+        }
+
+        // Store raw OrderCreate response using robust storage for itinerary generation
         if (response.data.raw_order_create_response) {
-          sessionStorage.setItem('orderCreateResponse', JSON.stringify(response.data.raw_order_create_response))
-          console.log('✅ Stored raw OrderCreate response in session storage for itinerary generation')
+          const orderCreateData = {
+            orderCreateResponse: response.data.raw_order_create_response,
+            timestamp: Date.now(),
+            expiresAt: Date.now() + (30 * 60 * 1000) // 30 minutes
+          }
+
+          // Store in robust storage
+          const orderStoreResult = await flightStorageManager.storeSelectedFlight(orderCreateData)
+          if (orderStoreResult.success) {
+            console.log('✅ Stored raw OrderCreate response using robust storage for itinerary generation')
+          } else {
+            console.warn('⚠️ Failed to store OrderCreate response:', orderStoreResult.error)
+            // Fallback to session storage
+            sessionStorage.setItem('orderCreateResponse', JSON.stringify(response.data.raw_order_create_response))
+          }
         } else {
           console.warn('⚠️ No raw OrderCreate response received from backend')
         }

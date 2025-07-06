@@ -8,8 +8,9 @@ import { ChevronLeft, AlertCircle, Loader2 } from "lucide-react"
 
 import { api } from "@/utils/api-client"
 import { logger } from "@/utils/logger"
-import { validateAndRecoverFlightData } from "@/utils/flight-data-validator"
+
 import { debugFlightStorage } from "@/utils/debug-storage"
+import { flightStorageManager, FlightPriceData } from "@/utils/flight-storage-manager"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -65,20 +66,20 @@ function FlightDetailsPageContent() {
         console.log('🔍 Debugging storage before flight data validation...');
         debugFlightStorage();
 
-        // Use the flight data validator for robust data recovery
-        const validationResult = validateAndRecoverFlightData();
+        // Use robust storage manager for data recovery
+        const flightSearchResult = await flightStorageManager.getFlightSearch();
 
-        if (!validationResult.isValid) {
-          throw new Error(validationResult.error || "No flight search data found. Your session may have expired. Please start a new search.");
+        if (!flightSearchResult.success || !flightSearchResult.data) {
+          throw new Error(flightSearchResult.error || "No flight search data found. Your session may have expired. Please start a new search.");
         }
 
-        const rawAirShoppingResponse = validationResult.data?.airShoppingResponse;
-        const searchParams = validationResult.data?.searchParams;
+        const rawAirShoppingResponse = flightSearchResult.data.airShoppingResponse;
+        const searchParams = flightSearchResult.data.searchParams;
 
-        if (validationResult.recoveredFrom) {
-          logger.info(`✅ Flight data recovered from key: ${validationResult.recoveredFrom}`);
+        if (flightSearchResult.recovered) {
+          logger.info(`✅ Flight data recovered from backup storage: ${flightSearchResult.source}`);
         } else {
-          logger.info('✅ Flight data retrieved successfully');
+          logger.info('✅ Flight data retrieved successfully from robust storage');
         }
 
         // Create a unique cache key for this flight price request
@@ -286,8 +287,8 @@ function FlightDetailsPageContent() {
           sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(response.data.data.raw_response));
         }
 
-        // Cache the flight price data for future use
-        const priceDataForCache = {
+        // Cache the flight price data using robust storage manager
+        const flightPriceData: FlightPriceData = {
           flightId: flightId,
           pricedOffer: firstPricedOffer,
           rawResponse: response.data.data.raw_response,
@@ -296,12 +297,13 @@ function FlightDetailsPageContent() {
           expiresAt: Date.now() + (30 * 60 * 1000) // 30 minutes from now
         };
 
-        // Store in sessionStorage for immediate access
-        sessionStorage.setItem('currentFlightPrice', JSON.stringify(priceDataForCache));
-
-        // Store in localStorage for persistent cache
-        localStorage.setItem(cacheKey, JSON.stringify(priceDataForCache));
-        console.log('💾 Flight price data cached successfully');
+        // Store using robust storage manager
+        const storeResult = await flightStorageManager.storeFlightPrice(flightPriceData);
+        if (storeResult.success) {
+          console.log('💾 Flight price data cached successfully with robust storage');
+        } else {
+          console.warn('⚠️ Failed to cache flight price data:', storeResult.error);
+        }
 
         } // End of API call block
 

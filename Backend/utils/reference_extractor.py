@@ -83,8 +83,10 @@ class EnhancedReferenceExtractor:
         # Get shopping response IDs
         refs['shopping_response_ids'] = MultiAirlineDetector._extract_shopping_response_ids(self.response)
         
-        # Extract references by type
+        # Extract references by type - handle both direct and nested structures
         data_lists = self.response.get('DataLists', {})
+        if not data_lists and 'data' in self.response:
+            data_lists = self.response.get('data', {}).get('DataLists', {})
         
         # Process each airline
         for airline_code in refs['airline_codes']:

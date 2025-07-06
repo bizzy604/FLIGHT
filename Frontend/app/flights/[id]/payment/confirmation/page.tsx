@@ -14,6 +14,8 @@ import { PaymentConfirmation } from "@/components/payment-confirmation"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { toast } from "@/components/ui/use-toast"
 import { getBookingData, getStorageInfo } from "@/utils/booking-storage"
+import { flightStorageManager } from "@/utils/flight-storage-manager"
+import { setupRobustStorage } from "@/utils/storage-integration-example"
 
 export default function ConfirmationPage() {
   const router = useRouter()
@@ -107,7 +109,7 @@ export default function ConfirmationPage() {
     }
   }, [isHydrated, booking, searchParams])
 
-  // Enhanced data recovery mechanism that handles hot reloads
+  // Enhanced data recovery mechanism using robust storage
   useEffect(() => {
     // Don't run until hydrated to prevent SSR/client mismatch
     if (!isHydrated) return
@@ -116,6 +118,9 @@ export default function ConfirmationPage() {
         setIsLoading(true)
         setError(null)
 
+        // Setup robust storage
+        await setupRobustStorage()
+
         // Get the booking reference from URL query parameter
         const bookingReference = searchParams.get("reference")
 
@@ -123,23 +128,27 @@ export default function ConfirmationPage() {
           throw new Error("Booking reference not found")
         }
 
-        // Enhanced storage recovery with multiple attempts
+        // Enhanced storage recovery using robust storage manager
         let completedBookingData = null
         let recoveryMethod = "none"
 
-        // Attempt 1: Try immediate retrieval
-        const storageInfo = getStorageInfo()
+        // Attempt 1: Try robust storage manager first
+        const bookingResult = await flightStorageManager.getBookingData()
+        if (bookingResult.success && bookingResult.data) {
+          completedBookingData = bookingResult.data
+          recoveryMethod = bookingResult.recovered ? "robust_storage_recovered" : "robust_storage"
+        } else {
+          // Attempt 2: Fallback to old storage system
+          const storageInfo = getStorageInfo()
+          completedBookingData = await getBookingData()
 
-
-        completedBookingData = getBookingData()
-
-        // Attempt 2: If no data found, wait a bit and try again (handles hot reload timing)
-        if (!completedBookingData && process.env.NODE_ENV === 'development') {
-
-          await new Promise(resolve => setTimeout(resolve, 100))
-          completedBookingData = getBookingData()
-          if (completedBookingData) {
-            recoveryMethod = "delayed_retry"
+          // Attempt 3: If no data found, wait a bit and try again (handles hot reload timing)
+          if (!completedBookingData && process.env.NODE_ENV === 'development') {
+            await new Promise(resolve => setTimeout(resolve, 100))
+            completedBookingData = await getBookingData()
+            if (completedBookingData) {
+              recoveryMethod = "delayed_retry"
+            }
           }
         }
 

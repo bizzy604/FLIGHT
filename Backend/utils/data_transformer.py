@@ -60,8 +60,13 @@ def transform_verteil_to_frontend(
             # Process each priced offer
             for i, priced_offer in enumerate(priced_offers):
                 try:
-                    # Extract airline code from the offer
-                    airline_code = priced_offer.get('OfferID', {}).get('Owner', 'UNKNOWN')
+                    # Extract airline code from operating carrier (consistent with air shopping)
+                    airline_code = _extract_operating_carrier_from_priced_offer(priced_offer, reference_data)
+
+                    # Fallback to offer owner if no operating carrier found
+                    if airline_code == 'UNKNOWN':
+                        airline_code = priced_offer.get('OfferID', {}).get('Owner', 'UNKNOWN')
+
                     logger.info(f"Processing PricedFlightOffer {i+1}, airline: {airline_code}")
                     
                     # Transform the offer, passing the frontend_offer_id if available
@@ -162,6 +167,69 @@ def transform_verteil_to_frontend(
             'offers': [],
             'reference_data': {}
         }
+
+def _extract_operating_carrier_from_priced_offer(priced_offer: Dict[str, Any], reference_data: Dict[str, Any]) -> str:
+    """
+    Extract airline code from operating carrier in flight segments for a priced offer.
+
+    Args:
+        priced_offer: The priced offer data
+        reference_data: Reference data containing segments
+
+    Returns:
+        str: The operating carrier airline code or 'UNKNOWN'
+    """
+    try:
+        # Get segment references from the offer
+        segment_refs = set()
+        for offer_price in priced_offer.get('OfferPrice', []):
+            for assoc in offer_price.get('RequestedDate', {}).get('Associations', []):
+                for seg_ref in assoc.get('ApplicableFlight', {}).get('FlightSegmentReference', []):
+                    if 'ref' in seg_ref:
+                        segment_refs.add(seg_ref['ref'])
+
+        if not segment_refs:
+            logger.debug("No segment references found in priced offer")
+            return 'UNKNOWN'
+
+        # Look up segments in reference data to find operating carrier
+        segments = reference_data.get('segments', {})
+
+        # Find the first segment and extract operating carrier
+        for segment_key, segment in segments.items():
+            if segment_key in segment_refs:
+                # Try OperatingCarrier first
+                operating_carrier = segment.get('OperatingCarrier', {})
+                if operating_carrier:
+                    airline_id = operating_carrier.get('AirlineID', {})
+                    if isinstance(airline_id, dict):
+                        airline_code = airline_id.get('value')
+                    else:
+                        airline_code = airline_id
+
+                    if airline_code:
+                        logger.debug(f"Found operating carrier: {airline_code}")
+                        return airline_code
+
+                # Fallback to MarketingCarrier
+                marketing_carrier = segment.get('MarketingCarrier', {})
+                if marketing_carrier:
+                    airline_id = marketing_carrier.get('AirlineID', {})
+                    if isinstance(airline_id, dict):
+                        airline_code = airline_id.get('value')
+                    else:
+                        airline_code = airline_id
+
+                    if airline_code:
+                        logger.debug(f"Found marketing carrier: {airline_code}")
+                        return airline_code
+
+        logger.debug("No operating or marketing carrier found in segments")
+        return 'UNKNOWN'
+
+    except Exception as e:
+        logger.error(f"Error extracting operating carrier from priced offer: {e}")
+        return 'UNKNOWN'
 
 def _extract_airline_code_robust(airline_offer_group: Dict[str, Any]) -> str:
     """Robust airline code extraction with multiple fallbacks and detailed logging."""
@@ -788,33 +856,34 @@ def _transform_segment(segment_data: Dict[str, Any], reference_data: Dict[str, A
     dep_time = extract_time_with_priority(dep_time_raw, dep_datetime)
     arr_time = extract_time_with_priority(arr_time_raw, arr_datetime)
     
-    # Get airline information with better fallback handling
+    # Get airline information with operating carrier priority (consistent with air shopping)
     airline_code = 'Unknown'
     airline_name = 'Unknown Airline'
-    
-    # Try to get from MarketingCarrier first
-    marketing_carrier = segment_data.get('MarketingCarrier', {})
-    if marketing_carrier:
-        airline_code = marketing_carrier.get('AirlineID', {}).get('value', 'Unknown')
-        # Try to get name directly from segment first
-        if 'Name' in marketing_carrier and marketing_carrier['Name']:
-            airline_name = marketing_carrier['Name']
+
+    # Try to get from OperatingCarrier first (for consistency)
+    operating_carrier = segment_data.get('OperatingCarrier', {})
+    if operating_carrier:
+        operating_airline_code = operating_carrier.get('AirlineID', {}).get('value', 'Unknown')
+        if 'Name' in operating_carrier and operating_carrier['Name']:
+            airline_name = operating_carrier['Name']
+            airline_code = operating_airline_code
         else:
-            airline_name = _get_airline_name(airline_code, reference_data)
-    
-    # Fallback to OperatingCarrier if needed
-    if airline_name in ['Unknown', 'Unknown Airline', f"Airline {airline_code}"]:
-        operating_carrier = segment_data.get('OperatingCarrier', {})
-        if operating_carrier:
-            operating_airline_code = operating_carrier.get('AirlineID', {}).get('value', 'Unknown')
-            if 'Name' in operating_carrier and operating_carrier['Name']:
-                airline_name = operating_carrier['Name']
-            else:
-                airline_name = _get_airline_name(operating_airline_code, reference_data)
-            
-            # If we got a valid name from operating carrier, update the code too
+            airline_name = _get_airline_name(operating_airline_code, reference_data)
             if airline_name not in ['Unknown', 'Unknown Airline', f"Airline {operating_airline_code}"]:
                 airline_code = operating_airline_code
+
+    # Fallback to MarketingCarrier if operating carrier didn't provide good data
+    if airline_name in ['Unknown', 'Unknown Airline', f"Airline {airline_code}"]:
+        marketing_carrier = segment_data.get('MarketingCarrier', {})
+        if marketing_carrier:
+            marketing_airline_code = marketing_carrier.get('AirlineID', {}).get('value', 'Unknown')
+            if 'Name' in marketing_carrier and marketing_carrier['Name']:
+                airline_name = marketing_carrier['Name']
+                airline_code = marketing_airline_code
+            else:
+                airline_name = _get_airline_name(marketing_airline_code, reference_data)
+                if airline_name not in ['Unknown', 'Unknown Airline', f"Airline {marketing_airline_code}"]:
+                    airline_code = marketing_airline_code
     
     # Extract flight duration using correct path: FlightDetail.FlightDuration.Value
     flight_duration = segment_data.get('FlightDetail', {}).get('FlightDuration', {}).get('Value', 'N/A')

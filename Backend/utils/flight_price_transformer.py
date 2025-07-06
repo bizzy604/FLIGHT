@@ -177,8 +177,25 @@ def extract_reference_data(response: Dict[str, Any]) -> Dict[str, Any]:
 def build_flight_segment(segment_data: Dict[str, Any]) -> FlightSegment:
     dep = segment_data.get('Departure', {})
     arr = segment_data.get('Arrival', {})
-    airline_code = segment_data.get('MarketingCarrier', {}).get('AirlineID', {}).get('value', '??')
-    flight_num = segment_data.get('MarketingCarrier', {}).get('FlightNumber', {}).get('value', '000')
+
+    # Extract airline code - prioritize OperatingCarrier for consistency with air shopping
+    operating_carrier = segment_data.get('OperatingCarrier', {})
+    marketing_carrier = segment_data.get('MarketingCarrier', {})
+
+    # Use operating carrier first, fallback to marketing carrier
+    if operating_carrier and operating_carrier.get('AirlineID'):
+        airline_id = operating_carrier.get('AirlineID', {})
+        airline_code = airline_id.get('value') if isinstance(airline_id, dict) else airline_id
+    else:
+        airline_id = marketing_carrier.get('AirlineID', {})
+        airline_code = airline_id.get('value') if isinstance(airline_id, dict) else airline_id
+
+    # Default if no airline found
+    if not airline_code:
+        airline_code = '??'
+
+    # Flight number comes from marketing carrier
+    flight_num = marketing_carrier.get('FlightNumber', {}).get('value', '000')
     raw_duration = segment_data.get('FlightDetail', {}).get('FlightDuration', {}).get('Value', 'N/A')
     
     return FlightSegment(

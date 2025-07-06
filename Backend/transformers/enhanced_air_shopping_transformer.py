@@ -70,7 +70,7 @@ class EnhancedAirShoppingTransformer:
                 # Multi-airline: raw_response_index is already set during transformation
                 for offer in offers:
                     if 'raw_response_index' not in offer:
-                        logger.warning("Missing raw_response_index in multi-airline offer")
+                        logger.debug("Setting default raw_response_index for multi-airline offer")
                         offer['raw_response_index'] = 0
             else:
                 # Single-airline: assign original indices before sorting
@@ -142,8 +142,11 @@ class EnhancedAirShoppingTransformer:
         logger.info("Transforming multi-airline offers")
         offers = []
 
-        # Get offers from the response
+        # Get offers from the response - handle both direct and nested structures
         offers_group = self.response.get('OffersGroup', {})
+        if not offers_group and 'data' in self.response:
+            offers_group = self.response.get('data', {}).get('OffersGroup', {})
+
         airline_offers_list = offers_group.get('AirlineOffers', [])
 
         if not isinstance(airline_offers_list, list):
@@ -161,8 +164,15 @@ class EnhancedAirShoppingTransformer:
             for offer in airline_offers:
                 priced_offer = offer.get('PricedOffer')
                 if priced_offer:
-                    # Extract airline code from individual offer (more accurate than group-level)
+                    # Primary: Use OfferID.Owner as the authoritative airline code
                     airline_code = offer.get('OfferID', {}).get('Owner', '??')
+
+                    # If no owner found, fallback to operating carrier
+                    if airline_code == '??':
+                        airline_code = self._extract_operating_carrier_from_offer(offer)
+                        logger.debug(f"Using operating carrier as fallback: {airline_code}")
+                    else:
+                        logger.debug(f"Using OfferID.Owner as airline code: {airline_code}")
 
                     # Validate airline is supported (only if filtering is enabled)
                     if self.filter_unsupported_airlines and not AirlineMappingService.validate_airline_code(airline_code):
@@ -173,8 +183,9 @@ class EnhancedAirShoppingTransformer:
                     # Get airline-specific references
                     airline_refs = self.reference_extractor.get_airline_references(airline_code)
                     if not airline_refs:
-                        logger.warning(f"No references found for airline: {airline_code}")
-                        raw_offer_index += 1  # Still increment for skipped offers
+                        # Skip airlines without complete DataLists - only process real API data
+                        logger.warning(f"Skipping airline {airline_code} - no reference data available (not in actual API response)")
+                        raw_offer_index += 1
                         continue
 
                     transformed = self._transform_offer_with_airline_context(
@@ -225,12 +236,24 @@ class EnhancedAirShoppingTransformer:
             for offer in airline_offers:
                 priced_offer = offer.get('PricedOffer')
                 if priced_offer:
-                    # Extract airline code from offer
+                    # Primary: Use OfferID.Owner as the authoritative airline code
                     airline_code = offer.get('OfferID', {}).get('Owner', '??')
 
-                    transformed = self._transform_offer_with_airline_context(
-                        priced_offer, airline_code, global_refs, offer
-                    )
+                    # If no owner found, fallback to operating carrier
+                    if airline_code == '??':
+                        airline_code = self._extract_operating_carrier_from_offer(offer)
+                        logger.debug(f"Using operating carrier as fallback: {airline_code}")
+                    else:
+                        logger.debug(f"Using OfferID.Owner as airline code: {airline_code}")
+
+                    # Transform offer using airline context - skip if transformation fails
+                    try:
+                        transformed = self._transform_offer_with_airline_context(
+                            priced_offer, airline_code, global_refs, offer
+                        )
+                    except Exception as e:
+                        logger.warning(f"Failed to transform offer for {airline_code}: {e}")
+                        transformed = None
                     if transformed:
                         # Store the original index from the raw response
                         transformed['raw_response_index'] = raw_offer_index
@@ -439,26 +462,121 @@ class EnhancedAirShoppingTransformer:
     
     def _extract_airline_code_from_offer_group(self, airline_offer_group: Dict[str, Any]) -> str:
         """
-        Extract airline code from airline offer group.
-        
+        Extract airline code from airline offer group using operating carrier information.
+
         Args:
             airline_offer_group: The airline offer group data
-            
+
         Returns:
-            str: The airline code
+            str: The airline code from operating carrier
         """
         # Try to get from first offer in the group
         airline_offers = airline_offer_group.get('AirlineOffer', [])
         if not isinstance(airline_offers, list):
             airline_offers = [airline_offers] if airline_offers else []
-        
+
         if airline_offers:
             first_offer = airline_offers[0]
+
+            # Primary: Use OfferID.Owner as the authoritative airline code
             airline_code = first_offer.get('OfferID', {}).get('Owner', '??')
+            if airline_code and airline_code != '??':
+                return airline_code
+
+            # Fallback to operating carrier if no owner found
+            airline_code = self._extract_operating_carrier_from_offer(first_offer)
             return airline_code
-        
+
         return '??'
-    
+
+    def _extract_operating_carrier_from_offer(self, offer: Dict[str, Any]) -> str:
+        """
+        Extract airline code from operating carrier in flight segments.
+        Handles codeshare flights and multi-segment journeys.
+
+        Args:
+            offer: The airline offer data
+
+        Returns:
+            str: The operating carrier airline code or '??'
+        """
+        try:
+            priced_offer = offer.get('PricedOffer', {})
+
+            # Get segment references from the offer
+            segment_refs = set()
+            for offer_price in priced_offer.get('OfferPrice', []):
+                for assoc in offer_price.get('RequestedDate', {}).get('Associations', []):
+                    for seg_ref in assoc.get('ApplicableFlight', {}).get('FlightSegmentReference', []):
+                        if 'ref' in seg_ref:
+                            segment_refs.add(seg_ref['ref'])
+
+            if not segment_refs:
+                logger.debug("No segment references found in offer")
+                return '??'
+
+            # Look up segments in DataLists to find operating carrier
+            data_lists = self.response.get('DataLists', {})
+            segments = data_lists.get('FlightSegmentList', {}).get('FlightSegment', [])
+            if not isinstance(segments, list):
+                segments = [segments] if segments else []
+
+            # Collect all carriers from relevant segments
+            operating_carriers = []
+            marketing_carriers = []
+
+            for segment in segments:
+                segment_key = segment.get('SegmentKey', '')
+                if segment_key in segment_refs:
+                    # Extract OperatingCarrier
+                    operating_carrier = segment.get('OperatingCarrier', {})
+                    if operating_carrier:
+                        airline_id = operating_carrier.get('AirlineID', {})
+                        if isinstance(airline_id, dict):
+                            airline_code = airline_id.get('value')
+                        else:
+                            airline_code = airline_id
+
+                        if airline_code and airline_code not in operating_carriers:
+                            operating_carriers.append(airline_code)
+
+                    # Extract MarketingCarrier as fallback
+                    marketing_carrier = segment.get('MarketingCarrier', {})
+                    if marketing_carrier:
+                        airline_id = marketing_carrier.get('AirlineID', {})
+                        if isinstance(airline_id, dict):
+                            airline_code = airline_id.get('value')
+                        else:
+                            airline_code = airline_id
+
+                        if airline_code and airline_code not in marketing_carriers:
+                            marketing_carriers.append(airline_code)
+
+            # Return the primary operating carrier (first one found)
+            if operating_carriers:
+                primary_carrier = operating_carriers[0]
+                logger.debug(f"Found operating carrier: {primary_carrier} (from {len(operating_carriers)} segments)")
+                return primary_carrier
+
+            # Fallback to marketing carrier
+            if marketing_carriers:
+                primary_carrier = marketing_carriers[0]
+                logger.debug(f"Found marketing carrier: {primary_carrier} (from {len(marketing_carriers)} segments)")
+                return primary_carrier
+
+            logger.debug("No operating or marketing carrier found in segments")
+            return '??'
+
+        except Exception as e:
+            logger.error(f"Error extracting operating carrier from offer: {e}")
+            return '??'
+
+
+
+
+
+
+
     def get_airline_statistics(self) -> Dict[str, Any]:
         """
         Get statistics about airlines in the response.

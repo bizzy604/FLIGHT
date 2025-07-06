@@ -1,7 +1,9 @@
 /**
  * Utility functions for persistent booking data storage
- * Implements hybrid localStorage/sessionStorage approach for better persistence
+ * Now uses the robust storage manager for corruption-free storage
  */
+
+import { flightStorageManager, BookingData } from './flight-storage-manager';
 
 interface BookingStorageData {
   data: any;
@@ -28,108 +30,53 @@ function getStorageKey(): string {
 }
 
 /**
- * Store booking data in both sessionStorage and localStorage for persistence
+ * Store booking data using robust storage manager
  * @param bookingData - The booking data to store
  */
-export function storeBookingData(bookingData: any): void {
+export async function storeBookingData(bookingData: any): Promise<boolean> {
   try {
-    const timestamp = Date.now();
-    const expiresAt = timestamp + (EXPIRY_MINUTES * 60 * 1000);
-    const storageKey = getStorageKey();
-    
-    const storageData: BookingStorageData = {
-      data: bookingData,
-      timestamp,
-      expiresAt
+    const bookingDataForStorage: BookingData = {
+      bookingReference: bookingData.bookingReference,
+      orderId: bookingData.orderId,
+      passengerInfo: bookingData.passengerInfo,
+      flightDetails: bookingData.flightDetails,
+      paymentInfo: bookingData.paymentInfo,
+      timestamp: Date.now()
     };
-    
-    const serializedData = JSON.stringify(storageData);
-    
-    // Store in sessionStorage (primary)
-    sessionStorage.setItem(storageKey, JSON.stringify(bookingData));
-    
-    // Store in localStorage (backup with expiry)
-    localStorage.setItem(storageKey, serializedData);
-    
-    // In development, also store with a persistent key that survives hot reloads
-    if (isDevelopment()) {
-      localStorage.setItem(`${storageKey}_persistent`, serializedData);
-      console.log('[BookingStorage] Development mode: Data stored with persistent backup');
+
+    const result = await flightStorageManager.storeBookingData(bookingDataForStorage);
+
+    if (result.success) {
+      console.log(`[BookingStorage] ✅ Data stored successfully with robust storage manager`);
+      return true;
+    } else {
+      console.error('[BookingStorage] ❌ Failed to store booking data:', result.error);
+      return false;
     }
-    
-    console.log(`[BookingStorage] Data stored in both session and local storage (${isDevelopment() ? 'DEV' : 'PROD'} mode)`);
   } catch (error) {
     console.error('[BookingStorage] Failed to store booking data:', error);
+    return false;
   }
 }
 
 /**
- * Retrieve booking data with fallback priority: sessionStorage → localStorage → persistent backup
+ * Retrieve booking data using robust storage manager
  * @returns The booking data or null if not found/expired
  */
-export function getBookingData(): any | null {
+export async function getBookingData(): Promise<any | null> {
   try {
-    const storageKey = getStorageKey();
+    const result = await flightStorageManager.getBookingData();
 
-    // First try sessionStorage (primary)
-    const sessionData = sessionStorage.getItem(storageKey);
-    if (sessionData) {
-      console.log('[BookingStorage] Retrieved data from sessionStorage');
-      return JSON.parse(sessionData);
-    }
-
-    // In development, try persistent backup first (better for hot reloads)
-    if (isDevelopment()) {
-      const persistentData = localStorage.getItem(`${storageKey}_persistent`);
-      if (persistentData) {
-        try {
-          const storageData: BookingStorageData = JSON.parse(persistentData);
-
-          // Check if data has expired
-          if (Date.now() <= storageData.expiresAt) {
-            console.log('[BookingStorage] Retrieved data from persistent backup (development)');
-
-            // Restore to both sessionStorage and regular localStorage
-            sessionStorage.setItem(storageKey, JSON.stringify(storageData.data));
-            localStorage.setItem(storageKey, persistentData);
-
-            return storageData.data;
-          } else {
-            console.log('[BookingStorage] Persistent data expired, cleaning up');
-            localStorage.removeItem(`${storageKey}_persistent`);
-          }
-        } catch (error) {
-          console.error('[BookingStorage] Error parsing persistent data:', error);
-          localStorage.removeItem(`${storageKey}_persistent`);
-        }
+    if (result.success) {
+      console.log('[BookingStorage] ✅ Retrieved data successfully');
+      if (result.recovered) {
+        console.log('[BookingStorage] 🔄 Data was recovered from backup storage');
       }
+      return result.data;
+    } else {
+      console.log('[BookingStorage] ❌ No booking data found:', result.error);
+      return null;
     }
-    
-    // Fallback to localStorage (backup)
-    const localData = localStorage.getItem(storageKey);
-    if (localData) {
-      const storageData: BookingStorageData = JSON.parse(localData);
-      
-      // Check if data has expired
-      if (Date.now() > storageData.expiresAt) {
-        console.log('[BookingStorage] localStorage data expired, cleaning up');
-        localStorage.removeItem(storageKey);
-        if (isDevelopment()) {
-          localStorage.removeItem(`${storageKey}_persistent`);
-        }
-        return null;
-      }
-      
-      console.log('[BookingStorage] Retrieved data from localStorage (fallback)');
-      
-      // Restore to sessionStorage for future requests
-      sessionStorage.setItem(storageKey, JSON.stringify(storageData.data));
-      
-      return storageData.data;
-    }
-    
-    console.log('[BookingStorage] No booking data found in storage');
-    return null;
   } catch (error) {
     console.error('[BookingStorage] Failed to retrieve booking data:', error);
     return null;
@@ -137,20 +84,12 @@ export function getBookingData(): any | null {
 }
 
 /**
- * Clear booking data from both storage locations
+ * Clear booking data using robust storage manager
  */
-export function clearBookingData(): void {
+export async function clearBookingData(): Promise<void> {
   try {
-    const storageKey = getStorageKey();
-    sessionStorage.removeItem(storageKey);
-    localStorage.removeItem(storageKey);
-    
-    // In development, also clear persistent backup
-    if (isDevelopment()) {
-      localStorage.removeItem(`${storageKey}_persistent`);
-    }
-    
-    console.log(`[BookingStorage] Booking data cleared from all storages (${isDevelopment() ? 'DEV' : 'PROD'} mode)`);
+    await flightStorageManager.clearAllFlightData();
+    console.log(`[BookingStorage] ✅ Booking data cleared successfully`);
   } catch (error) {
     console.error('[BookingStorage] Failed to clear booking data:', error);
   }

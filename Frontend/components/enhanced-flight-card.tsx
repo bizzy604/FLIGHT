@@ -27,8 +27,9 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { FlightOffer, FlightSegmentDetails, Penalty } from "@/types/flight-api"
-import { validateAndRecoverFlightData } from "@/utils/flight-data-validator"
+
 import { logger } from "@/utils/logger"
+import { flightStorageManager } from "@/utils/flight-storage-manager"
 
 interface EnhancedFlightCardProps {
   flight: FlightOffer
@@ -86,37 +87,40 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
         searchParams: searchParams || {}
       };
 
-      // Create a unique key for this flight
-      const flightKey = `flight_${flight.id}_${Date.now()}`;
+      // Store selected flight data using robust storage manager
+      const storeResult = await flightStorageManager.storeSelectedFlight(flightData);
 
-      // Store the flight data
-      localStorage.setItem(flightKey, JSON.stringify(flightData));
-
-      // Store the key for easy retrieval
-      localStorage.setItem('currentFlightKey', flightKey);
+      if (!storeResult.success) {
+        logger.warn('⚠️ Failed to store selected flight data:', storeResult.error);
+        // Continue anyway - don't block user flow
+      } else {
+        logger.info('✅ Selected flight data stored successfully');
+      }
 
       // If this is a roundtrip, store the return flight data as well
       if (flight.returnFlight) {
-        const returnKey = `flight_${flight.returnFlight.id}_${Date.now()}_return`;
         const returnFlightData = {
           flight: flight.returnFlight,
           timestamp: new Date().toISOString(),
           expiresAt: Date.now() + (30 * 60 * 1000), // 30 minutes expiry
           searchParams: searchParams || {}
         };
-        localStorage.setItem(returnKey, JSON.stringify(returnFlightData));
-        localStorage.setItem('returnFlightKey', returnKey);
+
+        const returnStoreResult = await flightStorageManager.storeSelectedFlight(returnFlightData);
+        if (!returnStoreResult.success) {
+          logger.warn('⚠️ Failed to store return flight data:', returnStoreResult.error);
+        }
       }
 
-      // Validate and recover flight search data using the robust validator
-      const validationResult = validateAndRecoverFlightData();
-      if (!validationResult.isValid || !validationResult.data) {
-        logger.error('❌ Flight data validation failed:', validationResult.error);
-        throw new Error(validationResult.error || 'Flight search data not found. Please start a new search.');
+      // Validate flight search data using robust storage manager
+      const flightSearchResult = await flightStorageManager.getFlightSearch();
+      if (!flightSearchResult.success || !flightSearchResult.data) {
+        logger.error('❌ Flight data validation failed:', flightSearchResult.error);
+        throw new Error(flightSearchResult.error || 'Flight search data not found. Please start a new search.');
       }
 
-      if (validationResult.recovered) {
-        logger.info('✅ Flight data recovered from alternate key:', validationResult.recoveredFrom);
+      if (flightSearchResult.recovered) {
+        logger.info('✅ Flight data recovered from backup storage:', flightSearchResult.source);
       } else {
         logger.info('✅ Flight data validation passed');
       }

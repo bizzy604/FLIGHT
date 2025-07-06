@@ -79,15 +79,23 @@ class MultiAirlineDetector:
         airline_codes: Set[str] = set()
         
         try:
-            # Extract from warnings
+            # Extract from warnings - handle both direct and nested structures
             warnings = response.get('Warnings', {}).get('Warning', [])
+            if not warnings and 'data' in response:
+                warnings = response.get('data', {}).get('Warnings', {}).get('Warning', [])
+
+            if not isinstance(warnings, list):
+                warnings = [warnings] if warnings else []
+
             for warning in warnings:
                 owner = warning.get('Owner')
                 if owner and MultiAirlineDetector.AIRLINE_CODE_PATTERN.match(owner):
                     airline_codes.add(owner)
-            
-            # Extract from prefixed references in DataLists
+
+            # Extract from prefixed references in DataLists - handle both direct and nested structures
             data_lists = response.get('DataLists', {})
+            if not data_lists and 'data' in response:
+                data_lists = response.get('data', {}).get('DataLists', {})
             
             # Check AnonymousTravelerList
             travelers = data_lists.get('AnonymousTravelerList', {}).get('AnonymousTraveler', [])
@@ -165,11 +173,19 @@ class MultiAirlineDetector:
     def _has_airline_prefixed_references(response: Dict) -> bool:
         """Check if response contains airline-prefixed references."""
         try:
+            # Handle both direct response and wrapped response structures
             data_lists = response.get('DataLists', {})
+            if not data_lists and 'data' in response:
+                # Try nested structure (wrapped response)
+                data_lists = response.get('data', {}).get('DataLists', {})
+
             logger.info(f"[DEBUG] DataLists keys: {list(data_lists.keys())}")
 
             # Check travelers
             travelers = data_lists.get('AnonymousTravelerList', {}).get('AnonymousTraveler', [])
+            if not isinstance(travelers, list):
+                travelers = [travelers] if travelers else []
+
             logger.info(f"[DEBUG] Found {len(travelers)} travelers")
             for i, traveler in enumerate(travelers[:3]):  # Log first 3 travelers
                 object_key = traveler.get('ObjectKey', '')
@@ -180,6 +196,9 @@ class MultiAirlineDetector:
 
             # Check segments
             segments = data_lists.get('FlightSegmentList', {}).get('FlightSegment', [])
+            if not isinstance(segments, list):
+                segments = [segments] if segments else []
+
             logger.info(f"[DEBUG] Found {len(segments)} segments")
             for i, segment in enumerate(segments[:3]):  # Log first 3 segments
                 segment_key = segment.get('SegmentKey', '')
@@ -199,16 +218,24 @@ class MultiAirlineDetector:
     def _has_multiple_airline_warnings(response: Dict) -> bool:
         """Check if response has warnings from multiple airlines."""
         try:
+            # Handle both direct response and wrapped response structures
             warnings = response.get('Warnings', {}).get('Warning', [])
+            if not warnings and 'data' in response:
+                # Try nested structure (wrapped response)
+                warnings = response.get('data', {}).get('Warnings', {}).get('Warning', [])
+
+            if not isinstance(warnings, list):
+                warnings = [warnings] if warnings else []
+
             airline_owners = set()
-            
+
             for warning in warnings:
                 owner = warning.get('Owner')
                 if owner and MultiAirlineDetector.AIRLINE_CODE_PATTERN.match(owner):
                     airline_owners.add(owner)
-            
+
             return len(airline_owners) > 1
-            
+
         except Exception:
             return False
     
