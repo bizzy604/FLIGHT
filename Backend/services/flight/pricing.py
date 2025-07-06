@@ -9,6 +9,7 @@ from typing import Dict, Any, Optional, List
 import uuid
 import sys
 import os
+from datetime import datetime
 
 # Import the flight price transformer and request builder from their respective packages
 from utils.flight_price_transformer import transform_for_frontend
@@ -28,7 +29,16 @@ logger = logging.getLogger(__name__)
 
 class FlightPricingService(FlightService):
     """Service for handling flight pricing operations."""
-    
+
+    async def __aenter__(self):
+        """Async context manager entry."""
+        await super().__aenter__()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit."""
+        await super().__aexit__(exc_type, exc_val, exc_tb)
+
     @async_rate_limited(limit=100, window=60)
     @async_cache(timeout=300)
     async def get_flight_price(
@@ -38,6 +48,7 @@ class FlightPricingService(FlightService):
         shopping_response_id: str,
         currency: str = "USD",
         request_id: Optional[str] = None,
+        raw_response_cache_key: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Get pricing for a specific flight offer.
@@ -57,10 +68,55 @@ class FlightPricingService(FlightService):
             APIError: If there's an error communicating with the API
         """
         logger.info(f"[INFO] Starting flight price request for offer ID: {offer_id}")
-        
+
         try:
+            # Try to retrieve raw response from cache if cache key is provided
+            actual_airshopping_response = airshopping_response
+
+            # Check if we received metadata instead of raw response (optimized flow)
+            if isinstance(airshopping_response, dict) and 'raw_response_cache_key' in airshopping_response:
+                cache_key = airshopping_response['raw_response_cache_key']
+                logger.info(f"Detected optimized flow with cache key: {cache_key}")
+                try:
+                    from utils.cache_manager import cache_manager
+                    cached_raw_response = cache_manager.get(cache_key)
+                    if cached_raw_response:
+                        logger.info(f"✅ Retrieved raw air shopping response from cache using key: {cache_key}")
+                        actual_airshopping_response = cached_raw_response
+                    else:
+                        logger.error(f"❌ Raw response not found in cache for key: {cache_key}")
+                        raise ValidationError(f"Raw air shopping response not found in cache. Cache key: {cache_key}")
+                except Exception as cache_error:
+                    logger.error(f"❌ Failed to retrieve raw response from cache: {cache_error}")
+                    raise ValidationError(f"Failed to retrieve raw air shopping response from cache: {cache_error}")
+
+            # Also check the raw_response_cache_key parameter (alternative method)
+            elif raw_response_cache_key:
+                try:
+                    from utils.cache_manager import cache_manager
+                    cached_raw_response = cache_manager.get(raw_response_cache_key)
+                    if cached_raw_response:
+                        logger.info(f"✅ Retrieved raw response from cache using parameter key: {raw_response_cache_key}")
+                        actual_airshopping_response = cached_raw_response
+                    else:
+                        logger.warning(f"⚠️ Raw response not found in cache for parameter key: {raw_response_cache_key}, using provided response")
+                except Exception as cache_error:
+                    logger.warning(f"⚠️ Failed to retrieve raw response from cache: {cache_error}, using provided response")
+
+            # Debug the actual air shopping response structure
+            logger.info(f"🔍 Actual air shopping response type: {type(actual_airshopping_response)}")
+            if isinstance(actual_airshopping_response, dict):
+                logger.info(f"🔍 Actual air shopping response keys: {list(actual_airshopping_response.keys())[:10]}")  # First 10 keys
+                # Check if it has the expected structure
+                if 'OffersGroup' in actual_airshopping_response:
+                    logger.info(f"✅ Found OffersGroup in actual air shopping response")
+                elif 'AirShoppingRS' in actual_airshopping_response:
+                    logger.info(f"✅ Found AirShoppingRS in actual air shopping response")
+                else:
+                    logger.warning(f"⚠️ No OffersGroup or AirShoppingRS found in actual air shopping response")
+
             # Validate input
-            if not airshopping_response or not offer_id:
+            if not actual_airshopping_response or not offer_id:
                 raise ValidationError("Missing required parameters for flight pricing")
 
             # Allow frontend to pass placeholder for shopping_response_id in multi-airline scenarios
@@ -70,10 +126,10 @@ class FlightPricingService(FlightService):
             # Generate a request ID if not provided
             request_id = request_id or str(uuid.uuid4())
             
-            # Debug: Log the structure of the air shopping response
-            logger.info(f"[DEBUG] Air shopping response keys: {list(airshopping_response.keys())}")
-            if 'DataLists' in airshopping_response:
-                data_lists = airshopping_response['DataLists']
+            # Debug: Log the structure of the actual air shopping response (raw cached response)
+            logger.info(f"[DEBUG] Actual air shopping response keys: {list(actual_airshopping_response.keys())}")
+            if 'DataLists' in actual_airshopping_response:
+                data_lists = actual_airshopping_response['DataLists']
                 logger.info(f"[DEBUG] DataLists keys: {list(data_lists.keys())}")
                 if 'AnonymousTravelerList' in data_lists:
                     travelers = data_lists['AnonymousTravelerList']
@@ -83,13 +139,15 @@ class FlightPricingService(FlightService):
                             first_traveler = traveler_list[0]
                             logger.info(f"[DEBUG] First traveler ObjectKey: {first_traveler.get('ObjectKey', 'N/A')}")
 
-            # Extract airline code from the offer
-            airline_code = self._extract_airline_code_from_offer(airshopping_response, offer_id)
+            # Extract airline code from the offer using the actual raw response
+            logger.info(f"🔧 DEBUGGING: About to call _extract_airline_code_from_offer with response type: {type(actual_airshopping_response)}")
+            logger.info(f"🔧 DEBUGGING: Response keys being passed: {list(actual_airshopping_response.keys())[:5]}")
+            airline_code = self._extract_airline_code_from_offer(actual_airshopping_response, offer_id)
             logger.info(f"Extracted airline code '{airline_code}' for offer {offer_id} (ReqID: {request_id})")
 
-            # Get airline-specific ShoppingResponseID for multi-airline support
+            # Get airline-specific ShoppingResponseID for multi-airline support using the actual raw response
             if airline_code:
-                airline_shopping_response_id = self._get_shopping_response_id_for_airline(airshopping_response, airline_code)
+                airline_shopping_response_id = self._get_shopping_response_id_for_airline(actual_airshopping_response, airline_code)
                 if airline_shopping_response_id:
                     # Use airline-specific ShoppingResponseID if available
                     shopping_response_id = airline_shopping_response_id
@@ -104,13 +162,13 @@ class FlightPricingService(FlightService):
                 raise ValidationError("Could not determine airline code for ShoppingResponseID extraction")
 
             # [PASSENGER DEBUG] Log passenger data from air shopping response
-            if 'DataLists' in airshopping_response and 'AnonymousTravelerList' in airshopping_response['DataLists']:
-                traveler_list = airshopping_response['DataLists']['AnonymousTravelerList']
+            if 'DataLists' in actual_airshopping_response and 'AnonymousTravelerList' in actual_airshopping_response['DataLists']:
+                traveler_list = actual_airshopping_response['DataLists']['AnonymousTravelerList']
                 logger.info(f"[PASSENGER DEBUG] Flight Pricing Service - Input AnonymousTravelerList count: {len(traveler_list) if isinstance(traveler_list, list) else 1}")
 
             # Build the pricing payload
             pricing_payload = self._build_pricing_payload(
-                airshopping_response=airshopping_response,
+                airshopping_response=actual_airshopping_response,
                 offer_id=offer_id
             )
 
@@ -141,11 +199,23 @@ class FlightPricingService(FlightService):
                 response_travelers = response['DataLists']['AnonymousTravelerList']
                 logger.info(f"[PASSENGER DEBUG] Flight Price API Response - AnonymousTravelerList count: {len(response_travelers) if isinstance(response_travelers, list) else 1}")
 
+            # Cache the raw flight price response for order creation
+            flight_price_cache_key = f"flight_price_raw_{request_id}_{int(datetime.now().timestamp())}"
+            try:
+                from utils.cache_manager import cache_manager
+                # Cache for 30 minutes (1800 seconds) - same as frontend session
+                cache_manager.set(flight_price_cache_key, response, ttl=1800)
+                logger.info(f"Raw flight price response cached with key: {flight_price_cache_key}")
+            except Exception as cache_error:
+                logger.warning(f"Failed to cache raw flight price response: {cache_error}")
+                flight_price_cache_key = None
+
             # Process the response, passing the frontend's offer_id to ensure consistency
             processed_response = self._process_pricing_response(
                 response=response,
                 request_id=request_id,
-                frontend_offer_id=offer_id  # Pass the frontend's offer ID to maintain consistency
+                frontend_offer_id=offer_id,  # Pass the frontend's offer ID to maintain consistency
+                flight_price_cache_key=flight_price_cache_key  # Include cache key in processed response
             )
 
             # Check if the processing returned an error
@@ -189,6 +259,8 @@ class FlightPricingService(FlightService):
         """
         try:
             logger.info(f"Starting enhanced airline code extraction for offer_id: {offer_id}")
+            logger.info(f"🔧 DEBUGGING: Inside _extract_airline_code_from_offer - response type: {type(airshopping_response)}")
+            logger.info(f"🔧 DEBUGGING: Inside _extract_airline_code_from_offer - response keys: {list(airshopping_response.keys())[:5]}")
 
             # Detect response type
             is_multi_airline = MultiAirlineDetector.is_multi_airline_response(airshopping_response)
@@ -670,10 +742,11 @@ class FlightPricingService(FlightService):
             # Don't fail the request if we can't validate expiration, just log the error
 
     def _process_pricing_response(
-        self, 
-        response: Dict[str, Any], 
+        self,
+        response: Dict[str, Any],
         request_id: Optional[str] = None,
-        frontend_offer_id: Optional[str] = None
+        frontend_offer_id: Optional[str] = None,
+        flight_price_cache_key: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Process the FlightPrice API response using FlightPriceTransformer.
@@ -794,14 +867,19 @@ class FlightPricingService(FlightService):
             result = {
                 'priced_offers': transformed_offers,
                 'total_offers': len(transformed_offers),
-                'raw_response': response,  # Keep raw response for debugging
                 'transformation_status': 'success',
                 'metadata': {
                     'cache_key': cache_keys[0] if cache_keys else f"flight_price_response:{request_id or 'unknown'}",
+                    'flight_price_cache_key': flight_price_cache_key,  # For order creation to retrieve raw response
                     'cached': True,
                     'request_id': request_id
                 }
             }
+
+            # Only include raw_response if caching failed (fallback)
+            if flight_price_cache_key is None:
+                result['raw_response'] = response
+                logger.warning("Including raw_response in frontend response due to cache failure")
             
             return result
             
@@ -930,12 +1008,11 @@ async def get_flight_price(
 ) -> PricingResponse:
     """
     Get price for a specific flight offer.
-    
+
     This is a backward-compatible wrapper around the FlightPricingService.
     """
-    # Use a single service instance to avoid creating multiple TokenManager instances
-    service = FlightPricingService(config=config or {})
-    try:
+    # Use async context manager for proper session management
+    async with FlightPricingService(config=config or {}) as service:
         return await service.get_flight_price(
             airshopping_response=airshopping_response,
             offer_id=offer_id,
@@ -943,8 +1020,6 @@ async def get_flight_price(
             currency=currency,
             request_id=request_id
         )
-    finally:
-        await service.close()
 
 
 async def process_flight_price(price_request: Dict[str, Any]) -> Dict[str, Any]:
@@ -972,16 +1047,14 @@ async def process_flight_price(price_request: Dict[str, Any]) -> Dict[str, Any]:
     # Log the request details
     logger.info(f"[INFO] Processing flight price request for offer ID: {offer_id}")
     
-    # Use a single service instance to avoid creating multiple TokenManager instances
-    service = FlightPricingService(config=config)
-    try:
+    # Use async context manager for proper session management
+    async with FlightPricingService(config=config) as service:
         # Pass the offer_id as the frontend_offer_id to maintain consistency
         return await service.get_flight_price(
             airshopping_response=price_request.get('air_shopping_response', {}),
             offer_id=offer_id,
             shopping_response_id=price_request.get('shopping_response_id', ''),
             currency=price_request.get('currency', 'USD'),
-            request_id=price_request.get('request_id')
+            request_id=price_request.get('request_id'),
+            raw_response_cache_key=price_request.get('raw_response_cache_key')
         )
-    finally:
-        await service.close()

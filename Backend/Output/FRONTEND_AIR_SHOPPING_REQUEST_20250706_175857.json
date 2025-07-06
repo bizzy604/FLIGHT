@@ -1,0 +1,22 @@
+{
+  "timestamp": "2025-07-06T17:58:57.064528",
+  "description": "Frontend Air Shopping Request Data",
+  "data": {
+    "tripType": "ROUND_TRIP",
+    "odSegments": [
+      {
+        "origin": "NBO",
+        "destination": "CDG",
+        "departureDate": "2025-07-10",
+        "returnDate": "2025-07-22"
+      }
+    ],
+    "numAdults": 2,
+    "numChildren": 1,
+    "numInfants": 1,
+    "outboundCabinClass": "PREMIUM_ECONOMY",
+    "returnCabinClass": "PREMIUM_ECONOMY",
+    "enableRoundtrip": true,
+    "directOnly": false
+  }
+}

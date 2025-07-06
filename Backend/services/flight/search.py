@@ -24,7 +24,20 @@ logger = logging.getLogger(__name__)
 
 class FlightSearchService(FlightService):
     """Service for handling flight search operations. Returns RAW data."""
-    
+
+    async def __aenter__(self):
+        """Async context manager entry."""
+        # Only create session if we don't already have one (shared session case)
+        if self._session is None:
+            await super().__aenter__()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit."""
+        # Only close session if we own it (not shared)
+        if self._session is not None and not getattr(self, '_session_shared', False):
+            await super().__aexit__(exc_type, exc_val, exc_tb)
+
     @async_rate_limited(limit=100, window=60)
     @async_cache(timeout=300) # Caches the raw response
     async def search_flights_raw(self, criteria: SearchCriteria) -> Dict[str, Any]:
@@ -134,22 +147,21 @@ async def process_air_shopping(search_criteria: Dict[str, Any]) -> Dict[str, Any
     from utils.air_shopping_transformer import transform_air_shopping_for_results
 
     config = current_app.config
-    service = FlightSearchService(config)
-    try:
-        # 1. Get the RAW response from the airline
-        raw_response = await service.search_flights_raw(search_criteria)
 
-        # 2. Transform the raw response into the simple format for the results page
-        transformed_data = transform_air_shopping_for_results(raw_response)
+    async with FlightSearchService(config) as service:
+        try:
+            # 1. Get the RAW response from the airline
+            raw_response = await service.search_flights_raw(search_criteria)
 
-        # 3. Return a successful structure
-        return {
-            'status': 'success',
-            'data': transformed_data, # Contains {'offers': [...], 'raw_response': ...}
-            'request_id': search_criteria.get('request_id', str(uuid.uuid4()))
-        }
-    except Exception as e:
-        logger.error(f"Error in process_air_shopping orchestrator: {e}", exc_info=True)
-        return {'status': 'error', 'error': str(e)}
-    finally:
-        await service.close()
+            # 2. Transform the raw response into the simple format for the results page
+            transformed_data = transform_air_shopping_for_results(raw_response)
+
+            # 3. Return a successful structure
+            return {
+                'status': 'success',
+                'data': transformed_data, # Contains {'offers': [...], 'raw_response': ...}
+                'request_id': search_criteria.get('request_id', str(uuid.uuid4()))
+            }
+        except Exception as e:
+            logger.error(f"Error in process_air_shopping orchestrator: {e}", exc_info=True)
+            return {'status': 'error', 'error': str(e)}

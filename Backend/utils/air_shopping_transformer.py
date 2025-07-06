@@ -171,26 +171,7 @@ def _transform_offer_for_results_page(priced_offer, refs, offer=None):
             "duration": f"{int(total_hours)}h {int(total_minutes)}m",
             "stops": stops_count,
             "stopDetails": stop_details,
-            "segments": transformed_segments,
-            # Add basic baggage info (can be enhanced later)
-            "baggage": {
-                "checked": {"pieces": 1, "weight": "23kg"},
-                "carryon": {"pieces": 1, "weight": "7kg"}
-            },
-            # Add basic fare info
-            "fare": {
-                "type": "Economy",  # Can be enhanced based on cabin class
-                "refundable": False,  # Default value
-                "changeable": False   # Default value
-            },
-            # Add price breakdown for frontend display
-            "priceBreakdown": {
-                "baseFare": total_amount.get('value', 0) * 0.8,  # Estimate 80% as base fare
-                "taxes": total_amount.get('value', 0) * 0.15,    # Estimate 15% as taxes
-                "fees": total_amount.get('value', 0) * 0.05,     # Estimate 5% as fees
-                "totalPrice": total_amount.get('value', 0),
-                "currency": total_amount.get('Code', 'USD')
-            }
+            "segments": transformed_segments
         }
     except Exception as e:
         logger.error(f"Error transforming offer for results page: {e}", exc_info=True)

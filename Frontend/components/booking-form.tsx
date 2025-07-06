@@ -312,15 +312,20 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
         flightPriceData = JSON.parse(storedFlightPriceResponse)
       }
 
-      // Get the raw flight price response that the backend needs for order creation
-      const storedRawFlightPriceResponse = sessionStorage.getItem('rawFlightPriceResponse')
-      if (!storedRawFlightPriceResponse) {
-        // Don't return - continue to payment page with available data
+      // Get the flight price metadata that contains the cache key for backend to retrieve raw response
+      const storedFlightPriceMetadata = sessionStorage.getItem('flightPriceMetadata')
+      let flightPriceMetadata = null;
+      if (storedFlightPriceMetadata) {
+        flightPriceMetadata = JSON.parse(storedFlightPriceMetadata)
+        console.log('✅ Retrieved flight price metadata with cache key for order creation');
       }
 
+      // Fallback: Get the raw flight price response if metadata is not available (backward compatibility)
+      const storedRawFlightPriceResponse = sessionStorage.getItem('rawFlightPriceResponse')
       let rawFlightPriceResponse = null;
       if (storedRawFlightPriceResponse) {
         rawFlightPriceResponse = JSON.parse(storedRawFlightPriceResponse)
+        console.log('⚠️ Using raw flight price response as fallback');
       }
 
       // Extract shopping response ID from the raw flight price response
@@ -340,15 +345,18 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
       }
 
       // Prepare complete flight offer data for order creation
-      const flightOfferWithRawResponse = {
+      const flightOfferWithOptimizedData = {
         ...(flightPriceData || {}),
-        raw_flight_price_response: rawFlightPriceResponse,  // May be null - payment page will handle
+        // Include metadata with cache key for optimized backend retrieval
+        metadata: flightPriceMetadata,
+        // Fallback: Include raw response if metadata is not available
+        raw_flight_price_response: rawFlightPriceResponse,
         shopping_response_id: shoppingResponseId,
         order_id: orderId
       }
 
       // Store the complete flight offer data that the payment page expects
-      sessionStorage.setItem("selectedFlightOffer", JSON.stringify(flightOfferWithRawResponse))
+      sessionStorage.setItem("selectedFlightOffer", JSON.stringify(flightOfferWithOptimizedData))
 
     } catch (error) {
       // Store minimal data so payment page doesn't crash

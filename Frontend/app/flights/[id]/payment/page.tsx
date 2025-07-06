@@ -88,13 +88,15 @@ export default function PaymentPage() {
           currency: currency
         }
         
-        // The booking form now stores the complete flight offer data with raw response
+        // The booking form now stores the complete flight offer data with optimized metadata
         // Check if the data is already properly structured from the booking form
-        let flightOfferWithRawResponse;
+        let flightOfferWithOptimizedData;
 
-        if (pricedOffer.raw_flight_price_response && pricedOffer.shopping_response_id) {
-          // Data is already properly structured from the booking form
-          flightOfferWithRawResponse = pricedOffer;
+        if ((pricedOffer.metadata && pricedOffer.metadata.flight_price_cache_key) ||
+            (pricedOffer.raw_flight_price_response && pricedOffer.shopping_response_id)) {
+          // Data is already properly structured from the booking form (either optimized or fallback)
+          flightOfferWithOptimizedData = pricedOffer;
+          console.log('✅ Using structured flight offer data from booking form');
         } else {
           // Fallback: extract from old structure (for backward compatibility)
           const rawFlightPriceResponse = pricedOffer?.data?.raw_response
@@ -121,19 +123,30 @@ export default function PaymentPage() {
             orderId = rawFlightPriceResponse.data.raw_response.PricedFlightOffers.PricedFlightOffer[0].OfferID.value;
           }
 
-          flightOfferWithRawResponse = {
+          // Try to get optimized metadata first
+          const storedMetadata = sessionStorage.getItem('flightPriceMetadata');
+          const flightPriceMetadata = storedMetadata ? JSON.parse(storedMetadata) : null;
+
+          flightOfferWithOptimizedData = {
             ...pricedOffer,
-            raw_flight_price_response: rawFlightPriceResponse,
+            metadata: flightPriceMetadata,  // Include metadata with cache key for optimized retrieval
+            raw_flight_price_response: rawFlightPriceResponse,  // Fallback for backward compatibility
             shopping_response_id: shoppingResponseId,
             order_id: orderId
+          }
+
+          if (flightPriceMetadata?.flight_price_cache_key) {
+            console.log('✅ Using optimized flight price metadata with cache key');
+          } else {
+            console.log('⚠️ Using raw flight price response as fallback');
           }
         }
         
 
         const bookingData = {
           ...pendingBooking,
-          flightOffer: pricedOffer, // Pass the priced offer directly
-          flightDetails: pricedOffer, // For backward compatibility
+          flightOffer: flightOfferWithOptimizedData, // Pass the optimized flight offer with metadata/cache key
+          flightDetails: pricedOffer, // For backward compatibility with UI components
           totalAmount: totalPrice,
           currency: currency,
           pricing: {

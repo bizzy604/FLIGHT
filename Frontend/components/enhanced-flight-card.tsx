@@ -30,6 +30,8 @@ import type { FlightOffer, FlightSegmentDetails, Penalty } from "@/types/flight-
 
 import { logger } from "@/utils/logger"
 import { flightStorageManager } from "@/utils/flight-storage-manager"
+import { redisFlightStorage } from "@/utils/redis-flight-storage"
+import { api } from "@/utils/api-client"
 
 interface EnhancedFlightCardProps {
   flight: FlightOffer
@@ -112,26 +114,89 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
         }
       }
 
-      // Validate flight search data using robust storage manager
-      const flightSearchResult = await flightStorageManager.getFlightSearch();
-      if (!flightSearchResult.success || !flightSearchResult.data) {
-        logger.error('❌ Flight data validation failed:', flightSearchResult.error);
-        throw new Error(flightSearchResult.error || 'Flight search data not found. Please start a new search.');
+      // Call flight pricing API to get detailed pricing and store in Redis
+      logger.info('🔄 Calling flight pricing API for selected flight...');
+
+      // Get flight search data to extract metadata for API call
+      const flightSearchResult = await redisFlightStorage.getFlightSearch();
+
+      let airShoppingMetadata = {};
+      let shoppingResponseId = 'BACKEND_WILL_EXTRACT';
+
+      if (flightSearchResult.success && flightSearchResult.data) {
+        const rawAirShoppingResponse = flightSearchResult.data.airShoppingResponse;
+
+        // Extract metadata for backend cache retrieval
+        if (rawAirShoppingResponse?.data?.metadata) {
+          airShoppingMetadata = rawAirShoppingResponse.data.metadata;
+          logger.info('✅ Using metadata from cached air shopping response');
+        } else if (rawAirShoppingResponse?.metadata) {
+          airShoppingMetadata = rawAirShoppingResponse.metadata;
+          logger.info('✅ Using metadata from legacy air shopping response');
+        } else {
+          logger.warn('⚠️ No metadata found, backend will use cached response');
+        }
+      } else {
+        logger.warn('⚠️ No flight search data found, backend will handle cache retrieval');
       }
 
-      if (flightSearchResult.recovered) {
-        logger.info('✅ Flight data recovered from backup storage:', flightSearchResult.source);
-      } else {
-        logger.info('✅ Flight data validation passed');
+      // Call flight pricing API
+      const flightIndex = parseInt(flight.id); // flight.id is the index
+      const response = await api.getFlightPrice(
+        flightIndex,
+        shoppingResponseId,
+        airShoppingMetadata
+      );
+
+      if (!response.data || response.data.status !== 'success') {
+        throw new Error(response.data?.error || 'Failed to get flight pricing');
       }
+
+      // Extract the priced offer from the response
+      const firstPricedOffer = response.data.data.priced_offers[0];
+      if (!firstPricedOffer) {
+        throw new Error("No valid offer found in the pricing response");
+      }
+
+      logger.info('✅ Flight pricing API call successful');
+
+      // Store flight price data in Redis for the details page
+      const flightPriceData = {
+        flightId: flight.id,
+        pricedOffer: firstPricedOffer,
+        rawResponse: response.data.data.raw_response,
+        searchParams: searchParams || {},
+        timestamp: Date.now(),
+        expiresAt: Date.now() + (30 * 60 * 1000) // 30 minutes
+      };
+
+      const redisStoreResult = await redisFlightStorage.storeFlightPrice(flightPriceData);
+      if (redisStoreResult.success) {
+        logger.info('✅ Flight price data stored successfully in Redis');
+      } else {
+        logger.warn('⚠️ Failed to store flight price data in Redis:', redisStoreResult.error);
+        // Continue anyway - the details page will handle this
+      }
+
+      // Store metadata for order creation if available
+      if (response.data.data.metadata) {
+        sessionStorage.setItem('flightPriceMetadata', JSON.stringify(response.data.data.metadata));
+        logger.info('✅ Stored flight price metadata for order creation');
+      }
+
+      // Store priced offer in session storage for immediate access
+      sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(firstPricedOffer));
 
       // Add a small delay to show the loading state
       await new Promise(resolve => setTimeout(resolve, 500));
 
     } catch (error) {
       console.error('❌ Error during flight selection:', error);
-      // Show user-friendly error
-      alert(error instanceof Error ? error.message : 'Error selecting flight. Please try again.');
+
+      // Show user-friendly error message
+      const errorMessage = error instanceof Error ? error.message : 'Failed to get flight pricing';
+      alert(`Unable to select flight: ${errorMessage}. Please try again or select a different flight.`);
+
       setIsSelecting(false);
       return; // Don't navigate if there's an error
     } finally {
@@ -399,11 +464,11 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                     <div className="space-y-2">
                       <div className="flex items-center">
                         <Luggage className="h-4 w-4 mr-2" />
-                        <span className="text-sm">Carry-on: {flight.baggage?.carryOn?.description || 'Included'}</span>
+                        <span className="text-sm">Carry-on: {flight.baggage?.carryon || flight.baggage?.carryOn?.description || '7kg included'}</span>
                       </div>
                       <div className="flex items-center">
                         <Luggage className="h-4 w-4 mr-2" />
-                        <span className="text-sm">Checked: {flight.baggage?.checkedBaggage?.description || 'See fare rules'}</span>
+                        <span className="text-sm">Checked: {flight.baggage?.checked || flight.baggage?.checkedBaggage?.description || '23kg included'}</span>
                       </div>
                     </div>
                   </TabsContent>
@@ -415,8 +480,8 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                         <div className="flex items-center">
                           <span className="font-medium">Refundable</span>
                         </div>
-                        <Badge variant={flight.fareRules?.refundable ? "default" : "destructive"}>
-                          {flight.fareRules?.refundable ? "Yes" : "No"}
+                        <Badge variant={flight.fareRules?.refundable || flight.fare?.refundable ? "default" : "destructive"}>
+                          {flight.fareRules?.refundable || flight.fare?.refundable ? "Yes" : "No"}
                         </Badge>
                       </div>
                     </div>
@@ -426,8 +491,8 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                         <div className="flex items-center">
                           <span className="font-medium">Changeable</span>
                         </div>
-                        <Badge variant={flight.fareRules?.exchangeable ? "default" : "destructive"}>
-                          {flight.fareRules?.exchangeable ? "Yes" : "No"}
+                        <Badge variant={flight.fareRules?.exchangeable || flight.fare?.changeable ? "default" : "destructive"}>
+                          {flight.fareRules?.exchangeable || flight.fare?.changeable ? "Yes" : "No"}
                         </Badge>
                       </div>
                     </div>
@@ -753,7 +818,7 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
           <div className="bg-muted/50 p-4 md:p-6 flex flex-col justify-between min-w-[200px]">
             <div className="text-center mb-4">
               <div className="text-2xl font-bold">
-                {flight.priceBreakdown?.currency} {flight.priceBreakdown?.totalPrice || flight.price}
+                {flight.currency} {flight.price}
               </div>
               <div className="text-sm text-muted-foreground">
                 for all passengers

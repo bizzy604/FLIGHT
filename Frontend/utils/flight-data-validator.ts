@@ -60,13 +60,23 @@ export function validateAndRecoverFlightData(): FlightDataValidationResult {
         console.log('🔍 [Validator] Is expired:', storedData.expiresAt ? storedData.expiresAt < Date.now() : 'No expiry');
 
         if (storedData.expiresAt && storedData.expiresAt > Date.now() && storedData.airShoppingResponse) {
-          console.log('✅ [Validator] Valid data found with current key');
-          return {
-            isValid: true,
-            data: storedData,
-            recovered: false,
-            recoveredFrom: currentFlightDataKey
-          };
+          // Additional validation for optimized format
+          const airShoppingResponse = storedData.airShoppingResponse;
+          const hasValidData = airShoppingResponse.offers ||
+                              airShoppingResponse.data?.offers ||
+                              airShoppingResponse.data?.metadata?.raw_response_cache_key;
+
+          if (hasValidData) {
+            console.log('✅ [Validator] Valid data found with current key (optimized or legacy format)');
+            return {
+              isValid: true,
+              data: storedData,
+              recovered: false,
+              recoveredFrom: currentFlightDataKey
+            };
+          } else {
+            console.log('❌ [Validator] Current key data has no valid flight offers or cache key');
+          }
         } else {
           console.log('❌ [Validator] Current key data is invalid or expired');
         }
@@ -92,15 +102,25 @@ export function validateAndRecoverFlightData(): FlightDataValidationResult {
         });
 
         if (storedData.expiresAt && storedData.expiresAt > Date.now() && storedData.airShoppingResponse) {
-          // Update the current key for future use
-          localStorage.setItem('currentFlightDataKey', key);
-          console.log(`✅ [Validator] Flight data recovered from key: ${key}`);
-          return {
-            isValid: true,
-            data: storedData,
-            recovered: true,
-            recoveredFrom: key
-          };
+          // Additional validation for optimized format
+          const airShoppingResponse = storedData.airShoppingResponse;
+          const hasValidData = airShoppingResponse.offers ||
+                              airShoppingResponse.data?.offers ||
+                              airShoppingResponse.data?.metadata?.raw_response_cache_key;
+
+          if (hasValidData) {
+            // Update the current key for future use
+            localStorage.setItem('currentFlightDataKey', key);
+            console.log(`✅ [Validator] Flight data recovered from key: ${key} (optimized or legacy format)`);
+            return {
+              isValid: true,
+              data: storedData,
+              recovered: true,
+              recoveredFrom: key
+            };
+          } else {
+            console.log(`❌ [Validator] Key ${key} has no valid flight offers or cache key`);
+          }
         }
       } catch (e) {
         // Remove corrupted data

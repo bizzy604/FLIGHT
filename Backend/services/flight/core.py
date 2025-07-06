@@ -81,7 +81,7 @@ class FlightService:
         'VERTEIL_USERNAME': None,
         'VERTEIL_PASSWORD': None,
         'VERTEIL_TOKEN_ENDPOINT_PATH': '/oauth2/token', # Default path for token endpoint
-        'VERTEIL_API_TIMEOUT': 30,  # Default API timeout in seconds
+        'VERTEIL_API_TIMEOUT': 60,  # Default API timeout in seconds (increased for air shopping)
         'VERTEIL_MAX_RETRIES': 3,   # Default max retries for API calls
         'VERTEIL_RETRY_DELAY': 1,   # Default base delay for retries in seconds
         'OAUTH2_TOKEN_EXPIRY_BUFFER': 60,  # Seconds to subtract from token's expires_in for early refresh

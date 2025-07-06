@@ -11,6 +11,7 @@ import { logger } from "@/utils/logger"
 
 import { debugFlightStorage } from "@/utils/debug-storage"
 import { flightStorageManager, FlightPriceData } from "@/utils/flight-storage-manager"
+import { redisFlightStorage } from "@/utils/redis-flight-storage"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -56,6 +57,7 @@ function FlightDetailsPageContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [pricedOffer, setPricedOffer] = useState<TransformedOffer | null>(null)
+  const [cachedSearchParams, setCachedSearchParams] = useState<any>(null)
 
   useEffect(() => {
     const fetchFlightPrice = async () => {
@@ -66,246 +68,127 @@ function FlightDetailsPageContent() {
         console.log('🔍 Debugging storage before flight data validation...');
         debugFlightStorage();
 
-        // Use robust storage manager for data recovery
-        const flightSearchResult = await flightStorageManager.getFlightSearch();
+        // Enhanced debugging for storage retrieval
+        console.log('🔍 Checking for existing flight price data first...');
+
+        // Try to get existing flight price data from Redis first
+        let flightPriceResult = await redisFlightStorage.getFlightPrice();
+
+        console.log('🔍 Redis flight price result:', {
+          success: flightPriceResult.success,
+          hasData: !!flightPriceResult.data,
+          error: flightPriceResult.error,
+          session_id: redisFlightStorage.getCurrentSessionId()
+        });
+
+        // If Redis has flight price data, use it directly
+        if (flightPriceResult.success && flightPriceResult.data) {
+          console.log('✅ Found existing flight price data in Redis, using it directly');
+          const cachedPriceData = flightPriceResult.data;
+
+          if (cachedPriceData.pricedOffer) {
+            setPricedOffer(cachedPriceData.pricedOffer);
+
+            // Store search parameters for back button navigation
+            if (cachedPriceData.searchParams) {
+              setCachedSearchParams(cachedPriceData.searchParams);
+            }
+
+            // Store in sessionStorage for booking and faster future access
+            sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(cachedPriceData.pricedOffer));
+            if (cachedPriceData.rawResponse) {
+              sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(cachedPriceData.rawResponse));
+            }
+
+            setIsLoading(false);
+            return; // Data found and loaded, no need to fetch from API
+          }
+        }
+
+        // If no flight price data found, try to make API call as fallback
+        console.log('⚠️ No flight price data found in Redis, attempting API call as fallback...');
+
+        // Get flight search data for API call
+        const flightSearchResult = await redisFlightStorage.getFlightSearch();
 
         if (!flightSearchResult.success || !flightSearchResult.data) {
-          throw new Error(flightSearchResult.error || "No flight search data found. Your session may have expired. Please start a new search.");
+          console.log('❌ No flight search data available for API call');
+          throw new Error('Flight data not found. Your session may have expired. Please start a new search.');
         }
 
         const rawAirShoppingResponse = flightSearchResult.data.airShoppingResponse;
-        const searchParams = flightSearchResult.data.searchParams;
+        let airShoppingMetadata = {};
+        let shoppingResponseId = 'BACKEND_WILL_EXTRACT';
 
-        if (flightSearchResult.recovered) {
-          logger.info(`✅ Flight data recovered from backup storage: ${flightSearchResult.source}`);
+        // Extract metadata for backend cache retrieval
+        if (rawAirShoppingResponse?.data?.metadata) {
+          airShoppingMetadata = rawAirShoppingResponse.data.metadata;
+          console.log('✅ Using metadata from cached air shopping response');
+        } else if (rawAirShoppingResponse?.metadata) {
+          airShoppingMetadata = rawAirShoppingResponse.metadata;
+          console.log('✅ Using metadata from legacy air shopping response');
         } else {
-          logger.info('✅ Flight data retrieved successfully from robust storage');
+          console.log('⚠️ No metadata found, backend will use cached response');
         }
 
-        // Create a unique cache key for this flight price request
-        const cacheKey = `flightPrice_${flightId}_${searchParams?.origin}_${searchParams?.destination}_${searchParams?.departDate}_${searchParams?.adults}_${searchParams?.children}_${searchParams?.infants}`;
+        // Make flight pricing API call
+        console.log('🔄 Making flight pricing API call...');
+        const flightIndex = parseInt(flightId);
 
-        // Check for cached flight price data first
-        const checkCachedPriceData = () => {
-          try {
-            // Clean up expired flight price cache entries
-            Object.keys(localStorage).forEach(key => {
-              if (key.startsWith('flightPrice_')) {
-                try {
-                  const data = JSON.parse(localStorage.getItem(key) || '{}');
-                  if (data.expiresAt && data.expiresAt < Date.now()) {
-                    localStorage.removeItem(key);
-                    console.log(`🗑️ Removed expired flight price cache: ${key}`);
-                  }
-                } catch (e) {
-                  // Remove corrupted cache entries
-                  localStorage.removeItem(key);
-                  console.log(`🗑️ Removed corrupted flight price cache: ${key}`);
-                }
-              }
-            });
-            // First check sessionStorage for immediate access
-            const sessionData = sessionStorage.getItem('currentFlightPrice');
-            if (sessionData) {
-              const parsedSessionData = JSON.parse(sessionData);
-              // Verify the cached data matches current flight and search parameters
-              if (parsedSessionData.flightId === flightId &&
-                  parsedSessionData.searchParams &&
-                  parsedSessionData.searchParams.origin === searchParams?.origin &&
-                  parsedSessionData.searchParams.destination === searchParams?.destination &&
-                  parsedSessionData.searchParams.departDate === searchParams?.departDate) {
-
-                console.log('✅ Using cached flight price data from session storage');
-
-                // Extract the priced offer from cached data
-                const cachedPricedOffer = parsedSessionData.pricedOffer;
-                if (cachedPricedOffer) {
-                  setPricedOffer(cachedPricedOffer);
-
-                  // Also restore to sessionStorage for booking
-                  sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(cachedPricedOffer));
-                  if (parsedSessionData.rawResponse) {
-                    sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(parsedSessionData.rawResponse));
-                  }
-
-                  setIsLoading(false);
-                  return true; // Data found and loaded
-                }
-              }
-            }
-
-            // Then check localStorage for persistent cache
-            const localData = localStorage.getItem(cacheKey);
-            if (localData) {
-              const parsedLocalData = JSON.parse(localData);
-              // Check if data is not too old (30 minutes)
-              const dataAge = Date.now() - parsedLocalData.timestamp;
-              const maxAge = 30 * 60 * 1000; // 30 minutes in milliseconds
-
-              if (dataAge < maxAge && parsedLocalData.expiresAt > Date.now()) {
-                console.log('✅ Using cached flight price data from local storage');
-
-                const cachedPricedOffer = parsedLocalData.pricedOffer;
-                if (cachedPricedOffer) {
-                  setPricedOffer(cachedPricedOffer);
-
-                  // Also restore to sessionStorage for booking and faster future access
-                  sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(cachedPricedOffer));
-                  if (parsedLocalData.rawResponse) {
-                    sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(parsedLocalData.rawResponse));
-                  }
-
-                  // Store in sessionStorage for faster future access
-                  sessionStorage.setItem('currentFlightPrice', JSON.stringify(parsedLocalData));
-
-                  setIsLoading(false);
-                  return true; // Data found and loaded
-                }
-              } else {
-                console.log('🗑️ Cached flight price data expired, removing from storage');
-                localStorage.removeItem(cacheKey);
-              }
-            }
-          } catch (error) {
-            console.warn('Error checking cached flight price data:', error);
-          }
-          return false; // No valid cached data found
-        };
-
-        // Try to load cached price data first
-        const hasCachedPriceData = checkCachedPriceData();
-        console.log('🔍 Flight price cache check result:', hasCachedPriceData);
-
-        // Only fetch from API if no valid cached data exists
-        if (!hasCachedPriceData) {
-          console.log('🔄 No cached flight price data found, fetching from API');
-
-          // For multi-airline responses, let the backend handle ShoppingResponseID extraction
-          // The backend will determine the airline from the offer index and extract the correct ID
-
-          // We'll pass a placeholder that the backend will replace with the correct airline-specific ID
-          let shoppingResponseId = 'BACKEND_WILL_EXTRACT';
-
-          // Extract the actual raw response to send to the API
-          let actualRawResponse = rawAirShoppingResponse;
-
-
-
-          // Check for raw_response at different possible locations
-          if (rawAirShoppingResponse?.raw_response) {
-            // Direct access to raw_response (current structure)
-            actualRawResponse = rawAirShoppingResponse.raw_response;
-          } else if (rawAirShoppingResponse?.data?.raw_response) {
-            // Nested under data.raw_response
-            actualRawResponse = rawAirShoppingResponse.data.raw_response;
-          } else if (rawAirShoppingResponse?.data && !rawAirShoppingResponse?.data?.raw_response) {
-            // If data exists but no raw_response, the data itself might be the raw response
-            actualRawResponse = rawAirShoppingResponse.data;
-          } else {
-            // Fallback: use the entire stored response
-            actualRawResponse = rawAirShoppingResponse;
-          }
-
-          // Validate flight ID before making API call
-          if (!flightId || flightId === 'null' || flightId === 'undefined') {
-            throw new Error(`Invalid flight ID: ${flightId}. Please select a flight again.`);
-          }
-
-          // Get flight index from stored flight data
-          let flightIndex = parseInt(flightId); // flightId is now the index (string)
-
-          // Validate that we have a valid index
-          if (isNaN(flightIndex) || flightIndex < 0) {
-            throw new Error(`Invalid flight index: ${flightId}. Please select a flight again.`);
-          }
-
-
-
-          const response = await api.getFlightPrice(
-            flightIndex,
-            shoppingResponseId,
-            actualRawResponse
-          );
-
-
-
-        // Backend returns { status: "success", data: { priced_offers: [...], total_offers: number, ... } }
-        // Note: response.status is HTTP status (200), response.data.status is backend status ("success")
-        // The actual priced_offers are in response.data.data.priced_offers
-        if (!response.data) {
-           throw new Error("Received an invalid response from the pricing service.");
+        if (isNaN(flightIndex) || flightIndex < 0) {
+          throw new Error(`Invalid flight ID: ${flightId}. Please select a flight again.`);
         }
 
-        // Handle API errors (e.g., airline-specific errors)
-        if (response.data.status === 'error') {
-          const errorMessage = response.data.error || 'Unknown error occurred';
+        const response = await api.getFlightPrice(
+          flightIndex,
+          shoppingResponseId,
+          airShoppingMetadata
+        );
 
-          // Log the error for debugging
-          console.log('🚨 Flight price API error:', errorMessage);
-          logger.error('Flight price API error', { errorMessage, flightIndex });
-
-          // Check if it's an airline-specific API error
-          if (errorMessage.includes('FlightPrice API returned errors:') ||
-              errorMessage.includes('No CFF retrieved') ||
-              errorMessage.includes('No flight available') ||
-              errorMessage.includes('Session') ||
-              errorMessage.includes('AIRLINE_ERROR')) {
-            // Extract airline from error message or use generic message
-            throw new Error(`Sorry, this airline's flights are temporarily unavailable due to a technical issue. Please try selecting a different airline or contact support.`);
-          } else {
-            throw new Error(`Pricing error: ${errorMessage}`);
-          }
+        if (!response.data || response.data.status !== 'success') {
+          throw new Error(response.data?.error || 'Failed to get flight pricing');
         }
 
-        // Debug: Log successful response
-        console.log('✅ Flight price response received successfully');
-
-        // Handle successful response - check for success status and valid data structure
-        if (response.data.status !== 'success') {
-          // This case should be handled by the error handling above, but just in case
-          throw new Error(`Flight pricing failed: ${response.data.error || 'Unknown error'}`);
-        }
-
-        if (!response.data.data || !response.data.data.priced_offers || !Array.isArray(response.data.data.priced_offers) || response.data.data.priced_offers.length === 0) {
-           throw new Error("Received an invalid response from the pricing service.");
-        }
-
-        // Extract the first priced offer from the array
+        // Extract the priced offer from the response
         const firstPricedOffer = response.data.data.priced_offers[0];
         if (!firstPricedOffer) {
-          throw new Error("No valid offer found in the pricing response.");
+          throw new Error("No valid offer found in the pricing response");
         }
 
+        console.log('✅ Flight pricing API call successful');
         setPricedOffer(firstPricedOffer);
 
-        // Store both the transformed offer AND the raw flight price response for booking
-        sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(firstPricedOffer));
-
-        // Store the raw flight price response that the backend needs for order creation
-        // The backend returns it as 'raw_response' in the data object
-        if (response.data.data.raw_response) {
-          sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(response.data.data.raw_response));
-        }
-
-        // Cache the flight price data using robust storage manager
-        const flightPriceData: FlightPriceData = {
+        // Store the data in Redis for future use
+        const flightPriceData = {
           flightId: flightId,
           pricedOffer: firstPricedOffer,
           rawResponse: response.data.data.raw_response,
-          searchParams: searchParams,
+          searchParams: cachedSearchParams || {},
           timestamp: Date.now(),
-          expiresAt: Date.now() + (30 * 60 * 1000) // 30 minutes from now
+          expiresAt: Date.now() + (30 * 60 * 1000) // 30 minutes
         };
 
-        // Store using robust storage manager
-        const storeResult = await flightStorageManager.storeFlightPrice(flightPriceData);
-        if (storeResult.success) {
-          console.log('💾 Flight price data cached successfully with robust storage');
+        const redisStoreResult = await redisFlightStorage.storeFlightPrice(flightPriceData);
+        if (redisStoreResult.success) {
+          console.log('✅ Flight price data stored successfully in Redis');
         } else {
-          console.warn('⚠️ Failed to cache flight price data:', storeResult.error);
+          console.warn('⚠️ Failed to store flight price data in Redis:', redisStoreResult.error);
         }
 
-        } // End of API call block
+        // Store in session storage for booking
+        sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(firstPricedOffer));
+
+        // Store metadata for order creation if available
+        if (response.data.data.metadata) {
+          sessionStorage.setItem('flightPriceMetadata', JSON.stringify(response.data.data.metadata));
+          console.log('✅ Stored flight price metadata for order creation');
+        }
+
+
+
+
+
+
 
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Failed to fetch flight price data";
@@ -427,7 +310,7 @@ function FlightDetailsPageContent() {
         <div className="container py-3 sm:py-4 md:py-6">
           <div className="mb-4 sm:mb-6">
             <Link
-              href={`/flights?${new URLSearchParams(searchParams || {}).toString()}`}
+              href={`/flights?${new URLSearchParams(cachedSearchParams || Object.fromEntries(searchParams.entries())).toString()}`}
               className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-4"
             >
               <ChevronLeft className="mr-1 h-4 w-4" />

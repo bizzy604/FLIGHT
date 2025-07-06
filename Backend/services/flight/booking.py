@@ -73,7 +73,16 @@ except Exception as e:
 
 class FlightBookingService(FlightService):
     """Service for handling flight booking operations."""
-    
+
+    async def __aenter__(self):
+        """Async context manager entry."""
+        await super().__aenter__()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit."""
+        await super().__aexit__(exc_type, exc_val, exc_tb)
+
     @async_rate_limited(limit=100, window=60)
     async def create_booking(
         self,
@@ -2100,9 +2109,8 @@ async def create_booking(
     
     This is a backward-compatible wrapper around the FlightBookingService.
     """
-    # Use a single service instance to avoid creating multiple TokenManager instances
-    service = FlightBookingService(config=config or {})
-    try:
+    # Use async context manager for proper session management
+    async with FlightBookingService(config=config or {}) as service:
         return await service.create_booking(
             flight_price_response=flight_price_response,
             passengers=passengers,
@@ -2110,8 +2118,6 @@ async def create_booking(
             contact_info=contact_info,
             request_id=request_id
         )
-    finally:
-        await service.close()
 
 
 async def process_order_create(order_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -2130,12 +2136,11 @@ async def process_order_create(order_data: Dict[str, Any]) -> Dict[str, Any]:
         logger.info(f"🔥🔥🔥 process_order_create called, creating FlightBookingService instance 🔥🔥🔥")
         print(f"🔥🔥🔥 process_order_create called, creating FlightBookingService instance 🔥🔥🔥")
 
-        # Use a single service instance to avoid creating multiple TokenManager instances
-        service = FlightBookingService(config=config)
-        logger.info(f"🔥🔥🔥 FlightBookingService instance created: {type(service)} 🔥🔥🔥")
-        print(f"🔥🔥🔥 FlightBookingService instance created: {type(service)} 🔥🔥🔥")
+        # Use async context manager for proper session management
+        async with FlightBookingService(config=config) as service:
+            logger.info(f"🔥🔥🔥 FlightBookingService instance created: {type(service)} 🔥🔥🔥")
+            print(f"🔥🔥🔥 FlightBookingService instance created: {type(service)} 🔥🔥🔥")
 
-        try:
             logger.info(f"🔥🔥🔥 About to call service.create_booking 🔥🔥🔥")
             print(f"🔥🔥🔥 About to call service.create_booking 🔥🔥🔥")
 
@@ -2163,9 +2168,6 @@ async def process_order_create(order_data: Dict[str, Any]) -> Dict[str, Any]:
             logger.info(f"🟢🟢🟢 create_booking returned successfully! 🟢🟢🟢")
             return result
 
-        finally:
-            await service.close()
-
     except Exception as e:
         print(f"🔴🔴🔴 EXCEPTION in process_order_create: {e} 🔴🔴🔴")
         logger.error(f"🔴🔴🔴 EXCEPTION in process_order_create: {e} 🔴🔴🔴", exc_info=True)
@@ -2184,12 +2186,9 @@ async def get_booking_details(
     
     This is a backward-compatible wrapper around the FlightBookingService.
     """
-    # Use a single service instance to avoid creating multiple TokenManager instances
-    service = FlightBookingService(config=config or {})
-    try:
+    # Use async context manager for proper session management
+    async with FlightBookingService(config=config or {}) as service:
         return await service.get_booking_details(
             booking_reference=booking_reference,
             request_id=request_id
         )
-    finally:
-        await service.close()

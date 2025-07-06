@@ -14,7 +14,7 @@ const apiClient = axios.create({
         'Accept': 'application/json',
     },
     withCredentials: false, // Set to false for CORS
-    timeout: 30000, // 30 seconds timeout
+    timeout: 60000, // 60 seconds timeout for air shopping requests
 });
 
 // Request interceptor for API calls
@@ -249,3 +249,7 @@ export const api = {
         return apiClient.get(url);
     }
 };
+
+// Export the apiClient for use in other modules
+export { apiClient };
+export default apiClient;

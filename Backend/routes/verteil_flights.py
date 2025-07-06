@@ -664,7 +664,17 @@ async def flight_price():
         air_shopping = data.get('air_shopping_response', {})
         logger.debug(f"Air shopping response type: {type(air_shopping)}, "
                     f"keys: {list(air_shopping.keys()) if isinstance(air_shopping, dict) else 'N/A'}")
-        
+
+        # Extract cache key if available (for optimized backend caching)
+        raw_response_cache_key = None
+        if isinstance(air_shopping, dict):
+            # Check if cache key is provided in metadata
+            metadata = air_shopping.get('metadata', {})
+            if isinstance(metadata, dict):
+                raw_response_cache_key = metadata.get('raw_response_cache_key')
+                if raw_response_cache_key:
+                    logger.info(f"Found raw response cache key: {raw_response_cache_key}")
+
         # Prepare request data
         offer_id = data['offer_id']
         shopping_response_id = data['shopping_response_id']
@@ -678,6 +688,7 @@ async def flight_price():
             'air_shopping_response': air_shopping,
             'currency': data.get('currency', 'USD'),
             'request_id': request_id,
+            'raw_response_cache_key': raw_response_cache_key,  # For optimized backend caching
             'config': dict(current_app.config)  # Pass the app configuration
         }
         
@@ -858,6 +869,25 @@ async def create_order():
             offer_id = frontend_offer_id
             logger.warning(f"[DEBUG] No flight_price_response available, using frontend OfferID: {offer_id} (ReqID: {request_id})")
         
+        # Try to retrieve raw flight price response from cache if cache key is provided
+        flight_price_cache_key = None
+        if isinstance(flight_price_response, dict):
+            metadata = flight_price_response.get('metadata', {})
+            if isinstance(metadata, dict):
+                flight_price_cache_key = metadata.get('flight_price_cache_key')
+                if flight_price_cache_key:
+                    logger.info(f"[DEBUG] Found flight price cache key: {flight_price_cache_key} (ReqID: {request_id})")
+                    try:
+                        from utils.cache_manager import cache_manager
+                        cached_raw_response = cache_manager.get(flight_price_cache_key)
+                        if cached_raw_response:
+                            logger.info(f"[DEBUG] Retrieved raw flight price response from cache (ReqID: {request_id})")
+                            flight_price_response = cached_raw_response
+                        else:
+                            logger.warning(f"[DEBUG] Raw flight price response not found in cache for key: {flight_price_cache_key} (ReqID: {request_id})")
+                    except Exception as cache_error:
+                        logger.warning(f"[DEBUG] Failed to retrieve raw flight price response from cache: {cache_error} (ReqID: {request_id})")
+
         # DEBUG: Log extracted data components
         logger.info(f"[DEBUG] Extracted flight_price_response present (ReqID: {request_id}): {bool(flight_price_response)}")
         if flight_price_response:
@@ -868,6 +898,7 @@ async def create_order():
         logger.info(f"[DEBUG] Extracted contact info present (ReqID: {request_id}): {bool(contact_info)}")
         logger.info(f"[DEBUG] Extracted OfferID (ReqID: {request_id}): {offer_id}")
         logger.info(f"[DEBUG] Extracted ShoppingResponseID (ReqID: {request_id}): {shopping_response_id}")
+        logger.info(f"[DEBUG] Using cached flight price response (ReqID: {request_id}): {bool(flight_price_cache_key)}")
         
         # Validate required data
         if not flight_price_response:

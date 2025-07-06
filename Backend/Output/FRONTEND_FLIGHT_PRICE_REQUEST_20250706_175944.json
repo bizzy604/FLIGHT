@@ -1,0 +1,38 @@
+{
+  "timestamp": "2025-07-06T17:59:44.077324",
+  "description": "Frontend Flight Price Request Data",
+  "data": {
+    "offer_id": "138",
+    "shopping_response_id": "BACKEND_WILL_EXTRACT",
+    "air_shopping_response": {
+      "airline_count": 4,
+      "airline_filtering_enabled": false,
+      "enhanced_cards_count": 1500,
+      "filtered_airlines": [],
+      "is_multi_airline": true,
+      "performance": {
+        "card_generation_time": 0.010334,
+        "search_time": 25.783955,
+        "total_time": 26.143309,
+        "transform_time": 0.347665
+      },
+      "raw_response_cache_key": "air_shopping_raw_d6e4681a-63c7-4f4f-9664-376568be76e3_1751813963",
+      "request_id": "d6e4681a-63c7-4f4f-9664-376568be76e3",
+      "service_version": "2.4-optimized",
+      "shopping_response_ids": {
+        "AF": "Hd3U3ZgyC7sCxQO4t5J6K4b6cYH-W-lWJfx2rsD1MYI-AF",
+        "EK": "Hd3U3ZgyC7sCxQO4t5J6K4b6cYH-W-lWJfx2rsD1MYI-EK",
+        "KL": "Hd3U3ZgyC7sCxQO4t5J6K4b6cYH-W-lWJfx2rsD1MYI-KL",
+        "LHG": "Hd3U3ZgyC7sCxQO4t5J6K4b6cYH-W-lWJfx2rsD1MYI-LHG"
+      },
+      "supported_airlines": [
+        "AF",
+        "EK",
+        "KL",
+        "LHG"
+      ],
+      "total_offers": 1500,
+      "transformation_timestamp": "2025-07-06T17:59:23.211384"
+    }
+  }
+}

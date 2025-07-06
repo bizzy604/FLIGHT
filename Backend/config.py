@@ -49,6 +49,9 @@ class Config:
     # Set to False (default) to include all airlines from API response
     FILTER_UNSUPPORTED_AIRLINES = os.environ.get('FILTER_UNSUPPORTED_AIRLINES', 'false').lower() == 'true'
 
+    # API timeout configuration
+    VERTEIL_API_TIMEOUT = int(os.environ.get('VERTEIL_API_TIMEOUT', 60))  # Increased for air shopping requests
+
     # Redis configuration
     REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
     

@@ -17,7 +17,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 def create_app(test_config=None):
     """Create and configure the Quart application."""
     app = Quart(__name__)
-    
+
+    # Increase maximum request size for large flight data (100MB)
+    app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB
+
     # Load environment variables from .env file
     load_dotenv()
     
@@ -78,6 +81,7 @@ def create_app(test_config=None):
     from routes import verteil_flights, debug
     from routes.airport_routes import airport_bp # Import the new airport blueprint
     from routes.itinerary_routes import itinerary_bp # Import the new itinerary blueprint
+    from routes.flight_storage import flight_storage_bp # Import the flight storage blueprint
 
     # Initialize routes with app
     verteil_flights.init_app(app)
@@ -87,6 +91,7 @@ def create_app(test_config=None):
     app.register_blueprint(debug.bp)
     app.register_blueprint(airport_bp)  # Register the airport blueprint (prefix is in blueprint definition)
     app.register_blueprint(itinerary_bp)  # Register the itinerary blueprint
+    app.register_blueprint(flight_storage_bp)  # Register the flight storage blueprint
 
     # Log registered routes for debugging
     @app.before_serving

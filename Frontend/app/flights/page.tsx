@@ -9,6 +9,7 @@ import { api } from "@/utils/api-client"
 import type { FlightSearchRequest } from "@/utils/api-client"
 import type { FlightOffer } from "@/types/flight-api"
 import { flightStorageManager, FlightSearchData } from "@/utils/flight-storage-manager"
+import { redisFlightStorage } from "@/utils/redis-flight-storage"
 import { setupRobustStorage } from "@/utils/storage-integration-example"
 
 import { Button, LoadingButton } from "@/components/ui/button"
@@ -328,14 +329,15 @@ function SearchParamsWrapper() {
               stopDetails: offer.stopDetails || [],
               price: offer.price,
               currency: offer.currency,
-              baggage: offer.baggage,
-              fare: offer.fare,
               aircraft: offer.aircraft,
               segments: offer.segments,
-              priceBreakdown: offer.priceBreakdown,
-              additionalServices: offer.additionalServices,
-              fareRules: offer.fareRules,
-              penalties: offer.penalties,
+              // Removed fields that are no longer provided by backend
+              baggage: offer.baggage || { checked: "23kg", carryon: "7kg" }, // Default fallback
+              fare: offer.fare || { type: "Economy", refundable: false }, // Default fallback
+              priceBreakdown: offer.priceBreakdown || { totalPrice: offer.price, currency: offer.currency }, // Default fallback
+              additionalServices: offer.additionalServices || [],
+              fareRules: offer.fareRules || [],
+              penalties: offer.penalties || [],
               time_limits: offer.time_limits || {}
             }));
 
@@ -444,14 +446,80 @@ function SearchParamsWrapper() {
           expiresAt: Date.now() + (30 * 60 * 1000) // 30 minutes expiration
         };
 
-        // Store flight data using robust storage manager
+        // Store flight data using Redis storage (no size limitations)
         try {
-          const storeResult = await flightStorageManager.storeFlightSearch(flightSearchData);
+          console.log('🔍 About to store flight search data in Redis:', {
+            hasAirShoppingResponse: !!flightSearchData.airShoppingResponse,
+            searchParamsKeys: Object.keys(flightSearchData.searchParams),
+            timestamp: flightSearchData.timestamp,
+            expiresAt: flightSearchData.expiresAt,
+            apiResponseStructure: {
+              hasData: !!apiResponse.data,
+              hasDataData: !!apiResponse.data?.data,
+              hasRawResponse: !!apiResponse.data?.data?.raw_response,
+              hasDirectRawResponse: !!apiResponse.data?.raw_response
+            }
+          });
 
-          if (storeResult.success) {
-            console.log('✅ Flight data stored successfully with robust storage manager');
+          // Debug the API response structure
+          console.log('🔍 API Response structure debug:', {
+            hasApiResponseData: !!apiResponse.data,
+            apiResponseDataKeys: apiResponse.data ? Object.keys(apiResponse.data) : [],
+            hasNestedData: !!apiResponse.data?.data,
+            nestedDataKeys: apiResponse.data?.data ? Object.keys(apiResponse.data.data) : [],
+            hasRawResponse: !!apiResponse.data?.data?.raw_response,
+            hasDirectRawResponse: !!apiResponse.data?.raw_response
+          });
+
+          // Optimize data for Redis storage - store only metadata (raw response is cached in backend)
+          const optimizedFlightData = {
+            airShoppingResponse: {
+              status: apiResponse.data.status,
+              data: {
+                // Store only metadata which includes the cache key for backend to retrieve raw response
+                metadata: apiResponse.data.data?.metadata || apiResponse.data.metadata
+              }
+            },
+            searchParams: flightSearchData.searchParams,
+            timestamp: flightSearchData.timestamp,
+            expiresAt: flightSearchData.expiresAt
+          };
+
+          console.log('🔍 Optimized data size comparison:', {
+            originalSize: JSON.stringify(flightSearchData).length,
+            optimizedSize: JSON.stringify(optimizedFlightData).length,
+            reduction: `${((1 - JSON.stringify(optimizedFlightData).length / JSON.stringify(flightSearchData).length) * 100).toFixed(1)}%`
+          });
+
+          // Try Redis storage first (preferred method)
+          const redisStoreResult = await redisFlightStorage.storeFlightSearch(optimizedFlightData);
+
+          if (redisStoreResult.success) {
+            console.log('✅ Flight data stored successfully in Redis');
+            console.log('✅ Redis storage result:', {
+              success: redisStoreResult.success,
+              session_id: redisStoreResult.session_id,
+              expires_at: redisStoreResult.expires_at
+            });
+
+            // Verify Redis storage immediately after storing
+            console.log('🔍 Verifying Redis storage immediately after storing...');
+            const verifyResult = await redisFlightStorage.getFlightSearch();
+            console.log('🔍 Redis verification result:', {
+              success: verifyResult.success,
+              hasData: !!verifyResult.data,
+              error: verifyResult.error
+            });
           } else {
-            console.warn('⚠️ Failed to store flight data:', storeResult.error);
+            console.warn('⚠️ Redis storage failed, falling back to browser storage:', redisStoreResult.error);
+
+            // Fallback to browser storage if Redis fails
+            const browserStoreResult = await flightStorageManager.storeFlightSearch(flightSearchData);
+            if (browserStoreResult.success) {
+              console.log('✅ Flight data stored successfully with browser storage fallback');
+            } else {
+              console.warn('⚠️ Both Redis and browser storage failed:', browserStoreResult.error);
+            }
           }
         } catch (storageError) {
           console.warn('Failed to store flight data:', storageError);
@@ -471,14 +539,15 @@ function SearchParamsWrapper() {
           stopDetails: offer.stopDetails || [],
           price: offer.price,
           currency: offer.currency,
-          baggage: offer.baggage,
-          fare: offer.fare,
           aircraft: offer.aircraft,
           segments: offer.segments,
-          priceBreakdown: offer.priceBreakdown,
-          additionalServices: offer.additionalServices,
-          fareRules: offer.fareRules,
-          penalties: offer.penalties,
+          // Removed fields that are no longer provided by backend - use fallbacks
+          baggage: offer.baggage || { checked: "23kg", carryon: "7kg" }, // Default fallback
+          fare: offer.fare || { type: "Economy", refundable: false }, // Default fallback
+          priceBreakdown: offer.priceBreakdown || { totalPrice: offer.price, currency: offer.currency }, // Default fallback
+          additionalServices: offer.additionalServices || [],
+          fareRules: offer.fareRules || [],
+          penalties: offer.penalties || [],
           time_limits: offer.time_limits || {} // Include offer expiration information
         }));
 

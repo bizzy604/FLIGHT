@@ -287,17 +287,42 @@ export class FlightStorageManager {
   }
 
   /**
-   * Validate flight search data structure
+   * Validate flight search data structure (supports both optimized and legacy formats)
    */
   validateFlightSearchData(data: any): data is FlightSearchData {
-    return (
-      data &&
-      typeof data === 'object' &&
-      data.airShoppingResponse &&
-      data.searchParams &&
-      typeof data.timestamp === 'number' &&
-      typeof data.expiresAt === 'number'
-    );
+    if (!data || typeof data !== 'object' || !data.searchParams ||
+        typeof data.timestamp !== 'number' || typeof data.expiresAt !== 'number') {
+      return false;
+    }
+
+    // Check if airShoppingResponse exists
+    if (!data.airShoppingResponse) {
+      return false;
+    }
+
+    // Support optimized format (metadata only) and legacy format (full offers)
+    const airShoppingResponse = data.airShoppingResponse;
+
+    // Optimized format: has metadata with cache key
+    if (airShoppingResponse.data?.metadata?.raw_response_cache_key) {
+      console.log('✅ [FlightStorage] Validated optimized flight search data with cache key');
+      return true;
+    }
+
+    // Legacy format: has offers array
+    if (airShoppingResponse.offers || airShoppingResponse.data?.offers) {
+      console.log('✅ [FlightStorage] Validated legacy flight search data with offers');
+      return true;
+    }
+
+    // Check for other valid structures
+    if (airShoppingResponse.data || airShoppingResponse.status) {
+      console.log('✅ [FlightStorage] Validated flight search data with basic structure');
+      return true;
+    }
+
+    console.log('❌ [FlightStorage] Flight search data validation failed - no valid structure found');
+    return false;
   }
 
   /**

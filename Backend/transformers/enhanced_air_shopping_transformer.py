@@ -425,32 +425,10 @@ class EnhancedAirShoppingTransformer:
                 "stops": stops_count,
                 "stopDetails": stop_details,
                 "segments": transformed_segments,
-                # Enhanced multi-airline context
+                # Essential airline context for multi-airline support
                 "airline_context": {
                     "third_party_id": third_party_id,
-                    "shopping_response_id": shopping_response_id,
-                    "is_supported": AirlineMappingService.validate_airline_code(airline_code),
-                    "region": AirlineMappingService.get_airline_info(airline_code).get('region'),
-                    "supported_features": AirlineMappingService.get_airline_info(airline_code).get('supported_features', [])
-                },
-                # Basic baggage info (can be enhanced later)
-                "baggage": {
-                    "checked": {"pieces": 1, "weight": "23kg"},
-                    "carryon": {"pieces": 1, "weight": "7kg"}
-                },
-                # Basic fare info
-                "fare": {
-                    "type": "Economy",  # Can be enhanced based on cabin class
-                    "refundable": False,  # Default value
-                    "changeable": False   # Default value
-                },
-                # Price breakdown for frontend display
-                "priceBreakdown": {
-                    "baseFare": total_amount.get('value', 0) * 0.8,  # Estimate 80% as base fare
-                    "taxes": total_amount.get('value', 0) * 0.15,    # Estimate 15% as taxes
-                    "fees": total_amount.get('value', 0) * 0.05,     # Estimate 5% as fees
-                    "totalPrice": total_amount.get('value', 0),
-                    "currency": total_amount.get('Code')
+                    "shopping_response_id": shopping_response_id
                 },
                 # Store original offer ID for reference
                 "original_offer_id": offer_id

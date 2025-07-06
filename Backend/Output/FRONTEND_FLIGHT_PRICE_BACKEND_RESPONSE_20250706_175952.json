@@ -1,0 +1,244 @@
+{
+  "timestamp": "2025-07-06T17:59:52.026937",
+  "description": "Backend Flight Price Response Data",
+  "data": {
+    "status": "success",
+    "data": {
+      "priced_offers": [
+        {
+          "offer_id": "138",
+          "fare_family": "Premium Light",
+          "flight_segments": {
+            "outbound": [
+              {
+                "departure_airport": "NBO",
+                "arrival_airport": "CDG",
+                "departure_datetime": "2025-07-10T22:25:00.000",
+                "arrival_datetime": "2025-07-11T06:10:00.000",
+                "airline_code": "AF",
+                "airline_name": "Air France",
+                "airline_logo_url": "/airlines/AF.svg",
+                "flight_number": "AF829",
+                "duration": "N/A"
+              }
+            ],
+            "return": [
+              {
+                "departure_airport": "CDG",
+                "arrival_airport": "NBO",
+                "departure_datetime": "2025-07-22T10:25:00.000",
+                "arrival_datetime": "2025-07-22T19:55:00.000",
+                "airline_code": "AF",
+                "airline_name": "Air France",
+                "airline_logo_url": "/airlines/AF.svg",
+                "flight_number": "AF814",
+                "duration": "N/A"
+              }
+            ]
+          },
+          "passengers": [
+            {
+              "type": "ADT",
+              "count": 2,
+              "baggage": {
+                "carryOn": "2 pieces, up to 12.0 Kilogram",
+                "checked": "1 piece, up to 23.0 Kilogram"
+              },
+              "fare_rules": {
+                "Cancel": {
+                  "Prior to Departure": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 660869.0,
+                    "max_amount": 660869.0,
+                    "currency": "INR",
+                    "interpretation": "Non-refundable"
+                  },
+                  "After Departure": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 660869.0,
+                    "max_amount": 660869.0,
+                    "currency": "INR",
+                    "interpretation": "Non-refundable (after departure)"
+                  }
+                },
+                "Change Noshow": {
+                  "After Departure NO Show": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 660869.0,
+                    "max_amount": 660869.0,
+                    "currency": "INR",
+                    "interpretation": "Change not allowed (after departure no show) [No-show]"
+                  }
+                },
+                "Change": {
+                  "Prior to Departure": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 350.0,
+                    "max_amount": 350.0,
+                    "currency": "USD",
+                    "interpretation": "Change allowed with penalty + difference in fare"
+                  },
+                  "After Departure": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 350.0,
+                    "max_amount": 350.0,
+                    "currency": "USD",
+                    "interpretation": "Change not allowed (after departure)"
+                  }
+                },
+                "Cancel Noshow": {
+                  "After Departure NO Show": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 660869.0,
+                    "max_amount": 660869.0,
+                    "currency": "INR",
+                    "interpretation": "Non-refundable (after departure no show) [No-show]"
+                  }
+                }
+              }
+            },
+            {
+              "type": "CHD",
+              "count": 1,
+              "baggage": {
+                "carryOn": "2 pieces, up to 12.0 Kilogram",
+                "checked": "1 piece, up to 23.0 Kilogram"
+              },
+              "fare_rules": {
+                "Cancel": {
+                  "Prior to Departure": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 660869.0,
+                    "max_amount": 660869.0,
+                    "currency": "INR",
+                    "interpretation": "Non-refundable"
+                  },
+                  "After Departure": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 660869.0,
+                    "max_amount": 660869.0,
+                    "currency": "INR",
+                    "interpretation": "Non-refundable (after departure)"
+                  }
+                },
+                "Change Noshow": {
+                  "After Departure NO Show": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 660869.0,
+                    "max_amount": 660869.0,
+                    "currency": "INR",
+                    "interpretation": "Change not allowed (after departure no show) [No-show]"
+                  }
+                },
+                "Change": {
+                  "After Departure": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 263.0,
+                    "max_amount": 263.0,
+                    "currency": "USD",
+                    "interpretation": "Change not allowed (after departure)"
+                  },
+                  "Prior to Departure": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 263.0,
+                    "max_amount": 263.0,
+                    "currency": "USD",
+                    "interpretation": "Change allowed with penalty + difference in fare"
+                  }
+                },
+                "Cancel Noshow": {
+                  "After Departure NO Show": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 660869.0,
+                    "max_amount": 660869.0,
+                    "currency": "INR",
+                    "interpretation": "Non-refundable (after departure no show) [No-show]"
+                  }
+                }
+              }
+            },
+            {
+              "type": "INF",
+              "count": 1,
+              "baggage": {
+                "carryOn": "1 piece, up to 12.0 Kilogram",
+                "checked": "1 piece, up to 10.0 Kilogram"
+              },
+              "fare_rules": {
+                "Cancel": {
+                  "Prior to Departure": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 660869.0,
+                    "max_amount": 660869.0,
+                    "currency": "INR",
+                    "interpretation": "Non-refundable"
+                  },
+                  "After Departure": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 660869.0,
+                    "max_amount": 660869.0,
+                    "currency": "INR",
+                    "interpretation": "Non-refundable (after departure)"
+                  }
+                },
+                "Change Noshow": {
+                  "After Departure NO Show": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 660869.0,
+                    "max_amount": 660869.0,
+                    "currency": "INR",
+                    "interpretation": "Change not allowed (after departure no show) [No-show]"
+                  }
+                },
+                "Cancel Noshow": {
+                  "After Departure NO Show": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 660869.0,
+                    "max_amount": 660869.0,
+                    "currency": "INR",
+                    "interpretation": "Non-refundable (after departure no show) [No-show]"
+                  }
+                },
+                "Change": {
+                  "Prior to Departure": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 35.0,
+                    "max_amount": 35.0,
+                    "currency": "USD",
+                    "interpretation": "Change allowed with penalty + difference in fare"
+                  },
+                  "After Departure": {
+                    "od_pair": "CDG-NBO",
+                    "min_amount": 35.0,
+                    "max_amount": 35.0,
+                    "currency": "USD",
+                    "interpretation": "Change not allowed (after departure)"
+                  }
+                }
+              }
+            }
+          ],
+          "total_price": {
+            "amount": 633262.0,
+            "currency": "INR"
+          },
+          "time_limits": {
+            "offer_expiration": "2025-07-06T15:29:06.317",
+            "payment_deadline": "2025-07-07T20:30:00.000"
+          },
+          "direction": "roundtrip",
+          "original_offer_id": "bd71571f-5a59-4fb4-b157-1f5a599f0013"
+        }
+      ],
+      "total_offers": 1,
+      "transformation_status": "success",
+      "metadata": {
+        "cache_key": "flight_price_response:5b0195e1-794d-4196-8a86-d49f5aa3d06a",
+        "flight_price_cache_key": "flight_price_raw_5b0195e1-794d-4196-8a86-d49f5aa3d06a_1751813991",
+        "cached": true,
+        "request_id": "5b0195e1-794d-4196-8a86-d49f5aa3d06a"
+      }
+    },
+    "request_id": "5b0195e1-794d-4196-8a86-d49f5aa3d06a"
+  }
+}
