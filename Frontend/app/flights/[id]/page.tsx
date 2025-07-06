@@ -155,6 +155,14 @@ function FlightDetailsPageContent() {
           throw new Error("No valid offer found in the pricing response");
         }
 
+        // Add metadata to the priced offer for order creation
+        firstPricedOffer.metadata = response.data.data.metadata;
+
+        // Add raw response if available (fallback when caching fails)
+        if (response.data.data.raw_response) {
+          firstPricedOffer.raw_flight_price_response = response.data.data.raw_response;
+        }
+
         console.log('✅ Flight pricing API call successful');
         setPricedOffer(firstPricedOffer);
 
@@ -162,7 +170,8 @@ function FlightDetailsPageContent() {
         const flightPriceData = {
           flightId: flightId,
           pricedOffer: firstPricedOffer,
-          rawResponse: response.data.data.raw_response,
+          rawResponse: response.data.data.raw_response, // This will be null when caching works
+          metadata: response.data.data.metadata, // Store metadata with cache keys
           searchParams: cachedSearchParams || {},
           timestamp: Date.now(),
           expiresAt: Date.now() + (30 * 60 * 1000) // 30 minutes
@@ -177,6 +186,12 @@ function FlightDetailsPageContent() {
 
         // Store in session storage for booking
         sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(firstPricedOffer));
+
+        // Store raw flight price response for order creation
+        if (response.data.data.raw_response) {
+          sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(response.data.data.raw_response));
+          console.log('✅ Stored raw flight price response for order creation');
+        }
 
         // Store metadata for order creation if available
         if (response.data.data.metadata) {

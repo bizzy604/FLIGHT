@@ -1,0 +1,328 @@
+{
+  "timestamp": "2025-07-06T18:51:08.455800",
+  "description": "FlightPrice API Request Payload",
+  "data": {
+    "url": "https://api.stage.verteil.com/entrygate/rest/request:flightPrice",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/json",
+      "Accept": "*/*",
+      "OfficeId": "OFF3746",
+      "service": "FlightPrice",
+      "User-Agent": "PostmanRuntime/7.41",
+      "Cache-Control": "no-cache",
+      "Accept-Encoding": "gzip, deflate, br",
+      "Connection": "keep-alive",
+      "ThirdpartyId": "LHG"
+    },
+    "payload": {
+      "DataLists": {
+        "FareGroup": [
+          {
+            "ListKey": "LHG-Xfbc5400e416a9b1a",
+            "FareBasisCode": {
+              "Code": "PNCKE/CH25"
+            },
+            "refs": [
+              "LHG-Xfrk5300e416a9b1a"
+            ]
+          },
+          {
+            "ListKey": "LHG-Xfbcec00e416a9b1a",
+            "FareBasisCode": {
+              "Code": "ZNCKE"
+            },
+            "refs": [
+              "LHG-Xfrkeb00e416a9b1a"
+            ]
+          },
+          {
+            "ListKey": "LHG-Xfbc5700e416a9b1a",
+            "FareBasisCode": {
+              "Code": "PNCKE/IN90"
+            },
+            "refs": [
+              "LHG-Xfrk5600e416a9b1a"
+            ]
+          },
+          {
+            "ListKey": "LHG-Xfbc5100e416a9b1a",
+            "FareBasisCode": {
+              "Code": "PNCKE"
+            },
+            "refs": [
+              "LHG-Xfrk5000e416a9b1a"
+            ]
+          },
+          {
+            "ListKey": "LHG-Xfbcf200e416a9b1a",
+            "FareBasisCode": {
+              "Code": "ZNCKE/IN90"
+            },
+            "refs": [
+              "LHG-Xfrkf100e416a9b1a"
+            ]
+          },
+          {
+            "ListKey": "LHG-Xfbcef00e416a9b1a",
+            "FareBasisCode": {
+              "Code": "ZNCKE/CH25"
+            },
+            "refs": [
+              "LHG-Xfrkee00e416a9b1a"
+            ]
+          }
+        ],
+        "AnonymousTravelerList": {
+          "AnonymousTraveler": [
+            {
+              "ObjectKey": "T1",
+              "PTC": {
+                "value": "ADT"
+              }
+            },
+            {
+              "ObjectKey": "T2",
+              "PTC": {
+                "value": "ADT"
+              }
+            },
+            {
+              "ObjectKey": "T3",
+              "PTC": {
+                "value": "CHD"
+              }
+            },
+            {
+              "ObjectKey": "T1.1",
+              "PTC": {
+                "value": "INF"
+              }
+            }
+          ]
+        }
+      },
+      "Query": {
+        "OriginDestination": [
+          {
+            "OriginDestinationKey": "LHG-OD1",
+            "FlightReferences": {
+              "value": [
+                "LHG-Iflte900e416a9b1a",
+                "LHG-Iflt8b01e416a9b1a",
+                "LHG-Iflt6501e416a9b1a",
+                "LHG-Ifltcf00e416a9b1a"
+              ]
+            }
+          },
+          {
+            "OriginDestinationKey": "LHG-OD2",
+            "FlightReferences": {
+              "value": [
+                "LHG-Iflt4e00e416a9b1a"
+              ]
+            }
+          }
+        ],
+        "Offers": {
+          "Offer": [
+            {
+              "OfferID": {
+                "value": "X3934253E-E2B0-470A-9A7D-25:X3934253E-E2B0-470A-9A7D-5",
+                "Owner": "LHG",
+                "Channel": "NDC"
+              },
+              "OfferItemIDs": {
+                "OfferItemID": [
+                  {
+                    "value": "X3934253E-E2B0-470A-9A7D-25-1:X3934253E-E2B0-470A-9A7D-5-1",
+                    "refs": [
+                      "LHG-T1",
+                      "LHG-T2"
+                    ]
+                  },
+                  {
+                    "value": "X3934253E-E2B0-470A-9A7D-25-2:X3934253E-E2B0-470A-9A7D-5-2",
+                    "refs": [
+                      "LHG-T3"
+                    ]
+                  },
+                  {
+                    "value": "X3934253E-E2B0-470A-9A7D-25-3:X3934253E-E2B0-470A-9A7D-5-3",
+                    "refs": [
+                      "LHG-T1.1"
+                    ]
+                  }
+                ]
+              },
+              "refs": [
+                {
+                  "Ref": "VDC-AIRLINE-SRID"
+                },
+                {
+                  "Ref": "VDC-PR-3apozjnltOe1ZsrLfl5h"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "ShoppingResponseID": {
+        "Owner": "LHG",
+        "ResponseID": {
+          "value": "IG47sT5nDBNZt-e1a27U8wvgd1JvfKvFXOnLZYPE3EI-LHG"
+        }
+      },
+      "Travelers": {
+        "Traveler": [
+          {
+            "AnonymousTraveler": [
+              {
+                "PTC": {
+                  "value": "ADT"
+                }
+              }
+            ]
+          },
+          {
+            "AnonymousTraveler": [
+              {
+                "PTC": {
+                  "value": "ADT"
+                }
+              }
+            ]
+          },
+          {
+            "AnonymousTraveler": [
+              {
+                "PTC": {
+                  "value": "CHD"
+                }
+              }
+            ]
+          },
+          {
+            "AnonymousTraveler": [
+              {
+                "PTC": {
+                  "value": "INF"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "Metadata": {
+        "Other": {
+          "OtherMetadata": [
+            {
+              "PriceMetadatas": {
+                "PriceMetadata": [
+                  {
+                    "MetadataKey": "LHG-Xfrk5000e416a9b1a",
+                    "AugmentationPoint": {
+                      "AugPoint": [
+                        {
+                          "any": {
+                            "value": "NO8EJWN~MpB8RL~MpN8M@N~MqB9N@P~MNA8O~MEA9NMAJC~MAW80324~MMB87617~MBB80.037~MSN9NT@K~MQL9@/ID~MQM95/.0~MQ/9@WP~MMQ81~MOV9?CR~MPA87.~MBS801/24~MSK90/57~MB@946~MEB9GA~M@K9/551./~MBS9SRB~MPS8/02~MER902~MQP92~M?Q8811~MAP9N~`N~MDQ8/~MNR9@~M@C8X*sgmHWppdfnrj*flxKey"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "MetadataKey": "LHG-Xfrk5300e416a9b1a",
+                    "AugmentationPoint": {
+                      "AugPoint": [
+                        {
+                          "any": {
+                            "value": "NO8EJWN~MpB8RL~MpN8M@N~MqB9N@P~MNA8O~MEA9NMAJC~MAW80324~MMB87617~MBB80.037~MSN9NT@K~MQL9@/ID~MQM95/.0~MQ/9@WP~MMQ81~MOV9AML~MPA87.~MBS801/24~MSK90/57~MB@946~MEB9GA~M@K9/551./~MBS9SRB~MPS8/02~MER902~MQP92~M?Q8811~MAP9N~`N~MDQ8/~MNR9@~M@C8X*sgmHWppdfnrj*flxKey"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "MetadataKey": "LHG-Xfrk5600e416a9b1a",
+                    "AugmentationPoint": {
+                      "AugPoint": [
+                        {
+                          "any": {
+                            "value": "NO8EJWN~MpB8RL~MpN8M@N~MqB9N@P~MNA8O~MEA9NMAJC~MAW80324~MMB87617~MBB80.037~MSN9NT@K~MQL9@/ID~MQM95/.0~MQ/9@WP~MMQ81~MOV9GMD~MPA87.~MBS801/24~MSK90/57~MB@946~MEB9GA~M@K9/551./~MBS9SRB~MPS8/02~MER902~MQP92~M?Q8811~MAP9N~`N~MDQ8/~MNR9@~M@C8X*sgmHWppdfnrj*flxKey"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "MetadataKey": "LHG-Xfrkeb00e416a9b1a",
+                    "AugmentationPoint": {
+                      "AugPoint": [
+                        {
+                          "any": {
+                            "value": "NO8EJWN~MpB8KV~MpN8M@N~MqB9N@P~MNA8Y~MEA9XMAJC~MAW80033~MMB87617~MBB80.037~MSN9NT@K~MQL9@/ID~MQM95/.0~MQ/9@WL~MMQ81~MOV9?CR~MPA88.~MBS801/12~MSK93812~MB@946~MEB9MA~M@K90151./~MBS9SRB~MPS8/02~MER902~MQP92~M?Q8811~MAP9X~`X~`X~MDQ8/~MNR9@~M@C8X*sgmHWppdfnrj*flxKey"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "MetadataKey": "LHG-Xfrkee00e416a9b1a",
+                    "AugmentationPoint": {
+                      "AugPoint": [
+                        {
+                          "any": {
+                            "value": "NO8EJWN~MpB8KV~MpN8M@N~MqB9N@P~MNA8Y~MEA9XMAJC~MAW80033~MMB87617~MBB80.037~MSN9NT@K~MQL9@/ID~MQM95/.0~MQ/9@WL~MMQ81~MOV9AML~MPA88.~MBS801/12~MSK93812~MB@946~MEB9MA~M@K90151./~MBS9SRB~MPS8/02~MER902~MQP92~M?Q8811~MAP9X~`X~`X~MDQ8/~MNR9@~M@C8X*sgmHWppdfnrj*flxKey"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "MetadataKey": "LHG-Xfrkf100e416a9b1a",
+                    "AugmentationPoint": {
+                      "AugPoint": [
+                        {
+                          "any": {
+                            "value": "NO8EJWN~MpB8KV~MpN8M@N~MqB9N@P~MNA8Y~MEA9XMAJC~MAW80033~MMB87617~MBB80.037~MSN9NT@K~MQL9@/ID~MQM95/.0~MQ/9@WL~MMQ81~MOV9GMD~MPA88.~MBS801/12~MSK93812~MB@946~MEB9MA~M@K90151./~MBS9SRB~MPS8/02~MER902~MQP92~M?Q8811~MAP9X~`X~`X~MDQ8/~MNR9@~M@C8X*sgmHWppdfnrj*flxKey"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "MetadataKey": "VDC-AIRLINE-SRID",
+                    "AugmentationPoint": {
+                      "AugPoint": [
+                        {
+                          "any": {
+                            "type": "java.util.HashMap",
+                            "value": "eyJRUiI6IjFIMFFSWl81NDJaRlNUTTgzQ0hRR0xDVktDRlJZSUVTVFZPIiwiS0wiOiJQTElNclFmdkFtaXR2QnBTYk81SiIsIkFGIjoiUzA2aFRxY3BzTnZObHJCUWh2UzIiLCJLUSI6IjFIMUtRWl9OQzlQNVlNUExVUzRaUEhDRU5GSTFKOUlDVjdEIiwiTEhHIjoiWDM5MzQyNTNFLUUyQjAtNDcwQS05QTdEIiwiRVQiOiJKQ1c3WEZFMUU2WFhWTE0ifQ=="
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "MetadataKey": "VDC-PR-3apozjnltOe1ZsrLfl5h",
+                    "AugmentationPoint": {
+                      "AugPoint": [
+                        {
+                          "any": {
+                            "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
+                            "value": "8SmyqMdUodbXaZkCVK36FKAkxj/N1FcdXTiW3+GqW5YXjfqaApidFonPTbYFkP3iKgJUg8jaauMwr+ByvvW8BWDbrNRNJffkL8ek2Fu0lc9PfBhTkLbC6pLYyfVevV6no2xzyHvuCEKTOgmWrv5WfiksE8fZqfqCGGku+wsoOpg28JvlmK7gI8sxC33ywh9SvcU2ckdeVVjugzndgRk0OiSkl5cWJi1LfocWKbtqX9RWfHoFqlZKRX7EmDEmThPe03bgVFJ8rF1JQQGWFVqJdbT+AqB3nGLJqimFujw90G1ukkzk7aYdKreE45+MnUfG2+mtEV8/YfKD7mFdf0iQLAgisi37MNJ6C01k3MX8Rnw2at686Dio6oGXwS2/rLM2JyMJ5XL6ji2RFRc/4oyWpWFWVZxxKyQuWWM2BLXzpjpMgvVnkmyId8sFfVN98qxrppKuj72RsoFBehwtgvtb1y9MsdI+rZImP+KxclarrLV4zt0/EH7LPzKesFGn2/kxjOUbnhYruJaq4+6XEk0UWVqox/tnsb5jY6MhH5oBOHgqNs6OrTyJcBuPYWHv/TLnd521xECma9SYMzcHun1+eHfBGINM23a26EZj55Ed59/pOU7Fy/PsSA/3QKMoysTVPHbzssR4lccdGPzhg7qssfM6mLsNnzQeHJxRj456wksVSHojpkPTOGNyBDlO2EoSWmY4NWixp8K+itBb6QbSAUsdnRGlgsrWSPzR81fE8SP5zsnLi0d7Nux0pf+oISgAL5ww+odeCvxEJ3YSiNfv+vzMq/puvg/p4A75ymsmiyHVFscdpeb+/tYdOd+qms8SJK/7aky2dIP2/AOXPPyfLh16+8EaX2gZSII9mrE87OIXK35z0iLjzzz5no4="
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

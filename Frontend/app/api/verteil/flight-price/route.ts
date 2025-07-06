@@ -23,15 +23,9 @@ export async function POST(request: NextRequest) {
       data.flight_price_cache_key = data.metadata.cache_key;
     }
 
-    // Store the raw response for direct backend submission (cache bypass)
-    // Only store the essential data to avoid circular references
-    if (data && data.data) {
-      data.raw_response = {
-        status: data.status,
-        data: data.data,
-        request_id: data.request_id
-      };
-    }
+    // Pass through the raw_response from backend if it exists (when caching failed)
+    // Otherwise, the backend has cached it and will retrieve using the cache key
+    // Don't create a synthetic raw_response - use what the backend provides
 
     // Return the backend response directly without double-wrapping
     // The backend already returns the correct structure with status and data

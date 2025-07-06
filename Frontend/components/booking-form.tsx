@@ -325,8 +325,16 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
       let rawFlightPriceResponse = null;
       if (storedRawFlightPriceResponse) {
         rawFlightPriceResponse = JSON.parse(storedRawFlightPriceResponse)
-        console.log('⚠️ Using raw flight price response as fallback');
+        console.log('✅ Found raw flight price response in sessionStorage');
+      } else {
+        console.log('❌ No raw flight price response found in sessionStorage');
       }
+
+      // Debug: Check what's available in sessionStorage
+      console.log('🔍 SessionStorage debug:');
+      console.log('- flightPriceMetadata:', !!sessionStorage.getItem('flightPriceMetadata'));
+      console.log('- rawFlightPriceResponse:', !!sessionStorage.getItem('rawFlightPriceResponse'));
+      console.log('- flightPriceResponseForBooking:', !!sessionStorage.getItem('flightPriceResponseForBooking'));
 
       // Extract shopping response ID from the raw flight price response
       let shoppingResponseId = '';

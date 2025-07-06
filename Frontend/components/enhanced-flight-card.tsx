@@ -158,13 +158,22 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
         throw new Error("No valid offer found in the pricing response");
       }
 
+      // Add metadata to the priced offer for order creation
+      firstPricedOffer.metadata = response.data.data.metadata;
+
+      // Add raw response if available (fallback when caching fails)
+      if (response.data.data.raw_response) {
+        firstPricedOffer.raw_flight_price_response = response.data.data.raw_response;
+      }
+
       logger.info('✅ Flight pricing API call successful');
 
       // Store flight price data in Redis for the details page
       const flightPriceData = {
         flightId: flight.id,
         pricedOffer: firstPricedOffer,
-        rawResponse: response.data.data.raw_response,
+        rawResponse: response.data.data.raw_response, // This will be null when caching works
+        metadata: response.data.data.metadata, // Store metadata with cache keys
         searchParams: searchParams || {},
         timestamp: Date.now(),
         expiresAt: Date.now() + (30 * 60 * 1000) // 30 minutes
@@ -186,6 +195,12 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
 
       // Store priced offer in session storage for immediate access
       sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(firstPricedOffer));
+
+      // Store raw flight price response for order creation
+      if (response.data.data.raw_response) {
+        sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(response.data.data.raw_response));
+        logger.info('✅ Stored raw flight price response for order creation');
+      }
 
       // Add a small delay to show the loading state
       await new Promise(resolve => setTimeout(resolve, 500));

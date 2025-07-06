@@ -1,107 +1,158 @@
-Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools react-dom.development.js:38560:1
-Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview clerk.browser.js:16:1282
-Clerk: The prop "afterSignInUrl" is deprecated and should be replaced with the new "fallbackRedirectUrl" or "forceRedirectUrl" props instead. Learn more: https://clerk.com/docs/guides/custom-redirects#redirect-url-props clerk.browser.js:16:1282
-🚀 Setting up robust storage system... storage-integration-example.ts:263:11
-🔄 Running storage migration on startup... storage-integration-example.ts:131:13
-[StorageMigration] Starting migration of all flight data... storage-migration.ts:31:13
-🔍 Checking for cached flight data with robust storage... page.tsx:290:17
-[FlightStorage] Retrieving flight search data... flight-storage-manager.ts:101:13
-🚀 Setting up robust storage system... storage-integration-example.ts:263:11
-🔄 Running storage migration on startup... storage-integration-example.ts:131:13
-[StorageMigration] Starting migration of all flight data... storage-migration.ts:31:13
-🔍 Checking for cached flight data with robust storage... page.tsx:290:17
-[FlightStorage] Retrieving flight search data... flight-storage-manager.ts:101:13
-[StorageMigration] ✅ Migration completed successfully storage-migration.ts:50:15
-[StorageMigration] Summary: 
-Object { migratedKeys: 0, errors: 0, cleanedKeys: 0 }
-storage-migration.ts:51:15
-[FlightStorage] ❌ Flight search data not found or invalid: Data not found in any storage location flight-storage-manager.ts:114:15
-[StorageMigration] ✅ Migration completed successfully storage-migration.ts:50:15
-[StorageMigration] Summary: 
-Object { migratedKeys: 0, errors: 0, cleanedKeys: 0 }
-storage-migration.ts:51:15
-❌ No valid cached flight data found: Data not found in any storage location page.tsx:382:19
-✅ Storage migration completed successfully storage-integration-example.ts:137:17
-📊 Migration summary:
-          - Migrated keys: 0
-          - Cleaned keys: 0
-          - Errors: 0 storage-integration-example.ts:138:17
-🔍 Cache check result: false page.tsx:393:15
-🔄 No cached data found, fetching from API page.tsx:397:15
-✅ Storage migration completed successfully storage-integration-example.ts:137:17
-📊 Migration summary:
-          - Migrated keys: 0
-          - Cleaned keys: 0
-          - Errors: 0 storage-integration-example.ts:138:17
-[FlightStorage] Retrieving flight search data... flight-storage-manager.ts:101:13
-[FlightStorage] Retrieving flight price data... flight-storage-manager.ts:152:13
-[FlightStorage] Retrieving booking data... flight-storage-manager.ts:203:13
-[FlightStorage] Retrieving selected flight data... flight-storage-manager.ts:254:13
-[FlightStorage] ❌ Flight search data not found or invalid: Data not found in any storage location flight-storage-manager.ts:114:15
-[FlightStorage] Retrieving flight search data... flight-storage-manager.ts:101:13
-[FlightStorage] Retrieving flight price data... flight-storage-manager.ts:152:13
-[FlightStorage] Retrieving booking data... flight-storage-manager.ts:203:13
-[FlightStorage] Retrieving selected flight data... flight-storage-manager.ts:254:13
-❌ No valid cached flight data found: Data not found in any storage location page.tsx:382:19
-🔍 Cache check result: false page.tsx:393:15
-🔄 No cached data found, fetching from API page.tsx:397:15
-[FlightStorage] ❌ Flight search data not found or invalid: Data not found in any storage location flight-storage-manager.ts:114:15
-[FlightStorage] ❌ Flight price data not found or invalid: Data not found in any storage location flight-storage-manager.ts:165:15
-[FlightStorage] ❌ Booking data not found or invalid: Data not found in any storage location flight-storage-manager.ts:216:15
-[FlightStorage] ❌ Selected flight data not found or invalid: Data not found in any storage location flight-storage-manager.ts:267:15
-[FlightStorage] Health check results: 
-Object { flightSearch: false, flightPrice: false, bookingData: false, selectedFlight: false, overallHealth: false }
-flight-storage-manager.ts:377:13
-[FlightStorage] ❌ Flight search data not found or invalid: Data not found in any storage location flight-storage-manager.ts:114:15
-[FlightStorage] ❌ Flight price data not found or invalid: Data not found in any storage location flight-storage-manager.ts:165:15
-[FlightStorage] ❌ Booking data not found or invalid: Data not found in any storage location flight-storage-manager.ts:216:15
-📊 Storage Health Check: 
-Object { health: {…}, stats: {…} }
-storage-integration-example.ts:162:15
-[FlightStorage] ❌ Selected flight data not found or invalid: Data not found in any storage location flight-storage-manager.ts:267:15
-⚠️ Storage system needs attention storage-integration-example.ts:274:13
-[FlightStorage] Health check results: 
-Object { flightSearch: false, flightPrice: false, bookingData: false, selectedFlight: false, overallHealth: false }
-flight-storage-manager.ts:377:13
-📊 Storage Health Check: 
-Object { health: {…}, stats: {…} }
-storage-integration-example.ts:162:15
-⚠️ Storage system needs attention storage-integration-example.ts:274:13
-[PASSENGER DEBUG] Frontend API Client - Sending air shopping request: api-client.ts:122:17
-[PASSENGER DEBUG] Passenger counts: 
-Object { numAdults: 2, numChildren: 1, numInfants: 1, total: 4 }
-api-client.ts:123:17
-[PASSENGER DEBUG] Full request payload: {
-  "tripType": "ROUND_TRIP",
-  "odSegments": [
-    {
-      "origin": "NBO",
-      "destination": "CDG",
-      "departureDate": "2025-07-10",
-      "returnDate": "2025-07-22"
-    }
-  ],
-  "numAdults": 2,
-  "numChildren": 1,
-  "numInfants": 1,
-  "outboundCabinClass": "PREMIUM_ECONOMY",
-  "returnCabinClass": "PREMIUM_ECONOMY",
-  "enableRoundtrip": true,
-  "directOnly": false
-} api-client.ts:129:17
-{"timestamp":"2025-07-06T14:48:21.671Z","level":"info","message":"API Request","data":{"url":"/api/verteil/air-shopping","method":"post","data":{"tripType":"ROUND_TRIP","odSegments":[{"origin":"NBO","destination":"CDG","departureDate":"2025-07-10","returnDate":"2025-07-22"}],"numAdults":2,"numChildren":1,"numInfants":1,"outboundCabinClass":"PREMIUM_ECONOMY","returnCabinClass":"PREMIUM_ECONOMY","enableRoundtrip":true,"directOnly":false}}} logger.ts:42:15
-{"timestamp":"2025-07-06T14:48:52.740Z","level":"info","message":"API Response","data":{"status":200,"url":"/api/verteil/air-shopping"}} logger.ts:42:15
-🧹 Clearing all previous flight data before storing new search... page.tsx:419:17
-🔍 About to store flight search data in Redis: 
-Object { hasAirShoppingResponse: true, searchParamsKeys: (9) […], timestamp: 1751813332741, expiresAt: 1751815132741, apiResponseStructure: {…} }
-page.tsx:451:19
-🔍 API Response structure debug: 
-Object { hasApiResponseData: true, apiResponseDataKeys: (2) […], hasNestedData: false, nestedDataKeys: [], hasRawResponse: false, hasDirectRawResponse: false }
-page.tsx:465:19
-🔍 Optimized data size comparison: 
-Object { originalSize: 4127586, optimizedSize: 1167, reduction: "100.0%" }
-page.tsx:488:19
-{"timestamp":"2025-07-06T14:48:52.760Z","level":"info","message":"[RedisStorage] Storing flight search data..."} logger.ts:42:15
-{"timestamp":"2025-07-06T14:48:52.761Z","level":"info","message":"API Request","data":{"url":"/api/flight-storage/search","method":"post","data":{"search_data":{"airShoppingResponse":{"data":{"metadata":{"airline_count":4,"airline_filtering_enabled":false,"enhanced_cards_count":1500,"filtered_airlines":[],"is_multi_airline":true,"performance":{"card_generation_time":0.030479,"search_time":28.990927,"total_time":29.692708,"transform_time":0.668669},"raw_response_cache_key":"air_shopping_raw_7d0401d7-b770-412a-afe8-508941554b88_1751813331","request_id":"7d0401d7-b770-412a-afe8-508941554b88","service_version":"2.4-optimized","shopping_response_ids":{"AF":"s4hQiBpTMDjWP-ZUTPitEQOAKZ8xoWaYAkiUbNLjhLk-AF","EK":"s4hQiBpTMDjWP-ZUTPitEQOAKZ8xoWaYAkiUbNLjhLk-EK","KL":"s4hQiBpTMDjWP-ZUTPitEQOAKZ8xoWaYAkiUbNLjhLk-KL","LHG":"s4hQiBpTMDjWP-ZUTPitEQOAKZ8xoWaYAkiUbNLjhLk-LHG"},"supported_airlines":["AF","EK","KL","LHG"],"total_offers":1500,"transformation_timestamp":"2025-07-06T17:48:51.428669"}}},"searchParams":{"origin":"NBO","destination":"CDG","departDate":"2025-07-10","returnDate":"2025-07-22","tripType":"round-trip","passengers":{"adults":2,"children":1,"infants":1},"cabinClass":"ECONOMY","outboundCabinClass":"PREMIUM_ECONOMY","returnCabinClass":"PREMIUM_ECONOMY"},"timestamp":1751813332741,"expiresAt":1751815132741},"ttl":1800}}} logger.ts:42:15
-{"timestamp":"2025-07-06T14:48:52.808Z","level":"info","message":"API Response","data":{"status":200,"url":"/api/flight-storage/search"}} logger.ts:42:15
-{"timestamp":"2025-07-06T14:48:52.808Z","level":"info","message":"[RedisStorage] ✅ Flight search data stored successfully","data":{"session_id":"03070dcc-0c0d-4332-afa0-d7657546d986","expires_at":"2025-07-06T15:18:52.782429"}} logger.ts:42:15
+[2025-07-06 18:35:47 +0300] [940] [INFO] 127.0.0.1:61756 GET /api/flight-storage/price/5b0195e1-794d-4196-8a86-d49f5aa3d06a 1.1 404 136 266134
+INFO:routes.verteil_flights:Incoming request: POST /api/verteil/order-create
+INFO:routes.verteil_flights:Headers: {'Remote-Addr': '127.0.0.1', 'Host': 'localhost:5000', 'Connection': 'keep-alive', 'Content-Type': 'application/json', 'Accept': '*/*', 'Accept-Language': '*', 'Sec-Fetch-Mode': 'cors', 'User-Agent': 'node', 'Accept-Encoding': 'gzip, deflate', 'Content-Length': '1739'}
+INFO:routes.verteil_flights:Origin: None
+INFO:routes.verteil_flights:Access-Control-Request-Method: None
+INFO:root:[FRONTEND_OUTPUT] Written Frontend Order Create Request Data to FRONTEND_ORDER_CREATE_REQUEST_20250706_183549.json
+INFO:routes.verteil_flights:[DEBUG] Raw frontend data received (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1) - Keys: ['passengers', 'payment', 'contact_info', 'flight_price_response', 'OfferID']
+INFO:routes.verteil_flights:[DEBUG] flight_price_response available: True (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:routes.verteil_flights:[DEBUG] frontend_offer_id received: 138 (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:routes.verteil_flights:[DEBUG] flight_price_response keys: ['metadata'] (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:routes.verteil_flights:[DEBUG] flight_price_response type: <class 'dict'> (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:routes.verteil_flights:[DEBUG] Complete flight_price_response structure (first 2000 chars): {'metadata': {'cache_key': 'flight_price_response:5b0195e1-794d-4196-8a86-d49f5aa3d06a', 'cached': True, 'flight_price_cache_key': 'flight_price_raw_5b0195e1-794d-4196-8a86-d49f5aa3d06a_1751813991', 'request_id': '5b0195e1-794d-4196-8a86-d49f5aa3d06a'}}... (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+WARNING:routes.verteil_flights:[DEBUG] Could not extract OfferID from raw response, using frontend value: 138 (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:routes.verteil_flights:[DEBUG] Found flight price cache key: flight_price_raw_5b0195e1-794d-4196-8a86-d49f5aa3d06a_1751813991 (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+WARNING:routes.verteil_flights:[DEBUG] Raw flight price response not found in cache for key: flight_price_raw_5b0195e1-794d-4196-8a86-d49f5aa3d06a_1751813991 (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:routes.verteil_flights:[DEBUG] Extracted flight_price_response present (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): True
+INFO:routes.verteil_flights:[DEBUG] Flight price response keys (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): ['metadata']
+INFO:routes.verteil_flights:[DEBUG] Extracted passengers count (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): 4
+INFO:routes.verteil_flights:[DEBUG] Extracted payment method (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): CASH
+INFO:routes.verteil_flights:[DEBUG] Complete payment_info structure (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): {'payment_method': 'CASH'}
+INFO:routes.verteil_flights:[DEBUG] Extracted contact info present (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): True
+INFO:routes.verteil_flights:[DEBUG] Extracted OfferID (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): 138
+INFO:routes.verteil_flights:[DEBUG] Extracted ShoppingResponseID (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): None
+INFO:routes.verteil_flights:[DEBUG] Using cached flight price response (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): True     
+INFO:routes.verteil_flights:[DEBUG] Order data being sent to booking service (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1) - Keys: ['flight_price_response', 'passengers', 'payment_info', 'contact_info', 'request_id', 'config', 'offer_id', 'shopping_response_id']
+INFO:routes.verteil_flights:Processing order creation - Request ID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1
+🟡🟡🟡 ENTRY: process_order_create called with keys: ['flight_price_response', 'passengers', 'payment_info', 'contact_info', 'request_id', 'config', 'offer_id', 'shopping_response_id'] 🟡🟡🟡
+INFO:services.flight.booking:🟡🟡🟡 ENTRY: process_order_create called with keys: ['flight_price_response', 'passengers', 'payment_info', 'contact_info', 'request_id', 'config', 'offer_id', 'shopping_response_id'] 🟡🟡🟡
+🟡🟡🟡 Config extracted: {'APPLICATION_ROOT': '/', 'BACKGROUND_TASK_SHUTDOWN_TIMEOUT': 5, 'BODY_TIMEOUT': 60, 'DEBUG': True, 'ENV': None, 'EXPLAIN_TEMPLATE_LOADING': False, 'MAX_CONTENT_LENGTH': 104857600, 'MAX_COOKIE_SIZE': 4093, 'MAX_FORM_MEMORY_SIZE': 500000, 'MAX_FORM_PARTS': 1000, 'PERMANENT_SESSION_LIFETIME': datetime.timedelta(days=31), 'PREFER_SECURE_URLS': False, 'PRESERVE_CONTEXT_ON_EXCEPTION': None, 'PROPAGATE_EXCEPTIONS': None, 'PROVIDE_AUTOMATIC_OPTIONS': True, 'RESPONSE_TIMEOUT': 60, 'SECRET_KEY': '3b8a4665b373558cddee0c362d73d0688eb717a1c025cc89975bb308fc9412f7', 'SEND_FILE_MAX_AGE_DEFAULT': datetime.timedelta(seconds=43200), 'SERVER_NAME': None, 'SESSION_COOKIE_DOMAIN': None, 'SESSION_COOKIE_HTTPONLY': True, 'SESSION_COOKIE_NAME': 'session', 'SESSION_COOKIE_PATH': None, 'SESSION_COOKIE_SAMESITE': None, 'SESSION_COOKIE_SECURE': False, 'SESSION_REFRESH_EACH_REQUEST': True, 'TEMPLATES_AUTO_RELOAD': None, 'TESTING': False, 'TRAP_BAD_REQUEST_ERRORS': None, 'TRAP_HTTP_EXCEPTIONS': False, 'API_KEYS': [''], 'API_KEY_AUTH_ENABLED': False, 'API_PREFIX': '/api', 'CACHE_DEFAULT_TIMEOUT': 300, 'CACHE_REDIS_URL': 'redis://localhost:6379/0', 'CACHE_TYPE': 'redis', 'COMPRESS_RESPONSES': True, 'CORS_ALLOW_HEADERS': ['Content-Type', 'Authorization'], 'CORS_EXPOSE_HEADERS': ['Content-Type'], 'CORS_METHODS': ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 'CORS_ORIGINS': ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001', 'https://flight-pearl.vercel.app'], 'CORS_SUPPORTS_CREDENTIALS': True, 'FILTER_UNSUPPORTED_AIRLINES': False, 'JWT_ACCESS_TOKEN_EXPIRES': 3600, 'JWT_SECRET_KEY': 'jwt-secret-key-change-in-production', 'LOG_FORMAT': '%(asctime)s - %(name)s - %(levelname)s - %(message)s', 'LOG_LEVEL': 'INFO', 'OAUTH2_TOKEN_EXPIRY_BUFFER': 60, 'RATELIMIT_DEFAULT': '200 per day;50 per hour;10 per minute', 'REDIS_URL': 'redis://localhost:6379/0', 'REQUEST_DEDUPLICATION_ENABLED': True, 'REQUEST_DEDUPLICATION_TTL': 5, 'REQUEST_TIMEOUT': 30, 'VERTEIL_API_BASE_URL': 'https://api.stage.verteil.com', 'VERTEIL_API_TIMEOUT': 60, 'VERTEIL_CLIENT_ID': None, 'VERTEIL_CLIENT_SECRET': None, 'VERTEIL_MULTI_AIRLINE_ID': '', 'VERTEIL_OFFICE_ID': 'OFF3746', 'VERTEIL_PASSWORD': 'UZrNcyxpIFn2TOdiU5uc9kZrqJwxU44KdlyFBpiDOaaNom1xSySEtQmRq9IcDq3c', 'VERTEIL_THIRD_PARTY_ID': 'KQ', 'VERTEIL_USERNAME': 'reatravel_apitestuser'} 🟡🟡🟡
+INFO:services.flight.booking:🔥🔥🔥 process_order_create called, creating FlightBookingService instance 🔥🔥🔥
+🔥🔥🔥 process_order_create called, creating FlightBookingService instance 🔥🔥🔥
+[2025-07-06 18:35:49,463] INFO in core: FlightService initialized with necessary OAuth configurations.
+INFO:services.flight.core:FlightService initialized with necessary OAuth configurations.
+INFO:services.flight.booking:🔥🔥🔥 FlightBookingService instance created: <class 'services.flight.booking.FlightBookingService'> 🔥🔥🔥
+🔥🔥🔥 FlightBookingService instance created: <class 'services.flight.booking.FlightBookingService'> 🔥🔥🔥
+INFO:services.flight.booking:🔥🔥🔥 About to call service.create_booking 🔥🔥🔥
+🔥🔥🔥 About to call service.create_booking 🔥🔥🔥
+🟡🟡🟡 Data being passed to create_booking:
+  - flight_price_response keys: ['metadata']
+  - passengers count: 4
+  - payment_info: {'payment_method': 'CASH'}
+  - contact_info: {'email': 'kevinamoni20@gmail.com', 'phoneCountryCode': '254', 'phone': '796861525', 'street': 'Kimathi Street', 'city': 'Nairobi', 'postalCode': '30500', 'countryCode': 'KE'}
+  - request_id: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1
+  - offer_id: 138
+  - shopping_response_id: None
+🟢🟢🟢 FIRST LINE OF create_booking METHOD 🟢🟢🟢
+INFO:services.flight.booking:🚀🚀🚀 MODIFIED create_booking method called with request_id: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1 🚀🚀🚀
+🚀🚀🚀 MODIFIED create_booking method called with request_id: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1 🚀🚀🚀
+[PRINT DEBUG] create_booking method ENTRY POINT - before any processing
+INFO:services.flight.booking:[DEBUG] create_booking method ENTRY POINT - before any processing
+INFO:services.flight.booking:[DEBUG] create_booking - about to validate input
+INFO:services.flight.booking:[DEBUG] create_booking - validation passed
+INFO:services.flight.booking:[DEBUG] create_booking called (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:services.flight.booking:[DEBUG] create_booking parameters - offer_id: 138, shopping_response_id: None
+INFO:services.flight.booking:[DEBUG] create_booking flight_price_response keys: ['metadata']
+INFO:services.flight.booking:[DEBUG] About to call _build_booking_payload (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)        
+[PRINT DEBUG] About to call _build_booking_payload (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+[PRINT DEBUG] _build_booking_payload called (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:services.flight.booking:[DEBUG] _build_booking_payload called (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:services.flight.booking:[DEBUG] _build_booking_payload parameters - offer_id: 138, shopping_response_id: None
+INFO:services.flight.booking:[DEBUG] Checking generate_order_create_rq availability (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): <function generate_order_create_rq at 0x00000209523D0AE0>
+INFO:services.flight.booking:[DEBUG] generate_order_create_rq function is available (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): <class 'function'>
+INFO:services.flight.booking:[DEBUG] Attempting to use proper OrderCreate builder (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:services.flight.booking:[DEBUG] Flight price response keys being passed to builder: ['metadata']
+INFO:services.flight.booking:[DEBUG] Flight price response type: <class 'dict'>
+INFO:services.flight.booking:Building OrderCreate payload using request builder for request 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1
+INFO:services.flight.booking:[DEBUG] Flight price response present (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): True
+INFO:services.flight.booking:[DEBUG] Passengers count (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): 4
+INFO:services.flight.booking:[DEBUG] Payment method (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): CASH
+INFO:services.flight.booking:[DEBUG] Contact info present (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): True
+INFO:services.flight.booking:[DEBUG] Extracted offer_id from frontend (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): 138       
+INFO:services.flight.booking:[DEBUG] Extracted shopping_response_id from frontend (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): None
+INFO:services.flight.booking:[DEBUG] Trying to find cache by scanning for shopping_response_id: None (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+WARNING:services.flight.booking:[DEBUG] No raw flight price response found in cache for any of the tried keys (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:services.flight.booking:[DEBUG] Tried cache keys: ['flight_price_response:83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1', 'flight_price_response:None', 'flight_price_response:138'] (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:services.flight.booking:[DEBUG] Will enhance the frontend flight_price_response (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:services.flight.booking:[ANALYSIS] flight_price_response top-level keys: ['metadata']
+INFO:services.flight.booking:[ANALYSIS] PricedFlightOffers NOT found in flight_price_response
+INFO:services.flight.booking:[ANALYSIS] DataLists NOT found in flight_price_response
+INFO:services.flight.booking:[ANALYSIS] ShoppingResponseID NOT found in flight_price_response
+INFO:services.flight.booking:[ANALYSIS] 'data' key NOT found in flight_price_response
+INFO:services.flight.booking:[DEBUG] Transformed passenger (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): Unknown Unknown
+INFO:services.flight.booking:[DEBUG] Transformed passenger (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): Unknown Unknown      
+INFO:services.flight.booking:[DEBUG] Transformed passenger (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): Unknown Unknown      
+INFO:services.flight.booking:[DEBUG] Transformed passenger (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): Unknown Unknown      
+INFO:services.flight.booking:[DEBUG] Enhancing flight_price_response with extracted IDs (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:services.flight.booking:[DEBUG] Injecting OfferID 138 into existing PricedFlightOffers structure (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+WARNING:services.flight.booking:[DEBUG] No PricedFlightOffers found in response - build_ordercreate_rq.py will handle this (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:services.flight.booking:[DEBUG] OfferID injection completed - letting build_ordercreate_rq.py handle the rest (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:services.flight.booking:[DEBUG] Transformed passengers count (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): 4
+INFO:services.flight.booking:[DEBUG] Transformed payment method (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): None
+INFO:services.flight.booking:[DEBUG] Enhanced flight price response top-level keys (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): ['metadata']
+INFO:services.flight.booking:[DEBUG] ShoppingResponseID in enhanced response (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1): None
+INFO:services.flight.booking:[DEBUG] About to call generate_order_create_rq with enhanced_flight_price_response keys: ['metadata']
+INFO:services.flight.booking:[DEBUG] Enhanced flight_price_response has 1 top-level keys
+INFO:services.flight.booking:[DEBUG] Transformed passengers count: 4
+INFO:services.flight.booking:[DEBUG] Transformed payment keys: ['MethodType', 'currency', 'Details']
+INFO:services.flight.booking:[DEBUG] ===== CALLING generate_order_create_rq FUNCTION =====
+INFO:build_ordercreate_rq:[DEBUG] build_ordercreate_rq - Input flight_price_response keys: ['metadata']
+INFO:build_ordercreate_rq:[DEBUG] build_ordercreate_rq - Input flight_price_response type: <class 'dict'>
+INFO:build_ordercreate_rq:[DEBUG] Multi-airline OrderCreate detected: False
+INFO:build_ordercreate_rq:[DEBUG] build_ordercreate_rq - Using direct structure, keys: ['metadata']
+INFO:build_ordercreate_rq:[DEBUG] build_ordercreate_rq - ShoppingResponseID node: {}
+INFO:build_ordercreate_rq:[DEBUG] build_ordercreate_rq - Extracted ResponseID value: None
+ERROR:build_ordercreate_rq:[DEBUG] build_ordercreate_rq - ShoppingResponseID extraction failed. Full structure: {
+  "metadata": {
+    "cache_key": "flight_price_response:5b0195e1-794d-4196-8a86-d49f5aa3d06a",
+    "cached": true,
+    "flight_price_cache_key": "flight_price_raw_5b0195e1-794d-4196-8a86-d49f5aa3d06a_1751813991",
+    "request_id": "5b0195e1-794d-4196-8a86-d49f5aa3d06a"
+  }
+}
+ERROR:services.flight.booking:[DEBUG] ===== EXCEPTION IN generate_order_create_rq FUNCTION =====
+ERROR:services.flight.booking:Error using OrderCreate request builder: ShoppingResponseID (value) missing from FlightPriceResponse
+ERROR:services.flight.booking:Request builder error details: ShoppingResponseID (value) missing from FlightPriceResponse       
+ERROR:services.flight.booking:Request builder traceback: Traceback (most recent call last):
+  File "C:\Users\User\Desktop\FLIGHT\Backend\services\flight\booking.py", line 1024, in _build_booking_payload
+    payload = current_func(
+        flight_price_response=enhanced_flight_price_response,
+        passengers_data=transformed_passengers,
+        payment_input_info=transformed_payment
+    )
+  File "C:\Users\User\Desktop\FLIGHT\Backend\scripts\build_ordercreate_rq.py", line 318, in generate_order_create_rq
+    raise ValueError("ShoppingResponseID (value) missing from FlightPriceResponse")
+ValueError: ShoppingResponseID (value) missing from FlightPriceResponse
+
+ERROR:services.flight.booking:[DEBUG] ===== FALLING BACK TO MANUAL CONSTRUCTION =====
+INFO:services.flight.booking:[DEBUG] _build_fallback_payload called (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:services.flight.booking:[DEBUG] _build_fallback_payload parameters - offer_id: 138, shopping_response_id: None
+INFO:services.flight.booking:[DEBUG] Fallback payload - Flight price response structure keys: ['metadata']
+INFO:services.flight.booking:[DEBUG] Fallback payload - Using extracted shopping_response_id: None
+INFO:services.flight.booking:[DEBUG] Fallback payload - Using extracted offer_id: 138
+INFO:services.flight.booking:[DEBUG] Final extracted OfferItemIDs: []
+INFO:services.flight.booking:[DEBUG] Finished calling _build_booking_payload (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)     
+[PRINT DEBUG] Finished calling _build_booking_payload (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:services.flight.booking:[DEBUG] Attempting to extract airline code from flight_price_response with keys: ['metadata']     
+WARNING:services.flight.booking:Could not extract airline code from FlightPrice response. Available top-level keys: ['metadata']
+WARNING:services.flight.booking:[DEBUG] Flight price response has 1 top-level keys
+INFO:services.flight.booking:Extracted airline code 'None' for booking (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1)
+INFO:utils.auth:Fetching new OAuth2 token...
+INFO:utils.auth:Successfully obtained new token. Expires in 43199 seconds.
+[2025-07-06 18:35:52,213] INFO in core: Making POST request to https://api.stage.verteil.com/entrygate/rest/request:orderCreate for service OrderCreate (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1).
+INFO:services.flight.core:Making POST request to https://api.stage.verteil.com/entrygate/rest/request:orderCreate for service OrderCreate (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1).
+INFO:root:[OUTPUT] Written OrderCreate API Request Payload to OrderCreate_REQUEST_20250706_183552.json
+[2025-07-06 18:35:57,024] INFO in core: Successfully received API response for OrderCreate (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1) with status 200
+INFO:services.flight.core:Successfully received API response for OrderCreate (ReqID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1) with status 200
+INFO:root:[OUTPUT] Written OrderCreate API Response to OrderCreate_RESPONSE_20250706_183557.json
+INFO:services.flight.booking:[DEBUG] ===== PROCESSING ORDERCREATE RESPONSE =====
+INFO:services.flight.booking:[DEBUG] Response type: dict
+INFO:services.flight.booking:[DEBUG] Response top-level keys: ['VdcErrors']
+INFO:services.flight.booking:[DEBUG] No Response section found or response is not a dict
+INFO:services.flight.booking:[DEBUG] ===== END RESPONSE ANALYSIS =====
+INFO:services.flight.booking:Successfully processed OrderCreate response with new data contract. Booking reference: None, Order ID: None
+🟢🟢🟢 create_booking returned successfully! 🟢🟢🟢
+INFO:services.flight.booking:🟢🟢🟢 create_booking returned successfully! 🟢🟢🟢
+INFO:root:[FRONTEND_OUTPUT] Written Backend Order Create Response Data to FRONTEND_ORDER_CREATE_BACKEND_RESPONSE_20250706_183557.json
+INFO:routes.verteil_flights:Order created successfully - Request ID: 83b05eaf-e4bd-4f47-80ed-c0eda4dc68b1
+[2025-07-06 18:35:57 +0300] [940] [INFO] 127.0.0.1:61760 POST /api/verteil/order-create 1.1 200 1294 8198691

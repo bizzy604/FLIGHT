@@ -30,6 +30,7 @@ export default function PaymentPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [booking, setBooking] = useState<any>(null)
+  const [flightOffer, setFlightOffer] = useState<any>(null)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
 
   // Fetch booking data using robust storage manager
@@ -40,37 +41,51 @@ export default function PaymentPage() {
         // Setup robust storage
         await setupRobustStorage()
 
-        // Get pending booking data from robust storage
+        // Get pending booking data from session storage (primary source)
         let storedPendingBooking = sessionStorage.getItem("pendingBookingData")
         if (!storedPendingBooking) {
-          // Try to recover from robust storage
+          console.log('❌ No pending booking data found in sessionStorage');
+          // Try to recover from robust storage as fallback
           const bookingResult = await flightStorageManager.getBookingData()
           if (bookingResult.success && bookingResult.data) {
             storedPendingBooking = JSON.stringify(bookingResult.data)
+            console.log('✅ Recovered booking data from robust storage');
           } else {
+            console.log('❌ No booking data found in robust storage either, redirecting to flight details');
             router.push(`/flights/${flightId}`)
             return
           }
+        } else {
+          console.log('✅ Found pending booking data in sessionStorage');
         }
 
         const pendingBooking = JSON.parse(storedPendingBooking)
 
-        // Get flight offer data from robust storage
-        const selectedFlightResult = await flightStorageManager.getSelectedFlight()
-        if (!selectedFlightResult.success || !selectedFlightResult.data) {
-          // Fallback to session storage
-          const storedFlightOffer = sessionStorage.getItem("selectedFlightOffer")
-          if (!storedFlightOffer) {
+        // Get flight offer data - prioritize session storage since that's where booking form stores it
+        let flightOfferData = null;
+        let storedFlightOffer = sessionStorage.getItem("selectedFlightOffer")
+
+        if (storedFlightOffer) {
+          console.log('✅ Found flight offer in sessionStorage');
+          flightOfferData = JSON.parse(storedFlightOffer);
+          setFlightOffer(flightOfferData);
+        } else {
+          console.log('⚠️ No flight offer in sessionStorage, trying robust storage...');
+          // Fallback to robust storage
+          const selectedFlightResult = await flightStorageManager.getSelectedFlight()
+          if (selectedFlightResult.success && selectedFlightResult.data) {
+            console.log('✅ Found flight offer in robust storage');
+            flightOfferData = selectedFlightResult.data;
+            setFlightOffer(flightOfferData);
+          } else {
+            console.log('❌ No flight offer found anywhere, redirecting to flight details');
             router.push(`/flights/${flightId}`)
             return
           }
-          setFlightOffer(JSON.parse(storedFlightOffer))
-        } else {
-          setFlightOffer(selectedFlightResult.data)
         }
 
         // The stored flight offer should be the priced offer from flight details page
-        const pricedOffer = JSON.parse(storedFlightOffer)
+        const pricedOffer = flightOfferData;
 
         // Extract pricing from the priced offer structure (same as flight details page)
         let currency = "USD"

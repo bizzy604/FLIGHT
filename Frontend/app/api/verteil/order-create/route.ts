@@ -361,7 +361,20 @@ export async function POST(request: NextRequest) {
     const passengers = body.passengers;
     const payment = body.payment;
     const contact_info = body.contact_info;
+
+    // Debug: Log what we received
+    console.log('🔍 Order creation request received:');
+    console.log('- Has flight_offer:', !!body.flight_offer);
+    console.log('- Has raw_flight_price_response:', !!(body.flight_offer?.raw_flight_price_response));
+    console.log('- Has metadata:', !!(body.flight_offer?.metadata));
+    console.log('- Flight offer keys:', body.flight_offer ? Object.keys(body.flight_offer) : 'none');
     
+    // Get session ID from localStorage (sent by frontend)
+    const sessionId = body.session_id || body.flight_offer?.session_id;
+    console.log('🔍 Session ID for order creation:', sessionId);
+    console.log('🔍 Full request body keys:', Object.keys(body));
+    console.log('🔍 Flight offer keys:', body.flight_offer ? Object.keys(body.flight_offer) : 'none');
+
     // Prepare backend request body with raw frontend data
     const backendRequestBody: {
       passengers: any;
@@ -370,15 +383,25 @@ export async function POST(request: NextRequest) {
       flight_price_response?: any;
       ShoppingResponseID?: string;
       OfferID?: string;
+      session_id?: string;
     } = {
       passengers: passengers,
       payment: payment,
-      contact_info: contact_info
+      contact_info: contact_info,
+      session_id: sessionId
     };
     
-    // Check if flight_offer contains raw_flight_price_response
+    // Simple approach: Send what we have to the backend, let it handle cache retrieval
     if (body.flight_offer && body.flight_offer.raw_flight_price_response) {
+      // If we have the raw response, use it directly
       backendRequestBody.flight_price_response = body.flight_offer.raw_flight_price_response;
+      console.log('✅ Using raw flight price response for order creation');
+    } else if (body.flight_offer && body.flight_offer.metadata) {
+      // If we have metadata with cache key, send it to backend for cache retrieval
+      backendRequestBody.flight_price_response = { metadata: body.flight_offer.metadata };
+      console.log('✅ Using metadata for backend cache retrieval');
+    } else {
+      console.warn('⚠️ No flight price response or metadata found in flight offer');
     }
 
     // Add ShoppingResponseID if available

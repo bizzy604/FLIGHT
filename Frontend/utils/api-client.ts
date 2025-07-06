@@ -183,17 +183,28 @@ export const api = {
 
     // Booking - Use fetch directly to call Next.js API route
     createBooking: async (flightOffer: any, passengers: any[], payment: any, contactInfo: any) => {
+        // Get session ID from localStorage for backend to retrieve flight price data from Redis
+        const sessionId = localStorage.getItem('flight_session_id');
+
+        console.log('🔍 API Client - Creating booking with:');
+        console.log('- Session ID:', sessionId);
+        console.log('- Flight offer keys:', flightOffer ? Object.keys(flightOffer) : 'none');
+        console.log('- Has raw_flight_price_response:', !!(flightOffer?.raw_flight_price_response));
+
+        const requestBody = {
+            flight_offer: flightOffer,
+            passengers,
+            payment,
+            contact_info: contactInfo,
+            session_id: sessionId
+        };
+
         const response = await fetch('/api/verteil/order-create', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                flight_offer: flightOffer,
-                passengers,
-                payment,
-                contact_info: contactInfo
-            })
+            body: JSON.stringify(requestBody)
         });
         
         const data = await response.json();

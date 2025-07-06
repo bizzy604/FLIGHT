@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-07-06T18:51:09.927123",
+  "description": "FlightPrice API Response",
+  "data": {
+    "Errors": {
+      "Error": [
+        {
+          "value": "Cannot invoke \"Object.getClass()\" because \"o\" is null",
+          "ShortText": "We are sorry, there is an internal error processing your request. Please contact Verteil support with transaction id: UA8uoo-1751817069607",
+          "Code": "INTERNAL_ERROR",
+          "Owner": "LHG"
+        }
+      ]
+    }
+  }
+}

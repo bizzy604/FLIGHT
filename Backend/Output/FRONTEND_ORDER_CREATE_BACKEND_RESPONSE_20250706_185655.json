@@ -1,0 +1,28 @@
+{
+  "timestamp": "2025-07-06T18:56:55.447202",
+  "description": "Backend Order Create Response Data",
+  "data": {
+    "status": "success",
+    "data": {
+      "error": {
+        "code": "VALIDATION_FAILURE",
+        "message": "Offer Expired. Please retry by selecting a new offer.",
+        "timestamp": "2025-07-06T15:56:55.333755Z",
+        "requestId": "unknown"
+      }
+    },
+    "raw_order_create_response": {
+      "Errors": {
+        "Error": [
+          {
+            "value": "Offer Expired. Please retry by selecting a new offer.",
+            "ShortText": "Offer Expired. Please retry by selecting a new offer.",
+            "Code": "VALIDATION_FAILURE",
+            "Reason": "INVALID_OR_EXPIRED_OFFER"
+          }
+        ]
+      }
+    },
+    "request_id": "d6f8bb04-2b27-4b13-90c9-1c4418065bb2"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "timestamp": "2025-07-06T18:47:56.104400",
+  "description": "OrderCreate API Request Payload",
+  "data": {
+    "url": "https://api.stage.verteil.com/entrygate/rest/request:orderCreate",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/json",
+      "Accept": "*/*",
+      "OfficeId": "OFF3746",
+      "service": "OrderCreate",
+      "User-Agent": "PostmanRuntime/7.41",
+      "Cache-Control": "no-cache",
+      "Accept-Encoding": "gzip, deflate, br",
+      "Connection": "keep-alive",
+      "ThirdpartyId": "KQ"
+    },
+    "payload": {
+      "ShoppingResponseID": null,
+      "SelectedOffer": {
+        "OfferID": "138",
+        "OfferItemIDs": []
+      },
+      "Passengers": [
+        {
+          "PassengerID": "PAX1",
+          "Type": "adult",
+          "Title": "mr",
+          "FirstName": "AMONI",
+          "LastName": "KEVIN",
+          "DateOfBirth": "1998-04-07",
+          "Gender": "male",
+          "PassportNumber": "A0WDOH8H",
+          "PassportExpiry": "2040-07-09",
+          "Nationality": "CN"
+        },
+        {
+          "PassengerID": "PAX2",
+          "Type": "adult",
+          "Title": "mrs",
+          "FirstName": "Rebecca",
+          "LastName": "Miano",
+          "DateOfBirth": "1997-08-07",
+          "Gender": "female",
+          "PassportNumber": "Q038N8CE",
+          "PassportExpiry": "2030-07-07",
+          "Nationality": "RU"
+        },
+        {
+          "PassengerID": "PAX3",
+          "Type": "child",
+          "Title": "ms",
+          "FirstName": "Micah",
+          "LastName": "Losuru",
+          "DateOfBirth": "2017-08-08",
+          "Gender": "male",
+          "PassportNumber": "AMO30RUF",
+          "PassportExpiry": "2030-06-08",
+          "Nationality": "RU"
+        },
+        {
+          "PassengerID": "PAX4",
+          "Type": "infant",
+          "Title": "miss",
+          "FirstName": "Sally",
+          "LastName": "Asekon",
+          "DateOfBirth": "2024-08-09",
+          "Gender": "female",
+          "PassportNumber": "LO0ECHECI9",
+          "PassportExpiry": "2030-09-06",
+          "Nationality": "BR"
+        }
+      ],
+      "PaymentInfo": {
+        "PaymentMethod": "CASH"
+      },
+      "ContactInfo": {
+        "Email": "kevinamoni20@gmail.com",
+        "Phone": "796861525"
+      },
+      "RequestID": "f834ea55-0b8a-4e40-9d44-b7894bad2cd1"
+    }
+  }
+}
