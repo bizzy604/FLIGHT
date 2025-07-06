@@ -32,6 +32,7 @@ AIRLINE_NAMES = {
     'MU': 'China Eastern Airlines',
     '6E': 'IndiGo',
     'AI': 'Air India',
+    'IX': 'Air India Express',
     'SU': 'Aeroflot',
     'AC': 'Air Canada',
     'LY': 'El Al',

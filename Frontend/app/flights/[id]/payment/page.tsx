@@ -340,13 +340,15 @@ export default function PaymentPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
+        <div className="container flex h-16 items-center justify-between px-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
-            <Image src="/logo1.png" alt="Rea Logo" width={32} height={32} />
-            <span className="text-xl font-bold">Rea Travel</span>
+            <Image src="/logo1.png" alt="Rea Travel Logo" width={32} height={32} />
+            <span className="text-sm sm:text-base md:text-lg font-semibold">Rea Travel</span>
           </div>
-          <MainNav />
-          <UserNav />
+          <div className="flex items-center gap-4">
+            <MainNav />
+            <UserNav />
+          </div>
         </div>
       </header>
 

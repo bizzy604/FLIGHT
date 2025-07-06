@@ -44,6 +44,11 @@ class Config:
     # Try empty string for multi-airline searches, or set to specific aggregator code
     VERTEIL_MULTI_AIRLINE_ID = os.environ.get('VERTEIL_MULTI_AIRLINE_ID', '')
 
+    # Airline filtering configuration
+    # Set to True to filter out airlines not in the supported mapping
+    # Set to False (default) to include all airlines from API response
+    FILTER_UNSUPPORTED_AIRLINES = os.environ.get('FILTER_UNSUPPORTED_AIRLINES', 'false').lower() == 'true'
+
     # Redis configuration
     REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
     

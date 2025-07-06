@@ -142,13 +142,22 @@ class FlightPricingService(FlightService):
                 logger.info(f"[PASSENGER DEBUG] Flight Price API Response - AnonymousTravelerList count: {len(response_travelers) if isinstance(response_travelers, list) else 1}")
 
             # Process the response, passing the frontend's offer_id to ensure consistency
+            processed_response = self._process_pricing_response(
+                response=response,
+                request_id=request_id,
+                frontend_offer_id=offer_id  # Pass the frontend's offer ID to maintain consistency
+            )
+
+            # Check if the processing returned an error
+            if isinstance(processed_response, dict) and processed_response.get('status') == 'error':
+                # Return the error response directly without wrapping it in success
+                processed_response['request_id'] = request_id
+                return processed_response
+
+            # Return success response
             return {
                 'status': 'success',
-                'data': self._process_pricing_response(
-                    response=response,
-                    request_id=request_id,
-                    frontend_offer_id=offer_id  # Pass the frontend's offer ID to maintain consistency
-                ),
+                'data': processed_response,
                 'request_id': request_id
             }
             

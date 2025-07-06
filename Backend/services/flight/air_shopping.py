@@ -105,7 +105,8 @@ class AirShoppingService(FlightService):
             
             # Step 2: Enhanced transformation with multi-airline support
             transform_start = datetime.now()
-            transformed_data = transform_air_shopping_for_results_enhanced(raw_response)
+            filter_airlines = self.config.get('FILTER_UNSUPPORTED_AIRLINES', False)
+            transformed_data = transform_air_shopping_for_results_enhanced(raw_response, filter_airlines)
             transform_time = (datetime.now() - transform_start).total_seconds()
             
             offers = transformed_data.get('offers', [])

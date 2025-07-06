@@ -1,17 +1,15 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { FlightSearchForm } from "@/components/flight-search-form"
 import { MainNav } from "@/components/main-nav"
 import { UserNav } from "@/components/user-nav"
-import { MobileNav } from "@/components/mobile-nav"
 import { ServicesSection } from "@/components/sections/services-section"
 import { DestinationsSection } from "@/components/sections/destinations-section"
 import { StatsSection } from "@/components/sections/stats-section"
 import { TestimonialsSection } from "@/components/sections/testimonials-section"
 import { PartnersSection } from "@/components/sections/partners-section"
-import { NewsletterSection } from "@/components/sections/newsletter-section"
+
 
 export default function HomePage() {
   return (
@@ -19,18 +17,19 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 sm:h-16 items-center justify-between px-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 sm:gap-3">
-            <MobileNav />
             <Image
               src="/logo1.png"
-              alt="SkyWay Logo"
-              width={60}
-              height={60}
-              className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16"
+              alt="Rea Travel Logo"
+              width={32}
+              height={32}
+              className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12"
             />
-            <span className="text-base sm:text-lg md:text-xl font-bold">Rea Travel</span>
+            <span className="text-sm sm:text-base md:text-lg font-semibold">Rea Travel</span>
           </div>
-          <MainNav />
-          <UserNav />
+          <div className="flex items-center gap-4">
+            <MainNav />
+            <UserNav />
+          </div>
         </div>
       </header>
 
@@ -47,11 +46,11 @@ export default function HomePage() {
             />
           </div>
           <div className="container relative z-10 py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-5xl text-center">
-              <h1 className="mb-4 sm:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-white leading-tight">
+            <div className="mx-auto max-w-4xl text-center">
+              <h1 className="mb-4 sm:mb-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
                 Discover the World with Rea Travel
               </h1>
-              <p className="mb-8 sm:mb-10 lg:mb-12 text-lg sm:text-xl lg:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed">
+              <p className="mb-8 sm:mb-10 lg:mb-12 text-base sm:text-lg lg:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
                 Find and book the best deals on flights to your dream destinations
               </p>
 
@@ -68,7 +67,6 @@ export default function HomePage() {
         <StatsSection />
         <TestimonialsSection />
         <PartnersSection />
-        <NewsletterSection />
       </div>
       </main>
     </div>

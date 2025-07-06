@@ -48,21 +48,21 @@ export function DestinationsSection() {
   ];
 
   return (
-    <section className="py-12 sm:py-16 lg:py-20 xl:py-24">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-12 sm:py-16 lg:py-20">
+      <div className="container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-8 sm:mb-12 lg:mb-16"
+          className="text-center mb-8 sm:mb-12"
         >
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6">Top Destinations</h2>
-          <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600 max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto leading-relaxed">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 sm:mb-4">Top Destinations</h2>
+          <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Explore our selection of the most popular destinations around the world
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 xl:gap-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
           {destinations.map((destination) => (
             <motion.div
               key={destination.id}
@@ -71,7 +71,7 @@ export function DestinationsSection() {
               viewport={{ once: true }}
               className="bg-card rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
-              <div className="relative h-40 sm:h-48 lg:h-56 xl:h-64">
+              <div className="relative h-40 sm:h-48 lg:h-52">
                 <Image
                   src={destination.image}
                   alt={`${destination.city}, ${destination.country}`}
@@ -79,18 +79,18 @@ export function DestinationsSection() {
                   className="object-cover hover:scale-110 transition-transform duration-300"
                 />
               </div>
-              <div className="p-3 sm:p-4 lg:p-6">
-                <div className="flex justify-between items-start mb-2 sm:mb-3">
-                  <h3 className="text-base sm:text-lg lg:text-xl font-semibold leading-tight">
+              <div className="p-3 sm:p-4 lg:p-5">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-sm sm:text-base lg:text-lg font-semibold leading-tight">
                     {destination.city}, {destination.country}
                   </h3>
-                  <span className="text-purple-600 font-bold text-sm sm:text-base lg:text-lg whitespace-nowrap ml-2">
+                  <span className="text-purple-600 font-semibold text-sm sm:text-base whitespace-nowrap ml-2">
                     ${destination.price}
                   </span>
                 </div>
                 <div className="flex items-center text-gray-500">
                   <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm lg:text-base">{destination.duration}</span>
+                  <span className="text-xs sm:text-sm">{destination.duration}</span>
                 </div>
               </div>
             </motion.div>

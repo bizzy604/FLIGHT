@@ -40,9 +40,10 @@ class AirlineMappingService:
         
         # Asian Airlines
         '6E': '6E',          # IndiGo
+        'IX': 'IX',          # Air India Express
         'TK': 'TK',          # Turkish Airlines
         'SQ': 'SQ',          # Singapore Airlines
-        
+
         # Other Airlines
         'GF': 'GF',          # Gulf Air
         'BA': 'BA',          # British Airways
@@ -61,6 +62,7 @@ class AirlineMappingService:
         'KQ': 'Kenya Airways',
         'ET': 'Ethiopian Airlines',
         '6E': 'IndiGo',
+        'IX': 'Air India Express',
         'TK': 'Turkish Airlines',
         'SQ': 'Singapore Airlines',
         'GF': 'Gulf Air',
@@ -74,16 +76,16 @@ class AirlineMappingService:
         'Europe': ['KL', 'AF', 'LHG', 'BA'],
         'Middle East': ['QR', 'EK', 'EY', 'GF', 'WY'],
         'Africa': ['KQ', 'ET'],
-        'Asia': ['6E', 'TK', 'SQ', 'CX'],
+        'Asia': ['6E', 'IX', 'TK', 'SQ', 'CX'],
     }
     
     # Airlines that support specific features
     FEATURE_SUPPORT = {
-        'multi_airline_shopping': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY'],
-        'flight_pricing': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY'],
-        'order_creation': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY'],
-        'baggage_services': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', 'BA', 'CX', 'WY'],
-        'seat_selection': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'BA', 'CX'],
+        'multi_airline_shopping': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'IX', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY'],
+        'flight_pricing': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'IX', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY'],
+        'order_creation': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'IX', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY'],
+        'baggage_services': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'KQ', 'ET', 'IX', 'BA', 'CX', 'WY'],
+        'seat_selection': ['KL', 'AF', 'LHG', 'QR', 'EK', 'EY', 'IX', 'BA', 'CX'],
     }
     
     @classmethod

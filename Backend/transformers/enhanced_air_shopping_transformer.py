@@ -31,19 +31,24 @@ class EnhancedAirShoppingTransformer:
     Enhanced transformer for air shopping responses with multi-airline support.
     """
     
-    def __init__(self, response: Dict[str, Any]):
+    def __init__(self, response: Dict[str, Any], filter_unsupported_airlines: bool = False):
         """
         Initialize the enhanced transformer.
-        
+
         Args:
             response (Dict[str, Any]): The raw air shopping response
+            filter_unsupported_airlines (bool): Whether to filter out unsupported airlines.
+                                               Default False to include all airlines from API response.
         """
         self.response = response
+        self.filter_unsupported_airlines = filter_unsupported_airlines
         self.is_multi_airline = MultiAirlineDetector.is_multi_airline_response(response)
         self.reference_extractor = EnhancedReferenceExtractor(response)
         self.refs = self.reference_extractor.extract_references()
-        
+
         logger.info(f"Initialized enhanced transformer for {'multi' if self.is_multi_airline else 'single'}-airline response")
+        if not filter_unsupported_airlines:
+            logger.info("Airline filtering disabled - all airlines from API response will be included")
     
     def transform_for_results(self) -> Dict[str, Any]:
         """
@@ -90,15 +95,26 @@ class EnhancedAirShoppingTransformer:
                     'is_multi_airline': self.is_multi_airline,
                     'airline_count': len(self.refs.get('airline_codes', [])) if self.is_multi_airline else 1,
                     'total_offers': len(offers),
-                    'transformation_timestamp': datetime.now().isoformat()
+                    'transformation_timestamp': datetime.now().isoformat(),
+                    'airline_filtering_enabled': self.filter_unsupported_airlines
                 }
             }
             
             if self.is_multi_airline:
-                result['metadata']['supported_airlines'] = [
-                    code for code in self.refs.get('airline_codes', [])
-                    if AirlineMappingService.validate_airline_code(code)
-                ]
+                airline_codes = self.refs.get('airline_codes', [])
+                if self.filter_unsupported_airlines:
+                    result['metadata']['supported_airlines'] = [
+                        code for code in airline_codes
+                        if AirlineMappingService.validate_airline_code(code)
+                    ]
+                    result['metadata']['filtered_airlines'] = [
+                        code for code in airline_codes
+                        if not AirlineMappingService.validate_airline_code(code)
+                    ]
+                else:
+                    result['metadata']['supported_airlines'] = airline_codes  # All airlines included
+                    result['metadata']['filtered_airlines'] = []  # No filtering applied
+
                 result['metadata']['shopping_response_ids'] = self.refs.get('shopping_response_ids', {})
             
             logger.info(f"Successfully transformed {len(offers)} offers for results page")
@@ -148,9 +164,9 @@ class EnhancedAirShoppingTransformer:
                     # Extract airline code from individual offer (more accurate than group-level)
                     airline_code = offer.get('OfferID', {}).get('Owner', '??')
 
-                    # Validate airline is supported
-                    if not AirlineMappingService.validate_airline_code(airline_code):
-                        logger.warning(f"Skipping unsupported airline: {airline_code}")
+                    # Validate airline is supported (only if filtering is enabled)
+                    if self.filter_unsupported_airlines and not AirlineMappingService.validate_airline_code(airline_code):
+                        logger.warning(f"Skipping unsupported airline: {airline_code} (filtering enabled)")
                         raw_offer_index += 1  # Still increment for skipped offers
                         continue
 
@@ -472,18 +488,20 @@ class EnhancedAirShoppingTransformer:
             }
 
 
-def transform_air_shopping_for_results_enhanced(response: Dict[str, Any]) -> Dict[str, Any]:
+def transform_air_shopping_for_results_enhanced(response: Dict[str, Any], filter_unsupported_airlines: bool = False) -> Dict[str, Any]:
     """
     Enhanced transformation function for air shopping responses.
-    
+
     This function serves as the main entry point for transforming air shopping
     responses with multi-airline support while maintaining backward compatibility.
-    
+
     Args:
         response (Dict[str, Any]): The raw air shopping response
-        
+        filter_unsupported_airlines (bool): Whether to filter out unsupported airlines.
+                                           Default False to include all airlines from API response.
+
     Returns:
         Dict[str, Any]: Transformed response with flight offers
     """
-    transformer = EnhancedAirShoppingTransformer(response)
+    transformer = EnhancedAirShoppingTransformer(response, filter_unsupported_airlines)
     return transformer.transform_for_results()

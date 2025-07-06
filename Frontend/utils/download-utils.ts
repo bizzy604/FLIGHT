@@ -53,11 +53,12 @@ export const generatePDFFromComponent = async (elementId: string, filename: stri
         <head>
           <meta charset="utf-8">
           <title>Flight Itinerary - ${filename}</title>
+          <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
           <style>
             body {
               margin: 0;
               padding: 20px;
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
               background: white;
               color: black;
               line-height: 1.5;

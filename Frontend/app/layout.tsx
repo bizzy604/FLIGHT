@@ -1,11 +1,15 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import { Footer } from "@/components/footer"
+import { Poppins } from "next/font/google"
+import { ConditionalFooter } from "@/components/conditional-footer"
 import { Providers } from "@/components/providers"
 import "./globals.css"
 
-const inter = Inter({ subsets: ["latin"] })
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-poppins"
+})
 
 export const metadata: Metadata = {
   title: "Rea Travel - Flight Booking Portal",
@@ -19,14 +23,14 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={poppins.variable}>
       <head>
         <link rel="icon" href="/logo1.png" sizes="any" type="image/png" />
       </head>
-      <body className={inter.className}>
+      <body className={poppins.className}>
         <Providers>
           {children}
-          <Footer />
+          <ConditionalFooter />
         </Providers>
       </body>
     </html>

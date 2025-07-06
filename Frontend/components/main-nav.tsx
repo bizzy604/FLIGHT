@@ -28,7 +28,11 @@ const items = [
     href: "/manage",
   },
   {
-    title: "Support",
+    title: "About",
+    href: "/about",
+  },
+  {
+    title: "Contact",
     href: "/contact",
   },
 ]
@@ -42,8 +46,9 @@ export function MainNav({ className }: MainNavProps = {}) {
   const pathname = usePathname()
 
   return (
-    <div className={cn("flex items-center", className)}>
-      <div className="hidden md:flex">
+    <>
+      {/* Desktop Navigation */}
+      <div className={cn("hidden md:flex items-center", className)}>
         <NavigationMenu>
           <NavigationMenuList>
             {items.map((item) => {
@@ -66,21 +71,28 @@ export function MainNav({ className }: MainNavProps = {}) {
         </NavigationMenu>
       </div>
 
+      {/* Mobile Navigation Button */}
       <div className="md:hidden">
         <Button
           variant="ghost"
-          className="mr-2 px-0 text-base hover:bg-transparent focus:ring-0"
+          size="icon"
           onClick={() => setShowMobileMenu(!showMobileMenu)}
           aria-label="Toggle Menu"
           aria-expanded={showMobileMenu}
           aria-controls="mobile-menu"
         >
-          {showMobileMenu ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          {showMobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
+      </div>
 
-        {showMobileMenu && (
-          <div id="mobile-menu" className="absolute left-0 top-16 z-50 w-full bg-background pb-6 pt-2 shadow-lg">
-            <div className="container grid gap-3">
+      {/* Mobile Menu Overlay */}
+      {showMobileMenu && (
+        <div
+          id="mobile-menu"
+          className="fixed inset-x-0 top-16 z-50 bg-background border-b shadow-lg md:hidden"
+        >
+          <div className="container px-4 py-6">
+            <nav className="grid gap-4">
               {items.map((item) => {
                 const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href))
 
@@ -89,8 +101,10 @@ export function MainNav({ className }: MainNavProps = {}) {
                     key={item.title}
                     href={item.href}
                     className={cn(
-                      "text-muted-foreground hover:text-foreground",
-                      isActive && "font-medium text-foreground",
+                      "block px-3 py-2 text-base font-medium rounded-md transition-colors",
+                      isActive
+                        ? "bg-accent text-accent-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                     )}
                     aria-current={isActive ? "page" : undefined}
                     onClick={() => setShowMobileMenu(false)}
@@ -99,11 +113,11 @@ export function MainNav({ className }: MainNavProps = {}) {
                   </Link>
                 )
               })}
-            </div>
+            </nav>
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   )
 }
 

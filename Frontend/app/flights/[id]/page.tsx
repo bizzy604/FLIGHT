@@ -9,6 +9,7 @@ import { ChevronLeft, AlertCircle, Loader2 } from "lucide-react"
 import { api } from "@/utils/api-client"
 import { logger } from "@/utils/logger"
 import { validateAndRecoverFlightData } from "@/utils/flight-data-validator"
+import { debugFlightStorage } from "@/utils/debug-storage"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -60,6 +61,10 @@ function FlightDetailsPageContent() {
       setIsLoading(true)
       setError(null)
       try {
+        // Debug storage before validation
+        console.log('🔍 Debugging storage before flight data validation...');
+        debugFlightStorage();
+
         // Use the flight data validator for robust data recovery
         const validationResult = validateAndRecoverFlightData();
 
@@ -230,13 +235,20 @@ function FlightDetailsPageContent() {
            throw new Error("Received an invalid response from the pricing service.");
         }
 
-        // Handle API errors (e.g., Emirates internal server error)
+        // Handle API errors (e.g., airline-specific errors)
         if (response.data.status === 'error') {
-          const errorData = response.data.data || {};
-          const errorType = errorData.error_type || 'unknown';
-          const errorMessage = errorData.transformation_error || 'Unknown error occurred';
+          const errorMessage = response.data.error || 'Unknown error occurred';
 
-          if (errorType === 'api_error') {
+          // Log the error for debugging
+          console.log('🚨 Flight price API error:', errorMessage);
+          logger.error('Flight price API error', { errorMessage, flightIndex });
+
+          // Check if it's an airline-specific API error
+          if (errorMessage.includes('FlightPrice API returned errors:') ||
+              errorMessage.includes('No CFF retrieved') ||
+              errorMessage.includes('No flight available') ||
+              errorMessage.includes('Session') ||
+              errorMessage.includes('AIRLINE_ERROR')) {
             // Extract airline from error message or use generic message
             throw new Error(`Sorry, this airline's flights are temporarily unavailable due to a technical issue. Please try selecting a different airline or contact support.`);
           } else {
@@ -244,8 +256,16 @@ function FlightDetailsPageContent() {
           }
         }
 
-        // Handle successful response
-        if (response.data.status !== 'success' || !response.data.data || !response.data.data.priced_offers || !Array.isArray(response.data.data.priced_offers) || response.data.data.priced_offers.length === 0) {
+        // Debug: Log successful response
+        console.log('✅ Flight price response received successfully');
+
+        // Handle successful response - check for success status and valid data structure
+        if (response.data.status !== 'success') {
+          // This case should be handled by the error handling above, but just in case
+          throw new Error(`Flight pricing failed: ${response.data.error || 'Unknown error'}`);
+        }
+
+        if (!response.data.data || !response.data.data.priced_offers || !Array.isArray(response.data.data.priced_offers) || response.data.data.priced_offers.length === 0) {
            throw new Error("Received an invalid response from the pricing service.");
         }
 
@@ -389,15 +409,15 @@ function FlightDetailsPageContent() {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container flex h-14 sm:h-16 items-center justify-between">
+          <div className="container flex h-14 sm:h-16 items-center justify-between px-3 sm:px-6 lg:px-8">
               <div className="flex items-center gap-2">
                   <Image src="/logo1.png" alt="Rea Travel Logo" width={28} height={28} className="sm:w-8 sm:h-8" />
-                  <span className="text-lg sm:text-xl font-bold">Rea Travel</span>
+                  <span className="text-sm sm:text-base md:text-lg font-semibold">Rea Travel</span>
               </div>
-              <div className="hidden md:block">
+              <div className="flex items-center gap-4">
                 <MainNav />
+                <UserNav />
               </div>
-              <UserNav />
           </div>
       </header>
 
