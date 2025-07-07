@@ -48,11 +48,7 @@ class EnhancedAirShoppingTransformer:
         self.reference_extractor = EnhancedReferenceExtractor(response)
         self.refs = self.reference_extractor.extract_references()
 
-        logger.info(f"Initialized enhanced transformer for {'multi' if self.is_multi_airline else 'single'}-airline response")
-        if search_context:
-            logger.info(f"Search context provided: {search_context}")
-        if not filter_unsupported_airlines:
-            logger.info("Airline filtering disabled - all airlines from API response will be included")
+
     
     def transform_for_results(self) -> Dict[str, Any]:
         """
@@ -121,7 +117,7 @@ class EnhancedAirShoppingTransformer:
 
                 result['metadata']['shopping_response_ids'] = self.refs.get('shopping_response_ids', {})
             
-            logger.info(f"Successfully transformed {len(offers)} offers for results page")
+
             return result
             
         except Exception as e:
@@ -143,7 +139,7 @@ class EnhancedAirShoppingTransformer:
         Returns:
             List[Dict[str, Any]]: List of transformed offers
         """
-        logger.info("Transforming multi-airline offers")
+
         offers = []
 
         # Get offers from the response - handle both direct and nested structures
@@ -202,7 +198,7 @@ class EnhancedAirShoppingTransformer:
 
                 raw_offer_index += 1  # Increment for every offer in raw response
 
-        logger.info(f"Transformed {len(offers)} multi-airline offers")
+
         return offers
     
     def _transform_single_airline_offers(self) -> List[Dict[str, Any]]:
@@ -212,7 +208,7 @@ class EnhancedAirShoppingTransformer:
         Returns:
             List[Dict[str, Any]]: List of transformed offers
         """
-        logger.info("Transforming single-airline offers")
+
         offers = []
         
         # Use global references for single-airline
@@ -265,7 +261,7 @@ class EnhancedAirShoppingTransformer:
 
                 raw_offer_index += 1  # Increment for every offer in raw response
         
-        logger.info(f"Transformed {len(offers)} single-airline offers")
+
         return offers
     
     def _transform_offer_with_airline_context(
@@ -541,7 +537,7 @@ class EnhancedAirShoppingTransformer:
 
         is_direct = len(stops) == 0
 
-        logger.info(f"Route display info - Origin: {origin}, Destination: {destination}, Stops: {stops}, Direct: {is_direct}")
+
 
         return {
             'origin': origin,

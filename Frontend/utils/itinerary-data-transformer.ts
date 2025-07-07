@@ -652,11 +652,20 @@ function transformFromFrontendAPIResponse(data: any): ItineraryData {
   if (data.passengerDetails && Array.isArray(data.passengerDetails)) {
     data.passengerDetails.forEach((passenger: any, index: number) => {
       passengers.push({
-        name: `${passenger.firstName || ''} ${passenger.lastName || ''}`.trim(),
+        objectKey: `PAX${index + 1}`,
+        fullName: `${passenger.firstName || ''} ${passenger.lastName || ''}`.trim(),
         title: passenger.title || 'MR',
-        type: passenger.type || 'ADT',
-        ticketNumber: passenger.ticketNumber || `TKT${String(index + 1).padStart(3, '0')}`,
-        documentNumber: passenger.documentNumber || 'N/A'
+        firstName: passenger.firstName || '',
+        lastName: passenger.lastName || '',
+        passengerType: (passenger.type || 'ADT') as 'ADT' | 'CHD' | 'INF',
+        passengerTypeLabel: passenger.type === 'CHD' ? 'Child' : passenger.type === 'INF' ? 'Infant' : 'Adult',
+        birthDate: passenger.dateOfBirth || '',
+        age: 0,
+        documentType: 'PT',
+        documentNumber: passenger.documentNumber || 'N/A',
+        documentExpiry: '',
+        countryOfIssuance: '',
+        ticketNumber: passenger.ticketNumber || `TKT${String(index + 1).padStart(3, '0')}`
       });
     });
   }
@@ -682,20 +691,22 @@ function transformFromFrontendAPIResponse(data: any): ItineraryData {
           airportName: outbound.departure?.airport || '',
           date: formatDateOnly(outbound.departure?.fullDate || ''),
           time: outbound.departure?.time || '',
-          terminal: outbound.departure?.terminal || ''
+          terminal: outbound.departure?.terminal || '',
+          formattedDateTime: `${formatDateOnly(outbound.departure?.fullDate || '')} ${outbound.departure?.time || ''}`
         },
         arrival: {
           airport: outbound.arrival?.code || '',
           airportName: outbound.arrival?.airport || '',
           date: formatDateOnly(outbound.arrival?.fullDate || ''),
           time: outbound.arrival?.time || '',
-          terminal: outbound.arrival?.terminal || ''
+          terminal: outbound.arrival?.terminal || '',
+          formattedDateTime: `${formatDateOnly(outbound.arrival?.fullDate || '')} ${outbound.arrival?.time || ''}`
         },
         duration: 'N/A',
+        durationFormatted: 'N/A',
         classOfService: 'Economy',
         cabinClass: 'Economy',
-        fareRules: [],
-        baggageAllowance: { checkedBags: 1, carryOnBags: 1 }
+        fareBasisCode: 'N/A'
       });
     }
 
@@ -715,20 +726,22 @@ function transformFromFrontendAPIResponse(data: any): ItineraryData {
           airportName: returnSeg.departure?.airport || '',
           date: formatDateOnly(returnSeg.departure?.fullDate || ''),
           time: returnSeg.departure?.time || '',
-          terminal: returnSeg.departure?.terminal || ''
+          terminal: returnSeg.departure?.terminal || '',
+          formattedDateTime: `${formatDateOnly(returnSeg.departure?.fullDate || '')} ${returnSeg.departure?.time || ''}`
         },
         arrival: {
           airport: returnSeg.arrival?.code || '',
           airportName: returnSeg.arrival?.airport || '',
           date: formatDateOnly(returnSeg.arrival?.fullDate || ''),
           time: returnSeg.arrival?.time || '',
-          terminal: returnSeg.arrival?.terminal || ''
+          terminal: returnSeg.arrival?.terminal || '',
+          formattedDateTime: `${formatDateOnly(returnSeg.arrival?.fullDate || '')} ${returnSeg.arrival?.time || ''}`
         },
         duration: 'N/A',
+        durationFormatted: 'N/A',
         classOfService: 'Economy',
         cabinClass: 'Economy',
-        fareRules: [],
-        baggageAllowance: { checkedBags: 1, carryOnBags: 1 }
+        fareBasisCode: 'N/A'
       });
     }
   }
@@ -743,7 +756,7 @@ function transformFromFrontendAPIResponse(data: any): ItineraryData {
   };
 
   // Contact information (basic fallback)
-  const contactInfo: ContactInfo = {
+  const contactInfo = {
     email: 'customer@reatravels.com',
     phone: '+1-800-REA-TRAVEL'
   };
@@ -755,7 +768,8 @@ function transformFromFrontendAPIResponse(data: any): ItineraryData {
     returnFlight: returnFlight.length > 0 ? returnFlight : null,
     pricing,
     contactInfo,
-    baggageAllowance: { checkedBags: 1, carryOnBags: 1 }
+    baggageAllowance: { checkedBags: 1, carryOnBags: 1 },
+    fareRules: []
   };
 }
 
@@ -788,57 +802,69 @@ function transformFromOriginalFlightOffer(originalFlightOffer: any, basicBooking
     const documents = basicBookingData.documentNumbers || [];
 
     names.forEach((name: string, index: number) => {
-      const passengerType = passenger.type || 'ADT';
+      const passengerType = (passenger.type || 'ADT') as 'ADT' | 'CHD' | 'INF';
       passengers.push({
-        name: name.trim(),
+        objectKey: `PAX${index + 1}`,
         fullName: name.trim(),
-        type: passengerType,
+        title: '',
+        firstName: name.split(' ')[0] || '',
+        lastName: name.split(' ').slice(1).join(' ') || '',
+        passengerType: passengerType,
         passengerTypeLabel: passengerType === 'ADT' ? 'Adult' : passengerType === 'CHD' ? 'Child' : passengerType === 'INF' ? 'Infant' : passengerType,
+        birthDate: '',
+        age: 0,
+        documentType: 'PT',
         documentNumber: documents[index] || '',
-        ticketNumber: `TKT-${basicBookingData?.bookingReference || 'UNKNOWN'}-${index + 1}`,
-        seatNumber: 'TBD'
+        documentExpiry: '',
+        countryOfIssuance: '',
+        ticketNumber: `TKT-${basicBookingData?.bookingReference || 'UNKNOWN'}-${index + 1}`
       });
     });
   }
 
   // Extract flight info
-  const outboundFlight: FlightInfo[] = [{
+  const outboundFlight: FlightSegment[] = [{
+    segmentKey: 'SEG1',
     flightNumber: flight.flight_number || 'Unknown',
-    airline: {
-      code: flight.airline_code || 'Unknown',
-      name: flight.airline_name || 'Unknown Airline'
-    },
+    airline: flight.airline_name || 'Unknown Airline',
+    airlineCode: flight.airline_code || 'Unknown',
+    airlineLogo: `/airlines/${flight.airline_code || 'default'}.svg`,
+    aircraft: 'TBD',
+    aircraftCode: '',
     departure: {
       airport: flight.departure_airport || 'Unknown',
+      airportName: flight.departure_airport || 'Unknown',
       time: flight.departure_datetime ? new Date(flight.departure_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Unknown',
       date: flight.departure_datetime ? new Date(flight.departure_datetime).toLocaleDateString() : 'Unknown',
-      terminal: 'TBD'
+      terminal: 'TBD',
+      formattedDateTime: flight.departure_datetime ? new Date(flight.departure_datetime).toLocaleString() : 'Unknown'
     },
     arrival: {
       airport: flight.arrival_airport || 'Unknown',
+      airportName: flight.arrival_airport || 'Unknown',
       time: flight.arrival_datetime ? new Date(flight.arrival_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Unknown',
       date: flight.arrival_datetime ? new Date(flight.arrival_datetime).toLocaleDateString() : 'Unknown',
-      terminal: 'TBD'
+      terminal: 'TBD',
+      formattedDateTime: flight.arrival_datetime ? new Date(flight.arrival_datetime).toLocaleString() : 'Unknown'
     },
     duration: flight.duration || 'Unknown',
-    aircraft: 'TBD',
-    class: originalFlightOffer.fare_family || 'Economy',
-    cabinClass: originalFlightOffer.fare_family || 'Economy'
+    durationFormatted: flight.duration || 'Unknown',
+    classOfService: originalFlightOffer.fare_family || 'Economy',
+    cabinClass: originalFlightOffer.fare_family || 'Economy',
+    fareBasisCode: 'N/A'
   }];
 
   // Extract pricing
   const pricingInfo: PricingInfo = {
-    totalPrice: pricing.amount?.toString() || '0',
+    totalAmount: pricing.amount || 0,
     formattedTotal: pricing.amount ? `${pricing.amount} ${pricing.currency || 'USD'}` : '0 USD',
     currency: pricing.currency || 'USD',
-    baseFare: pricing.amount ? (pricing.amount * 0.85).toFixed(0) : '0',
-    taxes: pricing.amount ? (pricing.amount * 0.15).toFixed(0) : '0',
-    paymentMethodLabel: 'Credit Card',
-    breakdown: []
+    paymentMethod: 'CA',
+    paymentMethodLabel: 'Credit Card'
   };
 
   // Extract contact info
-  const contactInfo: ContactInfo = {
+  const contactInfo = {
     email: basicBookingData?.contactInfo?.email || '',
     phone: basicBookingData?.contactInfo?.phone || ''
   };
@@ -851,9 +877,10 @@ function transformFromOriginalFlightOffer(originalFlightOffer: any, basicBooking
     pricing: pricingInfo,
     contactInfo,
     baggageAllowance: {
-      checkedBags: passenger.baggage?.checked || 'Standard allowance',
-      carryOnBags: passenger.baggage?.carryOn || 'Standard allowance'
-    }
+      checkedBags: 1,
+      carryOnBags: 1
+    },
+    fareRules: []
   };
 }
 

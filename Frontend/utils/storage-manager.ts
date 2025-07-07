@@ -212,12 +212,12 @@ export class StorageManager {
    * Retrieve data with validation and recovery
    */
   async retrieve<T>(key: string, expectedDataType?: string): Promise<StorageResult<T>> {
-    return this.atomicOperation(key, async () => {
+    return this.atomicOperation(key, async (): Promise<StorageResult<T>> => {
       try {
         // Try sessionStorage first (faster)
         let result = await this.retrieveFromStorage('session', key, expectedDataType);
         if (result.success) {
-          return result;
+          return result as StorageResult<T>;
         }
 
         // Fallback to localStorage
@@ -227,7 +227,7 @@ export class StorageManager {
           if (result.data) {
             await this.store(key, result.data, expectedDataType || 'unknown', { expiryMinutes: 30 });
           }
-          return { ...result, recovered: true };
+          return { ...result, recovered: true } as StorageResult<T>;
         }
 
         return {

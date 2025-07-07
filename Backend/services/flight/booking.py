@@ -1032,20 +1032,7 @@ class FlightBookingService(FlightService):
             # DEBUG: Log payload summary (without verbose content)
             logger.info(f"[DEBUG] OrderCreate payload generated successfully (ReqID: {request_id})")
 
-            # DEBUG: Log the complete OrderCreate payload structure
-            import json
-            logger.info(f"[DEBUG] ===== FINAL ORDERCREATE PAYLOAD STRUCTURE (ReqID: {request_id}) =====")
-            try:
-                payload_json = json.dumps(payload, indent=2)
-                # Log first 2000 characters to avoid overwhelming logs
-                if len(payload_json) > 2000:
-                    logger.info(f"[DEBUG] OrderCreate payload (first 2000 chars): {payload_json[:2000]}...")
-                    logger.info(f"[DEBUG] OrderCreate payload total length: {len(payload_json)} characters")
-                else:
-                    logger.info(f"[DEBUG] Complete OrderCreate payload: {payload_json}")
-            except Exception as e:
-                logger.error(f"[DEBUG] Failed to serialize OrderCreate payload: {str(e)}")
-            logger.info(f"[DEBUG] ===== END ORDERCREATE PAYLOAD (ReqID: {request_id}) =====")
+
 
             logger.info(f"Successfully generated OrderCreate payload using request builder")
             return payload

@@ -172,7 +172,6 @@ def test_transform_real_responses(filename):
     Also writes the output to a file for manual inspection.
     """
     input_path = os.path.join(os.path.dirname(__file__), filename)
-    output_path = os.path.join(os.path.dirname(__file__), f"{filename.rsplit('.', 1)[0]}_transformed_test_output.json")
 
     try:
         with open(input_path, 'r', encoding='utf-8') as f:
@@ -208,8 +207,4 @@ def test_transform_real_responses(filename):
     # ## FIX ##: Check for the new 'fare_rules' key instead of the old 'penalties' key.
     assert "fare_rules" in first_pax_group
 
-    # Write the output file for manual review
-    with open(output_path, 'w', encoding='utf-8') as f:
-        json.dump(result, f, indent=2, ensure_ascii=False)
-    
-    print(f"\nSuccessfully transformed {filename} with {len(result['offers'])} offer(s). Output at: {output_path}")
+    print(f"\nSuccessfully transformed {filename} with {len(result['offers'])} offer(s).")

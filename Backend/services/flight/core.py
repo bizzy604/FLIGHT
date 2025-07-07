@@ -34,41 +34,6 @@ from services.flight.types import (
     BookingResponse
 )
 
-def write_output_file(filename: str, data: Dict[str, Any], description: str = ""):
-    """
-    Write payload or response data to the Output folder for debugging.
-
-    Args:
-        filename: Name of the file (without extension)
-        data: The data to write
-        description: Optional description to include in the file
-    """
-    try:
-        # Create Output directory if it doesn't exist
-        output_dir = os.path.join(os.getcwd(), "Output")
-        os.makedirs(output_dir, exist_ok=True)
-
-        # Add timestamp to filename
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        full_filename = f"{filename}_{timestamp}.json"
-        filepath = os.path.join(output_dir, full_filename)
-
-        # Prepare output data with metadata
-        output_data = {
-            "timestamp": datetime.now().isoformat(),
-            "description": description,
-            "data": data
-        }
-
-        # Write to file
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(output_data, f, indent=2, ensure_ascii=False)
-
-        logging.info(f"[OUTPUT] Written {description} to {full_filename}")
-
-    except Exception as e:
-        logging.error(f"[OUTPUT] Failed to write output file {filename}: {e}")
-
 # Import datetime for the utility function
 from datetime import datetime
 from utils.auth import TokenManager
@@ -198,17 +163,7 @@ class FlightService:
 
         logger.info(f"Making {method} request to {url} for service {service_name} (ReqID: {log_request_id}).")
 
-        # Write request payload to Output folder
-        write_output_file(
-            filename=f"{service_name}_REQUEST",
-            data={
-                "url": url,
-                "method": method,
-                "headers": {k: v for k, v in headers.items() if k.lower() not in ['authorization', 'x-api-key']},  # Exclude sensitive headers
-                "payload": api_payload
-            },
-            description=f"{service_name} API Request Payload"
-        )
+
 
         max_retries = int(self.config.get('VERTEIL_MAX_RETRIES', 3))
         retry_delay_base = int(self.config.get('VERTEIL_RETRY_DELAY', 1))
@@ -254,12 +209,7 @@ class FlightService:
                     if response.status == 200:
                         logger.info(f"Successfully received API response for {service_name} (ReqID: {log_request_id}) with status {response.status}")
 
-                        # Write response data to Output folder
-                        write_output_file(
-                            filename=f"{service_name}_RESPONSE",
-                            data=response_data,
-                            description=f"{service_name} API Response"
-                        )
+
 
                         # Log airline codes found in AirShopping response for debugging
                         if service_name == "AirShopping":
