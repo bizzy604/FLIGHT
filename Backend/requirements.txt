@@ -30,3 +30,6 @@ Werkzeug==2.3.7
 psycopg2-binary==2.9.9
 SQLAlchemy==2.0.34
 alembic==1.14.1
+
+# Redis for caching and session storage
+redis>=4.5.0

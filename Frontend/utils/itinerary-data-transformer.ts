@@ -758,7 +758,7 @@ function transformFromFrontendAPIResponse(data: any): ItineraryData {
   // Contact information (basic fallback)
   const contactInfo = {
     email: 'customer@reatravels.com',
-    phone: '+1-800-REA-TRAVEL'
+    phone: '+254 729 582 121'
   };
 
   return {
@@ -777,7 +777,6 @@ function transformFromFrontendAPIResponse(data: any): ItineraryData {
  * Fallback transformation using originalFlightOffer when OrderCreate response is unavailable
  */
 function transformFromOriginalFlightOffer(originalFlightOffer: any, basicBookingData?: any): ItineraryData {
-  console.log('🔄 Using originalFlightOffer fallback for itinerary generation');
 
   const flight = originalFlightOffer.flight_segments?.[0] || {};
   const pricing = originalFlightOffer.total_price || {};

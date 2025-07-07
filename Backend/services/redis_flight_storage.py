@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class RedisFlightStorage:
     """Redis-based storage for flight data with automatic expiration."""
-    
+
     def __init__(self):
         # Create Redis connection using environment variables or defaults
         redis_host = os.getenv('REDIS_HOST', 'localhost')
@@ -27,16 +27,42 @@ class RedisFlightStorage:
         redis_db = int(os.getenv('REDIS_DB', 0))
         redis_password = os.getenv('REDIS_PASSWORD', None)
 
-        self.redis_client = redis.Redis(
-            host=redis_host,
-            port=redis_port,
-            db=redis_db,
-            password=redis_password,
-            socket_timeout=5,
-            socket_connect_timeout=5,
-            retry_on_timeout=True,
-            decode_responses=True  # Automatically decode responses to UTF-8
-        )
+        # Check for Redis URL (common in cloud deployments)
+        redis_url = os.getenv('REDIS_URL')
+
+        try:
+            if redis_url:
+                # Use Redis URL if provided (common for cloud deployments)
+                self.redis_client = redis.from_url(
+                    redis_url,
+                    socket_timeout=5,
+                    socket_connect_timeout=5,
+                    retry_on_timeout=True,
+                    decode_responses=True
+                )
+            else:
+                # Use individual connection parameters
+                self.redis_client = redis.Redis(
+                    host=redis_host,
+                    port=redis_port,
+                    db=redis_db,
+                    password=redis_password,
+                    socket_timeout=5,
+                    socket_connect_timeout=5,
+                    retry_on_timeout=True,
+                    decode_responses=True  # Automatically decode responses to UTF-8
+                )
+
+            # Test the connection
+            self.redis_client.ping()
+            self.redis_available = True
+            logger.info(f"Redis connection established successfully to {redis_host}:{redis_port}")
+
+        except Exception as e:
+            logger.warning(f"Redis connection failed: {e}. Running without Redis cache.")
+            self.redis_client = None
+            self.redis_available = False
+
         self.default_ttl = 1800  # 30 minutes in seconds
         
     def _generate_session_id(self) -> str:
@@ -84,31 +110,41 @@ class RedisFlightStorage:
             raise
     
     def store_flight_search(
-        self, 
-        search_data: Dict[str, Any], 
+        self,
+        search_data: Dict[str, Any],
         session_id: Optional[str] = None,
         ttl: Optional[int] = None
     ) -> Dict[str, Any]:
         """
         Store flight search data in Redis.
-        
+
         Args:
             search_data: Flight search response data
             session_id: Optional session ID, generates new one if not provided
             ttl: Time to live in seconds, uses default if not provided
-            
+
         Returns:
             Dict with success status, session_id, and any error messages
         """
         try:
             if not session_id:
                 session_id = self._generate_session_id()
-            
+
             if not ttl:
                 ttl = self.default_ttl
-            
+
+            # If Redis is not available, return session_id but don't store
+            if not self.redis_available:
+                logger.warning("Redis not available, returning session_id without storage")
+                return {
+                    "success": True,
+                    "session_id": session_id,
+                    "expires_at": (datetime.utcnow() + timedelta(seconds=ttl)).isoformat(),
+                    "message": "Session created (Redis unavailable - data not cached)"
+                }
+
             key = self._get_key(session_id, "search")
-            
+
             # Prepare data for storage
             storage_data = {
                 "data": search_data,
@@ -123,9 +159,9 @@ class RedisFlightStorage:
 
             # Store compressed data in Redis with expiration
             self.redis_client.setex(key, ttl, compressed_data)
-            
+
             logger.info(f"Stored flight search data with session_id: {session_id}")
-            
+
             return {
                 "success": True,
                 "session_id": session_id,
@@ -144,24 +180,33 @@ class RedisFlightStorage:
     def get_flight_search(self, session_id: str) -> Dict[str, Any]:
         """
         Retrieve flight search data from Redis.
-        
+
         Args:
             session_id: Session ID to retrieve data for
-            
+
         Returns:
             Dict with success status, data, and any error messages
         """
         try:
+            # If Redis is not available, return not found
+            if not self.redis_available:
+                logger.warning("Redis not available, cannot retrieve flight search data")
+                return {
+                    "success": False,
+                    "error": "Redis cache unavailable",
+                    "message": "Flight search data cannot be retrieved (Redis unavailable)"
+                }
+
             key = self._get_key(session_id, "search")
             stored_data = self.redis_client.get(key)
-            
+
             if not stored_data:
                 return {
                     "success": False,
                     "error": "Flight search data not found or expired",
                     "message": "No flight search data found for this session"
                 }
-            
+
             # Check if data is compressed
             try:
                 # Try to decompress first (new format)
@@ -189,28 +234,38 @@ class RedisFlightStorage:
             }
     
     def store_flight_price(
-        self, 
-        price_data: Dict[str, Any], 
+        self,
+        price_data: Dict[str, Any],
         session_id: str,
         ttl: Optional[int] = None
     ) -> Dict[str, Any]:
         """
         Store flight price data in Redis.
-        
+
         Args:
             price_data: Flight price response data
             session_id: Session ID to associate data with
             ttl: Time to live in seconds, uses default if not provided
-            
+
         Returns:
             Dict with success status and any error messages
         """
         try:
             if not ttl:
                 ttl = self.default_ttl
-            
+
+            # If Redis is not available, return success but don't store
+            if not self.redis_available:
+                logger.warning("Redis not available, cannot store flight price data")
+                return {
+                    "success": True,
+                    "session_id": session_id,
+                    "expires_at": (datetime.utcnow() + timedelta(seconds=ttl)).isoformat(),
+                    "message": "Flight price data processed (Redis unavailable - data not cached)"
+                }
+
             key = self._get_key(session_id, "price")
-            
+
             # Prepare data for storage
             storage_data = {
                 "data": price_data,
@@ -218,16 +273,16 @@ class RedisFlightStorage:
                 "expires_at": (datetime.utcnow() + timedelta(seconds=ttl)).isoformat(),
                 "data_type": "flight_price"
             }
-            
+
             # Store in Redis with expiration
             self.redis_client.setex(
-                key, 
-                ttl, 
+                key,
+                ttl,
                 json.dumps(storage_data, default=str)
             )
-            
+
             logger.info(f"Stored flight price data for session_id: {session_id}")
-            
+
             return {
                 "success": True,
                 "session_id": session_id,
@@ -246,28 +301,37 @@ class RedisFlightStorage:
     def get_flight_price(self, session_id: str) -> Dict[str, Any]:
         """
         Retrieve flight price data from Redis.
-        
+
         Args:
             session_id: Session ID to retrieve data for
-            
+
         Returns:
             Dict with success status, data, and any error messages
         """
         try:
+            # If Redis is not available, return not found
+            if not self.redis_available:
+                logger.warning("Redis not available, cannot retrieve flight price data")
+                return {
+                    "success": False,
+                    "error": "Redis cache unavailable",
+                    "message": "Flight price data cannot be retrieved (Redis unavailable)"
+                }
+
             key = self._get_key(session_id, "price")
             stored_data = self.redis_client.get(key)
-            
+
             if not stored_data:
                 return {
                     "success": False,
                     "error": "Flight price data not found or expired",
                     "message": "No flight price data found for this session"
                 }
-            
+
             parsed_data = json.loads(stored_data)
-            
+
             logger.info(f"Retrieved flight price data for session_id: {session_id}")
-            
+
             return {
                 "success": True,
                 "data": parsed_data["data"],
@@ -285,28 +349,38 @@ class RedisFlightStorage:
             }
     
     def store_booking_data(
-        self, 
-        booking_data: Dict[str, Any], 
+        self,
+        booking_data: Dict[str, Any],
         session_id: str,
         ttl: Optional[int] = None
     ) -> Dict[str, Any]:
         """
         Store booking data in Redis.
-        
+
         Args:
             booking_data: Booking response data
             session_id: Session ID to associate data with
             ttl: Time to live in seconds, uses default if not provided
-            
+
         Returns:
             Dict with success status and any error messages
         """
         try:
             if not ttl:
                 ttl = self.default_ttl
-            
+
+            # If Redis is not available, return success but don't store
+            if not self.redis_available:
+                logger.warning("Redis not available, cannot store booking data")
+                return {
+                    "success": True,
+                    "session_id": session_id,
+                    "expires_at": (datetime.utcnow() + timedelta(seconds=ttl)).isoformat(),
+                    "message": "Booking data processed (Redis unavailable - data not cached)"
+                }
+
             key = self._get_key(session_id, "booking")
-            
+
             # Prepare data for storage
             storage_data = {
                 "data": booking_data,
@@ -314,16 +388,16 @@ class RedisFlightStorage:
                 "expires_at": (datetime.utcnow() + timedelta(seconds=ttl)).isoformat(),
                 "data_type": "booking_data"
             }
-            
+
             # Store in Redis with expiration
             self.redis_client.setex(
-                key, 
-                ttl, 
+                key,
+                ttl,
                 json.dumps(storage_data, default=str)
             )
-            
+
             logger.info(f"Stored booking data for session_id: {session_id}")
-            
+
             return {
                 "success": True,
                 "session_id": session_id,
@@ -342,28 +416,37 @@ class RedisFlightStorage:
     def get_booking_data(self, session_id: str) -> Dict[str, Any]:
         """
         Retrieve booking data from Redis.
-        
+
         Args:
             session_id: Session ID to retrieve data for
-            
+
         Returns:
             Dict with success status, data, and any error messages
         """
         try:
+            # If Redis is not available, return not found
+            if not self.redis_available:
+                logger.warning("Redis not available, cannot retrieve booking data")
+                return {
+                    "success": False,
+                    "error": "Redis cache unavailable",
+                    "message": "Booking data cannot be retrieved (Redis unavailable)"
+                }
+
             key = self._get_key(session_id, "booking")
             stored_data = self.redis_client.get(key)
-            
+
             if not stored_data:
                 return {
                     "success": False,
                     "error": "Booking data not found or expired",
                     "message": "No booking data found for this session"
                 }
-            
+
             parsed_data = json.loads(stored_data)
-            
+
             logger.info(f"Retrieved booking data for session_id: {session_id}")
-            
+
             return {
                 "success": True,
                 "data": parsed_data["data"],
@@ -383,24 +466,33 @@ class RedisFlightStorage:
     def delete_session_data(self, session_id: str) -> Dict[str, Any]:
         """
         Delete all flight data for a session.
-        
+
         Args:
             session_id: Session ID to delete data for
-            
+
         Returns:
             Dict with success status and any error messages
         """
         try:
+            # If Redis is not available, return success (nothing to delete)
+            if not self.redis_available:
+                logger.warning("Redis not available, cannot delete session data")
+                return {
+                    "success": True,
+                    "deleted_count": 0,
+                    "message": "Session data deletion skipped (Redis unavailable)"
+                }
+
             keys_to_delete = [
                 self._get_key(session_id, "search"),
                 self._get_key(session_id, "price"),
                 self._get_key(session_id, "booking")
             ]
-            
+
             deleted_count = self.redis_client.delete(*keys_to_delete)
-            
+
             logger.info(f"Deleted {deleted_count} keys for session_id: {session_id}")
-            
+
             return {
                 "success": True,
                 "deleted_count": deleted_count,
