@@ -154,7 +154,7 @@ async def process_air_shopping(search_criteria: Dict[str, Any]) -> Dict[str, Any
             raw_response = await service.search_flights_raw(search_criteria)
 
             # 2. Transform the raw response into the simple format for the results page
-            transformed_data = transform_air_shopping_for_results(raw_response)
+            transformed_data = transform_air_shopping_for_results(raw_response, search_criteria)
 
             # 3. Return a successful structure
             return {

@@ -611,34 +611,24 @@ def _build_common_flight_price_request(airshopping_response, selected_offer, air
         for seg_key in segment_key_list:
             segment_detail = segment_details_map.get(seg_key)
             if segment_detail:
-                od_flights.append(segment_detail)
+                # Build the flight object with SegmentKey and full flight details
+                flight_obj = {
+                    "SegmentKey": seg_key,
+                    "Departure": segment_detail.get("Departure", {}),
+                    "Arrival": segment_detail.get("Arrival", {}),
+                    "MarketingCarrier": segment_detail.get("MarketingCarrier", {}),
+                    "OperatingCarrier": segment_detail.get("OperatingCarrier", {}),
+                    "FlightDetail": segment_detail.get("FlightDetail", {})
+                }
+                od_flights.append(flight_obj)
+                logger.debug(f"Added flight segment {seg_key} to OriginDestination {od_ref_key_sorted}")
+
         if od_flights:
-            # For FlightPrice, use OriginDestinationKey and FlightReferences structure
-            # Find corresponding flight keys for these segments
-            flight_keys = []
-            flight_list = filtered_data_lists.get("FlightList", {}).get("Flight", [])
-            if not isinstance(flight_list, list):
-                flight_list = [flight_list] if flight_list else []
-
-            for flight_item in flight_list:
-                flight_segment_refs = flight_item.get("SegmentReferences", {}).get("value", [])
-                if not isinstance(flight_segment_refs, list):
-                    flight_segment_refs = [flight_segment_refs] if flight_segment_refs else []
-
-                # Check if any of our segments match this flight
-                for seg_key in segment_key_list:
-                    if seg_key in flight_segment_refs:
-                        flight_key = flight_item.get("FlightKey")
-                        if flight_key and flight_key not in flight_keys:
-                            flight_keys.append(flight_key)
-
-            if flight_keys:
-                origin_destinations_for_rq.append({
-                    "OriginDestinationKey": od_ref_key_sorted,
-                    "FlightReferences": {
-                        "value": flight_keys
-                    }
-                })
+            # Build OriginDestination with Flight array containing full flight details
+            origin_destinations_for_rq.append({
+                "Flight": od_flights
+            })
+            logger.info(f"Built OriginDestination with {len(od_flights)} flight segments for OD {od_ref_key_sorted}")
 
     travelers_for_rq = []
     # Use filtered travelers instead of all travelers from original response

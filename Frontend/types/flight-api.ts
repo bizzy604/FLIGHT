@@ -471,6 +471,15 @@ export interface FlightOffer {
   penalties?: Penalty[];
   fareDescription?: string;
 
+  // Enhanced route display information
+  route_display?: {
+    origin: string;
+    destination: string;
+    actual_route: string[];
+    stops: string[];
+    is_direct: boolean;
+  };
+
   // Offer expiration information
   time_limits?: {
     offer_expiration?: string; // ISO datetime string

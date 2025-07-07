@@ -1,6 +1,7 @@
 "use client"
 
 import React from 'react';
+import Image from 'next/image';
 import { FlightSegment, PricingInfo } from '@/utils/itinerary-data-transformer';
 
 interface FlightSectionProps {
@@ -27,8 +28,22 @@ const FlightSection: React.FC<FlightSectionProps> = ({
             {/* Flight Header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
-                  {segment.airlineCode}
+                <div className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden bg-white border-2 border-blue-200">
+                  <Image
+                    src={segment.airlineLogo || `/airlines/${segment.airlineCode}.svg`}
+                    alt={segment.airline}
+                    width={40}
+                    height={40}
+                    className="object-contain"
+                    onError={(e) => {
+                      // Fallback to airline code display if logo fails to load
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      const parent = (e.target as HTMLImageElement).parentElement;
+                      if (parent) {
+                        parent.innerHTML = `<div class="w-full h-full bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">${segment.airlineCode}</div>`;
+                      }
+                    }}
+                  />
                 </div>
                 <div>
                   <h4 className="text-lg font-bold text-gray-800">{segment.flightNumber}</h4>

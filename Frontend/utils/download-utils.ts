@@ -64,15 +64,15 @@ export const generatePDFFromComponent = async (elementId: string, filename: stri
               line-height: 1.5;
             }
             @page {
-              size: A5;
-              margin: 8mm;
+              size: A5 landscape;
+              margin: 6mm;
             }
             @media print {
               body {
                 margin: 0;
-                padding: 5px;
-                font-size: 11px !important;
-                line-height: 1.2 !important;
+                padding: 3px;
+                font-size: 10px !important;
+                line-height: 1.1 !important;
               }
               .no-print { display: none !important; }
               .print-break {
@@ -83,10 +83,16 @@ export const generatePDFFromComponent = async (elementId: string, filename: stri
               .min-h-\\[50vh\\] {
                 min-height: auto !important;
               }
-              /* Ensure proper page fitting */
-              #official-itinerary {
-                font-size: 11px !important;
-                line-height: 1.2 !important;
+              /* Ensure proper page fitting for landscape */
+              #boarding-pass-itinerary, #official-itinerary {
+                font-size: 10px !important;
+                line-height: 1.1 !important;
+                max-width: 100% !important;
+              }
+              /* Optimize for landscape layout */
+              .landscape-container {
+                width: 100% !important;
+                max-width: none !important;
               }
               /* Reduce margins and padding for print */
               .p-4 { padding: 8px !important; }

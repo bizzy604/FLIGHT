@@ -13,6 +13,7 @@ import { LoadingSpinner } from "@/components/loading-spinner"
 import { LoadingButton } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import OfficialItinerary from "@/components/itinerary/OfficialItinerary"
+import BoardingPassItinerary from "@/components/itinerary/BoardingPassItinerary"
 import { transformOrderCreateToItinerary, ItineraryData } from "@/utils/itinerary-data-transformer"
 import { generatePDFFromComponent } from "@/utils/download-utils"
 
@@ -109,7 +110,16 @@ export default function BookingItineraryPage() {
                 console.log('📋 Has processed fare_rules:', !!originalFlightOffer.passengers?.[0]?.fare_rules)
               }
 
-              const transformedData = transformOrderCreateToItinerary(parsedOrderCreate, originalFlightOffer)
+              // Prepare basic booking data for fallback
+              const basicBookingData = {
+                bookingReference: bookingData.bookingReference,
+                createdAt: bookingData.createdAt,
+                passengerDetails: bookingData.passengerDetails,
+                contactInfo: bookingData.contactInfo,
+                documentNumbers: bookingData.documentNumbers
+              };
+
+              const transformedData = transformOrderCreateToItinerary(parsedOrderCreate, originalFlightOffer, basicBookingData)
               setItineraryData(transformedData)
               console.log('✅ Successfully transformed itinerary data')
             } catch (transformError) {
@@ -120,8 +130,27 @@ export default function BookingItineraryPage() {
               })
               setError('Unable to display itinerary. Booking data may be corrupted.')
             }
+          } else if (originalFlightOffer) {
+            // Fallback: Use originalFlightOffer when orderCreateResponse is missing
+            console.warn('⚠️ No orderCreateResponse found, attempting originalFlightOffer fallback')
+            try {
+              const basicBookingData = {
+                bookingReference: bookingData.bookingReference,
+                createdAt: bookingData.createdAt,
+                passengerDetails: bookingData.passengerDetails,
+                contactInfo: bookingData.contactInfo,
+                documentNumbers: bookingData.documentNumbers
+              };
+
+              const transformedData = transformOrderCreateToItinerary(null, originalFlightOffer, basicBookingData)
+              setItineraryData(transformedData)
+              console.log('✅ Successfully transformed itinerary data using originalFlightOffer fallback')
+            } catch (fallbackError) {
+              console.error('❌ Error with originalFlightOffer fallback:', fallbackError)
+              setError('Unable to display itinerary. Limited booking data available.')
+            }
           } else {
-            console.warn('⚠️ No orderCreateResponse found in booking data')
+            console.warn('⚠️ No orderCreateResponse or originalFlightOffer found in booking data')
             console.log('📋 Available booking data keys:', Object.keys(bookingData || {}))
             setError('Itinerary data not available for this booking.')
           }
@@ -325,10 +354,10 @@ export default function BookingItineraryPage() {
             </div>
           </div>
 
-          {/* Official Itinerary Display */}
+          {/* Boarding Pass Itinerary Display */}
           <div className="mb-8">
             <div id="booking-itinerary">
-              <OfficialItinerary data={itineraryData} />
+              <BoardingPassItinerary data={itineraryData} />
             </div>
           </div>
         </div>

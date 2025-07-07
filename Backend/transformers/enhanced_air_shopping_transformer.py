@@ -30,8 +30,8 @@ class EnhancedAirShoppingTransformer:
     """
     Enhanced transformer for air shopping responses with multi-airline support.
     """
-    
-    def __init__(self, response: Dict[str, Any], filter_unsupported_airlines: bool = False):
+
+    def __init__(self, response: Dict[str, Any], filter_unsupported_airlines: bool = False, search_context: Optional[Dict[str, Any]] = None):
         """
         Initialize the enhanced transformer.
 
@@ -39,14 +39,18 @@ class EnhancedAirShoppingTransformer:
             response (Dict[str, Any]): The raw air shopping response
             filter_unsupported_airlines (bool): Whether to filter out unsupported airlines.
                                                Default False to include all airlines from API response.
+            search_context (Optional[Dict[str, Any]]): User's original search parameters for route context
         """
         self.response = response
         self.filter_unsupported_airlines = filter_unsupported_airlines
+        self.search_context = search_context or {}
         self.is_multi_airline = MultiAirlineDetector.is_multi_airline_response(response)
         self.reference_extractor = EnhancedReferenceExtractor(response)
         self.refs = self.reference_extractor.extract_references()
 
         logger.info(f"Initialized enhanced transformer for {'multi' if self.is_multi_airline else 'single'}-airline response")
+        if search_context:
+            logger.info(f"Search context provided: {search_context}")
         if not filter_unsupported_airlines:
             logger.info("Airline filtering disabled - all airlines from API response will be included")
     
@@ -408,7 +412,11 @@ class EnhancedAirShoppingTransformer:
             
             # Get airline-specific ShoppingResponseID
             shopping_response_id = self.reference_extractor.get_shopping_response_id(airline_code)
-            
+
+            # Generate intelligent route display information
+            trip_type = self.search_context.get('trip_type', 'ONE_WAY') if self.search_context else 'ONE_WAY'
+            route_display = self._generate_route_display_info(all_segments_data, trip_type)
+
             return {
                 "id": offer_id,
                 "price": total_amount.get('value', 0),
@@ -425,6 +433,8 @@ class EnhancedAirShoppingTransformer:
                 "stops": stops_count,
                 "stopDetails": stop_details,
                 "segments": transformed_segments,
+                # Enhanced route display information
+                "route_display": route_display,
                 # Essential airline context for multi-airline support
                 "airline_context": {
                     "third_party_id": third_party_id,
@@ -466,6 +476,80 @@ class EnhancedAirShoppingTransformer:
             return airline_code
 
         return '??'
+
+    def _generate_route_display_info(self, segments_data: List[Dict[str, Any]], trip_type: str = 'ONE_WAY') -> Dict[str, Any]:
+        """
+        Generate intelligent route display information that prioritizes user search intent.
+
+        Args:
+            segments_data: List of flight segment data
+            trip_type: Type of trip (ONE_WAY, ROUND_TRIP)
+
+        Returns:
+            Dict containing route display information
+        """
+        if not segments_data:
+            return {
+                'origin': 'Unknown',
+                'destination': 'Unknown',
+                'actual_route': [],
+                'stops': [],
+                'is_direct': True
+            }
+
+        # Extract actual route from segments
+        actual_route = []
+        for i, seg in enumerate(segments_data):
+            dep_airport = seg.get('Departure', {}).get('AirportCode', {}).get('value', '')
+            arr_airport = seg.get('Arrival', {}).get('AirportCode', {}).get('value', '')
+
+            if i == 0:
+                actual_route.append(dep_airport)
+            actual_route.append(arr_airport)
+
+        # Determine origin and destination based on search context or segments
+        search_origin = None
+        search_destination = None
+
+        if self.search_context and 'odSegments' in self.search_context:
+            od_segments = self.search_context['odSegments']
+            if od_segments and len(od_segments) > 0:
+                first_segment = od_segments[0]
+                search_origin = first_segment.get('origin')
+                search_destination = first_segment.get('destination')
+
+        # Use search context as authoritative source, fallback to segments
+        origin = search_origin or actual_route[0] if actual_route else 'Unknown'
+        destination = search_destination or actual_route[-1] if actual_route else 'Unknown'
+
+        # Calculate stops (intermediate airports between origin and destination)
+        stops = []
+        if len(actual_route) > 2:
+            # For round trip, need to be smarter about detecting the turnaround point
+            if trip_type == 'ROUND_TRIP' and search_origin and search_destination:
+                # Find where we reach the search destination for the first time
+                try:
+                    dest_index = actual_route.index(search_destination)
+                    # Stops are airports between origin and first occurrence of destination
+                    stops = [airport for airport in actual_route[1:dest_index] if airport != origin and airport != search_destination]
+                except ValueError:
+                    # Fallback: treat as one-way
+                    stops = actual_route[1:-1]
+            else:
+                # One-way or no search context: all intermediate airports are stops
+                stops = actual_route[1:-1]
+
+        is_direct = len(stops) == 0
+
+        logger.info(f"Route display info - Origin: {origin}, Destination: {destination}, Stops: {stops}, Direct: {is_direct}")
+
+        return {
+            'origin': origin,
+            'destination': destination,
+            'actual_route': actual_route,
+            'stops': stops,
+            'is_direct': is_direct
+        }
 
     def _extract_operating_carrier_from_offer(self, offer: Dict[str, Any]) -> str:
         """
@@ -584,7 +668,7 @@ class EnhancedAirShoppingTransformer:
             }
 
 
-def transform_air_shopping_for_results_enhanced(response: Dict[str, Any], filter_unsupported_airlines: bool = False) -> Dict[str, Any]:
+def transform_air_shopping_for_results_enhanced(response: Dict[str, Any], filter_unsupported_airlines: bool = False, search_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Enhanced transformation function for air shopping responses.
 
@@ -595,9 +679,10 @@ def transform_air_shopping_for_results_enhanced(response: Dict[str, Any], filter
         response (Dict[str, Any]): The raw air shopping response
         filter_unsupported_airlines (bool): Whether to filter out unsupported airlines.
                                            Default False to include all airlines from API response.
+        search_context (Optional[Dict[str, Any]]): User's original search parameters for route context
 
     Returns:
         Dict[str, Any]: Transformed response with flight offers
     """
-    transformer = EnhancedAirShoppingTransformer(response, filter_unsupported_airlines)
+    transformer = EnhancedAirShoppingTransformer(response, filter_unsupported_airlines, search_context)
     return transformer.transform_for_results()

@@ -12,20 +12,23 @@ def init_app(app):
 
 def get_token_manager():
     """Helper function to get a token manager instance with app context."""
-    # Get configuration from the app context
-    config = {
-        'VERTEIL_API_BASE_URL': current_app.config.get('VERTEIL_API_BASE_URL'),
-        'VERTEIL_TOKEN_ENDPOINT': current_app.config.get('VERTEIL_TOKEN_ENDPOINT', '/api/v1/oauth/token'),
-        'VERTEIL_USERNAME': current_app.config.get('VERTEIL_USERNAME'),
-        'VERTEIL_PASSWORD': current_app.config.get('VERTEIL_PASSWORD'),
-        'VERTEIL_THIRD_PARTY_ID': current_app.config.get('VERTEIL_THIRD_PARTY_ID'),
-        'VERTEIL_OFFICE_ID': current_app.config.get('VERTEIL_OFFICE_ID'),
-        'OAUTH2_TOKEN_EXPIRY_BUFFER': current_app.config.get('OAUTH2_TOKEN_EXPIRY_BUFFER', 300)
-    }
-    
-    # Create and configure the token manager
+    # Get the singleton TokenManager instance
     token_manager = TokenManager.get_instance()
-    token_manager.set_config(config)
+
+    # Only set config if TokenManager doesn't have one yet, to avoid overwriting
+    # the centralized configuration
+    if not token_manager._config:
+        config = {
+            'VERTEIL_API_BASE_URL': current_app.config.get('VERTEIL_API_BASE_URL'),
+            'VERTEIL_TOKEN_ENDPOINT': current_app.config.get('VERTEIL_TOKEN_ENDPOINT') or current_app.config.get('VERTEIL_TOKEN_ENDPOINT_PATH', '/oauth2/token'),
+            'VERTEIL_USERNAME': current_app.config.get('VERTEIL_USERNAME'),
+            'VERTEIL_PASSWORD': current_app.config.get('VERTEIL_PASSWORD'),
+            'VERTEIL_THIRD_PARTY_ID': current_app.config.get('VERTEIL_THIRD_PARTY_ID'),
+            'VERTEIL_OFFICE_ID': current_app.config.get('VERTEIL_OFFICE_ID'),
+            'OAUTH2_TOKEN_EXPIRY_BUFFER': current_app.config.get('OAUTH2_TOKEN_EXPIRY_BUFFER', 300)
+        }
+        token_manager.set_config(config)
+
     return token_manager
 
 @bp.route('/debug/token', methods=['GET'])
@@ -39,8 +42,8 @@ async def get_token_status():
         token_manager = get_token_manager()
         
         # Get the current token (this will use cached or fetch new if needed)
-        token = await token_manager.get_token()
-        
+        token = token_manager.get_token()
+
         # Get token info without triggering a refresh
         token_info = token_manager.get_token_info()
         

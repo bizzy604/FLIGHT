@@ -982,7 +982,7 @@ class FlightBookingService(FlightService):
                 if offer_id:
                     # Simply inject the OfferID into the existing PricedFlightOffers structure
                     # Let build_ordercreate_rq.py handle all price extraction and payload building
-                    logger.info(f"[DEBUG] Injecting OfferID {offer_id} into existing PricedFlightOffers structure (ReqID: {request_id})")
+                    logger.info(f"[DEBUG] Processing flight price response for frontend index {offer_id} (ReqID: {request_id})")
 
                     # Check if we already have PricedFlightOffers in the response
                     if 'PricedFlightOffers' in enhanced_flight_price_response:
@@ -990,9 +990,10 @@ class FlightBookingService(FlightService):
                         if isinstance(priced_offers, dict) and 'PricedFlightOffer' in priced_offers:
                             priced_offer_list = priced_offers['PricedFlightOffer']
                             if isinstance(priced_offer_list, list) and len(priced_offer_list) > 0:
-                                # Simply inject the OfferID value - let build_ordercreate_rq.py handle Owner/Channel extraction
-                                priced_offer_list[0]['OfferID']['value'] = offer_id
-                                logger.info(f"[DEBUG] Injected OfferID {offer_id} into existing PricedFlightOffers structure (ReqID: {request_id})")
+                                # DO NOT inject the offer_id as OfferID value - offer_id is an index, not the actual OfferID
+                                # The real OfferID should remain as returned by the airline API
+                                actual_offer_id = priced_offer_list[0].get('OfferID', {}).get('value', 'UNKNOWN')
+                                logger.info(f"[DEBUG] Preserving actual OfferID {actual_offer_id} from airline API (frontend index: {offer_id}) (ReqID: {request_id})")
                             else:
                                 logger.warning(f"[DEBUG] PricedFlightOffer list is empty or invalid (ReqID: {request_id})")
                         else:
@@ -1000,7 +1001,7 @@ class FlightBookingService(FlightService):
                     else:
                         logger.warning(f"[DEBUG] No PricedFlightOffers found in response - build_ordercreate_rq.py will handle this (ReqID: {request_id})")
 
-                    logger.info(f"[DEBUG] OfferID injection completed - letting build_ordercreate_rq.py handle the rest (ReqID: {request_id})")
+                    logger.info(f"[DEBUG] Flight price response processing completed - letting build_ordercreate_rq.py handle OrderCreate payload building (ReqID: {request_id})")
             
             # DEBUG: Log transformed data summary
             logger.info(f"[DEBUG] Transformed passengers count (ReqID: {request_id}): {len(transformed_passengers) if transformed_passengers else 0}")

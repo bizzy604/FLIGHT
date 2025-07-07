@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import boarding pass itinerary styles */
+@import '../styles/boarding-pass-itinerary.css';
+
 @layer base {
   :root {
     --background: 0 0% 100%;

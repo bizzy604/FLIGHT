@@ -6,6 +6,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Check, Download, Mail, Printer, Share2 } from "lucide-react"
 import OfficialItinerary from "./itinerary/OfficialItinerary";
+import BoardingPassItinerary from "./itinerary/BoardingPassItinerary";
 import { transformOrderCreateToItinerary } from "@/utils/itinerary-data-transformer";
 import { Button, LoadingButton } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -68,9 +69,6 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
       console.log('=== END ROBUST STORAGE DEBUG ===')
     }
   }
-  
-  // Call debug function
-  debugSessionStorage()
 
   // Helper function to safely convert values to numbers and format them
   const formatPrice = (value: any, currency?: string): string => {
@@ -103,24 +101,44 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
 
   // Helper function to get passenger data from either format
   const getPassengerData = (bookingData: any) => {
-    // First, try to get data from session storage if available
+    console.log('🔍 Getting passenger data from booking data:', bookingData);
+
+    // Priority 1: Check if we have the rawData.data.passengers structure (from confirmation page)
+    if (bookingData.rawData?.data?.passengers && Array.isArray(bookingData.rawData.data.passengers)) {
+      console.log('✅ Using rawData.data.passengers array:', bookingData.rawData.data.passengers);
+      return bookingData.rawData.data.passengers;
+    }
+
+    // Priority 2: Check if we have the database booking structure with passengers from backend response
+    if (bookingData.passengers && Array.isArray(bookingData.passengers)) {
+      console.log('✅ Using database passengers array');
+      return bookingData.passengers;
+    }
+
+    // Priority 3: Check if we have passengers in the passengerDetails JSON column with passengers array
+    if (bookingData.passengerDetails?.passengers && Array.isArray(bookingData.passengerDetails.passengers)) {
+      console.log('✅ Using database passengerDetails.passengers array');
+      return bookingData.passengerDetails.passengers;
+    }
+
+    // Priority 3: Try to get data from session storage if available
     if (typeof window !== 'undefined') {
       try {
         const possibleKeys = ['dev_completedBooking', 'booking-storage', 'booking', 'bookingData', 'hybridStorage', 'booking-data']
-        
+
         for (const key of possibleKeys) {
           const sessionData = sessionStorage.getItem(key)
           if (sessionData) {
             try {
               const parsed = JSON.parse(sessionData)
               console.log(`Passenger Data - Session storage data from key '${key}':`, parsed)
-              
+
               // Check if we have the booking data directly at root level
               if (parsed.passengers && Array.isArray(parsed.passengers)) {
                 console.log('Using session storage passenger data:', parsed.passengers)
                 return parsed.passengers
               }
-              
+
               // Check nested structure
               if (parsed.state?.booking?.passengers && Array.isArray(parsed.state.booking.passengers)) {
                 console.log('Using nested session storage passenger data:', parsed.state.booking.passengers)
@@ -135,22 +153,17 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
         console.warn('Could not access session storage passenger data:', error)
       }
     }
-    
-    // Check session storage format in booking data
-    if (bookingData.passengers && Array.isArray(bookingData.passengers)) {
-      return bookingData.passengers
-    }
-    
-    // Check API format
+
+    // Priority 4: Check legacy API format with names/types/documents arrays
     if (bookingData.passengerDetails) {
       const { names, types, documents } = bookingData.passengerDetails
-      
+
       // If names is a string, split it
       if (typeof names === 'string') {
         const nameArray = names.split(' ')
         const firstName = nameArray[0] || 'N/A'
         const lastName = nameArray.slice(1).join(' ') || 'N/A'
-        
+
         return [{
           firstName,
           lastName,
@@ -159,7 +172,7 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
           documentNumber: documents?.[0] || 'N/A'
         }]
       }
-      
+
       // If names is already an array
       if (Array.isArray(names)) {
         return names.map((name: string, index: number) => {
@@ -174,38 +187,80 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
         })
       }
     }
-    
+
+    console.warn('⚠️ No passenger data found in booking data');
     return []
   }
 
   // Helper function to get flight details using robust storage
-  const getFlightDetails = async (bookingData: any) => {
-    // First, try to get data from robust storage
+  const getFlightDetails = (bookingData: any) => {
+    console.log('🔍 Getting flight details from booking data:', bookingData);
+
+    // Priority 1: Check if we have the database booking structure with flightDetails JSON column
+    if (bookingData.flightDetails?.outbound) {
+      console.log('✅ Using database flightDetails JSON column');
+      return bookingData.flightDetails;
+    }
+
+    // Priority 2: Use originalFlightOffer for confirmation (most reliable for database bookings)
+    if (bookingData.originalFlightOffer) {
+      console.log('✅ Using originalFlightOffer for confirmation data')
+      const offer = bookingData.originalFlightOffer
+      const flight = offer.flight_segments?.[0] || {}
+      const pricing = offer.total_price || {}
+
+      return {
+        outbound: {
+          airline: {
+            name: flight.airline_name || 'Unknown Airline',
+            code: flight.airline_code || 'Unknown',
+            flightNumber: flight.flight_number || 'Unknown',
+            logo: `/airlines/${flight.airline_code || 'Unknown'}.svg`
+          },
+          departure: {
+            airport: flight.departure_airport || 'Unknown',
+            time: flight.departure_datetime ? new Date(flight.departure_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Unknown',
+            fullDate: flight.departure_datetime ? new Date(flight.departure_datetime).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' }) : 'Unknown',
+            terminal: flight.departure_terminal || 'TBD'
+          },
+          arrival: {
+            airport: flight.arrival_airport || 'Unknown',
+            time: flight.arrival_datetime ? new Date(flight.arrival_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Unknown',
+            fullDate: flight.arrival_datetime ? new Date(flight.arrival_datetime).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' }) : 'Unknown',
+            terminal: flight.arrival_terminal || 'TBD'
+          },
+          duration: flight.duration || 'Unknown',
+          class: offer.fare_family || 'Economy',
+          stops: 0
+        },
+        return: null,
+        pricing: {
+          total: pricing.amount || 0,
+          currency: pricing.currency || 'USD'
+        },
+        passengers: offer.passengers || [],
+        fareFamily: offer.fare_family || 'Standard'
+      }
+    }
+
+    // Priority 3: Try to get data from session storage if available
     if (typeof window !== 'undefined') {
       try {
-        // Try robust storage first
-        const bookingResult = await flightStorageManager.getBookingData()
-        if (bookingResult.success && bookingResult.data?.flightDetails?.outbound) {
-          console.log('Using robust storage flight details:', bookingResult.data.flightDetails)
-          return bookingResult.data.flightDetails
-        }
-
-        // Fallback to legacy session storage
         const possibleKeys = ['dev_completedBooking', 'booking-storage', 'booking', 'bookingData', 'hybridStorage', 'booking-data']
-          
+
           for (const key of possibleKeys) {
             const sessionData = sessionStorage.getItem(key)
             if (sessionData) {
               try {
                 const parsed = JSON.parse(sessionData)
-                console.log(`Pricing Info - Session storage data from key '${key}':`, parsed)
-              
+                console.log(`Flight Details - Session storage data from key '${key}':`, parsed)
+
               // Check if we have the booking data directly at root level
               if (parsed.flightDetails?.outbound) {
                 console.log('Using session storage flight details:', parsed.flightDetails)
                 return parsed.flightDetails
               }
-              
+
               // Check nested structure
               if (parsed.state?.booking?.flightDetails?.outbound) {
                 console.log('Using nested session storage flight details:', parsed.state.booking.flightDetails)
@@ -220,38 +275,28 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
         console.warn('Could not access session storage:', error)
       }
     }
-    
-    // Check booking data format (session storage format)
-    if (bookingData.flightDetails?.outbound) {
-      return bookingData.flightDetails
-    }
-    
-    // Check API format as fallback
-    if (bookingData.flightDetails || bookingData.routeSegments) {
-      const apiFlightDetails = bookingData.flightDetails || {}
-      const segments = bookingData.routeSegments || {}
 
-      // Extract flight information from the correct backend structure
-      const outboundFlight = apiFlightDetails.outbound || {}
-      const airlineInfo = outboundFlight.airline || {}
+    // Priority 4: Check API format as fallback
+    if (bookingData.routeSegments) {
+      const segments = bookingData.routeSegments || {}
 
       return {
         outbound: {
           airline: {
-            name: airlineInfo.name || bookingData.airlineCode || 'N/A',
-            code: airlineInfo.code || bookingData.airlineCode || 'N/A',
-            flightNumber: airlineInfo.flightNumber || bookingData.flightNumbers?.[0] || 'N/A',
-            logo: `/airlines/${airlineInfo.code || bookingData.airlineCode || 'Unknown'}.svg`
+            name: bookingData.airlineCode || 'N/A',
+            code: bookingData.airlineCode || 'N/A',
+            flightNumber: bookingData.flightNumbers?.[0] || 'N/A',
+            logo: `/airlines/${bookingData.airlineCode || 'Unknown'}.svg`
           },
           departure: {
-            airport: outboundFlight.departure?.airport || segments.origin || 'N/A',
-            time: outboundFlight.departure?.time || (segments.departureTime ? new Date(segments.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'),
-            fullDate: outboundFlight.departure?.fullDate || (segments.departureTime ? new Date(segments.departureTime).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A')
+            airport: segments.origin || 'N/A',
+            time: segments.departureTime ? new Date(segments.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A',
+            fullDate: segments.departureTime ? new Date(segments.departureTime).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'
           },
           arrival: {
-            airport: outboundFlight.arrival?.airport || segments.destination || 'N/A',
-            time: outboundFlight.arrival?.time || (segments.arrivalTime ? new Date(segments.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'),
-            fullDate: outboundFlight.arrival?.fullDate || (segments.arrivalTime ? new Date(segments.arrivalTime).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A')
+            airport: segments.destination || 'N/A',
+            time: segments.arrivalTime ? new Date(segments.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A',
+            fullDate: segments.arrivalTime ? new Date(segments.arrivalTime).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'
           },
           duration: 'N/A',
           stops: 0
@@ -259,13 +304,62 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
         return: null
       }
     }
-    
+
+    console.warn('⚠️ No flight details found in booking data');
     return null
   }
 
   // Helper function to get contact info from either format
   const getContactInfo = (bookingData: any) => {
-    // First, try to get data from session storage if available
+    console.log('🔍 Getting contact info from booking data:', bookingData);
+
+    // Priority 1: Check if we have the rawData.data.contactInfo structure (from confirmation page)
+    if (bookingData.rawData?.data?.contactInfo?.email) {
+      console.log('✅ Using rawData.data.contactInfo:', bookingData.rawData.data.contactInfo);
+      const contact = bookingData.rawData.data.contactInfo;
+
+      // Handle different phone formats
+      let phoneDisplay = 'N/A'
+      if (contact.phone) {
+        if (typeof contact.phone === 'string') {
+          phoneDisplay = contact.phone
+        } else if (contact.phone.formatted) {
+          phoneDisplay = contact.phone.formatted
+        } else if (contact.phone.countryCode && contact.phone.number) {
+          phoneDisplay = `${contact.phone.countryCode} ${contact.phone.number}`
+        }
+      }
+
+      return {
+        email: contact.email || 'N/A',
+        phone: phoneDisplay
+      }
+    }
+
+    // Priority 2: Check if we have the database booking structure with contactInfo JSON column
+    if (bookingData.contactInfo?.email) {
+      console.log('✅ Using database contactInfo JSON column');
+      const contact = bookingData.contactInfo;
+
+      // Handle different phone formats
+      let phoneDisplay = 'N/A'
+      if (contact.phone) {
+        if (typeof contact.phone === 'string') {
+          phoneDisplay = contact.phone
+        } else if (contact.phone.formatted) {
+          phoneDisplay = contact.phone.formatted
+        } else if (contact.phone.countryCode && contact.phone.number) {
+          phoneDisplay = `${contact.phone.countryCode} ${contact.phone.number}`
+        }
+      }
+
+      return {
+        email: contact.email || 'N/A',
+        phone: phoneDisplay
+      }
+    }
+
+    // Priority 3: Try to get data from session storage if available
     if (typeof window !== 'undefined') {
       try {
         const possibleKeys = ['dev_completedBooking', 'booking-storage', 'booking', 'bookingData', 'hybridStorage', 'booking-data']
@@ -329,24 +423,38 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
 
   // Helper function to get pricing info
   const getPricingInfo = (bookingData: any) => {
-    // First, try to get data from session storage if available
+    console.log('🔍 Getting pricing info from booking data:', bookingData);
+
+    // Priority 1: Check if we have the rawData.data.pricing structure (from confirmation page)
+    if (bookingData.rawData?.data?.pricing?.baseFare?.amount !== undefined) {
+      console.log('✅ Using rawData.data.pricing structure:', bookingData.rawData.data.pricing);
+      return bookingData.rawData.data.pricing;
+    }
+
+    // Priority 2: Check if we have the database booking structure with pricing from backend response
+    if (bookingData.pricing?.baseFare?.amount !== undefined) {
+      console.log('✅ Using database pricing structure');
+      return bookingData.pricing;
+    }
+
+    // Priority 3: Try to get data from session storage if available
     if (typeof window !== 'undefined') {
       try {
         const possibleKeys = ['dev_completedBooking', 'booking-storage', 'booking', 'bookingData', 'hybridStorage', 'booking-data']
-        
+
         for (const key of possibleKeys) {
           const sessionData = sessionStorage.getItem(key)
           if (sessionData) {
             try {
               const parsed = JSON.parse(sessionData)
-              console.log(`Flight Details - Session storage data from key '${key}':`, parsed)
-              
+              console.log(`Pricing Info - Session storage data from key '${key}':`, parsed)
+
               // Check if we have the booking data directly at root level
               if (parsed.pricing?.baseFare?.amount !== undefined) {
                 console.log('Using session storage pricing info:', parsed.pricing)
                 return parsed.pricing
               }
-              
+
               // Check nested structure
               if (parsed.state?.booking?.pricing?.baseFare?.amount !== undefined) {
                 console.log('Using nested session storage pricing info:', parsed.state.booking.pricing)
@@ -361,17 +469,14 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
         console.warn('Could not access session storage pricing data:', error)
       }
     }
-    
-    // Check if we have session storage pricing format in booking data
-    if (bookingData.pricing?.baseFare?.amount !== undefined) {
-      return bookingData.pricing
-    }
-    
-    // For API format, create a basic pricing structure
-    const totalAmount = bookingData.totalAmount || '0'
+
+    // Priority 4: For API format, create a basic pricing structure using totalAmount
+    const totalAmount = bookingData.totalAmount || 0;
+    console.log(`⚠️ Using fallback pricing with totalAmount: ${totalAmount}`);
+
     return {
       baseFare: { amount: totalAmount, currency: 'USD' },
-      taxes: { amount: '0', currency: 'USD' },
+      taxes: { amount: 0, currency: 'USD' },
       total: { amount: totalAmount, currency: 'USD' }
     }
   }
@@ -428,8 +533,15 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
   const handleDownloadOfficialItinerary = async (isCompact = false) => {
     setIsDownloading(true);
     try {
-      // First try to get OrderCreate response from booking data (database)
-      let orderCreateResponse = booking?.orderCreateResponse;
+      console.log('🔍 Looking for OrderCreate response in booking data:', booking);
+
+      // Priority 1: Try to get OrderCreate response from rawData (confirmation page)
+      let orderCreateResponse = booking?.rawData?.raw_order_create_response;
+
+      // Priority 2: Try to get from database orderCreateResponse column
+      if (!orderCreateResponse) {
+        orderCreateResponse = booking?.orderCreateResponse;
+      }
 
       // Fallback to session storage if not in booking data
       if (!orderCreateResponse) {
@@ -450,12 +562,22 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
         }
       }
 
+      console.log('🔍 OrderCreate response found:', !!orderCreateResponse);
+      console.log('🔍 Original flight offer found:', !!booking?.originalFlightOffer);
+
+      // Check if we have OrderCreate response or originalFlightOffer for fallback
+      if (!orderCreateResponse && !booking?.originalFlightOffer) {
+        console.error('❌ No OrderCreate response or originalFlightOffer available');
+        throw new Error('OrderCreate response is null or undefined and no originalFlightOffer fallback available');
+      }
+
+      console.log('🔄 Transforming OrderCreate response to itinerary data...');
       // Transform the OrderCreate response to itinerary data
-      const itineraryData = transformOrderCreateToItinerary(orderCreateResponse);
+      const itineraryData = transformOrderCreateToItinerary(orderCreateResponse, booking?.originalFlightOffer);
 
       // Generate PDF from the appropriate itinerary component with timeout
-      const componentId = isCompact ? 'compact-itinerary' : 'official-itinerary';
-      const filenameSuffix = isCompact ? 'compact' : 'detailed';
+      const componentId = isCompact ? 'compact-itinerary' : 'boarding-pass-itinerary';
+      const filenameSuffix = isCompact ? 'compact' : 'boarding-pass';
 
       console.log(`🚀 Starting PDF generation for ${componentId}`);
 
@@ -488,7 +610,8 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       // In a real app, this would trigger an API call to send an email
-      alert(`Itinerary sent to ${booking.contactInfo?.email || 'your email'}`);
+      const contactInfo = getContactInfo(booking);
+      alert(`Itinerary sent to ${contactInfo.email || 'your email'}`);
     } finally {
       setIsEmailing(false);
     }
@@ -880,7 +1003,13 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
                 return (
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span>Base fare ({booking.passengers?.length || 1} passenger{(booking.passengers?.length || 1) > 1 ? 's' : ''})</span>
+                      <span>Base fare ({(() => {
+                        const passengers = getPassengerData(booking);
+                        return passengers.length || 1;
+                      })()} passenger{(() => {
+                        const passengers = getPassengerData(booking);
+                        return (passengers.length || 1) > 1 ? 's' : '';
+                      })()})</span>
                       <span>{pricing.baseFare?.currency || getCurrency()} {formatPrice(pricing.baseFare?.amount || pricing.baseFare)}</span>
                     </div>
                     <div className="flex justify-between">
@@ -933,10 +1062,17 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
       {/* Official Itinerary Section */}
       {(() => {
         try {
-          // First try to get OrderCreate response from booking data (database)
-          let orderCreateResponse = booking?.orderCreateResponse;
+          console.log('🔍 Looking for OrderCreate response for itinerary display in booking data:', booking);
 
-          // Fallback to session storage if not in booking data
+          // Priority 1: Try to get OrderCreate response from rawData (confirmation page)
+          let orderCreateResponse = booking?.rawData?.raw_order_create_response;
+
+          // Priority 2: Try to get from database orderCreateResponse column
+          if (!orderCreateResponse) {
+            orderCreateResponse = booking?.orderCreateResponse;
+          }
+
+          // Priority 3: Fallback to session storage if not in booking data
           if (!orderCreateResponse) {
             // First try the dedicated orderCreateResponse key
             const sessionData = sessionStorage.getItem('orderCreateResponse');
@@ -956,57 +1092,95 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
           }
 
           if (orderCreateResponse) {
-            console.log('📋 Rendering itinerary with OrderCreate response from:', booking?.orderCreateResponse ? 'database' : 'session storage');
-            const itineraryData = transformOrderCreateToItinerary(orderCreateResponse);
+            console.log('📋 Rendering itinerary with OrderCreate response from:', booking?.rawData?.raw_order_create_response ? 'rawData' : booking?.orderCreateResponse ? 'database' : 'session storage');
+            console.log('📋 OrderCreate response data:', orderCreateResponse);
+            const itineraryData = transformOrderCreateToItinerary(orderCreateResponse, booking?.originalFlightOffer);
+            console.log('📋 Transformed itinerary data:', itineraryData);
 
             return (
               <div className="mb-8">
-                {/* Visible detailed version */}
+                {/* Visible original itinerary */}
                 <div id="official-itinerary">
                   <OfficialItinerary data={itineraryData} />
+                </div>
+
+                {/* Hidden compact version for PDF generation */}
+                <div id="compact-itinerary" className="hidden">
+                  <OfficialItinerary data={itineraryData} className="compact-mode" />
+                </div>
+
+                {/* Hidden boarding pass version for future use */}
+                <div id="boarding-pass-itinerary" className="hidden">
+                  <BoardingPassItinerary data={itineraryData} />
+                </div>
+              </div>
+            );
+          } else if (booking?.originalFlightOffer) {
+            console.log('📋 No OrderCreate response, using originalFlightOffer for itinerary');
+            console.log('📋 Original flight offer data:', booking.originalFlightOffer);
+
+            // Use the originalFlightOffer directly with the transformer
+            const itineraryData = transformOrderCreateToItinerary(null, booking.originalFlightOffer, booking);
+            console.log('📋 Transformed itinerary data from originalFlightOffer:', itineraryData);
+
+            return (
+              <div className="mb-8">
+                {/* Visible original itinerary */}
+                <div id="official-itinerary">
+                  <OfficialItinerary data={itineraryData} />
+                </div>
+
+                {/* Hidden compact version for PDF generation */}
+                <div id="compact-itinerary" className="hidden">
+                  <OfficialItinerary data={itineraryData} className="compact-mode" />
+                </div>
+
+                {/* Hidden boarding pass version for future use */}
+                <div id="boarding-pass-itinerary" className="hidden">
+                  <BoardingPassItinerary data={itineraryData} />
                 </div>
               </div>
             );
           } else {
-            console.warn('⚠️ No OrderCreate response found in booking data or session storage');
+            console.warn('⚠️ No OrderCreate response or originalFlightOffer found in booking data');
+            // Fallback: Try to show something if we have booking data
+            if (booking) {
+              return (
+                <div className="mb-8 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-2">Itinerary Temporarily Unavailable</h3>
+                  <p className="text-yellow-700 mb-4">
+                    We're having trouble loading your detailed itinerary. Your booking is confirmed with reference:
+                    <span className="font-bold ml-1">{booking.bookingReference || booking.id}</span>
+                  </p>
+                  <p className="text-sm text-yellow-600">
+                    Please refresh the page or contact support if this issue persists.
+                  </p>
+                </div>
+              );
+            }
           }
         } catch (error) {
-          console.error('Error rendering official itinerary:', error);
+          console.error('Error rendering boarding pass itinerary:', error);
+          // Fallback: Show error message with booking reference
+          return (
+            <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-lg">
+              <h3 className="text-lg font-semibold text-red-800 mb-2">Error Loading Itinerary</h3>
+              <p className="text-red-700 mb-4">
+                There was an error loading your itinerary. Your booking is still confirmed.
+              </p>
+              <p className="text-sm text-red-600">
+                Error: {error instanceof Error ? error.message : 'Unknown error'}
+              </p>
+              {booking && (
+                <p className="text-sm text-red-600 mt-2">
+                  Booking Reference: <span className="font-bold">{booking.bookingReference || booking.id}</span>
+                </p>
+              )}
+            </div>
+          );
         }
         return null;
       })()}
-
-      <div className="mb-8 space-y-4 rounded-lg border bg-muted/30 p-6">
-        <h3 className="text-lg font-medium">What's Next?</h3>
-        <div className="space-y-2">
-          <p className="text-sm">
-            <span className="font-medium">Check-in:</span> Online check-in opens 24 hours before your flight. You'll
-            receive an email reminder.
-          </p>
-          <p className="text-sm">
-            <span className="font-medium">Manage your booking:</span> You can make changes to your booking, select
-            seats, or add extras through your account.
-          </p>
-          <p className="text-sm">
-            <span className="font-medium">Need help?:</span> Our customer service team is available 24/7 to assist you
-            with any questions.
-          </p>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Link href="/manage">
-            <Button>Manage Booking</Button>
-          </Link>
-          <Link href="/support">
-            <Button variant="outline">Contact Support</Button>
-          </Link>
-        </div>
-      </div>
-
-      <div className="text-center">
-        <Link href="/">
-          <Button variant="outline">Return to Home</Button>
-        </Link>
-      </div>
     </div>
   )
 }

@@ -37,6 +37,8 @@ import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { transformOrderCreateToItinerary, type ItineraryData } from "@/utils/itinerary-data-transformer"
+import { generatePDFFromComponent } from "@/utils/download-utils"
+import OfficialItinerary from "@/components/itinerary/OfficialItinerary"
 
 interface Booking {
   id: number
@@ -150,6 +152,7 @@ export default function BookingDetailsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [booking, setBooking] = useState<Booking | null>(null)
   const [itineraryData, setItineraryData] = useState<ItineraryData | null>(null)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
@@ -184,18 +187,56 @@ export default function BookingDetailsPage() {
         const data = await response.json()
         setBooking(data)
 
-        // Transform OrderCreate response using unified transformer
-        if (data.order_create_response?.raw_order_create_response) {
+        // Transform OrderCreate response using the dual-column strategy
+        console.log('📋 Booking data structure:', {
+          hasOrderCreateResponse: !!data.orderCreateResponse,
+          hasOriginalFlightOffer: !!data.originalFlightOffer,
+          orderCreateType: typeof data.orderCreateResponse,
+          originalOfferType: typeof data.originalFlightOffer
+        })
+
+        // Parse JSON data if needed
+        let parsedOrderCreate = data.orderCreateResponse
+        if (typeof parsedOrderCreate === 'string') {
           try {
-            const transformedData = transformOrderCreateToItinerary(data.order_create_response.raw_order_create_response)
+            parsedOrderCreate = JSON.parse(parsedOrderCreate)
+          } catch (parseError) {
+            console.error('Error parsing orderCreateResponse:', parseError)
+            parsedOrderCreate = null
+          }
+        }
+
+        let originalFlightOffer = data.originalFlightOffer
+        if (typeof originalFlightOffer === 'string') {
+          try {
+            originalFlightOffer = JSON.parse(originalFlightOffer)
+          } catch (parseError) {
+            console.error('Error parsing originalFlightOffer:', parseError)
+            originalFlightOffer = null
+          }
+        }
+
+        // Prepare basic booking data for fallback
+        const basicBookingData = {
+          bookingReference: data.bookingReference,
+          createdAt: data.createdAt,
+          passengerDetails: data.passengerDetails,
+          contactInfo: data.contactInfo,
+          documentNumbers: data.documentNumbers
+        }
+
+        // Try to transform itinerary data
+        if (parsedOrderCreate || originalFlightOffer) {
+          try {
+            const transformedData = transformOrderCreateToItinerary(parsedOrderCreate, originalFlightOffer, basicBookingData)
             setItineraryData(transformedData)
-            console.log("Successfully transformed itinerary data:", transformedData)
+            console.log("✅ Successfully transformed itinerary data:", transformedData)
           } catch (error) {
-            console.error("Error transforming itinerary data:", error)
-            // Continue without transformed data - fallback to existing logic
+            console.error("❌ Error transforming itinerary data:", error)
+            console.log("⚠️ Continuing without transformed data - using fallback display")
           }
         } else {
-          console.log("No OrderCreate response found for transformation")
+          console.log("⚠️ No OrderCreate response or originalFlightOffer found for transformation")
         }
       } catch (error) {
         console.error("Error fetching booking:", error)
@@ -211,6 +252,40 @@ export default function BookingDetailsPage() {
 
     fetchBookingDetails()
   }, [bookingId, isLoaded, router, toast])
+
+  // Handle itinerary download
+  const handleDownloadItinerary = async () => {
+    if (!itineraryData || !booking) {
+      toast({
+        title: "Download Failed",
+        description: "Itinerary data is not available for download.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsDownloading(true)
+    try {
+      await generatePDFFromComponent(
+        'manage-itinerary-component',
+        `flight-itinerary-${booking.bookingReference}.pdf`
+      )
+      toast({
+        title: "Download Successful",
+        description: "PDF has been generated successfully.",
+        variant: "default",
+      })
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      toast({
+        title: "Download Failed",
+        description: "Unable to generate PDF. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsDownloading(false)
+    }
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
@@ -700,8 +775,8 @@ export default function BookingDetailsPage() {
         title: passenger.Individual?.NameTitle || '',
         dateOfBirth: passenger.Individual?.Birthdate || '',
         gender: passenger.Individual?.Gender || '',
-        email: booking.contactInfo.email,
-        phone: booking.contactInfo.phone,
+        email: booking.contactInfo?.email || '',
+        phone: booking.contactInfo?.phone || '',
         passportNumber: passenger.IdentityDocument?.IdentityDocumentNumber || '',
         passportExpiry: passenger.IdentityDocument?.ExpiryDate || '',
         nationality: passenger.IdentityDocument?.IssuingCountryCode || '',
@@ -932,16 +1007,16 @@ export default function BookingDetailsPage() {
                       <h3 className="text-lg font-semibold">
                         {/* Handle both transformed data and legacy data */}
                         {itineraryData ? (
-                          `${passenger.title} ${passenger.firstName} ${passenger.lastName}`.trim()
+                          `${passenger.title || ''} ${passenger.firstName || ''} ${passenger.lastName || ''}`.trim()
                         ) : (
-                          `${passenger.title || ''} ${passenger.firstName} ${passenger.lastName}`.trim()
+                          `${passenger.title || ''} ${passenger.firstName || ''} ${passenger.lastName || ''}`.trim()
                         )}
                       </h3>
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {itineraryData ? passenger.passengerTypeLabel : (
+                        {itineraryData ? (passenger.passengerTypeLabel || 'Passenger') : (
                           passenger.passengerType === 'ADT' ? 'Adult' :
                           passenger.passengerType === 'CHD' ? 'Child' :
-                          passenger.passengerType === 'INF' ? 'Infant' : passenger.passengerType
+                          passenger.passengerType === 'INF' ? 'Infant' : (passenger.passengerType || 'Passenger')
                         )}
                       </span>
                     </div>
@@ -1264,32 +1339,34 @@ export default function BookingDetailsPage() {
         </Card>
 
         {/* Contact Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Phone className="w-5 h-5" />
-              Contact Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3">
-                <Mail className="w-4 h-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-semibold">{booking.contactInfo.email}</p>
+        {booking.contactInfo && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Phone className="w-5 h-5" />
+                Contact Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center gap-3">
+                  <Mail className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="font-semibold">{booking.contactInfo?.email || 'Not provided'}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Phone className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Phone</p>
+                    <p className="font-semibold">{booking.contactInfo?.phone || 'Not provided'}</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <Phone className="w-4 h-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Phone</p>
-                  <p className="font-semibold">{booking.contactInfo.phone}</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Payment Information */}
         <Card>
@@ -1394,15 +1471,11 @@ export default function BookingDetailsPage() {
               <Button
                 className="flex-1"
                 variant="outline"
-                onClick={() => {
-                  toast({
-                    title: "Download Itinerary",
-                    description: "Itinerary download functionality will be available soon.",
-                  })
-                }}
+                onClick={handleDownloadItinerary}
+                disabled={isDownloading || !itineraryData}
               >
                 <Download className="w-4 h-4 mr-2" />
-                Download Itinerary
+                {isDownloading ? "Generating PDF..." : "Download Itinerary"}
               </Button>
 
               {booking.status !== "cancelled" && (
@@ -1431,6 +1504,13 @@ export default function BookingDetailsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Hidden Official Itinerary Component for PDF Generation */}
+      {itineraryData && (
+        <div id="manage-itinerary-component" style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+          <OfficialItinerary data={itineraryData} />
+        </div>
+      )}
     </div>
   )
 }

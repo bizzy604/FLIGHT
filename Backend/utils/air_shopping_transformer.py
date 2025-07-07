@@ -3,6 +3,7 @@
 
 from datetime import datetime
 import logging
+from typing import Dict, List, Any, Optional
 from .airline_data import get_airline_name, get_airline_logo_url
 
 logger = logging.getLogger(__name__)
@@ -42,7 +43,7 @@ def _extract_simple_refs(response):
         'segments': {s.get('SegmentKey'): s for s in segments if s.get('SegmentKey')}
     }
 
-def _transform_offer_for_results_page(priced_offer, refs, offer=None):
+def _transform_offer_for_results_page(priced_offer, refs, offer=None, search_context=None):
     """Transforms a single offer into the summary format for a flight card."""
     try:
         first_offer_price = priced_offer.get('OfferPrice', [{}])[0]
@@ -156,6 +157,9 @@ def _transform_offer_for_results_page(priced_offer, refs, offer=None):
             if not offer_id and isinstance(priced_offer.get('OfferID'), str):
                 offer_id = priced_offer.get('OfferID')
 
+        # Generate route display information
+        route_display = _generate_route_display_info_basic(all_segments_data, search_context)
+
         return {
             "id": offer_id,
             "price": total_amount.get('value', 0),
@@ -171,7 +175,9 @@ def _transform_offer_for_results_page(priced_offer, refs, offer=None):
             "duration": f"{int(total_hours)}h {int(total_minutes)}m",
             "stops": stops_count,
             "stopDetails": stop_details,
-            "segments": transformed_segments
+            "segments": transformed_segments,
+            # Enhanced route display information
+            "route_display": route_display
         }
     except Exception as e:
         logger.error(f"Error transforming offer for results page: {e}", exc_info=True)
@@ -235,26 +241,91 @@ def _extract_shopping_response_id(response: dict) -> dict:
 
     return response
 
-def transform_air_shopping_for_results(response: dict) -> dict:
+def _generate_route_display_info_basic(segments_data: List[Dict[str, Any]], search_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """
+    Generate route display information for basic transformer.
+
+    Args:
+        segments_data: List of flight segment data
+        search_context: User's original search parameters
+
+    Returns:
+        Dict containing route display information
+    """
+    if not segments_data:
+        return {
+            'origin': 'Unknown',
+            'destination': 'Unknown',
+            'actual_route': [],
+            'stops': [],
+            'is_direct': True
+        }
+
+    # Extract actual route from segments
+    actual_route = []
+    for i, seg in enumerate(segments_data):
+        dep_airport = seg.get('Departure', {}).get('AirportCode', {}).get('value', '')
+        arr_airport = seg.get('Arrival', {}).get('AirportCode', {}).get('value', '')
+
+        if i == 0:
+            actual_route.append(dep_airport)
+        actual_route.append(arr_airport)
+
+    # Determine origin and destination based on search context or segments
+    search_origin = None
+    search_destination = None
+
+    if search_context and 'odSegments' in search_context:
+        od_segments = search_context['odSegments']
+        if od_segments and len(od_segments) > 0:
+            first_segment = od_segments[0]
+            search_origin = first_segment.get('origin')
+            search_destination = first_segment.get('destination')
+
+    # Use search context as authoritative source, fallback to segments
+    origin = search_origin or actual_route[0] if actual_route else 'Unknown'
+    destination = search_destination or actual_route[-1] if actual_route else 'Unknown'
+
+    # Calculate stops (intermediate airports between origin and destination)
+    stops = []
+    if len(actual_route) > 2:
+        stops = actual_route[1:-1]
+
+    is_direct = len(stops) == 0
+
+    return {
+        'origin': origin,
+        'destination': destination,
+        'actual_route': actual_route,
+        'stops': stops,
+        'is_direct': is_direct
+    }
+
+
+def transform_air_shopping_for_results(response: dict, search_context: Optional[Dict[str, Any]] = None) -> dict:
     """
     The main transformation function for the AirShopping response.
+
+    Args:
+        response: The raw air shopping response
+        search_context: User's original search parameters for route context
     """
     refs = _extract_simple_refs(response)
     offers = []
-    
+
     # This logic handles the common structure of AirShoppingRS
     offers_group = response.get('OffersGroup', {})
     airline_offers_list = offers_group.get('AirlineOffers', [])
     if not isinstance(airline_offers_list, list):
         airline_offers_list = [airline_offers_list] if airline_offers_list else []
-        
+
     for airline_offer_group in airline_offers_list:
         # Each group can have multiple fare families (AirlineOffer)
         for offer in airline_offer_group.get('AirlineOffer', []):
             priced_offer = offer.get('PricedOffer')
             if priced_offer:
                 airline_code = offer.get('OfferID', {}).get('Owner', '??')  # Get from offer, not priced_offer
-                transformed = _transform_offer_for_results_page(priced_offer, refs, offer)  # Pass both
+                transformed = _transform_offer_for_results_page(priced_offer, refs, offer, search_context)  # Pass search context
                 if transformed:
                     # Store original OfferID for reference and use index as ID
                     transformed['original_offer_id'] = transformed.get('id')  # Store original OfferID

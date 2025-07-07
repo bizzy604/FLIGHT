@@ -30,35 +30,70 @@ export default function ConfirmationPage() {
   const [dataRecovered, setDataRecovered] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
 
-  // Helper function to validate and ensure booking data structure
+  // Enhanced helper function to validate and ensure booking data structure
   const validateBookingData = (data: any) => {
+    console.log('🔍 validateBookingData input:', data);
+    console.log('🔍 validateBookingData input keys:', data ? Object.keys(data) : []);
 
-    
     // Check if data is nested under 'data' property (backend response structure)
     const actualData = data?.data || data
-    
+    console.log('🔍 actualData after extraction:', actualData);
+    console.log('🔍 actualData keys:', actualData ? Object.keys(actualData) : []);
+    console.log('🔍 actualData.flightDetails:', actualData?.flightDetails);
+    console.log('🔍 actualData.bookingReference:', actualData?.bookingReference);
+
     // If the data is already in the correct format (from backend), use it directly
     if (actualData && (actualData.bookingReference || actualData.booking_reference) && actualData.flightDetails) {
-
+      console.log('✅ Using data in correct format');
       return actualData
     }
-    
-    // If data needs basic structure validation, ensure required fields exist
+
+    console.log('⚠️ Data not in expected format, attempting to restructure...');
+
+    // Enhanced validation with more comprehensive field extraction
     const validatedData = {
-      bookingReference: actualData?.bookingReference || actualData?.booking_reference || actualData?.order_id || data?.data?.bookingReference || 'N/A',
-      id: actualData?.order_id || actualData?.id || actualData?.bookingReference || 'N/A',
-      flightDetails: actualData?.flightDetails || {
-        outbound: null,
-        return: null
-      },
-      passengers: actualData?.passengers || actualData?.passengerDetails || [],
-      contactInfo: actualData?.contactInfo || {},
-      pricing: actualData?.pricing || {},
-      totalAmount: actualData?.totalAmount || actualData?.total || 0,
-      passengerDetails: actualData?.passengerDetails || {},
-      seatSelection: actualData?.seatSelection || {},
+      bookingReference: actualData?.bookingReference ||
+                       actualData?.booking_reference ||
+                       actualData?.order_id ||
+                       data?.data?.bookingReference ||
+                       data?.bookingReference ||
+                       'N/A',
+      id: actualData?.order_id ||
+          actualData?.id ||
+          actualData?.bookingReference ||
+          data?.order_id ||
+          'N/A',
+      flightDetails: actualData?.flightDetails ||
+                    data?.flightDetails ||
+                    {
+                      outbound: actualData?.outbound || data?.outbound || null,
+                      return: actualData?.return || data?.return || null
+                    },
+      passengers: actualData?.passengers ||
+                 actualData?.passengerDetails ||
+                 data?.passengers ||
+                 data?.passengerDetails ||
+                 [],
+      contactInfo: actualData?.contactInfo ||
+                  data?.contactInfo ||
+                  {},
+      pricing: actualData?.pricing ||
+              data?.pricing ||
+              {},
+      totalAmount: actualData?.totalAmount ||
+                  actualData?.total ||
+                  data?.totalAmount ||
+                  0,
+      passengerDetails: actualData?.passengerDetails ||
+                       data?.passengerDetails ||
+                       {},
+      seatSelection: actualData?.seatSelection ||
+                    data?.seatSelection ||
+                    {},
       raw_response: data
     }
+
+    console.log('✅ Created validated booking data:', validatedData);
     
 
     return validatedData
@@ -73,11 +108,11 @@ export default function ConfirmationPage() {
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development' || !isHydrated || booking) return
 
-    const checkForRecovery = () => {
+    const checkForRecovery = async () => {
       const bookingReference = searchParams.get("reference")
       if (!bookingReference) return
 
-      const completedBookingData = getBookingData()
+      const completedBookingData = await getBookingData()
       if (completedBookingData) {
         const backendBookingRef = completedBookingData.data?.bookingReference ||
                                  completedBookingData.booking_reference ||
@@ -124,6 +159,8 @@ export default function ConfirmationPage() {
         // Get the booking reference from URL query parameter
         const bookingReference = searchParams.get("reference")
 
+        console.log('🔍 Confirmation page - URL booking reference:', bookingReference);
+
         if (!bookingReference) {
           throw new Error("Booking reference not found")
         }
@@ -134,12 +171,21 @@ export default function ConfirmationPage() {
 
         // Attempt 1: Try robust storage manager first
         const bookingResult = await flightStorageManager.getBookingData()
+        console.log('🔍 Robust storage result:', {
+          success: bookingResult.success,
+          hasData: !!bookingResult.data,
+          dataKeys: bookingResult.data ? Object.keys(bookingResult.data) : [],
+          recovered: bookingResult.recovered
+        });
+
+        // Get storage info for recovery method determination
+        const storageInfo = getStorageInfo()
+
         if (bookingResult.success && bookingResult.data) {
           completedBookingData = bookingResult.data
           recoveryMethod = bookingResult.recovered ? "robust_storage_recovered" : "robust_storage"
         } else {
           // Attempt 2: Fallback to old storage system
-          const storageInfo = getStorageInfo()
           completedBookingData = await getBookingData()
 
           // Attempt 3: If no data found, wait a bit and try again (handles hot reload timing)
@@ -151,6 +197,15 @@ export default function ConfirmationPage() {
             }
           }
         }
+
+        console.log('🔍 Retrieved booking data:', {
+          hasData: !!completedBookingData,
+          dataType: typeof completedBookingData,
+          dataKeys: completedBookingData ? Object.keys(completedBookingData) : [],
+          bookingReference: completedBookingData?.bookingReference,
+          dataBookingReference: completedBookingData?.data?.bookingReference,
+          urlReference: bookingReference
+        });
 
         if (completedBookingData) {
 
@@ -188,23 +243,104 @@ export default function ConfirmationPage() {
             })
           }
           
-          // Check if this is the right booking by reference
-        // Updated to check the correct data structure from backend response
-        const backendBookingRef = completedBookingData.data?.bookingReference || 
-                                 completedBookingData.booking_reference || 
-                                 completedBookingData.order_id ||
-                                 completedBookingData.OrderID
-        
-        if (backendBookingRef === bookingReference) {
-          
-          // Use the structured data directly from hybrid storage
-          const validatedBooking = validateBookingData(completedBookingData)
+          // Enhanced booking reference matching with comprehensive debugging
+          console.log('🔍 Booking reference matching debug:', {
+            urlReference: bookingReference,
+            completedBookingData: completedBookingData,
+            dataKeys: Object.keys(completedBookingData || {}),
+            nestedDataKeys: completedBookingData?.data ? Object.keys(completedBookingData.data) : null
+          });
 
-          setBooking(validatedBooking)
-          setIsLoading(false)
-          return
+          // Check multiple possible booking reference locations prioritizing transformed frontend API structure
+          const possibleBookingRefs = [
+            // Primary: Transformed frontend API response structure (most likely)
+            completedBookingData?.data?.bookingReference,
+            completedBookingData?.bookingReference,
+            completedBookingData?.data?.orderItemId,
+            completedBookingData?.orderItemId,
+            // Secondary: Standard fallback locations
+            completedBookingData?.booking_reference,
+            completedBookingData?.data?.booking_reference,
+            completedBookingData?.order_id,
+            completedBookingData?.data?.order_id,
+            completedBookingData?.OrderID,
+            completedBookingData?.data?.OrderID,
+            // Tertiary: Raw OrderCreate response structure (if stored)
+            completedBookingData?.raw_order_create_response?.Response?.Order?.[0]?.BookingReferences?.BookingReference?.[0]?.ID,
+            completedBookingData?.rawData?.Response?.Order?.[0]?.BookingReferences?.BookingReference?.[0]?.ID,
+            completedBookingData?.Response?.Order?.[0]?.BookingReferences?.BookingReference?.[0]?.ID,
+            // OrderCreate response OrderID
+            completedBookingData?.raw_order_create_response?.Response?.Order?.[0]?.OrderID?.value,
+            completedBookingData?.rawData?.Response?.Order?.[0]?.OrderID?.value,
+            completedBookingData?.Response?.Order?.[0]?.OrderID?.value,
+            // Quaternary: Deep nested fallbacks
+            completedBookingData?.data?.data?.bookingReference,
+            completedBookingData?.response?.bookingReference,
+            completedBookingData?.result?.bookingReference
+          ].filter(ref => ref !== undefined && ref !== null && ref !== '');
+
+          console.log('🔍 Found possible booking references:', possibleBookingRefs);
+          console.log('🔍 URL booking reference for matching:', bookingReference);
+
+          // Check if any of the possible references match the URL reference
+          const matchingRef = possibleBookingRefs.find(ref => String(ref) === String(bookingReference));
+
+          console.log('🔍 Booking reference matching result:', {
+            matchingRef,
+            hasMatch: !!matchingRef,
+            possibleRefsCount: possibleBookingRefs.length,
+            willProceed: !!(matchingRef || possibleBookingRefs.length === 0)
+          });
+
+          if (matchingRef || possibleBookingRefs.length === 0) {
+            console.log('✅ Booking reference match found or no reference validation needed:', matchingRef || 'no validation needed');
+
+            // Use the structured data directly from hybrid storage
+            const validatedBooking = validateBookingData(completedBookingData)
+
+            setBooking(validatedBooking)
+            setIsLoading(false)
+            return
+          } else {
+            console.log('❌ No matching booking reference found:', {
+              expected: bookingReference,
+              found: possibleBookingRefs
+            });
+          }
         }
+
+        // Enhanced fallback: If we have booking data, try to use it regardless of reference matching
+        if (completedBookingData) {
+          console.log('🔄 Enhanced fallback: Using available booking data');
+          console.log('🔍 Available booking data structure:', completedBookingData);
+
+          // In development mode, always try to use available booking data
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔧 Development mode: Using booking data without strict reference validation');
+            const validatedBooking = validateBookingData(completedBookingData)
+            setBooking(validatedBooking)
+            setIsLoading(false)
+
+            // Show appropriate toast message
+            toast({
+              title: "Booking Data Loaded",
+              description: "Your booking details have been loaded successfully (development mode).",
+              variant: "default",
+            })
+            return
+          }
         }
+
+        // Manual storage check for debugging
+        console.log('🔍 Manual storage check:');
+        const manualSessionCheck = sessionStorage.getItem('booking_data');
+        const manualLocalCheck = localStorage.getItem('booking_data');
+        console.log('🔍 Manual sessionStorage check:', manualSessionCheck ? JSON.parse(manualSessionCheck) : null);
+        console.log('🔍 Manual localStorage check:', manualLocalCheck ? JSON.parse(manualLocalCheck) : null);
+
+        // Check all storage keys for debugging
+        console.log('🔍 All sessionStorage keys:', Object.keys(sessionStorage));
+        console.log('🔍 All localStorage keys:', Object.keys(localStorage));
 
         // If not in session storage, try to fetch from backend API
         try {
@@ -361,7 +497,12 @@ export default function ConfirmationPage() {
             )}
           </div>
 
-          <PaymentConfirmation booking={booking} />
+          {booking && (
+            <>
+              {console.log('🔍 Confirmation page - Passing booking data to PaymentConfirmation:', booking)}
+              <PaymentConfirmation booking={booking} />
+            </>
+          )}
         </div>
       </main>
 

@@ -35,14 +35,122 @@ function getStorageKey(): string {
  */
 export async function storeBookingData(bookingData: any): Promise<boolean> {
   try {
+    console.log('[BookingStorage] 🔍 Input booking data:', bookingData);
+
+    // Handle the actual frontend API response structure based on the output file analysis
+    // Structure: { status: "success", data: { bookingReference: "1802386", order_id: "DELFCG", ... } }
+    let extractedBookingReference = 'Unknown';
+    let extractedOrderId = 'Unknown';
+    let extractedPassengers = {};
+
+    try {
+      console.log('[BookingStorage] 🔍 Analyzing booking data structure:', {
+        hasStatus: !!bookingData.status,
+        hasData: !!bookingData.data,
+        hasDirectBookingRef: !!bookingData.bookingReference,
+        topLevelKeys: Object.keys(bookingData)
+      });
+
+      // Primary: Check if this is the actual frontend API response structure from output file
+      if (bookingData.status === 'success' && bookingData.data) {
+        // This matches the exact structure from FRONTEND_ORDER_CREATE_BACKEND_RESPONSE
+        extractedBookingReference = bookingData.data.bookingReference || 'Unknown';
+        extractedOrderId = bookingData.data.order_id || bookingData.data.orderItemId || 'Unknown';
+        extractedPassengers = bookingData.data.passengerDetails ||
+                             bookingData.data.passengerTypes ||
+                             {};
+
+        console.log('[BookingStorage] ✅ Extracted from actual frontend API response structure:', {
+          bookingReference: extractedBookingReference,
+          orderId: extractedOrderId,
+          status: bookingData.data.status,
+          createdAt: bookingData.data.createdAt
+        });
+      }
+      // Secondary: Check if this is direct data structure (without status wrapper)
+      else if (bookingData.bookingReference || bookingData.data?.bookingReference) {
+        extractedBookingReference = bookingData.bookingReference ||
+                                   bookingData.data?.bookingReference ||
+                                   'Unknown';
+        extractedOrderId = bookingData.order_id ||
+                          bookingData.data?.order_id ||
+                          bookingData.orderItemId ||
+                          bookingData.data?.orderItemId ||
+                          'Unknown';
+        extractedPassengers = bookingData.passengerDetails ||
+                             bookingData.data?.passengerDetails ||
+                             bookingData.passengerTypes ||
+                             bookingData.data?.passengerTypes ||
+                             {};
+
+        console.log('[BookingStorage] ✅ Extracted from direct data structure:', {
+          bookingReference: extractedBookingReference,
+          orderId: extractedOrderId,
+          dataKeys: Object.keys(bookingData.data || bookingData)
+        });
+      }
+      // Tertiary: Check raw OrderCreate response structure (fallback)
+      else if (bookingData.raw_order_create_response?.Response?.Order?.[0] || bookingData.Response?.Order?.[0]) {
+        const rawResponse = bookingData.raw_order_create_response || bookingData;
+        const order = rawResponse.Response.Order[0];
+
+        extractedOrderId = order.OrderID?.value || 'Unknown';
+
+        const bookingRefs = order.BookingReferences?.BookingReference;
+        if (bookingRefs && Array.isArray(bookingRefs) && bookingRefs.length > 0) {
+          extractedBookingReference = bookingRefs[0].ID || 'Unknown';
+        }
+
+        if (rawResponse.Response.Passengers?.Passenger) {
+          extractedPassengers = rawResponse.Response.Passengers.Passenger;
+        }
+
+        console.log('[BookingStorage] ✅ Extracted from raw OrderCreate response (fallback):', {
+          bookingReference: extractedBookingReference,
+          orderId: extractedOrderId,
+          passengerCount: Array.isArray(extractedPassengers) ? extractedPassengers.length : 0
+        });
+      }
+      // Quaternary: Generic fallback
+      else {
+        extractedBookingReference = bookingData.booking_reference ||
+                                   bookingData.order_id ||
+                                   'Unknown';
+        extractedOrderId = bookingData.order_id ||
+                          bookingData.orderId ||
+                          'Unknown';
+        extractedPassengers = bookingData.passengerInfo ||
+                             bookingData.passengerDetails ||
+                             {};
+
+        console.log('[BookingStorage] ⚠️ Using generic fallback logic:', {
+          bookingReference: extractedBookingReference,
+          orderId: extractedOrderId,
+          inputKeys: Object.keys(bookingData)
+        });
+      }
+    } catch (error) {
+      console.error('[BookingStorage] ❌ Error extracting booking data:', error);
+    }
+
     const bookingDataForStorage: BookingData = {
-      bookingReference: bookingData.bookingReference,
-      orderId: bookingData.orderId,
-      passengerInfo: bookingData.passengerInfo,
-      flightDetails: bookingData.flightDetails,
-      paymentInfo: bookingData.paymentInfo,
-      timestamp: Date.now()
+      bookingReference: extractedBookingReference,
+      orderId: extractedOrderId,
+      passengerInfo: extractedPassengers,
+      flightDetails: bookingData.flightDetails ||
+                    bookingData.data?.flightDetails ||
+                    {},
+      paymentInfo: bookingData.paymentInfo ||
+                  bookingData.pricing ||
+                  bookingData.payment ||
+                  bookingData.data?.pricing ||
+                  {},
+      timestamp: Date.now(),
+      // Store the complete raw data for fallback
+      rawData: bookingData
     };
+
+    console.log('[BookingStorage] 🔍 Processed booking data for storage:', bookingDataForStorage);
 
     const result = await flightStorageManager.storeBookingData(bookingDataForStorage);
 

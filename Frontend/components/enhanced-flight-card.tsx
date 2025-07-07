@@ -292,33 +292,190 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
             {/* Route and Time */}
             <div className="mb-4">
               {searchParams?.tripType === 'round-trip' ? (
-                // Round-trip display: show true origin to destination
+                // Round-trip display: show both outbound and return journeys
                 (() => {
-                  // Find the midpoint to separate outbound and return segments
-                  const totalSegments = flight.segments?.length || 0;
-                  const midPoint = Math.ceil(totalSegments / 2);
-                  const outboundSegments = flight.segments?.slice(0, midPoint) || [];
-                  const firstOutbound = outboundSegments[0];
-                  const lastOutbound = outboundSegments[outboundSegments.length - 1];
+                  const segments = flight.segments || [];
+
+                  // Determine outbound and return segments
+                  let outboundSegments: any[] = [];
+                  let returnSegments: any[] = [];
+
+                  if (segments.length > 0) {
+                    // Find the turnaround point (where we reach the destination)
+                    const searchDestination = searchParams?.destination || '';
+                    let turnaroundIndex = -1;
+
+                    // Look for the first occurrence of the destination airport
+                    for (let i = 0; i < segments.length; i++) {
+                      if (segments[i].arrival?.airport === searchDestination) {
+                        turnaroundIndex = i;
+                        break;
+                      }
+                    }
+
+                    if (turnaroundIndex > -1) {
+                      outboundSegments = segments.slice(0, turnaroundIndex + 1);
+                      returnSegments = segments.slice(turnaroundIndex + 1);
+                    } else {
+                      // Fallback: split in half
+                      const midPoint = Math.ceil(segments.length / 2);
+                      outboundSegments = segments.slice(0, midPoint);
+                      returnSegments = segments.slice(midPoint);
+                    }
+                  }
+
+                  // Outbound journey details
+                  const outboundOrigin = outboundSegments[0]?.departure?.airport || searchParams?.origin || '';
+                  const outboundDestination = outboundSegments[outboundSegments.length - 1]?.arrival?.airport || searchParams?.destination || '';
+                  const outboundDepartureTime = outboundSegments[0]?.departure?.time || '--:--';
+                  const outboundArrivalTime = outboundSegments[outboundSegments.length - 1]?.arrival?.time || '--:--';
+                  const outboundStops = outboundSegments.length > 1 ? outboundSegments.length - 1 : 0;
+
+                  // Return journey details
+                  const returnOrigin = returnSegments[0]?.departure?.airport || searchParams?.destination || '';
+                  const returnDestination = returnSegments[returnSegments.length - 1]?.arrival?.airport || searchParams?.origin || '';
+                  const returnDepartureTime = returnSegments[0]?.departure?.time || '--:--';
+                  const returnArrivalTime = returnSegments[returnSegments.length - 1]?.arrival?.time || '--:--';
+                  const returnStops = returnSegments.length > 1 ? returnSegments.length - 1 : 0;
+
+                  return (
+                    <div className="space-y-4">
+                      {/* Outbound Journey */}
+                      <div className="flex items-center justify-between">
+                        <div className="text-center">
+                          <div className="text-xl font-bold">
+                            {outboundDepartureTime}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {outboundOrigin}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Departure
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-center px-4">
+                          <div className="text-xs text-muted-foreground mb-1">
+                            Outbound
+                          </div>
+                          <div className="flex items-center">
+                            <div className="h-px bg-border flex-1 w-12"></div>
+                            <ArrowRight className="mx-2 h-3 w-3 text-muted-foreground" />
+                            <div className="h-px bg-border flex-1 w-12"></div>
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {outboundStops > 0 ? `${outboundStops} stop${outboundStops > 1 ? 's' : ''}` : 'Direct'}
+                          </div>
+                        </div>
+
+                        <div className="text-center">
+                          <div className="text-xl font-bold">
+                            {outboundArrivalTime}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {outboundDestination}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Arrival
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Return Journey */}
+                      {returnSegments.length > 0 && (
+                        <div className="flex items-center justify-between border-t pt-3">
+                          <div className="text-center">
+                            <div className="text-xl font-bold">
+                              {returnDepartureTime}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {returnOrigin}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Departure
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col items-center px-4">
+                            <div className="text-xs text-muted-foreground mb-1">
+                              Return
+                            </div>
+                            <div className="flex items-center">
+                              <div className="h-px bg-border flex-1 w-12"></div>
+                              <ArrowRight className="mx-2 h-3 w-3 text-muted-foreground" />
+                              <div className="h-px bg-border flex-1 w-12"></div>
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {returnStops > 0 ? `${returnStops} stop${returnStops > 1 ? 's' : ''}` : 'Direct'}
+                            </div>
+                          </div>
+
+                          <div className="text-center">
+                            <div className="text-xl font-bold">
+                              {returnArrivalTime}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {returnDestination}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Arrival
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()
+              ) : (
+                // One-way display: show user's searched route
+                (() => {
+                  // Use route_display if available, otherwise fallback to segment logic
+                  const routeDisplay = flight.route_display;
+                  const useSearchRoute = routeDisplay && searchParams?.origin && searchParams?.destination;
+
+                  let originAirport: string, destinationAirport: string, originTime: string, destinationTime: string, stopInfo: string;
+
+                  if (useSearchRoute) {
+                    // Use search parameters as authoritative source
+                    originAirport = searchParams.origin || '';
+                    destinationAirport = searchParams.destination || '';
+
+                    // Find corresponding segment times
+                    const firstSegment = flight.segments?.find(seg => seg.departure?.airport === originAirport);
+                    const lastSegment = flight.segments?.find(seg => seg.arrival?.airport === destinationAirport);
+
+                    originTime = firstSegment?.departure?.time || '--:--';
+                    destinationTime = lastSegment?.arrival?.time || '--:--';
+
+                    // Show stops information
+                    const stops = routeDisplay.stops || [];
+                    stopInfo = stops.length > 0 ? `${stops.length} stop${stops.length > 1 ? 's' : ''} (via ${stops.join(', ')})` : 'Direct';
+                  } else {
+                    // Fallback to original segment logic
+                    originAirport = flight.segments?.[0]?.departure?.airport || '';
+                    destinationAirport = flight.segments?.[flight.segments.length - 1]?.arrival?.airport || '';
+                    originTime = flight.segments?.[0]?.departure?.time || '--:--';
+                    destinationTime = flight.segments?.[flight.segments.length - 1]?.arrival?.time || '--:--';
+                    stopInfo = flight.segments && flight.segments.length > 1 ? `${flight.segments.length - 1} stop${flight.segments.length > 2 ? 's' : ''}` : 'Direct';
+                  }
 
                   return (
                     <div className="flex items-center justify-between">
                       <div className="text-center">
                         <div className="text-2xl font-bold">
-                          {firstOutbound?.departure?.time || '--:--'}
+                          {originTime}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {firstOutbound?.departure?.airportName ||
-                            firstOutbound?.departure?.airport}
+                          {originAirport}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {firstOutbound?.departure?.airport}
+                          {useSearchRoute ? 'Origin' : 'Departure'}
                         </div>
                       </div>
 
                       <div className="flex flex-col items-center px-4">
                         <div className="text-xs text-muted-foreground mb-1">
-                          Outbound Journey
+                          {flight.duration}
                         </div>
                         <div className="flex items-center">
                           <div className="h-px bg-border flex-1 w-16"></div>
@@ -326,101 +483,27 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                           <div className="h-px bg-border flex-1 w-16"></div>
                         </div>
                         <div className="text-xs text-muted-foreground mt-1">
-                          {outboundSegments.length > 1 ? `${outboundSegments.length - 1} stop${outboundSegments.length > 2 ? 's' : ''}` : 'Direct'}
+                          {stopInfo}
                         </div>
                       </div>
 
                       <div className="text-center">
                         <div className="text-2xl font-bold">
-                          {lastOutbound?.arrival?.time || '--:--'}
+                          {destinationTime}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {lastOutbound?.arrival?.airportName ||
-                            lastOutbound?.arrival?.airport || 'Unknown'}
+                          {destinationAirport}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {lastOutbound?.arrival?.airport}
+                          {useSearchRoute ? 'Destination' : 'Arrival'}
                         </div>
                       </div>
                     </div>
                   );
                 })()
-              ) : (
-                // One-way display: show full journey
-                <div className="flex items-center justify-between">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">
-                      {flight.segments?.[0]?.departure?.time || '--:--'}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {flight.segments?.[0]?.departure?.airportName ||
-                        flight.segments?.[0]?.departure?.airport}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {flight.segments?.[0]?.departure?.airport}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-center px-4">
-                    <div className="text-xs text-muted-foreground mb-1">
-                      {flight.duration}
-                    </div>
-                    <div className="flex items-center">
-                      <div className="h-px bg-border flex-1 w-16"></div>
-                      <ArrowRight className="mx-2 h-4 w-4 text-muted-foreground" />
-                      <div className="h-px bg-border flex-1 w-16"></div>
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {flight.segments && flight.segments.length > 1 ? `${flight.segments.length - 1} stop${flight.segments.length > 2 ? 's' : ''}` : 'Direct'}
-                    </div>
-                  </div>
-
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">
-                      {flight.segments?.[flight.segments.length - 1]?.arrival?.time || '--:--'}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {flight.segments?.[flight.segments.length - 1]?.arrival?.airportName ||
-                        flight.segments?.[flight.segments.length - 1]?.arrival?.airport || 'Unknown'}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {flight.segments?.[flight.segments.length - 1]?.arrival?.airport}
-                    </div>
-                  </div>
-                </div>
               )}
             </div>
 
-            {/* Amenities */}
-            {flight.additionalServices?.additionalAmenities && flight.additionalServices.additionalAmenities.length > 0 && (
-              <div className="mb-4">
-                <div className="flex flex-wrap gap-2">
-                  {flight.additionalServices.additionalAmenities.map((amenity: string, index: number) => {
-                    const getAmenityIcon = (amenity: string) => {
-                      switch (amenity.toLowerCase()) {
-                        case 'wifi':
-                          return <Wifi className="h-3 w-3" />;
-                        case 'power':
-                          return <Power className="h-3 w-3" />;
-                        case 'meal':
-                          return <Utensils className="h-3 w-3" />;
-                        case 'entertainment':
-                          return <Tv className="h-3 w-3" />;
-                        default:
-                          return <Briefcase className="h-3 w-3" />;
-                      }
-                    };
-
-                    return (
-                      <Badge key={`${amenity}-${index}`} variant="outline" className="text-xs">
-                        {getAmenityIcon(amenity)}
-                        <span className="ml-1">{amenity}</span>
-                      </Badge>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
 
             {/* Expandable Details */}
             {expanded && (
@@ -430,88 +513,224 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
                 <Tabs defaultValue="segments" className="w-full">
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="segments">Flight Details</TabsTrigger>
-                    <TabsTrigger value="baggage">Baggage</TabsTrigger>
-                    <TabsTrigger value="fare">Fare Rules</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="segments" className="space-y-4">
-                    {flight.segments?.map((segment, index) => (
-                      <div key={`flight-${flight.id}-detail-segment-${index}-${segment.airline?.flightNumber || 'unknown'}-${segment.departure?.airport || 'unknown'}`} className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center">
-                            <Image
-                              src={segment.airline?.logo || "/placeholder-logo.svg"}
-                              alt={segment.airline?.name || "Airline"}
-                              width={24}
-                              height={24}
-                              className="mr-2 rounded"
-                            />
-                            <span className="font-medium">{segment.airline?.flightNumber}</span>
-                          </div>
-                          <Badge variant="outline">{segment.aircraft?.name || segment.aircraft?.code}</Badge>
-                        </div>
+                    {searchParams?.tripType === 'round-trip' ? (
+                      // Round-trip: Group segments by outbound and return
+                      (() => {
+                        const segments = flight.segments || [];
 
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <div className="font-medium">Departure</div>
-                            <div>{segment.departure?.datetime || '--:--'}</div>
-                            <div className="text-muted-foreground">
-                              {segment.departure?.airportName || segment.departure?.airport || 'Unknown'} ({segment.departure?.airport})
+                        // Determine outbound and return segments (same logic as above)
+                        let outboundSegments: any[] = [];
+                        let returnSegments: any[] = [];
+
+                        if (segments.length > 0) {
+                          const searchDestination = searchParams?.destination || '';
+                          let turnaroundIndex = -1;
+
+                          for (let i = 0; i < segments.length; i++) {
+                            if (segments[i].arrival?.airport === searchDestination) {
+                              turnaroundIndex = i;
+                              break;
+                            }
+                          }
+
+                          if (turnaroundIndex > -1) {
+                            outboundSegments = segments.slice(0, turnaroundIndex + 1);
+                            returnSegments = segments.slice(turnaroundIndex + 1);
+                          } else {
+                            const midPoint = Math.ceil(segments.length / 2);
+                            outboundSegments = segments.slice(0, midPoint);
+                            returnSegments = segments.slice(midPoint);
+                          }
+                        }
+
+                        return (
+                          <div className="space-y-6">
+                            {/* Outbound Segments */}
+                            {outboundSegments.length > 0 && (
+                              <div>
+                                <h4 className="font-semibold text-sm text-muted-foreground mb-3 flex items-center">
+                                  <ArrowRight className="w-4 h-4 mr-2" />
+                                  Outbound Journey
+                                </h4>
+                                <div className="space-y-3">
+                                  {outboundSegments.map((segment, index) => (
+                                    <div key={`outbound-${index}-${segment.airline?.flightNumber}`} className="border rounded-lg p-4">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center">
+                                          <Image
+                                            src={flight.airline?.logo || "/airlines/default.svg"}
+                                            alt={segment.airline?.name || flight.airline?.name || "Airline"}
+                                            width={24}
+                                            height={24}
+                                            className="mr-2 rounded"
+                                          />
+                                          <span className="font-medium">{segment.airline?.name}</span>
+                                        </div>
+                                        <Badge variant="outline">{segment.airline?.flightNumber}</Badge>
+                                      </div>
+
+                                      <div className="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                          <div className="font-medium">Departure</div>
+                                          <div className="text-lg font-semibold">{segment.departure?.time || '--:--'}</div>
+                                          <div className="text-xs text-muted-foreground">
+                                            {segment.departure?.datetime ? new Date(segment.departure.datetime).toLocaleDateString() : ''}
+                                          </div>
+                                          <div className="text-muted-foreground">
+                                            {segment.departure?.airportName || segment.departure?.airport || 'Unknown'} ({segment.departure?.airport})
+                                          </div>
+                                          {segment.departure?.terminal && (
+                                            <div className="text-xs text-muted-foreground">Terminal {segment.departure.terminal}</div>
+                                          )}
+                                        </div>
+                                        <div>
+                                          <div className="font-medium">Arrival</div>
+                                          <div className="text-lg font-semibold">{segment.arrival?.time || '--:--'}</div>
+                                          <div className="text-xs text-muted-foreground">
+                                            {segment.arrival?.datetime ? new Date(segment.arrival.datetime).toLocaleDateString() : ''}
+                                          </div>
+                                          <div className="text-muted-foreground">
+                                            {segment.arrival?.airportName || segment.arrival?.airport || 'Unknown'} ({segment.arrival?.airport})
+                                          </div>
+                                          {segment.arrival?.terminal && (
+                                            <div className="text-xs text-muted-foreground">Terminal {segment.arrival.terminal}</div>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      <div className="mt-2 text-sm text-muted-foreground">
+                                        Duration: {segment.duration && segment.duration !== 'Unknown' ? segment.duration : 'Not available'}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Return Segments */}
+                            {returnSegments.length > 0 && (
+                              <div>
+                                <h4 className="font-semibold text-sm text-muted-foreground mb-3 flex items-center">
+                                  <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
+                                  Return Journey
+                                </h4>
+                                <div className="space-y-3">
+                                  {returnSegments.map((segment, index) => (
+                                    <div key={`return-${index}-${segment.airline?.flightNumber}`} className="border rounded-lg p-4">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center">
+                                          <Image
+                                            src={flight.airline?.logo || "/airlines/default.svg"}
+                                            alt={segment.airline?.name || flight.airline?.name || "Airline"}
+                                            width={24}
+                                            height={24}
+                                            className="mr-2 rounded"
+                                          />
+                                          <span className="font-medium">{segment.airline?.name}</span>
+                                        </div>
+                                        <Badge variant="outline">{segment.airline?.flightNumber}</Badge>
+                                      </div>
+
+                                      <div className="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                          <div className="font-medium">Departure</div>
+                                          <div className="text-lg font-semibold">{segment.departure?.time || '--:--'}</div>
+                                          <div className="text-xs text-muted-foreground">
+                                            {segment.departure?.datetime ? new Date(segment.departure.datetime).toLocaleDateString() : ''}
+                                          </div>
+                                          <div className="text-muted-foreground">
+                                            {segment.departure?.airportName || segment.departure?.airport || 'Unknown'} ({segment.departure?.airport})
+                                          </div>
+                                          {segment.departure?.terminal && (
+                                            <div className="text-xs text-muted-foreground">Terminal {segment.departure.terminal}</div>
+                                          )}
+                                        </div>
+                                        <div>
+                                          <div className="font-medium">Arrival</div>
+                                          <div className="text-lg font-semibold">{segment.arrival?.time || '--:--'}</div>
+                                          <div className="text-xs text-muted-foreground">
+                                            {segment.arrival?.datetime ? new Date(segment.arrival.datetime).toLocaleDateString() : ''}
+                                          </div>
+                                          <div className="text-muted-foreground">
+                                            {segment.arrival?.airportName || segment.arrival?.airport || 'Unknown'} ({segment.arrival?.airport})
+                                          </div>
+                                          {segment.arrival?.terminal && (
+                                            <div className="text-xs text-muted-foreground">Terminal {segment.arrival.terminal}</div>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      <div className="mt-2 text-sm text-muted-foreground">
+                                        Duration: {segment.duration && segment.duration !== 'Unknown' ? segment.duration : 'Not available'}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()
+                    ) : (
+                      // One-way: Show all segments in sequence
+                      flight.segments?.map((segment, index) => (
+                        <div key={`flight-${flight.id}-detail-segment-${index}-${segment.airline?.flightNumber || 'unknown'}-${segment.departure?.airport || 'unknown'}`} className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center">
+                              <Image
+                                src={flight.airline?.logo || "/airlines/default.svg"}
+                                alt={segment.airline?.name || flight.airline?.name || "Airline"}
+                                width={24}
+                                height={24}
+                                className="mr-2 rounded"
+                              />
+                              <span className="font-medium">{segment.airline?.flightNumber}</span>
+                            </div>
+                            <Badge variant="outline">{segment.aircraft?.name || segment.aircraft?.code}</Badge>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <div className="font-medium">Departure</div>
+                              <div className="text-lg font-semibold">{segment.departure?.time || '--:--'}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {segment.departure?.datetime ? new Date(segment.departure.datetime).toLocaleDateString() : ''}
+                              </div>
+                              <div className="text-muted-foreground">
+                                {segment.departure?.airportName || segment.departure?.airport || 'Unknown'} ({segment.departure?.airport})
+                              </div>
+                              {segment.departure?.terminal && (
+                                <div className="text-xs text-muted-foreground">Terminal {segment.departure.terminal}</div>
+                              )}
+                            </div>
+                            <div>
+                              <div className="font-medium">Arrival</div>
+                              <div className="text-lg font-semibold">{segment.arrival?.time || '--:--'}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {segment.arrival?.datetime ? new Date(segment.arrival.datetime).toLocaleDateString() : ''}
+                              </div>
+                              <div className="text-muted-foreground">
+                                {segment.arrival?.airportName || segment.arrival?.airport || 'Unknown'} ({segment.arrival?.airport})
+                              </div>
+                              {segment.arrival?.terminal && (
+                                <div className="text-xs text-muted-foreground">Terminal {segment.arrival.terminal}</div>
+                              )}
                             </div>
                           </div>
-                          <div>
-                            <div className="font-medium">Arrival</div>
-                            <div>{segment.arrival?.datetime || '--:--'}</div>
-                            <div className="text-muted-foreground">
-                              {segment.arrival?.airportName || segment.arrival?.airport || 'Unknown'} ({segment.arrival?.airport})
-                            </div>
+
+                          <div className="mt-2 text-sm text-muted-foreground">
+                            Duration: {segment.duration && segment.duration !== 'Unknown' ? segment.duration : 'Not available'}
                           </div>
                         </div>
-
-                        <div className="mt-2 text-sm text-muted-foreground">
-                          Duration: {segment.duration}
-                        </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </TabsContent>
 
-                  <TabsContent value="baggage">
-                    <div className="space-y-2">
-                      <div className="flex items-center">
-                        <Luggage className="h-4 w-4 mr-2" />
-                        <span className="text-sm">Carry-on: {flight.baggage?.carryon || flight.baggage?.carryOn?.description || '7kg included'}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Luggage className="h-4 w-4 mr-2" />
-                        <span className="text-sm">Checked: {flight.baggage?.checked || flight.baggage?.checkedBaggage?.description || '23kg included'}</span>
-                      </div>
-                    </div>
-                  </TabsContent>
 
                   <TabsContent value="fare" className="space-y-4">
-                    {/* Basic Fare Rules Cards */}
-                    <div className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center">
-                          <span className="font-medium">Refundable</span>
-                        </div>
-                        <Badge variant={flight.fareRules?.refundable || flight.fare?.refundable ? "default" : "destructive"}>
-                          {flight.fareRules?.refundable || flight.fare?.refundable ? "Yes" : "No"}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center">
-                          <span className="font-medium">Changeable</span>
-                        </div>
-                        <Badge variant={flight.fareRules?.exchangeable || flight.fare?.changeable ? "default" : "destructive"}>
-                          {flight.fareRules?.exchangeable || flight.fare?.changeable ? "Yes" : "No"}
-                        </Badge>
-                      </div>
-                    </div>
-
                     {flight.fareRules?.changeFee && (
                       <div className="border rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">

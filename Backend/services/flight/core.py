@@ -95,7 +95,15 @@ class FlightService:
         self._session: Optional[aiohttp.ClientSession] = None
         # Use the singleton TokenManager instance instead of creating a new one
         self._token_manager = TokenManager.get_instance()
-        self._token_manager.set_config(self.config)
+
+        # Normalize token endpoint configuration for consistency
+        if 'VERTEIL_TOKEN_ENDPOINT_PATH' in self.config:
+            self.config['VERTEIL_TOKEN_ENDPOINT'] = self.config['VERTEIL_TOKEN_ENDPOINT_PATH']
+
+        # Only set config if TokenManager doesn't have one yet, to avoid overwriting
+        # the centralized configuration
+        if not self._token_manager._config:
+            self._token_manager.set_config(self.config)
 
         # Validate essential configuration for OAuth
         # These keys should match what's loaded in Backend/config.py

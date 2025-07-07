@@ -2,248 +2,108 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/prisma';
 import { auth } from '@clerk/nextjs/server';
 
-// Enhanced extraction function using OrderCreate response as primary source
-function extractDatabaseFieldsFromOrderCreate(orderCreateResponse: any, flightOffer: any = {}, passengers: any[] = [], contactInfo: any = {}) {
-  console.log('🔍 Starting OrderCreate response extraction...');
+// Simplified extraction function that focuses on essential database fields
+// The complete data is stored in orderCreateResponse and originalFlightOffer JSON columns
+function extractEssentialFieldsForDatabase(backendResponse: any, rawOrderCreateResponse: any, flightOffer: any = {}, passengers: any[] = []) {
+  console.log('🔍 Extracting essential fields for database indexing...');
 
   try {
-    // Validate input data
-    if (!orderCreateResponse) {
-      console.warn('⚠️ No OrderCreate response provided, falling back to flight offer data');
+    // Priority 1: Use backend-processed data (already transformed and clean)
+    if (backendResponse?.bookingReference && backendResponse?.flightDetails) {
+      console.log('✅ Using backend-processed data structure');
+
+      const outboundFlight = backendResponse.flightDetails?.outbound;
+      const returnFlight = backendResponse.flightDetails?.return;
+
+      return {
+        bookingReference: backendResponse.bookingReference,
+        airlineCode: outboundFlight?.airline?.code || 'Unknown',
+        flightNumbers: [
+          outboundFlight?.airline?.flightNumber,
+          returnFlight?.airline?.flightNumber
+        ].filter(Boolean),
+        routeSegments: {
+          origin: outboundFlight?.departure?.code || 'Unknown',
+          destination: outboundFlight?.arrival?.code || 'Unknown',
+          departureTime: outboundFlight?.departure?.fullDate || new Date().toISOString(),
+          arrivalTime: outboundFlight?.arrival?.fullDate || new Date().toISOString(),
+          segments: [outboundFlight, returnFlight].filter(Boolean)
+        },
+        passengerTypes: backendResponse.passengers?.map((p: any) =>
+          p.type === 'adult' ? 'ADT' : p.type === 'child' ? 'CHD' : 'INF'
+        ) || ['ADT'],
+        documentNumbers: backendResponse.passengers?.map((p: any) => p.documentNumber).filter(Boolean) || [],
+        classOfService: outboundFlight?.classOfService || 'Economy',
+        cabinClass: outboundFlight?.cabinClass || 'Economy',
+        orderItemId: backendResponse.order_id || null,
+        totalAmount: backendResponse.pricing?.total?.amount || 0,
+        currency: backendResponse.pricing?.total?.currency || 'USD'
+      };
+    }
+
+    // Priority 2: Try to extract from raw OrderCreate response if available
+    if (rawOrderCreateResponse) {
+      console.log('✅ Attempting extraction from raw OrderCreate response');
+      return extractFromRawOrderCreate(rawOrderCreateResponse, flightOffer, passengers);
+    }
+
+    // Priority 3: Fallback to flight offer data
+    console.log('⚠️ Using fallback extraction from flight offer data');
+    return extractFallbackData(flightOffer, passengers);
+
+  } catch (error) {
+    console.error('❌ Error in essential fields extraction:', error);
+    return extractFallbackData(flightOffer, passengers);
+  }
+}
+
+// Extract essential fields from raw OrderCreate response
+function extractFromRawOrderCreate(rawOrderCreateResponse: any, flightOffer: any, passengers: any[]) {
+  try {
+    const response = rawOrderCreateResponse.Response || rawOrderCreateResponse.data?.Response || rawOrderCreateResponse;
+
+    if (!response?.Order?.[0]) {
+      console.warn('⚠️ Invalid raw OrderCreate response structure');
       return extractFallbackData(flightOffer, passengers);
     }
 
-    const response = orderCreateResponse.Response || orderCreateResponse;
+    const firstOrder = response.Order[0];
+    const flightSegments = response.DataLists?.FlightSegmentList?.FlightSegment || [];
+    const firstSegment = flightSegments[0];
 
-    // Validate response structure
-    if (!response || typeof response !== 'object') {
-      console.warn('⚠️ Invalid OrderCreate response structure, falling back to flight offer data');
-      return extractFallbackData(flightOffer, passengers);
-    }
-
-    // Handle Order array structure with error handling
-    let orders: any[] = [];
-    try {
-      orders = Array.isArray(response.Order) ? response.Order : [response.Order].filter(Boolean);
-      if (orders.length === 0) {
-        console.warn('⚠️ No valid orders found in OrderCreate response');
-        return extractFallbackData(flightOffer, passengers);
-      }
-    } catch (error) {
-      console.error('❌ Error processing Order structure:', error);
-      return extractFallbackData(flightOffer, passengers);
-    }
-
-    const firstOrder = orders[0] || {};
-
-    // Extract from OrderCreate response (primary source) with error handling
-    let orderItems: any[] = [];
-    let flightSegments: any[] = [];
-    let firstSegment: any = null;
-
-    try {
-      orderItems = firstOrder.OrderItems?.OrderItem || [];
-      const flightItem = orderItems.find((item: any) => item.FlightItem);
-      const flightSegmentRefs = flightItem?.FlightItem?.FlightSegmentReference || [];
-
-      // Get flight segments from DataLists
-      flightSegments = response.DataLists?.FlightSegmentList?.FlightSegment || [];
-      firstSegment = flightSegments[0];
-
-      if (!firstSegment) {
-        console.warn('⚠️ No flight segments found in OrderCreate response');
-        return extractFallbackData(flightOffer, passengers);
-      }
-    } catch (error) {
-      console.error('❌ Error extracting flight segments:', error);
-      return extractFallbackData(flightOffer, passengers);
-    }
-
-    // Extract airline code with multiple fallback options
-    let airlineCode = 'Unknown';
-    try {
-      airlineCode = firstSegment?.MarketingCarrier?.AirlineID?.value ||
-                   firstSegment?.OperatingCarrier?.AirlineID?.value ||
-                   flightSegments[0]?.MarketingCarrier?.AirlineID?.value ||
-                   'Unknown';
-
-      if (airlineCode === 'Unknown') {
-        console.warn('⚠️ Could not extract airline code from OrderCreate response');
-      } else {
-        console.log('✅ Extracted airline code:', airlineCode);
-      }
-    } catch (error) {
-      console.error('❌ Error extracting airline code:', error);
-      airlineCode = 'Unknown';
-    }
-
-    // Extract flight numbers with error handling
-    let flightNumbers: string[] = [];
-    try {
-      flightNumbers = flightSegments.map((segment: any) =>
-        segment.MarketingCarrier?.FlightNumber?.value ||
-        segment.OperatingCarrier?.FlightNumber?.value ||
-        'Unknown'
-      ).filter((fn: string) => fn !== 'Unknown');
-
-      if (flightNumbers.length === 0) {
-        console.warn('⚠️ No flight numbers found in OrderCreate response');
-      } else {
-        console.log('✅ Extracted flight numbers:', flightNumbers);
-      }
-    } catch (error) {
-      console.error('❌ Error extracting flight numbers:', error);
-      flightNumbers = [];
-    }
-
-    // Extract route information with error handling
-    let origin = 'Unknown';
-    let destination = 'Unknown';
-    try {
-      origin = firstSegment?.Departure?.AirportCode?.value || 'Unknown';
-      destination = flightSegments[flightSegments.length - 1]?.Arrival?.AirportCode?.value || 'Unknown';
-
-      if (origin === 'Unknown' || destination === 'Unknown') {
-        console.warn('⚠️ Could not extract complete route information');
-      } else {
-        console.log('✅ Extracted route:', `${origin} → ${destination}`);
-      }
-    } catch (error) {
-      console.error('❌ Error extracting route information:', error);
-    }
-
-    // Extract departure and arrival times with error handling
-    let departureTime = new Date().toISOString();
-    let arrivalTime = new Date().toISOString();
-    try {
-      departureTime = firstSegment?.Departure?.Date || firstSegment?.Departure?.Time || new Date().toISOString();
-      arrivalTime = flightSegments[flightSegments.length - 1]?.Arrival?.Date ||
-                   flightSegments[flightSegments.length - 1]?.Arrival?.Time ||
-                   new Date().toISOString();
-
-      console.log('✅ Extracted times:', { departureTime, arrivalTime });
-    } catch (error) {
-      console.error('❌ Error extracting flight times:', error);
-    }
-
-    // Extract passenger information from OrderCreate response with error handling
-    let passengerTypes: string[] = [];
-    let documentNumbers: string[] = [];
-    try {
-      const orderPassengers = response.Passengers?.Passenger || [];
-      passengerTypes = orderPassengers.map((p: any) => p.PTC?.value || 'ADT');
-
-      // Extract document numbers from PassengerDocument
-      orderPassengers.forEach((passenger: any) => {
-        try {
-          const passengerDocs = passenger.PassengerIDInfo?.PassengerDocument || [];
-          passengerDocs.forEach((doc: any) => {
-            if (doc.ID) {
-              documentNumbers.push(doc.ID);
-            }
-          });
-        } catch (docError) {
-          console.warn('⚠️ Error extracting document for passenger:', docError);
-        }
-      });
-
-      console.log('✅ Extracted passenger data:', {
-        passengerCount: passengerTypes.length,
-        documentCount: documentNumbers.length
-      });
-    } catch (error) {
-      console.error('❌ Error extracting passenger information:', error);
-      passengerTypes = ['ADT']; // Default fallback
-    }
-
-    // Extract class of service from multiple sources (enhanced)
-    let classOfService = 'Economy';
-    let cabinClass = 'Economy';
-
-    // Method 1: Extract from FlightSegment ClassOfService
-    if (firstSegment?.ClassOfService) {
-      const classInfo = firstSegment.ClassOfService;
-      classOfService = classInfo.Code?.value || classInfo.MarketingName?.value || 'Economy';
-      cabinClass = classInfo.MarketingName?.value || 'Economy';
-
-      // Map cabin designator to readable names
-      const cabinDesignator = classInfo.MarketingName?.CabinDesignator;
-      if (cabinDesignator === 'C') {
-        cabinClass = 'Business';
-      } else if (cabinDesignator === 'F') {
-        cabinClass = 'First';
-      } else if (cabinDesignator === 'Y') {
-        cabinClass = 'Economy';
-      }
-    }
-
-    // Method 2: Fallback to fare basis codes if ClassOfService not available
-    if (classOfService === 'Economy') {
-      const fareComponents = response.DataLists?.FareList?.FareGroup?.[0]?.Fare?.[0]?.FareDetail?.[0]?.FareComponent || [];
-      const fareBasisCode = fareComponents[0]?.FareBasisCode?.Code;
-      if (fareBasisCode) {
-        classOfService = fareBasisCode;
-        // Determine cabin class from fare basis patterns
-        if (fareBasisCode.includes('C') || fareBasisCode.includes('J') || fareBasisCode.includes('D')) {
-          cabinClass = 'Business';
-        } else if (fareBasisCode.includes('F') || fareBasisCode.includes('A')) {
-          cabinClass = 'First';
-        }
-      }
-    }
-
-    // Method 3: Extract from PriceClassList if available
-    const priceClassList = response.DataLists?.PriceClassList?.PriceClass || [];
-    if (priceClassList.length > 0 && classOfService === 'Economy') {
-      const priceClass = priceClassList[0];
-      classOfService = priceClass.Name || 'Economy';
-    }
-
-    // Extract total amount from pricing with error handling
-    let totalAmount = 0;
-    let currency = 'USD';
-    try {
-      const totalPriceBreakdown = firstOrder.TotalOrderPrice?.SimpleCurrencyPrice ||
-                                 response.TotalPrice?.DetailCurrencyPrice?.Total ||
-                                 response.TotalPrice?.SimpleCurrencyPrice || {};
-      totalAmount = parseFloat(totalPriceBreakdown.value || '0');
-      currency = totalPriceBreakdown.Code || 'USD';
-
-      if (totalAmount === 0) {
-        console.warn('⚠️ Could not extract valid total amount from OrderCreate response');
-      } else {
-        console.log('✅ Extracted pricing:', { totalAmount, currency });
-      }
-    } catch (error) {
-      console.error('❌ Error extracting pricing information:', error);
-    }
-
-    // Extract booking reference with error handling
+    // Extract booking reference
     let bookingReference = 'Unknown';
-    try {
-      bookingReference = firstOrder.BookingReferences?.BookingReference?.[0]?.ID ||
-                        firstOrder.OrderID?.value ||
-                        'Unknown';
-
-      if (bookingReference === 'Unknown') {
-        console.warn('⚠️ Could not extract booking reference from OrderCreate response');
-      } else {
-        console.log('✅ Extracted booking reference:', bookingReference);
-      }
-    } catch (error) {
-      console.error('❌ Error extracting booking reference:', error);
+    if (firstOrder.BookingReferences?.BookingReference?.[0]?.ID) {
+      bookingReference = firstOrder.BookingReferences.BookingReference[0].ID;
+    } else if (firstOrder.OrderID?.value) {
+      bookingReference = firstOrder.OrderID.value;
     }
 
-    // Extract order item ID with error handling
-    let orderItemId = null;
-    try {
-      orderItemId = orderItems[0]?.OrderItemID?.value || null;
-      if (orderItemId) {
-        console.log('✅ Extracted order item ID:', orderItemId);
-      }
-    } catch (error) {
-      console.error('❌ Error extracting order item ID:', error);
-    }
+    // Extract basic flight info
+    const airlineCode = firstSegment?.MarketingCarrier?.AirlineID?.value || 'Unknown';
+    const flightNumbers = flightSegments.map((seg: any) =>
+      seg.MarketingCarrier?.FlightNumber?.value || seg.OperatingCarrier?.FlightNumber?.value
+    ).filter(Boolean);
+
+    // Extract route info
+    const origin = firstSegment?.Departure?.AirportCode?.value || 'Unknown';
+    const destination = flightSegments[flightSegments.length - 1]?.Arrival?.AirportCode?.value || 'Unknown';
+
+    // Extract passenger info
+    const orderPassengers = response.Passengers?.Passenger || [];
+    const passengerTypes = orderPassengers.map((p: any) => p.PTC?.value || 'ADT');
+    const documentNumbers: string[] = [];
+    orderPassengers.forEach((passenger: any) => {
+      const docs = passenger.PassengerIDInfo?.PassengerDocument || [];
+      docs.forEach((doc: any) => {
+        if (doc.ID) documentNumbers.push(doc.ID);
+      });
+    });
+
+    // Extract pricing
+    const totalPriceBreakdown = firstOrder.TotalOrderPrice?.SimpleCurrencyPrice || {};
+    const totalAmount = parseFloat(totalPriceBreakdown.value || '0');
+    const currency = totalPriceBreakdown.Code || 'USD';
 
     return {
       bookingReference,
@@ -252,25 +112,20 @@ function extractDatabaseFieldsFromOrderCreate(orderCreateResponse: any, flightOf
       routeSegments: {
         origin,
         destination,
-        departureTime,
-        arrivalTime,
-        segments: flightSegments.map((seg: any) => ({
-          departure: seg.Departure,
-          arrival: seg.Arrival,
-          marketingCarrier: seg.MarketingCarrier,
-          operatingCarrier: seg.OperatingCarrier
-        }))
+        departureTime: firstSegment?.Departure?.Date || new Date().toISOString(),
+        arrivalTime: flightSegments[flightSegments.length - 1]?.Arrival?.Date || new Date().toISOString(),
+        segments: flightSegments
       },
       passengerTypes,
       documentNumbers,
-      classOfService,
-      cabinClass,
-      orderItemId,
+      classOfService: firstSegment?.ClassOfService?.Code?.value || 'Economy',
+      cabinClass: 'Economy',
+      orderItemId: firstOrder.OrderItems?.OrderItem?.[0]?.OrderItemID?.value || null,
       totalAmount,
       currency
     };
   } catch (error) {
-    console.error('❌ Critical error in OrderCreate response extraction:', error);
+    console.error('❌ Error extracting from raw OrderCreate response:', error);
     return extractFallbackData(flightOffer, passengers);
   }
 }
@@ -361,19 +216,7 @@ export async function POST(request: NextRequest) {
     const passengers = body.passengers;
     const payment = body.payment;
     const contact_info = body.contact_info;
-
-    // Debug: Log what we received
-    console.log('🔍 Order creation request received:');
-    console.log('- Has flight_offer:', !!body.flight_offer);
-    console.log('- Has raw_flight_price_response:', !!(body.flight_offer?.raw_flight_price_response));
-    console.log('- Has metadata:', !!(body.flight_offer?.metadata));
-    console.log('- Flight offer keys:', body.flight_offer ? Object.keys(body.flight_offer) : 'none');
-    
-    // Get session ID from localStorage (sent by frontend)
-    const sessionId = body.session_id || body.flight_offer?.session_id;
-    console.log('🔍 Session ID for order creation:', sessionId);
-    console.log('🔍 Full request body keys:', Object.keys(body));
-    console.log('🔍 Flight offer keys:', body.flight_offer ? Object.keys(body.flight_offer) : 'none');
+    const sessionId = body.session_id;
 
     // Prepare backend request body with raw frontend data
     const backendRequestBody: {
@@ -426,13 +269,40 @@ export async function POST(request: NextRequest) {
     });
     
     const data = await response.json();
-    
+
+    // Debug: Log basic structure (keep minimal logging for monitoring)
+    console.log('🔍 Data received from backend:', {
+      status: data.status,
+      hasData: !!data.data,
+      hasNestedData: !!data.data?.data,
+      bookingReferenceFound: !!data.data?.data?.bookingReference,
+      hasRawOrderCreateResponse: !!data.raw_order_create_response,
+      rawOrderCreateResponseType: typeof data.raw_order_create_response,
+      topLevelKeys: Object.keys(data)
+    });
+
+    // Additional debug for raw_order_create_response
+    console.log('🔍 Raw OrderCreate Response Debug:', {
+      available: !!data.raw_order_create_response,
+      type: typeof data.raw_order_create_response,
+      keys: data.raw_order_create_response ? Object.keys(data.raw_order_create_response) : null,
+      sample: data.raw_order_create_response ? JSON.stringify(data.raw_order_create_response).substring(0, 200) : null
+    });
+
     // Store booking data in database if successful
     let dbBookingId = null;
+    let userId: string | null = null;
+    let airlineCode: string = 'Unknown';
+    let totalAmount: number = 0;
+    let extractedBookingRef: string | null = null;
+
     if (response.status === 200 && data.status === 'success' && data.data) {
       try {
-        const { userId } = await auth();
+        const authResult = await auth();
+        userId = authResult.userId;
         const bookingData = data.data;
+
+
         
         // Extract flight details from the original flight offer
          const flightOffer = body.flight_offer;
@@ -440,13 +310,21 @@ export async function POST(request: NextRequest) {
          const contactInfo = body.contact_info || {};
          const paymentInfo = body.payment || {};
          
-         // Extract data for database storage using OrderCreate response as primary source
-         const extractedData = extractDatabaseFieldsFromOrderCreate(data.data, flightOffer, passengers, contactInfo);
+         // Extract essential fields for database indexing
+         // Complete data is stored in orderCreateResponse and originalFlightOffer JSON columns
+         const extractedData = extractEssentialFieldsForDatabase(bookingData, data.raw_order_create_response, flightOffer, passengers);
+
+         console.log('🔍 Extracted data for database storage:', {
+           bookingReference: extractedData.bookingReference,
+           airlineCode: extractedData.airlineCode,
+           totalAmount: extractedData.totalAmount,
+           currency: extractedData.currency,
+           flightNumbers: extractedData.flightNumbers
+         });
 
          // Destructure extracted data
          const {
-           bookingReference: extractedBookingRef,
-           airlineCode,
+           bookingReference,
            flightNumbers,
            routeSegments,
            passengerTypes,
@@ -454,27 +332,62 @@ export async function POST(request: NextRequest) {
            classOfService,
            cabinClass,
            orderItemId,
-           totalAmount,
            currency
          } = extractedData;
 
-         // Extract flight numbers for backward compatibility
-         const outboundFlightNumber = flightNumbers[0] || 'Unknown';
-         const returnFlightNumber = flightNumbers[1] || null;
-
-         // Extract route components for backward compatibility
-         const origin = routeSegments.origin;
-         const destination = routeSegments.destination;
-         const departureTime = routeSegments.departureTime;
-         const arrivalTime = routeSegments.arrivalTime;
+         // Assign to outer scope variables for error logging
+         airlineCode = extractedData.airlineCode;
+         totalAmount = extractedData.totalAmount;
 
          // Extract passenger names from frontend data
          const passengerNames = passengers.map((p: any) => `${p.firstName || ''} ${p.lastName || ''}`).join(', ');
 
+        // Extract booking reference from the actual API response
+        // The backend already extracts and transforms the booking reference, so use that first
+
+
+
+        // Priority 1: Use the already-transformed booking reference from backend
+        // Handle the double-nested structure: data.data.data.bookingReference
+        if (data.data?.data?.bookingReference && data.data.data.bookingReference !== 'Unknown') {
+          extractedBookingRef = data.data.data.bookingReference;
+          console.log('✅ Using backend-extracted booking reference from data.data.data:', extractedBookingRef);
+        }
+        // Priority 1b: Try single-nested structure data.data.bookingReference
+        else if (data.data?.bookingReference && data.data.bookingReference !== 'Unknown') {
+          extractedBookingRef = data.data.bookingReference;
+          console.log('✅ Using backend-extracted booking reference from data.data:', extractedBookingRef);
+        }
+        // Priority 1c: Try bookingData (which is data.data)
+        else if (bookingData?.bookingReference && bookingData.bookingReference !== 'Unknown') {
+          extractedBookingRef = bookingData.bookingReference;
+          console.log('✅ Using backend-extracted booking reference from bookingData:', extractedBookingRef);
+        }
+        // Priority 1d: Try bookingData.data.bookingReference (if bookingData has nested data)
+        else if (bookingData?.data?.bookingReference && bookingData.data.bookingReference !== 'Unknown') {
+          extractedBookingRef = bookingData.data.bookingReference;
+          console.log('✅ Using backend-extracted booking reference from bookingData.data:', extractedBookingRef);
+        }
+        // Priority 2: Try to extract from raw OrderCreate response if backend didn't extract it
+        else if (data.raw_order_create_response?.data?.Response?.Order?.[0]?.BookingReferences?.BookingReference?.[0]?.ID) {
+          extractedBookingRef = data.raw_order_create_response.data.Response.Order[0].BookingReferences.BookingReference[0].ID;
+          console.log('✅ Extracted booking reference from raw OrderCreate response (nested data):', extractedBookingRef);
+        }
+        // Priority 3: Try alternative raw response structure
+        else if (data.raw_order_create_response?.Response?.Order?.[0]?.BookingReferences?.BookingReference?.[0]?.ID) {
+          extractedBookingRef = data.raw_order_create_response.Response.Order[0].BookingReferences.BookingReference[0].ID;
+          console.log('✅ Extracted booking reference from raw OrderCreate response (direct):', extractedBookingRef);
+        }
+        // Priority 4: Check if it's in the extractedData from the function
+        else if (bookingReference && bookingReference !== 'Unknown') {
+          extractedBookingRef = bookingReference;
+          console.log('✅ Using booking reference from extraction function:', extractedBookingRef);
+        }
+
         // Ensure we have a valid booking reference
         const finalBookingReference = extractedBookingRef && extractedBookingRef !== 'Unknown'
           ? extractedBookingRef
-          : (bookingData.bookingReference || bookingData.booking_reference || `BK${Date.now()}`);
+          : `BK${Date.now()}`; // Last resort fallback
 
         console.log('🔍 Booking reference values:', {
           extractedBookingRef,
@@ -483,7 +396,15 @@ export async function POST(request: NextRequest) {
           finalBookingReference
         });
 
-        // Create booking record in database
+        // Debug: Log what we're about to save to database
+        console.log('💾 About to save to database:', {
+          bookingReference: finalBookingReference,
+          hasOrderCreateResponse: !!data.raw_order_create_response,
+          orderCreateResponseType: typeof data.raw_order_create_response,
+          orderCreateResponseSize: data.raw_order_create_response ? JSON.stringify(data.raw_order_create_response).length : 0
+        });
+
+        // Create booking record in database using the properly extracted data
         const dbBooking = await prisma.booking.create({
           data: {
             bookingReference: finalBookingReference,
@@ -496,34 +417,53 @@ export async function POST(request: NextRequest) {
             documentNumbers,
             classOfService,
             cabinClass,
-            flightDetails: {
-              airlineCode,
-              outboundFlightNumber,
-              returnFlightNumber,
-              origin,
-              destination,
-              departureTime,
-              arrivalTime,
-              classOfService,
-              cabinClass,
-              segments: flightOffer?.segments || []
+            // Store the complete backend-processed flight details structure
+            flightDetails: bookingData.flightDetails || {
+              outbound: null,
+              return: null
             },
+            // Store the complete backend-processed passenger details
             passengerDetails: {
               names: passengerNames,
               types: passengerTypes,
-              documents: documentNumbers
+              documents: documentNumbers,
+              // Include the complete passenger data from backend
+              passengers: bookingData.passengers || []
             },
-            contactInfo: {
+            // Store the complete backend-processed contact info
+            contactInfo: bookingData.contactInfo || {
               email: contactInfo.email || '',
               phone: contactInfo.phone || ''
             },
             totalAmount,
             status: 'confirmed',
             // Store the raw NDC OrderCreate response for itinerary generation
-            orderCreateResponse: data.raw_order_create_response || data.data,
+            // Try multiple possible paths for the raw response
+            orderCreateResponse: data.raw_order_create_response ||
+                                data.data?.raw_order_create_response ||
+                                data.rawOrderCreateResponse ||
+                                null,
             // Store original flight offer for reference
             originalFlightOffer: flightOffer
           }
+        });
+
+        console.log('✅ Database booking created successfully:', {
+          id: dbBooking.id,
+          bookingReference: dbBooking.bookingReference,
+          hasOrderCreateResponse: !!dbBooking.orderCreateResponse,
+          hasFlightDetails: !!dbBooking.flightDetails,
+          orderCreateResponseType: typeof dbBooking.orderCreateResponse
+        });
+
+        console.log('🔍 Raw OrderCreate response availability:', {
+          hasRawResponse: !!data.raw_order_create_response,
+          rawResponseType: typeof data.raw_order_create_response,
+          rawResponseStructure: data.raw_order_create_response ? {
+            hasResponse: !!(data.raw_order_create_response as any).Response,
+            hasOrder: !!(data.raw_order_create_response as any).Response?.Order,
+            topLevelKeys: Object.keys(data.raw_order_create_response as any)
+          } : null
         });
         
         dbBookingId = dbBooking.id;
@@ -537,13 +477,24 @@ export async function POST(request: NextRequest) {
               currency,
               status: 'completed',
               paymentMethod: paymentInfo.method,
-              paymentIntentId: `pi_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+              paymentIntentId: `pi_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
             }
           });
         }
 
       } catch (dbError) {
-        // Don't fail the entire request if database storage fails
+        // Log the database error for debugging but don't fail the entire request
+        console.error('❌ Database storage failed:', dbError);
+        console.error('❌ Database error details:', {
+          message: dbError instanceof Error ? dbError.message : 'Unknown error',
+          stack: dbError instanceof Error ? dbError.stack : 'No stack trace',
+          extractedData: {
+            bookingReference: extractedBookingRef,
+            airlineCode,
+            totalAmount,
+            userId: userId || 'guest-user'
+          }
+        });
       }
     }
     

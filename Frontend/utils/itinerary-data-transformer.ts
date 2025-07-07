@@ -341,6 +341,52 @@ function formatDateTime(date: string, time: string): string {
   }
 }
 
+/**
+ * Airline mapping for proper airline names
+ */
+const AIRLINE_NAMES: { [key: string]: string } = {
+  'AF': 'Air France',
+  'KL': 'KLM Royal Dutch Airlines',
+  'EK': 'Emirates',
+  'QR': 'Qatar Airways',
+  'KQ': 'Kenya Airways',
+  'ET': 'Ethiopian Airlines',
+  'LH': 'Lufthansa',
+  'BA': 'British Airways',
+  'SQ': 'Singapore Airlines',
+  'EY': 'Etihad Airways',
+  'TK': 'Turkish Airlines',
+  'CX': 'Cathay Pacific',
+  'QF': 'Qantas',
+  'DL': 'Delta Air Lines',
+  'UA': 'United Airlines',
+  'AA': 'American Airlines',
+  '6E': 'IndiGo',
+  'AI': 'Air India',
+  'IX': 'Air India Express',
+  'SU': 'Aeroflot',
+  'WN': 'Southwest Airlines',
+  'NH': 'ANA All Nippon Airways',
+  'JL': 'Japan Airlines',
+  'CA': 'Air China',
+  'CZ': 'China Southern Airlines',
+  'MU': 'China Eastern Airlines'
+};
+
+/**
+ * Get airline name from airline code
+ */
+function getAirlineName(airlineCode: string): string {
+  if (!airlineCode) {
+    console.log('🔍 getAirlineName: No airline code provided');
+    return 'Unknown Airline';
+  }
+  const code = airlineCode.trim().toUpperCase();
+  const airlineName = AIRLINE_NAMES[code];
+  console.log(`🔍 getAirlineName: Code "${code}" -> Name "${airlineName || `Airline ${code}`}"`);
+  return airlineName || `Airline ${code}`;
+}
+
 // Helper function to extract detailed baggage information
 function extractBaggageDetails(orderCreateResponse: any): BaggageDetails {
   const response = orderCreateResponse.Response || orderCreateResponse;
@@ -584,24 +630,296 @@ function getTimingDescription(code: string): string {
 }
 
 /**
- * Main transformation function to extract itinerary data from OrderCreate response
+ * Transform data from the frontend API response structure (already processed)
  */
-export function transformOrderCreateToItinerary(orderCreateResponse: any, originalFlightOffer?: any): ItineraryData {
-  // Validate input
-  if (!orderCreateResponse) {
-    throw new Error('OrderCreate response is null or undefined');
+function transformFromFrontendAPIResponse(data: any): ItineraryData {
+  console.log('🔄 Transforming from frontend API response structure');
+
+  // Extract booking information from transformed structure
+  const bookingInfo: BookingInfo = {
+    orderId: data.order_id || data.orderItemId || 'N/A',
+    bookingReference: data.bookingReference || 'N/A',
+    alternativeOrderId: data.order_id || data.orderItemId || 'N/A',
+    status: data.status || 'CONFIRMED',
+    issueDate: data.createdAt || new Date().toISOString(),
+    issueDateFormatted: formatDate(data.createdAt || new Date().toISOString()),
+    agencyName: 'Rea Travels Agency',
+    discountApplied: undefined
+  };
+
+  // Extract passenger information from transformed structure
+  const passengers: PassengerInfo[] = [];
+  if (data.passengerDetails && Array.isArray(data.passengerDetails)) {
+    data.passengerDetails.forEach((passenger: any, index: number) => {
+      passengers.push({
+        name: `${passenger.firstName || ''} ${passenger.lastName || ''}`.trim(),
+        title: passenger.title || 'MR',
+        type: passenger.type || 'ADT',
+        ticketNumber: passenger.ticketNumber || `TKT${String(index + 1).padStart(3, '0')}`,
+        documentNumber: passenger.documentNumber || 'N/A'
+      });
+    });
   }
 
-  // Handle different response structures
+  // Extract flight segments from transformed structure
+  const outboundFlight: FlightSegment[] = [];
+  const returnFlight: FlightSegment[] = [];
+
+  if (data.flightDetails) {
+    // Handle outbound flight
+    if (data.flightDetails.outbound) {
+      const outbound = data.flightDetails.outbound;
+      outboundFlight.push({
+        segmentKey: 'SEG1',
+        flightNumber: outbound.airline?.flightNumber || 'N/A',
+        airline: outbound.airline?.name || getAirlineName(outbound.airline?.code || ''),
+        airlineCode: outbound.airline?.code || '',
+        airlineLogo: outbound.airline?.logo || `/airlines/${outbound.airline?.code || 'default'}.svg`,
+        aircraft: 'Unknown',
+        aircraftCode: '',
+        departure: {
+          airport: outbound.departure?.code || '',
+          airportName: outbound.departure?.airport || '',
+          date: formatDateOnly(outbound.departure?.fullDate || ''),
+          time: outbound.departure?.time || '',
+          terminal: outbound.departure?.terminal || ''
+        },
+        arrival: {
+          airport: outbound.arrival?.code || '',
+          airportName: outbound.arrival?.airport || '',
+          date: formatDateOnly(outbound.arrival?.fullDate || ''),
+          time: outbound.arrival?.time || '',
+          terminal: outbound.arrival?.terminal || ''
+        },
+        duration: 'N/A',
+        classOfService: 'Economy',
+        cabinClass: 'Economy',
+        fareRules: [],
+        baggageAllowance: { checkedBags: 1, carryOnBags: 1 }
+      });
+    }
+
+    // Handle return flight
+    if (data.flightDetails.return) {
+      const returnSeg = data.flightDetails.return;
+      returnFlight.push({
+        segmentKey: 'SEG2',
+        flightNumber: returnSeg.airline?.flightNumber || 'N/A',
+        airline: returnSeg.airline?.name || getAirlineName(returnSeg.airline?.code || ''),
+        airlineCode: returnSeg.airline?.code || '',
+        airlineLogo: returnSeg.airline?.logo || `/airlines/${returnSeg.airline?.code || 'default'}.svg`,
+        aircraft: 'Unknown',
+        aircraftCode: '',
+        departure: {
+          airport: returnSeg.departure?.code || '',
+          airportName: returnSeg.departure?.airport || '',
+          date: formatDateOnly(returnSeg.departure?.fullDate || ''),
+          time: returnSeg.departure?.time || '',
+          terminal: returnSeg.departure?.terminal || ''
+        },
+        arrival: {
+          airport: returnSeg.arrival?.code || '',
+          airportName: returnSeg.arrival?.airport || '',
+          date: formatDateOnly(returnSeg.arrival?.fullDate || ''),
+          time: returnSeg.arrival?.time || '',
+          terminal: returnSeg.arrival?.terminal || ''
+        },
+        duration: 'N/A',
+        classOfService: 'Economy',
+        cabinClass: 'Economy',
+        fareRules: [],
+        baggageAllowance: { checkedBags: 1, carryOnBags: 1 }
+      });
+    }
+  }
+
+  // Extract pricing information from transformed structure
+  const pricing: PricingInfo = {
+    totalAmount: data.paymentInfo?.amount?.amount || 0,
+    currency: data.paymentInfo?.amount?.currency || 'USD',
+    formattedTotal: formatCurrency(data.paymentInfo?.amount?.amount || 0, data.paymentInfo?.amount?.currency || 'USD'),
+    paymentMethod: data.paymentInfo?.method || 'CA',
+    paymentMethodLabel: PAYMENT_METHODS[data.paymentInfo?.method || 'CA'] || 'Cash'
+  };
+
+  // Contact information (basic fallback)
+  const contactInfo: ContactInfo = {
+    email: 'customer@reatravels.com',
+    phone: '+1-800-REA-TRAVEL'
+  };
+
+  return {
+    bookingInfo,
+    passengers,
+    outboundFlight,
+    returnFlight: returnFlight.length > 0 ? returnFlight : null,
+    pricing,
+    contactInfo,
+    baggageAllowance: { checkedBags: 1, carryOnBags: 1 }
+  };
+}
+
+/**
+ * Fallback transformation using originalFlightOffer when OrderCreate response is unavailable
+ */
+function transformFromOriginalFlightOffer(originalFlightOffer: any, basicBookingData?: any): ItineraryData {
+  console.log('🔄 Using originalFlightOffer fallback for itinerary generation');
+
+  const flight = originalFlightOffer.flight_segments?.[0] || {};
+  const pricing = originalFlightOffer.total_price || {};
+  const passenger = originalFlightOffer.passengers?.[0] || {};
+
+  // Extract booking info
+  const bookingInfo: BookingInfo = {
+    orderId: originalFlightOffer.order_id || originalFlightOffer.offer_id || 'N/A',
+    bookingReference: basicBookingData?.bookingReference || 'N/A',
+    alternativeOrderId: originalFlightOffer.original_offer_id || 'N/A',
+    status: 'CONFIRMED',
+    issueDate: basicBookingData?.createdAt || new Date().toISOString(),
+    issueDateFormatted: formatDate(basicBookingData?.createdAt || new Date().toISOString()),
+    agencyName: 'Rea Travels Agency',
+    discountApplied: undefined
+  };
+
+  // Extract passenger info
+  const passengers: PassengerInfo[] = [];
+  if (basicBookingData?.passengerDetails?.names) {
+    const names = basicBookingData.passengerDetails.names.split(', ');
+    const documents = basicBookingData.documentNumbers || [];
+
+    names.forEach((name: string, index: number) => {
+      const passengerType = passenger.type || 'ADT';
+      passengers.push({
+        name: name.trim(),
+        fullName: name.trim(),
+        type: passengerType,
+        passengerTypeLabel: passengerType === 'ADT' ? 'Adult' : passengerType === 'CHD' ? 'Child' : passengerType === 'INF' ? 'Infant' : passengerType,
+        documentNumber: documents[index] || '',
+        ticketNumber: `TKT-${basicBookingData?.bookingReference || 'UNKNOWN'}-${index + 1}`,
+        seatNumber: 'TBD'
+      });
+    });
+  }
+
+  // Extract flight info
+  const outboundFlight: FlightInfo[] = [{
+    flightNumber: flight.flight_number || 'Unknown',
+    airline: {
+      code: flight.airline_code || 'Unknown',
+      name: flight.airline_name || 'Unknown Airline'
+    },
+    departure: {
+      airport: flight.departure_airport || 'Unknown',
+      time: flight.departure_datetime ? new Date(flight.departure_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Unknown',
+      date: flight.departure_datetime ? new Date(flight.departure_datetime).toLocaleDateString() : 'Unknown',
+      terminal: 'TBD'
+    },
+    arrival: {
+      airport: flight.arrival_airport || 'Unknown',
+      time: flight.arrival_datetime ? new Date(flight.arrival_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Unknown',
+      date: flight.arrival_datetime ? new Date(flight.arrival_datetime).toLocaleDateString() : 'Unknown',
+      terminal: 'TBD'
+    },
+    duration: flight.duration || 'Unknown',
+    aircraft: 'TBD',
+    class: originalFlightOffer.fare_family || 'Economy',
+    cabinClass: originalFlightOffer.fare_family || 'Economy'
+  }];
+
+  // Extract pricing
+  const pricingInfo: PricingInfo = {
+    totalPrice: pricing.amount?.toString() || '0',
+    formattedTotal: pricing.amount ? `${pricing.amount} ${pricing.currency || 'USD'}` : '0 USD',
+    currency: pricing.currency || 'USD',
+    baseFare: pricing.amount ? (pricing.amount * 0.85).toFixed(0) : '0',
+    taxes: pricing.amount ? (pricing.amount * 0.15).toFixed(0) : '0',
+    paymentMethodLabel: 'Credit Card',
+    breakdown: []
+  };
+
+  // Extract contact info
+  const contactInfo: ContactInfo = {
+    email: basicBookingData?.contactInfo?.email || '',
+    phone: basicBookingData?.contactInfo?.phone || ''
+  };
+
+  return {
+    bookingInfo,
+    passengers,
+    outboundFlight,
+    returnFlight: null,
+    pricing: pricingInfo,
+    contactInfo,
+    baggageAllowance: {
+      checkedBags: passenger.baggage?.checked || 'Standard allowance',
+      carryOnBags: passenger.baggage?.carryOn || 'Standard allowance'
+    }
+  };
+}
+
+/**
+ * Main transformation function to extract itinerary data from OrderCreate response
+ */
+export function transformOrderCreateToItinerary(orderCreateResponse: any, originalFlightOffer?: any, basicBookingData?: any): ItineraryData {
+  // Validate input - if no OrderCreate response, try originalFlightOffer fallback
+  if (!orderCreateResponse) {
+    if (originalFlightOffer) {
+      console.log('⚠️ No OrderCreate response, using originalFlightOffer fallback');
+      return transformFromOriginalFlightOffer(originalFlightOffer, basicBookingData);
+    }
+    throw new Error('OrderCreate response is null or undefined and no originalFlightOffer fallback available');
+  }
+
+  console.log('🔍 Starting itinerary transformation...');
+  console.log('📋 Input data structure:', {
+    hasResponse: !!orderCreateResponse.Response,
+    hasOrder: !!orderCreateResponse.Response?.Order,
+    hasBookingReference: !!orderCreateResponse.bookingReference,
+    hasTransformedData: !!orderCreateResponse.data,
+    topLevelKeys: Object.keys(orderCreateResponse)
+  });
+
+  // Check if this is already transformed data from the frontend API response
+  if (orderCreateResponse.status === 'success' && orderCreateResponse.data) {
+    console.log('✅ Detected transformed frontend API response structure');
+    return transformFromFrontendAPIResponse(orderCreateResponse.data);
+  }
+
+  // Handle different response structures - check multiple paths for NDC data
   let response;
-  if (orderCreateResponse.Response) {
+
+  // Priority 1: Check raw_order_create_response.Response (most common for newer bookings)
+  if (orderCreateResponse.raw_order_create_response?.Response) {
+    response = orderCreateResponse.raw_order_create_response.Response;
+    console.log('✅ Using NDC data from raw_order_create_response.Response');
+  }
+  // Priority 2: Check direct Response (legacy structure)
+  else if (orderCreateResponse.Response) {
     response = orderCreateResponse.Response;
-  } else if (orderCreateResponse.Order || orderCreateResponse.Passengers || orderCreateResponse.TicketDocInfos) {
-    // Direct response structure
+    console.log('✅ Using NDC data from direct Response');
+  }
+  // Priority 3: Check nested data.Response
+  else if (orderCreateResponse.data?.Response) {
+    response = orderCreateResponse.data.Response;
+    console.log('✅ Using NDC data from data.Response');
+  }
+  // Priority 4: Check if response is at root level (direct NDC structure)
+  else if (orderCreateResponse.Order || orderCreateResponse.Passengers || orderCreateResponse.TicketDocInfos) {
     response = orderCreateResponse;
-  } else {
-    console.error('Invalid OrderCreate response structure:', orderCreateResponse);
-    throw new Error('Invalid OrderCreate response structure - missing required fields');
+    console.log('✅ Using NDC data from root level');
+  }
+  // Priority 5: Check raw_order_create_response.data.Response
+  else if (orderCreateResponse.raw_order_create_response?.data?.Response) {
+    response = orderCreateResponse.raw_order_create_response.data.Response;
+    console.log('✅ Using NDC data from raw_order_create_response.data.Response');
+  }
+  else {
+    console.error('Invalid OrderCreate response structure:', {
+      topLevelKeys: Object.keys(orderCreateResponse),
+      hasRawOrderCreate: !!orderCreateResponse.raw_order_create_response,
+      rawOrderCreateKeys: orderCreateResponse.raw_order_create_response ? Object.keys(orderCreateResponse.raw_order_create_response) : []
+    });
+    throw new Error('Invalid OrderCreate response structure - missing required NDC fields');
   }
 
   if (!response) {
@@ -706,7 +1024,12 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
       const segment: FlightSegment = {
         segmentKey: flight.SegmentKey || `SEG${odIndex + 1}`,
         flightNumber: `${flight.MarketingCarrier?.AirlineID?.value || ''} ${flight.MarketingCarrier?.FlightNumber?.value || ''}`.trim(),
-        airline: flight.MarketingCarrier?.Name || 'Unknown Airline',
+        airline: (() => {
+          const carrierName = flight.MarketingCarrier?.Name;
+          const carrierCode = flight.MarketingCarrier?.AirlineID?.value;
+          console.log(`🔍 Flight segment airline data: Name="${carrierName}", Code="${carrierCode}"`);
+          return carrierName || getAirlineName(carrierCode || '');
+        })(),
         airlineCode: flight.MarketingCarrier?.AirlineID?.value || '',
         airlineLogo: `/airlines/${flight.MarketingCarrier?.AirlineID?.value || 'default'}.svg`,
         aircraft: flight.Equipment?.Name || 'Unknown',

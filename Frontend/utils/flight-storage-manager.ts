@@ -43,6 +43,7 @@ interface BookingData {
   flightDetails: any;
   paymentInfo: any;
   timestamp: number;
+  rawData?: any; // Store complete raw data for fallback
 }
 
 // Storage keys enum for consistency

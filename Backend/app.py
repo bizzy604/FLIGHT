@@ -52,7 +52,7 @@ def create_app(test_config=None):
     # Set additional configuration
     app.config.update(
         REQUEST_TIMEOUT=30,
-        OAUTH2_TOKEN_EXPIRY_BUFFER=60,  # seconds before actual expiry to consider token expired
+        OAUTH2_TOKEN_EXPIRY_BUFFER=60,  # seconds before actual expiry to consider token expired (1 minute buffer for 11-hour tokens)
         LOG_LEVEL=os.environ.get('LOG_LEVEL', 'INFO'),
         LOG_FORMAT='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
@@ -93,9 +93,29 @@ def create_app(test_config=None):
     app.register_blueprint(itinerary_bp)  # Register the itinerary blueprint
     app.register_blueprint(flight_storage_bp)  # Register the flight storage blueprint
 
-    # Log registered routes for debugging
+    # Initialize centralized authentication
     @app.before_serving
-    async def log_routes():
+    async def initialize_auth():
+        """Initialize the centralized TokenManager with app configuration."""
+        from utils.auth import TokenManager
+
+        # Get the singleton TokenManager instance
+        token_manager = TokenManager.get_instance()
+
+        # Configure it once with the app configuration
+        auth_config = {
+            'VERTEIL_API_BASE_URL': app.config.get('VERTEIL_API_BASE_URL'),
+            'VERTEIL_TOKEN_ENDPOINT': app.config.get('VERTEIL_TOKEN_ENDPOINT') or app.config.get('VERTEIL_TOKEN_ENDPOINT_PATH', '/oauth2/token'),
+            'VERTEIL_USERNAME': app.config.get('VERTEIL_USERNAME'),
+            'VERTEIL_PASSWORD': app.config.get('VERTEIL_PASSWORD'),
+            'VERTEIL_THIRD_PARTY_ID': app.config.get('VERTEIL_THIRD_PARTY_ID'),
+            'VERTEIL_OFFICE_ID': app.config.get('VERTEIL_OFFICE_ID'),
+            'OAUTH2_TOKEN_EXPIRY_BUFFER': app.config.get('OAUTH2_TOKEN_EXPIRY_BUFFER', 60)
+        }
+
+        token_manager.set_config(auth_config)
+        app.logger.info("Centralized TokenManager initialized with app configuration")
+
         # Log all registered routes
         for rule in app.url_map.iter_rules():
             app.logger.info(f"Route: {rule.endpoint} -> {rule.rule}")

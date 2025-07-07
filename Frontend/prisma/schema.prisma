@@ -3,44 +3,33 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
-        
-        
 
 model Booking {
-  id               Int       @id @default(autoincrement())
-  userId           String    @map("user_id")
-  bookingReference String    @unique @map("booking_reference")
-  
-  // Enhanced flight identification fields
-  orderItemId      String?   @map("order_item_id")
-  airlineCode      String?   @map("airline_code")
-  flightNumbers    String[]  @map("flight_numbers")
-  routeSegments    Json?     @map("route_segments") // Store departure/arrival airports and times
-  
-  // Enhanced passenger and booking details
-  passengerTypes   String[]  @map("passenger_types") // ADT, CHD, INF
-  documentNumbers  String[]  @map("document_numbers") // For PNR retrieval
-  classOfService   String?   @map("class_of_service") // Y, C, F, etc.
-  cabinClass       String?   @map("cabin_class") // Economy, Business, First
-  
-  // Original fields
-  flightDetails    Json      @map("flight_details")
-  passengerDetails Json      @map("passenger_details")
-  contactInfo      Json      @map("contact_info")
-  extras           Json?
-  totalAmount      Decimal   @map("total_amount") @db.Decimal(10, 2)
-  status           String    @default("pending")
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
-
-  // Itinerary data fields
-  orderCreateResponse Json?  @map("order_create_response") // Complete OrderCreate response for itinerary
-  originalFlightOffer Json?  @map("original_flight_offer") // Original flight offer data
-
-  payments         Payment[]
+  id                  Int       @id @default(autoincrement())
+  userId              String    @map("user_id")
+  bookingReference    String    @unique @map("booking_reference")
+  orderItemId         String?   @map("order_item_id")
+  airlineCode         String?   @map("airline_code")
+  flightNumbers       String[]  @map("flight_numbers")
+  routeSegments       Json?     @map("route_segments")
+  passengerTypes      String[]  @map("passenger_types")
+  documentNumbers     String[]  @map("document_numbers")
+  classOfService      String?   @map("class_of_service")
+  cabinClass          String?   @map("cabin_class")
+  flightDetails       Json      @map("flight_details")
+  passengerDetails    Json      @map("passenger_details")
+  contactInfo         Json      @map("contact_info")
+  extras              Json?
+  totalAmount         Decimal   @map("total_amount") @db.Decimal(10, 2)
+  status              String    @default("pending")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+  orderCreateResponse Json?     @map("order_create_response")
+  originalFlightOffer Json?     @map("original_flight_offer")
+  payments            Payment[]
 
   @@map("bookings")
 }

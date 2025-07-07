@@ -312,6 +312,13 @@ export default function PaymentPage() {
 
       // Store only the backend response for the confirmation page using hybrid storage
       // Backend now provides complete data structure, no frontend enrichment needed
+      console.log('🔍 Storing booking data for confirmation page:', {
+        bookingReference: bookingResult.bookingReference,
+        hasData: !!bookingResult,
+        dataKeys: Object.keys(bookingResult || {}),
+        fullData: bookingResult
+      });
+
       storeBookingData(bookingResult);
       
       // Update component's booking state (optional, as we redirect soon)

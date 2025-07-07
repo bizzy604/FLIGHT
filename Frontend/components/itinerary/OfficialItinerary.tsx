@@ -20,6 +20,8 @@ const OfficialItinerary: React.FC<OfficialItineraryProps> = ({ data, className =
     );
   }
 
+  const isCompactMode = className.includes('compact-mode');
+
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -48,11 +50,28 @@ const OfficialItinerary: React.FC<OfficialItineraryProps> = ({ data, className =
   };
 
   const renderFlightSegment = (segment: FlightSegment, index: number) => (
-    <div key={index} className="border border-gray-200 rounded-lg p-3 mb-2">
-      <div className="grid grid-cols-4 gap-2 text-xs">
-        <div>
-          <div className="font-semibold text-blue-600">{segment.airline}</div>
-          <div className="text-gray-600">{segment.flightNumber}</div>
+    <div key={index} className={`border border-gray-200 rounded-lg ${isCompactMode ? 'p-2 mb-1' : 'p-3 mb-2'}`}>
+      <div className={`grid grid-cols-4 gap-2 ${isCompactMode ? 'text-xs' : 'text-xs'}`}>
+        <div className="flex items-center space-x-2">
+          <div className="flex-shrink-0">
+            <Image
+              src={segment.airlineLogo || `/airlines/${segment.airlineCode}.svg`}
+              alt={segment.airline}
+              width={isCompactMode ? 20 : 24}
+              height={isCompactMode ? 20 : 24}
+              className="rounded-full object-contain"
+              onError={(e) => {
+                // Fallback to a default airline icon if logo fails to load
+                (e.target as HTMLImageElement).src = '/airlines/default.svg';
+              }}
+            />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="font-semibold text-blue-600 truncate">
+              {segment.airline}
+            </div>
+            <div className="text-gray-600">{segment.flightNumber}</div>
+          </div>
         </div>
         <div>
           <div className="font-semibold">{segment.departure.airport}</div>
@@ -73,11 +92,11 @@ const OfficialItinerary: React.FC<OfficialItineraryProps> = ({ data, className =
   );
 
   return (
-    <div className={`bg-white text-black text-sm leading-tight ${className}`} id="official-itinerary">
+    <div className={`bg-white text-black ${isCompactMode ? 'text-xs leading-tight' : 'text-sm leading-tight'} ${className}`} id="official-itinerary">
       {/* PAGE 1 */}
-      <div className="min-h-[50vh]">
+      <div className={isCompactMode ? 'min-h-[40vh]' : 'min-h-[50vh]'}>
         {/* Compact Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 mb-4">
+        <div className={`bg-gradient-to-r from-blue-600 to-blue-700 text-white ${isCompactMode ? 'p-3 mb-3' : 'p-4 mb-4'}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
