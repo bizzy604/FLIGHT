@@ -34,8 +34,10 @@ class ErrorBoundaryClass extends Component<ErrorBoundaryProps, ErrorBoundaryStat
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    // You can log the error to an error reporting service
-    console.error("Error caught by boundary:", error, info)
+    // Log error only in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error caught by boundary:", error, info)
+    }
   }
 
   resetErrorBoundary = () => {

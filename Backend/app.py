@@ -78,7 +78,7 @@ def create_app(test_config=None):
         pass
     
     # Import and register blueprints
-    from routes import verteil_flights, debug
+    from routes import verteil_flights
     from routes.airport_routes import airport_bp # Import the new airport blueprint
     from routes.itinerary_routes import itinerary_bp # Import the new itinerary blueprint
     from routes.flight_storage import flight_storage_bp # Import the flight storage blueprint
@@ -88,7 +88,6 @@ def create_app(test_config=None):
 
     # Register blueprints
     app.register_blueprint(verteil_flights.bp)
-    app.register_blueprint(debug.bp)
     app.register_blueprint(airport_bp)  # Register the airport blueprint (prefix is in blueprint definition)
     app.register_blueprint(itinerary_bp)  # Register the itinerary blueprint
     app.register_blueprint(flight_storage_bp)  # Register the flight storage blueprint
@@ -132,10 +131,12 @@ def create_app(test_config=None):
     # Add error handler for 500
     @app.errorhandler(500)
     async def server_error(error):
+        # Only show detailed error in development
+        is_development = os.environ.get('FLASK_ENV') == 'development'
         return jsonify({
             'status': 'error',
             'message': 'An internal server error occurred.',
-            'error': str(error) if app.debug else 'Internal Server Error'
+            'error': str(error) if is_development else 'Internal Server Error'
         }), 500
     
     # Health check endpoint
@@ -144,18 +145,7 @@ def create_app(test_config=None):
         """Health check endpoint."""
         return jsonify({"status": "healthy"}), 200
         
-    # Debug endpoint to list all routes
-    @app.route('/api/debug/routes')
-    async def list_routes():
-        """List all registered routes."""
-        routes = []
-        for rule in app.url_map.iter_rules():
-            routes.append({
-                'endpoint': rule.endpoint,
-                'methods': sorted(rule.methods),
-                'path': str(rule)
-            })
-        return jsonify(routes)
+
     
     return app
 
@@ -179,7 +169,8 @@ if __name__ == '__main__':
     logging.getLogger('quart.utils').setLevel(logging.ERROR)
     
     # Run with Hypercorn server for async support
-    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
+    debug_mode = os.environ.get('FLASK_ENV') == 'development'
+    app.run(host='0.0.0.0', port=5000, debug=debug_mode, use_reloader=False)
 
 # Import routes at the bottom to avoid circular imports
 # from . import routes

@@ -14,8 +14,9 @@ type LogLevel = 'debug' | 'info' | 'warn' | 'error';
  * @param data Optional data to include in the log
  */
 const log = (level: LogLevel, message: string, data?: any) => {
-  if (process.env.NODE_ENV === 'production' && level === 'debug') {
-    return; // Skip debug logs in production
+  // Skip all logging in production
+  if (process.env.NODE_ENV === 'production') {
+    return;
   }
 
   const timestamp = new Date().toISOString();
@@ -26,7 +27,7 @@ const log = (level: LogLevel, message: string, data?: any) => {
     message: string;
     data?: any;
   } = { timestamp, level, message };
-  
+
   if (data) {
     logEntry.data = data;
   }

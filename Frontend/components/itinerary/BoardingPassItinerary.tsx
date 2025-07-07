@@ -10,8 +10,6 @@ interface BoardingPassItineraryProps {
 }
 
 const BoardingPassItinerary: React.FC<BoardingPassItineraryProps> = React.memo(({ data, className = '' }) => {
-  // Debug logging
-  console.log('🎫 BoardingPassItinerary received data:', data);
 
   // Early return if no data
   if (!data) {

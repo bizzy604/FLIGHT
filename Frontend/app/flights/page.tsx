@@ -10,7 +10,6 @@ import type { FlightSearchRequest } from "@/utils/api-client"
 import type { FlightOffer } from "@/types/flight-api"
 import { flightStorageManager, FlightSearchData } from "@/utils/flight-storage-manager"
 import { redisFlightStorage } from "@/utils/redis-flight-storage"
-import { setupRobustStorage } from "@/utils/storage-integration-example"
 
 import { Button, LoadingButton } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -224,7 +223,6 @@ function SearchParamsWrapper() {
   // Load flight data from API based on search parameters
   useEffect(() => {
     // Setup robust storage on component mount
-    setupRobustStorage();
 
     // Reset pagination when loading new data
     setCurrentPage(1);
@@ -287,16 +285,14 @@ function SearchParamsWrapper() {
     // Check for cached data using robust storage manager
     const checkCachedData = async () => {
       try {
-        console.log('🔍 Checking for cached flight data with robust storage...');
+
         const result = await flightStorageManager.getFlightSearch();
 
         if (result.success && result.data) {
           const cachedData = result.data;
           const cachedParams = cachedData.searchParams;
 
-          console.log('🔍 Comparing search parameters:');
-          console.log('Current:', { origin, destination, departDate, tripType, adults, children, infants });
-          console.log('Cached:', cachedParams);
+
 
           if (cachedParams &&
               cachedParams.origin === origin &&
@@ -307,16 +303,8 @@ function SearchParamsWrapper() {
               cachedParams.passengers?.children === children &&
               cachedParams.passengers?.infants === infants) {
 
-            console.log('✅ Using cached flight data from robust storage');
-            if (result.recovered) {
-              console.log('🔄 Data was recovered from backup storage');
-            }
-            console.log('📊 Cached data structure:', cachedData);
-            console.log('📊 Air shopping response:', cachedData.airShoppingResponse);
-
             // Extract flights from cached data
             const cachedFlights = cachedData.airShoppingResponse?.offers || [];
-            console.log('✈️ Cached flights count:', cachedFlights.length);
             const directFlights = cachedFlights.map((offer: any) => ({
               id: offer.id,
               offer_index: offer.offer_index,
@@ -343,7 +331,7 @@ function SearchParamsWrapper() {
 
             // Extract unique airlines
             const uniqueAirlines = new Map<string, {id: string, name: string}>();
-            directFlights.forEach(flight => {
+            directFlights.forEach((flight: FlightOffer) => {
               if (flight.airline && flight.airline.code && flight.airline.name) {
                 uniqueAirlines.set(flight.airline.code, {
                   id: flight.airline.code,
@@ -355,7 +343,7 @@ function SearchParamsWrapper() {
 
             // Extract unique arrival airports
             const uniqueAirports = new Map<string, {id: string, name: string, city?: string}>();
-            directFlights.forEach(flight => {
+            directFlights.forEach((flight: FlightOffer) => {
               if (flight.arrival && flight.arrival.airport) {
                 const airportCode = flight.arrival.airport;
                 const airportName = flight.arrival.airportName || airportCode;
@@ -378,11 +366,9 @@ function SearchParamsWrapper() {
             setLoading(false);
             return true; // Data found and loaded
           }
-        } else {
-          console.log('❌ No valid cached flight data found:', result.error);
         }
       } catch (error) {
-        console.warn('Error checking cached data:', error);
+        // Silently handle cache check errors
       }
       return false; // No valid cached data found
     };
@@ -390,11 +376,9 @@ function SearchParamsWrapper() {
     // Try to load cached data first (async)
     const loadData = async () => {
       const hasCachedData = await checkCachedData();
-      console.log('🔍 Cache check result:', hasCachedData);
 
       // Only fetch from API if no valid cached data exists
       if (!hasCachedData) {
-      console.log('🔄 No cached data found, fetching from API');
 
       // Fetch flights from the API
       const fetchFlights = async () => {
@@ -416,11 +400,9 @@ function SearchParamsWrapper() {
         
         // Clear ALL previous flight data before storing new search results
         // This prevents conflicts with old search data
-        console.log('🧹 Clearing all previous flight data before storing new search...');
         Object.keys(localStorage).forEach(key => {
           if (key.startsWith('flightData_') || key.startsWith('flight_') || key === 'currentFlightDataKey' || key === 'currentFlightKey' || key === 'returnFlightKey') {
             localStorage.removeItem(key);
-            console.log(`🧹 Cleared previous data: ${key}`);
           }
         });
 
@@ -448,33 +430,11 @@ function SearchParamsWrapper() {
 
         // Store flight data using Redis storage (no size limitations)
         try {
-          console.log('🔍 About to store flight search data in Redis:', {
-            hasAirShoppingResponse: !!flightSearchData.airShoppingResponse,
-            searchParamsKeys: Object.keys(flightSearchData.searchParams),
-            timestamp: flightSearchData.timestamp,
-            expiresAt: flightSearchData.expiresAt,
-            apiResponseStructure: {
-              hasData: !!apiResponse.data,
-              hasDataData: !!apiResponse.data?.data,
-              hasRawResponse: !!apiResponse.data?.data?.raw_response,
-              hasDirectRawResponse: !!apiResponse.data?.raw_response
-            }
-          });
 
-          // Debug the API response structure
-          console.log('🔍 API Response structure debug:', {
-            hasApiResponseData: !!apiResponse.data,
-            apiResponseDataKeys: apiResponse.data ? Object.keys(apiResponse.data) : [],
-            hasNestedData: !!apiResponse.data?.data,
-            nestedDataKeys: apiResponse.data?.data ? Object.keys(apiResponse.data.data) : [],
-            hasRawResponse: !!apiResponse.data?.data?.raw_response,
-            hasDirectRawResponse: !!apiResponse.data?.raw_response
-          });
 
           // Optimize data for Redis storage - store only metadata (raw response is cached in backend)
           const optimizedFlightData = {
             airShoppingResponse: {
-              status: apiResponse.data.status,
               data: {
                 // Store only metadata which includes the cache key for backend to retrieve raw response
                 metadata: apiResponse.data.data?.metadata || apiResponse.data.metadata
@@ -485,44 +445,16 @@ function SearchParamsWrapper() {
             expiresAt: flightSearchData.expiresAt
           };
 
-          console.log('🔍 Optimized data size comparison:', {
-            originalSize: JSON.stringify(flightSearchData).length,
-            optimizedSize: JSON.stringify(optimizedFlightData).length,
-            reduction: `${((1 - JSON.stringify(optimizedFlightData).length / JSON.stringify(flightSearchData).length) * 100).toFixed(1)}%`
-          });
+
 
           // Try Redis storage first (preferred method)
           const redisStoreResult = await redisFlightStorage.storeFlightSearch(optimizedFlightData);
 
-          if (redisStoreResult.success) {
-            console.log('✅ Flight data stored successfully in Redis');
-            console.log('✅ Redis storage result:', {
-              success: redisStoreResult.success,
-              session_id: redisStoreResult.session_id,
-              expires_at: redisStoreResult.expires_at
-            });
-
-            // Verify Redis storage immediately after storing
-            console.log('🔍 Verifying Redis storage immediately after storing...');
-            const verifyResult = await redisFlightStorage.getFlightSearch();
-            console.log('🔍 Redis verification result:', {
-              success: verifyResult.success,
-              hasData: !!verifyResult.data,
-              error: verifyResult.error
-            });
-          } else {
-            console.warn('⚠️ Redis storage failed, falling back to browser storage:', redisStoreResult.error);
-
+          if (!redisStoreResult.success) {
             // Fallback to browser storage if Redis fails
-            const browserStoreResult = await flightStorageManager.storeFlightSearch(flightSearchData);
-            if (browserStoreResult.success) {
-              console.log('✅ Flight data stored successfully with browser storage fallback');
-            } else {
-              console.warn('⚠️ Both Redis and browser storage failed:', browserStoreResult.error);
-            }
+            await flightStorageManager.storeFlightSearch(flightSearchData);
           }
         } catch (storageError) {
-          console.warn('Failed to store flight data:', storageError);
           // Continue execution even if storage fails
         }
         
@@ -553,7 +485,7 @@ function SearchParamsWrapper() {
 
         // Extract unique airlines from the real flight data
         const uniqueAirlines = new Map<string, {id: string, name: string}>();
-        directFlights.forEach(flight => {
+        directFlights.forEach((flight: FlightOffer) => {
           if (flight.airline && flight.airline.code && flight.airline.name) {
             uniqueAirlines.set(flight.airline.code, {
               id: flight.airline.code,
@@ -567,7 +499,7 @@ function SearchParamsWrapper() {
 
         // Extract unique arrival airports from the real flight data
         const uniqueAirports = new Map<string, {id: string, name: string, city?: string}>();
-        directFlights.forEach(flight => {
+        directFlights.forEach((flight: FlightOffer) => {
           if (flight.arrival && flight.arrival.airport) {
             const airportCode = flight.arrival.airport;
             const airportName = flight.arrival.airportName || airportCode;
@@ -591,7 +523,6 @@ function SearchParamsWrapper() {
         setAvailableAirports(airportOptions);
         setAllFlights(directFlights);
       } catch (error) {
-        console.error('Error fetching flights:', error);
         // You might want to show an error message to the user
       } finally {
         setLoading(false);

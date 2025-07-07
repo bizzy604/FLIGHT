@@ -15,7 +15,6 @@ import { LoadingSpinner } from "@/components/loading-spinner"
 import { toast } from "@/components/ui/use-toast"
 import { getBookingData, getStorageInfo } from "@/utils/booking-storage"
 import { flightStorageManager } from "@/utils/flight-storage-manager"
-import { setupRobustStorage } from "@/utils/storage-integration-example"
 
 export default function ConfirmationPage() {
   const router = useRouter()
@@ -32,24 +31,14 @@ export default function ConfirmationPage() {
 
   // Enhanced helper function to validate and ensure booking data structure
   const validateBookingData = (data: any) => {
-    console.log('🔍 validateBookingData input:', data);
-    console.log('🔍 validateBookingData input keys:', data ? Object.keys(data) : []);
 
     // Check if data is nested under 'data' property (backend response structure)
     const actualData = data?.data || data
-    console.log('🔍 actualData after extraction:', actualData);
-    console.log('🔍 actualData keys:', actualData ? Object.keys(actualData) : []);
-    console.log('🔍 actualData.flightDetails:', actualData?.flightDetails);
-    console.log('🔍 actualData.bookingReference:', actualData?.bookingReference);
 
     // If the data is already in the correct format (from backend), use it directly
     if (actualData && (actualData.bookingReference || actualData.booking_reference) && actualData.flightDetails) {
-      console.log('✅ Using data in correct format');
       return actualData
     }
-
-    console.log('⚠️ Data not in expected format, attempting to restructure...');
-
     // Enhanced validation with more comprehensive field extraction
     const validatedData = {
       bookingReference: actualData?.bookingReference ||
@@ -92,8 +81,6 @@ export default function ConfirmationPage() {
                     {},
       raw_response: data
     }
-
-    console.log('✅ Created validated booking data:', validatedData);
     
 
     return validatedData
@@ -153,13 +140,7 @@ export default function ConfirmationPage() {
         setIsLoading(true)
         setError(null)
 
-        // Setup robust storage
-        await setupRobustStorage()
-
-        // Get the booking reference from URL query parameter
         const bookingReference = searchParams.get("reference")
-
-        console.log('🔍 Confirmation page - URL booking reference:', bookingReference);
 
         if (!bookingReference) {
           throw new Error("Booking reference not found")
@@ -279,9 +260,6 @@ export default function ConfirmationPage() {
             completedBookingData?.result?.bookingReference
           ].filter(ref => ref !== undefined && ref !== null && ref !== '');
 
-          console.log('🔍 Found possible booking references:', possibleBookingRefs);
-          console.log('🔍 URL booking reference for matching:', bookingReference);
-
           // Check if any of the possible references match the URL reference
           const matchingRef = possibleBookingRefs.find(ref => String(ref) === String(bookingReference));
 
@@ -293,7 +271,6 @@ export default function ConfirmationPage() {
           });
 
           if (matchingRef || possibleBookingRefs.length === 0) {
-            console.log('✅ Booking reference match found or no reference validation needed:', matchingRef || 'no validation needed');
 
             // Use the structured data directly from hybrid storage
             const validatedBooking = validateBookingData(completedBookingData)
@@ -302,21 +279,13 @@ export default function ConfirmationPage() {
             setIsLoading(false)
             return
           } else {
-            console.log('❌ No matching booking reference found:', {
-              expected: bookingReference,
-              found: possibleBookingRefs
-            });
           }
         }
 
         // Enhanced fallback: If we have booking data, try to use it regardless of reference matching
         if (completedBookingData) {
-          console.log('🔄 Enhanced fallback: Using available booking data');
-          console.log('🔍 Available booking data structure:', completedBookingData);
-
           // In development mode, always try to use available booking data
           if (process.env.NODE_ENV === 'development') {
-            console.log('🔧 Development mode: Using booking data without strict reference validation');
             const validatedBooking = validateBookingData(completedBookingData)
             setBooking(validatedBooking)
             setIsLoading(false)
@@ -331,17 +300,10 @@ export default function ConfirmationPage() {
           }
         }
 
-        // Manual storage check for debugging
-        console.log('🔍 Manual storage check:');
+        
         const manualSessionCheck = sessionStorage.getItem('booking_data');
         const manualLocalCheck = localStorage.getItem('booking_data');
-        console.log('🔍 Manual sessionStorage check:', manualSessionCheck ? JSON.parse(manualSessionCheck) : null);
-        console.log('🔍 Manual localStorage check:', manualLocalCheck ? JSON.parse(manualLocalCheck) : null);
-
-        // Check all storage keys for debugging
-        console.log('🔍 All sessionStorage keys:', Object.keys(sessionStorage));
-        console.log('🔍 All localStorage keys:', Object.keys(localStorage));
-
+        
         // If not in session storage, try to fetch from backend API
         try {
           const { api } = await import('@/utils/api-client')
@@ -499,18 +461,11 @@ export default function ConfirmationPage() {
 
           {booking && (
             <>
-              {console.log('🔍 Confirmation page - Passing booking data to PaymentConfirmation:', booking)}
               <PaymentConfirmation booking={booking} />
             </>
           )}
         </div>
       </main>
-
-      <footer className="border-t bg-background">
-        <div className="container py-6 text-center text-sm text-muted-foreground">
-          <p>{new Date().getFullYear()} Rea Travel. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   )
 }

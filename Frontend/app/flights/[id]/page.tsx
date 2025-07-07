@@ -9,7 +9,7 @@ import { ChevronLeft, AlertCircle, Loader2 } from "lucide-react"
 import { api } from "@/utils/api-client"
 import { logger } from "@/utils/logger"
 
-import { debugFlightStorage } from "@/utils/debug-storage"
+
 import { flightStorageManager, FlightPriceData } from "@/utils/flight-storage-manager"
 import { redisFlightStorage } from "@/utils/redis-flight-storage"
 import { Separator } from "@/components/ui/separator"
@@ -64,26 +64,17 @@ function FlightDetailsPageContent() {
       setIsLoading(true)
       setError(null)
       try {
-        // Debug storage before validation
-        console.log('🔍 Debugging storage before flight data validation...');
-        debugFlightStorage();
 
-        // Enhanced debugging for storage retrieval
-        console.log('🔍 Checking for existing flight price data first...');
+
+
 
         // Try to get existing flight price data from Redis first
         let flightPriceResult = await redisFlightStorage.getFlightPrice();
 
-        console.log('🔍 Redis flight price result:', {
-          success: flightPriceResult.success,
-          hasData: !!flightPriceResult.data,
-          error: flightPriceResult.error,
-          session_id: redisFlightStorage.getCurrentSessionId()
-        });
+
 
         // If Redis has flight price data, use it directly
         if (flightPriceResult.success && flightPriceResult.data) {
-          console.log('✅ Found existing flight price data in Redis, using it directly');
           const cachedPriceData = flightPriceResult.data;
 
           if (cachedPriceData.pricedOffer) {
@@ -106,13 +97,11 @@ function FlightDetailsPageContent() {
         }
 
         // If no flight price data found, try to make API call as fallback
-        console.log('⚠️ No flight price data found in Redis, attempting API call as fallback...');
 
         // Get flight search data for API call
         const flightSearchResult = await redisFlightStorage.getFlightSearch();
 
         if (!flightSearchResult.success || !flightSearchResult.data) {
-          console.log('❌ No flight search data available for API call');
           throw new Error('Flight data not found. Your session may have expired. Please start a new search.');
         }
 
@@ -123,16 +112,11 @@ function FlightDetailsPageContent() {
         // Extract metadata for backend cache retrieval
         if (rawAirShoppingResponse?.data?.metadata) {
           airShoppingMetadata = rawAirShoppingResponse.data.metadata;
-          console.log('✅ Using metadata from cached air shopping response');
         } else if (rawAirShoppingResponse?.metadata) {
           airShoppingMetadata = rawAirShoppingResponse.metadata;
-          console.log('✅ Using metadata from legacy air shopping response');
-        } else {
-          console.log('⚠️ No metadata found, backend will use cached response');
         }
 
         // Make flight pricing API call
-        console.log('🔄 Making flight pricing API call...');
         const flightIndex = parseInt(flightId);
 
         if (isNaN(flightIndex) || flightIndex < 0) {
@@ -163,7 +147,7 @@ function FlightDetailsPageContent() {
           firstPricedOffer.raw_flight_price_response = response.data.data.raw_response;
         }
 
-        console.log('✅ Flight pricing API call successful');
+
         setPricedOffer(firstPricedOffer);
 
         // Store the data in Redis for future use
@@ -178,11 +162,6 @@ function FlightDetailsPageContent() {
         };
 
         const redisStoreResult = await redisFlightStorage.storeFlightPrice(flightPriceData);
-        if (redisStoreResult.success) {
-          console.log('✅ Flight price data stored successfully in Redis');
-        } else {
-          console.warn('⚠️ Failed to store flight price data in Redis:', redisStoreResult.error);
-        }
 
         // Store in session storage for booking
         sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(firstPricedOffer));
@@ -190,13 +169,11 @@ function FlightDetailsPageContent() {
         // Store raw flight price response for order creation
         if (response.data.data.raw_response) {
           sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(response.data.data.raw_response));
-          console.log('✅ Stored raw flight price response for order creation');
         }
 
         // Store metadata for order creation if available
         if (response.data.data.metadata) {
           sessionStorage.setItem('flightPriceMetadata', JSON.stringify(response.data.data.metadata));
-          console.log('✅ Stored flight price metadata for order creation');
         }
 
 
@@ -208,7 +185,6 @@ function FlightDetailsPageContent() {
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Failed to fetch flight price data";
         setError(errorMessage);
-        console.error('Error fetching flight price:', err);
 
         // If it's a session/data error, provide helpful guidance
         if (errorMessage.includes('session may have expired') || errorMessage.includes('search data')) {

@@ -189,19 +189,15 @@ export const generatePDFFromComponent = async (elementId: string, filename: stri
     `;
 
     // Open in new window and trigger print
-    console.log(`🖨️ Opening print window for: ${filename}`);
     const printWindow = window.open('', '_blank');
     if (printWindow) {
-      console.log(`✅ Print window opened successfully`);
       printWindow.document.write(fullHtmlContent);
       printWindow.document.close();
 
       // Wait for content to load then print
       printWindow.onload = () => {
-        console.log(`📄 Print window content loaded, triggering print...`);
         setTimeout(() => {
           printWindow.print();
-          console.log(`🖨️ Print dialog triggered`);
         }, 500);
       };
     } else {

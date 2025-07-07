@@ -156,7 +156,9 @@ export class StorageManager {
           };
         }
       } catch (error) {
-        console.error(`[StorageManager] Store operation failed for key ${key}:`, error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error(`[StorageManager] Store operation failed for key ${key}:`, error);
+        }
         return {
           success: false,
           error: `Storage operation failed: ${(error as Error).message}`
@@ -182,17 +184,23 @@ export class StorageManager {
         return true;
       } catch (error) {
         if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-          console.warn(`[StorageManager] Quota exceeded in ${storageType}Storage, attempt ${attempt}/${maxRetries}`);
-          
+          if (process.env.NODE_ENV === 'development') {
+            console.warn(`[StorageManager] Quota exceeded in ${storageType}Storage, attempt ${attempt}/${maxRetries}`);
+          }
+
           // Cleanup old data and retry
           await this.emergencyCleanup(storageType);
-          
+
           if (attempt === maxRetries) {
-            console.error(`[StorageManager] Failed to store after ${maxRetries} attempts in ${storageType}Storage`);
+            if (process.env.NODE_ENV === 'development') {
+              console.error(`[StorageManager] Failed to store after ${maxRetries} attempts in ${storageType}Storage`);
+            }
             return false;
           }
         } else {
-          console.error(`[StorageManager] Storage error in ${storageType}Storage:`, error);
+          if (process.env.NODE_ENV === 'development') {
+            console.error(`[StorageManager] Storage error in ${storageType}Storage:`, error);
+          }
           return false;
         }
       }
@@ -227,7 +235,9 @@ export class StorageManager {
           error: 'Data not found in any storage location'
         };
       } catch (error) {
-        console.error(`[StorageManager] Retrieve operation failed for key ${key}:`, error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error(`[StorageManager] Retrieve operation failed for key ${key}:`, error);
+        }
         return {
           success: false,
           error: `Retrieve operation failed: ${(error as Error).message}`
@@ -256,28 +266,36 @@ export class StorageManager {
       
       // Validate wrapper structure
       if (!wrapper.metadata || !wrapper.data) {
-        console.warn(`[StorageManager] Invalid wrapper structure in ${storageType}Storage for key ${key}`);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`[StorageManager] Invalid wrapper structure in ${storageType}Storage for key ${key}`);
+        }
         storage.removeItem(key); // Clean up corrupted data
         return { success: false, error: 'Invalid data structure' };
       }
 
       // Check expiration
       if (Date.now() > wrapper.metadata.expiresAt) {
-        console.log(`[StorageManager] Data expired in ${storageType}Storage for key ${key}`);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`[StorageManager] Data expired in ${storageType}Storage for key ${key}`);
+        }
         storage.removeItem(key);
         return { success: false, error: 'Data expired' };
       }
 
       // Validate data type if specified
       if (expectedDataType && wrapper.metadata.dataType !== expectedDataType) {
-        console.warn(`[StorageManager] Data type mismatch in ${storageType}Storage for key ${key}`);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`[StorageManager] Data type mismatch in ${storageType}Storage for key ${key}`);
+        }
         return { success: false, error: 'Data type mismatch' };
       }
 
       // Validate checksum
       const dataString = JSON.stringify(wrapper.data);
       if (!this.validateChecksum(dataString, wrapper.metadata.checksum)) {
-        console.error(`[StorageManager] Checksum validation failed in ${storageType}Storage for key ${key}`);
+        if (process.env.NODE_ENV === 'development') {
+          console.error(`[StorageManager] Checksum validation failed in ${storageType}Storage for key ${key}`);
+        }
         storage.removeItem(key); // Clean up corrupted data
         return { success: false, error: 'Data corruption detected' };
       }
@@ -288,7 +306,9 @@ export class StorageManager {
         source: storageType
       };
     } catch (error) {
-      console.error(`[StorageManager] Parse error in ${storageType}Storage for key ${key}:`, error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error(`[StorageManager] Parse error in ${storageType}Storage for key ${key}:`, error);
+      }
       storage.removeItem(key); // Clean up corrupted data
       return { success: false, error: 'Parse error' };
     }
@@ -334,7 +354,9 @@ export class StorageManager {
     
     for (let i = 0; i < Math.min(itemsToRemove, itemsWithTimestamp.length); i++) {
       storage.removeItem(itemsWithTimestamp[i].key);
-      console.log(`[StorageManager] Emergency cleanup removed: ${itemsWithTimestamp[i].key}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[StorageManager] Emergency cleanup removed: ${itemsWithTimestamp[i].key}`);
+      }
     }
   }
 
@@ -361,7 +383,9 @@ export class StorageManager {
     return this.atomicOperation(key, async () => {
       sessionStorage.removeItem(key);
       localStorage.removeItem(key);
-      console.log(`[StorageManager] Removed data for key: ${key}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[StorageManager] Removed data for key: ${key}`);
+      }
     });
   }
 
@@ -372,7 +396,9 @@ export class StorageManager {
     sessionStorage.clear();
     localStorage.clear();
     this.operationLocks.clear();
-    console.log('[StorageManager] All storage cleared');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[StorageManager] All storage cleared');
+    }
   }
 
   /**

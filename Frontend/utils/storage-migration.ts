@@ -28,7 +28,9 @@ export class StorageMigration {
    * Migrate all existing flight data to the new storage system
    */
   async migrateAllFlightData(): Promise<MigrationResult> {
-    console.log('[StorageMigration] Starting migration of all flight data...');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[StorageMigration] Starting migration of all flight data...');
+    }
     
     const result: MigrationResult = {
       success: true,
@@ -47,17 +49,21 @@ export class StorageMigration {
       // Clean up old storage patterns
       await this.cleanupOldStoragePatterns(result);
       
-      console.log('[StorageMigration] ✅ Migration completed successfully');
-      console.log('[StorageMigration] Summary:', {
-        migratedKeys: result.migratedKeys.length,
-        errors: result.errors.length,
-        cleanedKeys: result.cleanedKeys.length
-      });
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[StorageMigration] ✅ Migration completed successfully');
+        console.log('[StorageMigration] Summary:', {
+          migratedKeys: result.migratedKeys.length,
+          errors: result.errors.length,
+          cleanedKeys: result.cleanedKeys.length
+        });
+      }
       
     } catch (error) {
       result.success = false;
       result.errors.push(`Migration failed: ${(error as Error).message}`);
-      console.error('[StorageMigration] ❌ Migration failed:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[StorageMigration] ❌ Migration failed:', error);
+      }
     }
 
     return result;
@@ -100,7 +106,9 @@ export class StorageMigration {
             
             if (storeResult.success) {
               result.migratedKeys.push(`${key} (from ${source})`);
-              console.log(`[StorageMigration] ✅ Migrated flight search data from ${key}`);
+              if (process.env.NODE_ENV === 'development') {
+                console.log(`[StorageMigration] ✅ Migrated flight search data from ${key}`);
+              }
               
               // Clean up old data
               sessionStorage.removeItem(key);
@@ -113,7 +121,9 @@ export class StorageMigration {
         }
       } catch (error) {
         result.errors.push(`Error migrating ${key}: ${(error as Error).message}`);
-        console.error(`[StorageMigration] Error migrating ${key}:`, error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error(`[StorageMigration] Error migrating ${key}:`, error);
+        }
       }
     }
 
@@ -150,7 +160,9 @@ export class StorageMigration {
               
               if (storeResult.success) {
                 result.migratedKeys.push(`${key} (timestamped)`);
-                console.log(`[StorageMigration] ✅ Migrated timestamped flight data from ${key}`);
+                if (process.env.NODE_ENV === 'development') {
+                  console.log(`[StorageMigration] ✅ Migrated timestamped flight data from ${key}`);
+                }
               }
             }
             
@@ -207,7 +219,9 @@ export class StorageMigration {
             
             if (storeResult.success) {
               result.migratedKeys.push(`${key} (from ${source})`);
-              console.log(`[StorageMigration] ✅ Migrated flight price data from ${key}`);
+              if (process.env.NODE_ENV === 'development') {
+                console.log(`[StorageMigration] ✅ Migrated flight price data from ${key}`);
+              }
               
               // Clean up old data
               sessionStorage.removeItem(key);
@@ -220,7 +234,9 @@ export class StorageMigration {
         }
       } catch (error) {
         result.errors.push(`Error migrating ${key}: ${(error as Error).message}`);
-        console.error(`[StorageMigration] Error migrating ${key}:`, error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error(`[StorageMigration] Error migrating ${key}:`, error);
+        }
       }
     }
   }
@@ -270,7 +286,9 @@ export class StorageMigration {
           // Remove corrupted data
           storage.removeItem(key);
           result.cleanedKeys.push(`${key} (corrupted in ${name})`);
-          console.log(`[StorageMigration] 🗑️ Cleaned up corrupted data: ${key} from ${name}`);
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`[StorageMigration] 🗑️ Cleaned up corrupted data: ${key} from ${name}`);
+          }
         }
       }
     }
@@ -323,7 +341,9 @@ export class StorageMigration {
    * Force migration - use this when you need to migrate immediately
    */
   async forceMigration(): Promise<MigrationResult> {
-    console.log('[StorageMigration] 🚨 Force migration initiated...');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[StorageMigration] 🚨 Force migration initiated...');
+    }
     
     // Clear any existing new storage first
     await flightStorageManager.clearAllFlightData();
