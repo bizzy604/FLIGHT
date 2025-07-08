@@ -68,7 +68,7 @@ class PenaltyInterpretation:
 class VDCPenaltyInterpreter:
     TIMING_CODES = {1: "After Departure NO Show", 2: "Prior to Departure", 3: "After Departure", 4: "Before Departure No Show"}
     CANCEL_MATRIX = { (True, True): ("Yes", "Yes", "Yes", "Refunable with penalty (partially refundable)"), (False, True): ("No", "Yes", "Yes", "Fully refundable (without penalty)"), (False, False): ("No", "No", "No", "Non-refundable"), (None, True): ("Unknown", "Yes", "Yes", "Refundable but penalty is unknown"), (None, False): ("No", "No", "No", "Non refundable"), (False, None): ("No", "Unknown", "Unknown", "Refundability Unknown"), (True, None): ("Yes", "Unknown", "Yes", "Cancel allowed with fee, refundability unknown"), (None, None): ("Unknown", "Unknown", "Unknown", "Cancellation details unknown") }
-    CHANGE_MATRIX = { (True, True): ("Yes", "Yes", "Change allowed with penalty + difference in fare"), (False, True): ("No", "Yes", "Free change + difference in fare"), (False, False): ("No", "No", "Change not allowed"), (None, True): ("No", "Yes", "Free change + difference in fare"), (None, False): ("No", "No", "Change not allowed"), (False, None): ("No", "Unknown", "Free change + difference in fare"), (True, None): ("Yes", "Yes", "Change allowed with fee"), (None, None): ("Unknown", "Unknown", "Change allowed unknown") }
+    CHANGE_MATRIX = { (True, True): ("Yes", "Yes", "Change allowed with penalty + difference in fare"), (False, True): ("No", "Yes", "Free change + difference in fare"), (False, False): ("No", "No", "Change not allowed"), (None, True): ("Unknown", "Yes", "Change allowed, Penalty details unknown"), (None, False): ("No", "No", "Change not allowed"), (False, None): ("No", "Unknown", "Change allowed unknown"), (True, None): ("Yes", "Yes", "Change allowed with fee"), (None, None): ("Unknown", "Unknown", "Change allowed unknown") }
 
     @classmethod
     def _safe_bool_convert(cls, value: Any) -> Optional[bool]:
@@ -251,17 +251,65 @@ def _extract_min_max_amount(penalty_detail: Dict[str, Any]) -> tuple:
     return min_amount, max_amount, currency
 
 def _detect_round_trip_segments(segments: List[FlightSegment]) -> Tuple[List[FlightSegment], List[FlightSegment]]:
-    if len(segments) < 2: return segments, []
+    """
+    Detect round-trip segments by finding the turnaround point where the journey reverses direction.
+    For a round trip, we need to find where the passenger reaches their final destination and starts returning.
+    """
+    if len(segments) < 2:
+        return segments, []
+
     first_origin = segments[0].departure_airport
     last_destination = segments[-1].arrival_airport
-    if first_origin == last_destination:
-        for i in range(len(segments) - 1):
-            turnaround_point = segments[i].arrival_airport
-            if turnaround_point != first_origin and turnaround_point == segments[i+1].departure_airport:
-                outbound = segments[:i+1]
-                inbound = segments[i+1:]
-                logger.info(f"Round trip detected. Outbound: {len(outbound)} segs, Return: {len(inbound)} segs.")
-                return outbound, inbound
+
+    # Only proceed if this is actually a round trip (starts and ends at same place)
+    if first_origin != last_destination:
+        return segments, []
+
+    # Strategy: Find the longest time gap between consecutive segments
+    # This indicates the turnaround point (overnight stay or extended layover)
+
+    max_gap_hours = 0
+    split_index = None
+
+    for i in range(len(segments) - 1):
+        current_arrival_time = segments[i].arrival_datetime
+        next_departure_time = segments[i + 1].departure_datetime
+
+        try:
+            from datetime import datetime
+            arrival_dt = datetime.fromisoformat(current_arrival_time.replace('Z', '+00:00'))
+            departure_dt = datetime.fromisoformat(next_departure_time.replace('Z', '+00:00'))
+            time_gap_hours = (departure_dt - arrival_dt).total_seconds() / 3600
+
+            # Track the longest gap
+            if time_gap_hours > max_gap_hours:
+                max_gap_hours = time_gap_hours
+                split_index = i + 1
+
+        except Exception as e:
+            logger.warning(f"Error parsing datetime for gap calculation: {e}")
+            continue
+
+    # If we found a significant gap (more than 4 hours), split there
+    if split_index is not None and max_gap_hours > 4:
+        outbound = segments[:split_index]
+        inbound = segments[split_index:]
+
+        logger.info(f"Round trip detected with {max_gap_hours:.1f}h gap. Outbound: {len(outbound)} segs, Return: {len(inbound)} segs.")
+        logger.info(f"Outbound route: {outbound[0].departure_airport} -> {outbound[-1].arrival_airport}")
+        logger.info(f"Return route: {inbound[0].departure_airport} -> {inbound[-1].arrival_airport}")
+
+        return outbound, inbound
+
+    # Fallback: if no clear turnaround found, split at the midpoint
+    if len(segments) >= 4:  # Only for complex itineraries
+        midpoint = len(segments) // 2
+        outbound = segments[:midpoint]
+        inbound = segments[midpoint:]
+        logger.info(f"Round trip fallback split at midpoint. Outbound: {len(outbound)} segs, Return: {len(inbound)} segs.")
+        return outbound, inbound
+
+    # If we can't detect round trip pattern, treat as one-way
     return segments, []
 
 def _transform_single_offer_for_frontend(offer: Dict[str, Any], refs: Dict[str, Any], all_travelers_map: Dict[str, str], od_map: Dict[str, str]) -> List[Dict[str, Any]]:
@@ -373,5 +421,14 @@ def transform_for_frontend(response: dict) -> dict:
             )
         except Exception as e:
             logger.error(f"Failed to transform offer {offer_data.get('OfferID', {}).get('value')}: {e}", exc_info=True)
-    
+
     return {'offers': transformed_offers}
+
+
+def transform_flight_price_response(response: dict) -> dict:
+    """
+    Legacy function name compatibility wrapper.
+    This function provides backward compatibility for any code that might be calling
+    the old function name 'transform_flight_price_response'.
+    """
+    return transform_for_frontend(response)

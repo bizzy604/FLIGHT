@@ -12,7 +12,7 @@ import os
 from datetime import datetime
 
 # Import the flight price transformer and request builder from their respective packages
-from utils.flight_price_transformer import transform_for_frontend
+from utils.flight_price_transformer import transform_for_frontend, transform_flight_price_response
 from scripts.build_flightprice_rq import build_flight_price_request
 
 # Import service components

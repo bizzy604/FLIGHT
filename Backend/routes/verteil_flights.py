@@ -22,6 +22,9 @@ from collections import OrderedDict
 from services.flight.air_shopping import process_air_shopping_enhanced, process_air_shopping_basic
 from services.flight.search import process_air_shopping  # Legacy compatibility
 
+# Import output writer for debugging
+from utils.output_writer import write_api_data
+
 # Simple in-memory request deduplication cache
 class RequestDeduplicationCache:
     def __init__(self, max_size=100, ttl=5):
@@ -516,7 +519,17 @@ async def air_shopping():
         service_type = "enhanced" if use_enhanced else "basic"
         logger.info(f"Successfully processed {service_type} air shopping request - Request ID: {request_id}")
 
-
+        # Write request and response data to outputs folder for debugging
+        try:
+            write_api_data(
+                service_name="AirShopping_Route",
+                request_id=request_id,
+                payload=converted_data,
+                response=result,
+                endpoint="/api/verteil/air-shopping"
+            )
+        except Exception as write_error:
+            logger.warning(f"Failed to write air shopping debug data: {write_error}")
 
         # Return the result (enhanced service already includes status and request_id)
         if result.get('status') == 'success':
@@ -660,7 +673,17 @@ async def flight_price():
                 if status == 'error':
                     logger.error(f"Error in flight price request: {result.get('error', 'No error details')} - Request ID: {request_id}")
 
-
+            # Write request and response data to outputs folder for debugging
+            try:
+                write_api_data(
+                    service_name="FlightPrice_Route",
+                    request_id=request_id,
+                    payload=price_request,
+                    response=result,
+                    endpoint="/api/verteil/flight-price"
+                )
+            except Exception as write_error:
+                logger.warning(f"Failed to write flight price debug data: {write_error}")
 
             return jsonify(result)
             
@@ -881,7 +904,17 @@ async def create_order():
         # Call the booking service
         result = await process_order_create(order_data)
 
-
+        # Write request and response data to outputs folder for debugging
+        try:
+            write_api_data(
+                service_name="OrderCreate_Route",
+                request_id=request_id,
+                payload=order_data,
+                response=result,
+                endpoint="/api/verteil/order-create"
+            )
+        except Exception as write_error:
+            logger.warning(f"Failed to write order create debug data: {write_error}")
 
         # Check if result contains an error
         if 'error' in result:

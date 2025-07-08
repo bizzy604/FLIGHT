@@ -120,21 +120,25 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
       // Get flight search data to extract metadata for API call
       const flightSearchResult = await redisFlightStorage.getFlightSearch();
 
-      let airShoppingMetadata = {};
+      let airShoppingData = {};
       let shoppingResponseId = 'BACKEND_WILL_EXTRACT';
 
       if (flightSearchResult.success && flightSearchResult.data) {
         const rawAirShoppingResponse = flightSearchResult.data.airShoppingResponse;
 
-        // Extract metadata for backend cache retrieval
+        // Check if we have metadata (for Redis-enabled backend) or need full response (for Redis-disabled backend)
         if (rawAirShoppingResponse?.data?.metadata) {
-          airShoppingMetadata = rawAirShoppingResponse.data.metadata;
+          // Use metadata for Redis-enabled backend
+          airShoppingData = rawAirShoppingResponse.data.metadata;
           logger.info('✅ Using metadata from cached air shopping response');
         } else if (rawAirShoppingResponse?.metadata) {
-          airShoppingMetadata = rawAirShoppingResponse.metadata;
+          // Use metadata for legacy format
+          airShoppingData = rawAirShoppingResponse.metadata;
           logger.info('✅ Using metadata from legacy air shopping response');
         } else {
-          logger.warn('⚠️ No metadata found, backend will use cached response');
+          // Fallback: send full response for Redis-disabled backend
+          airShoppingData = rawAirShoppingResponse;
+          logger.info('✅ Using full air shopping response as fallback');
         }
       } else {
         logger.warn('⚠️ No flight search data found, backend will handle cache retrieval');
@@ -145,7 +149,7 @@ export function EnhancedFlightCard({ flight, showExtendedDetails = false, search
       const response = await api.getFlightPrice(
         flightIndex,
         shoppingResponseId,
-        airShoppingMetadata
+        airShoppingData
       );
 
       if (!response.data || response.data.status !== 'success') {

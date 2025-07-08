@@ -20,6 +20,7 @@ import asyncio # For asyncio.sleep
 # e.g., from Backend.utils.cache_manager import cache_manager
 # e.g., from Backend.services.flight.decorators import ...
 from utils.cache_manager import cache_manager
+from utils.output_writer import write_api_data, write_payload_only, write_response_only
 from services.flight.decorators import async_cache, async_rate_limited
 from services.flight.exceptions import (
     FlightServiceError,
@@ -209,7 +210,17 @@ class FlightService:
                     if response.status == 200:
                         logger.info(f"Successfully received API response for {service_name} (ReqID: {log_request_id}) with status {response.status}")
 
-
+                        # Write payload and response to outputs folder for debugging
+                        try:
+                            write_api_data(
+                                service_name=service_name,
+                                request_id=log_request_id,
+                                payload=api_payload,
+                                response=response_data,
+                                endpoint=endpoint
+                            )
+                        except Exception as write_error:
+                            logger.warning(f"Failed to write API data to outputs folder: {write_error}")
 
                         # Log airline codes found in AirShopping response for debugging
                         if service_name == "AirShopping":

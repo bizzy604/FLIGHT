@@ -22,6 +22,106 @@ import { BookingForm } from "@/components/booking-form"
 import { FareRulesTable } from "@/components/fare-rules-table"
 import { FlightItineraryCard } from "@/components/flight-itinerary-card"
 
+// Airport code to name mapping for route display
+const AIRPORT_NAMES: Record<string, string> = {
+  'NBO': 'Nairobi',
+  'FRA': 'Frankfurt',
+  'AMS': 'Amsterdam',
+  'CDG': 'Paris',
+  'LHR': 'London',
+  'DXB': 'Dubai',
+  'JFK': 'New York',
+  'LAX': 'Los Angeles',
+  'BOM': 'Mumbai',
+  'DEL': 'New Delhi',
+  'DOH': 'Doha',
+  'ZUR': 'Zurich',
+  'IST': 'Istanbul',
+  'CAI': 'Cairo',
+  'ADD': 'Addis Ababa',
+  'KGL': 'Kigali',
+  'EBB': 'Entebbe',
+  'DAR': 'Dar es Salaam',
+  'JNB': 'Johannesburg',
+  'CPT': 'Cape Town',
+  'HND': 'Tokyo',
+  'ICN': 'Seoul',
+  'SIN': 'Singapore',
+  'SYD': 'Sydney',
+  'MEL': 'Melbourne',
+  'YYZ': 'Toronto',
+  'YVR': 'Vancouver',
+  'ORD': 'Chicago',
+  'MIA': 'Miami',
+  'ATL': 'Atlanta',
+  'DEN': 'Denver',
+  'SEA': 'Seattle',
+  'SFO': 'San Francisco',
+  'LAS': 'Las Vegas',
+  'PHX': 'Phoenix',
+  'DFW': 'Dallas',
+  'IAH': 'Houston',
+  'BOS': 'Boston',
+  'PHL': 'Philadelphia',
+  'CLT': 'Charlotte',
+  'MSP': 'Minneapolis',
+  'DTW': 'Detroit',
+  'BWI': 'Baltimore',
+  'DCA': 'Washington DC',
+  'IAD': 'Washington DC',
+  'MDW': 'Chicago',
+  'LGA': 'New York',
+  'EWR': 'Newark',
+  'SLC': 'Salt Lake City',
+  'PDX': 'Portland',
+  'SAN': 'San Diego',
+  'TPA': 'Tampa',
+  'MCO': 'Orlando',
+  'FLL': 'Fort Lauderdale',
+  'PBI': 'West Palm Beach',
+  'JAX': 'Jacksonville',
+  'RDU': 'Raleigh',
+  'CHS': 'Charleston',
+  'SAV': 'Savannah',
+  'MEM': 'Memphis',
+  'BNA': 'Nashville',
+  'STL': 'St. Louis',
+  'MCI': 'Kansas City',
+  'OMA': 'Omaha',
+  'DSM': 'Des Moines',
+  'MSY': 'New Orleans',
+  'AUS': 'Austin',
+  'SAT': 'San Antonio',
+  'HOU': 'Houston',
+  'ELP': 'El Paso',
+  'ABQ': 'Albuquerque',
+  'TUS': 'Tucson',
+  'COS': 'Colorado Springs',
+  'BOI': 'Boise',
+  'SLC': 'Salt Lake City',
+  'BIL': 'Billings',
+  'FAR': 'Fargo',
+  'GFK': 'Grand Forks',
+  'BIS': 'Bismarck',
+  'RAP': 'Rapid City',
+  'CYS': 'Cheyenne',
+  'COD': 'Cody',
+  'JAC': 'Jackson',
+  'IDA': 'Idaho Falls',
+  'TWF': 'Twin Falls',
+  'SUN': 'Sun Valley',
+  'MSO': 'Missoula',
+  'BZN': 'Bozeman',
+  'GTF': 'Great Falls',
+  'HLN': 'Helena',
+  'BTM': 'Butte'
+};
+
+// Helper function to get airport display name
+function getAirportDisplay(code: string): string {
+  return AIRPORT_NAMES[code] || code;
+}
+
 // Define a strict type for the single offer you expect from your backend.
 interface TransformedOffer {
   offer_id: string;
@@ -108,6 +208,11 @@ function FlightDetailsPageContent() {
         const rawAirShoppingResponse = flightSearchResult.data.airShoppingResponse;
         let airShoppingMetadata = {};
         let shoppingResponseId = 'BACKEND_WILL_EXTRACT';
+
+        // Extract search parameters from flight search data for route display
+        if (flightSearchResult.data.searchParams && !cachedSearchParams) {
+          setCachedSearchParams(flightSearchResult.data.searchParams);
+        }
 
         // Extract metadata for backend cache retrieval
         if (rawAirShoppingResponse?.data?.metadata) {
@@ -308,14 +413,14 @@ function FlightDetailsPageContent() {
               Back to Search Results
             </Link>
 
-            {/* ## FIX 3: Added all required props to FlightDetailsHeader ## */}
+            {/* ## FIX 3: Use original search parameters for route display instead of flight segments ## */}
             <FlightDetailsHeader
-              origin={outboundSegments[0]?.departure_airport}
-              originCode={outboundSegments[0]?.departure_airport}
-              destination={outboundSegments[outboundSegments.length - 1]?.arrival_airport}
-              destinationCode={outboundSegments[outboundSegments.length - 1]?.arrival_airport}
-              departDate={outboundSegments[0]?.departure_datetime}
-              returnDate={returnSegments[0]?.departure_datetime} // Safely access for round-trip
+              origin={getAirportDisplay(cachedSearchParams?.origin || outboundSegments[0]?.departure_airport)}
+              originCode={cachedSearchParams?.origin || outboundSegments[0]?.departure_airport}
+              destination={getAirportDisplay(cachedSearchParams?.destination || outboundSegments[outboundSegments.length - 1]?.arrival_airport)}
+              destinationCode={cachedSearchParams?.destination || outboundSegments[outboundSegments.length - 1]?.arrival_airport}
+              departDate={cachedSearchParams?.departDate || outboundSegments[0]?.departure_datetime}
+              returnDate={cachedSearchParams?.returnDate || returnSegments[0]?.departure_datetime} // Safely access for round-trip
               price={pricedOffer.total_price.amount}
               currency={pricedOffer.total_price.currency}
               adults={adults}
