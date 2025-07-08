@@ -59,23 +59,38 @@ def extract_itinerary_data(order_create_response: Dict[str, Any]) -> Dict[str, A
             'paymentMethod': payment.get('Type', {}).get('Code', 'CA')
         }
 
-        # Extract passenger information with ticket numbers
+        # Extract passenger information with ticket numbers using ObjectKey-based mapping
         passengers = []
         passengers_data = response.get('Passengers', {}).get('Passenger', [])
         ticket_doc_infos = response.get('TicketDocInfos', {}).get('TicketDocInfo', [])
+
+        # Create a mapping of ObjectKey to ticket information for efficient lookup
+        ticket_mapping = {}
+        for ticket_doc in ticket_doc_infos:
+            passenger_refs = ticket_doc.get('PassengerReference', [])
+            ticket_documents = ticket_doc.get('TicketDocument', [])
+
+            # Handle both single passenger reference and multiple passenger references
+            for passenger_ref in passenger_refs:
+                if ticket_documents:
+                    ticket_mapping[passenger_ref] = {
+                        'ticketNumber': ticket_documents[0].get('TicketDocNbr', 'N/A'),
+                        'dateOfIssue': ticket_documents[0].get('DateOfIssue', ''),
+                        'issuingAirline': ticket_doc.get('IssuingAirlineInfo', {}).get('AirlineName', '')
+                    }
 
         for index, passenger in enumerate(passengers_data):
             name = passenger.get('Name', {})
             contact = passenger.get('Contacts', {}).get('Contact', [{}])[0] if passenger.get('Contacts', {}).get('Contact') else {}
             document = passenger.get('PassengerIDInfo', {}).get('PassengerDocument', [{}])[0] if passenger.get('PassengerIDInfo', {}).get('PassengerDocument') else {}
-            
-            # Find corresponding ticket number
-            ticket_number = 'N/A'
-            if index < len(ticket_doc_infos) and ticket_doc_infos[index].get('TicketDocument'):
-                ticket_number = ticket_doc_infos[index]['TicketDocument'][0].get('TicketDocNbr', 'N/A')
+
+            # Find corresponding ticket number using ObjectKey mapping
+            passenger_object_key = passenger.get('ObjectKey', f'PAX{index + 1}')
+            ticket_info = ticket_mapping.get(passenger_object_key, {})
+            ticket_number = ticket_info.get('ticketNumber', 'N/A')
 
             passenger_info = {
-                'objectKey': passenger.get('ObjectKey', f'PAX{index + 1}'),
+                'objectKey': passenger_object_key,
                 'fullName': f"{name.get('Title', '')} {name.get('Given', [{}])[0].get('value', '') if name.get('Given') else ''} {name.get('Surname', {}).get('value', '')}".strip(),
                 'title': name.get('Title', ''),
                 'firstName': name.get('Given', [{}])[0].get('value', '') if name.get('Given') else '',
@@ -87,6 +102,8 @@ def extract_itinerary_data(order_create_response: Dict[str, Any]) -> Dict[str, A
                 'documentExpiry': document.get('DateOfExpiration', ''),
                 'countryOfIssuance': document.get('CountryOfIssuance', ''),
                 'ticketNumber': ticket_number,
+                'dateOfIssue': ticket_info.get('dateOfIssue', ''),
+                'issuingAirline': ticket_info.get('issuingAirline', ''),
                 'email': contact.get('EmailContact', {}).get('Address', {}).get('value') if contact.get('EmailContact') else None,
                 'phone': f"+{contact.get('PhoneContact', {}).get('Number', [{}])[0].get('CountryCode', '')}{contact.get('PhoneContact', {}).get('Number', [{}])[0].get('value', '')}" if contact.get('PhoneContact', {}).get('Number') else None
             }

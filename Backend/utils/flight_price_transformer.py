@@ -67,8 +67,26 @@ class PenaltyInterpretation:
 # --- Core Interpreter and Transformation Logic ---
 class VDCPenaltyInterpreter:
     TIMING_CODES = {1: "After Departure NO Show", 2: "Prior to Departure", 3: "After Departure", 4: "Before Departure No Show"}
-    CANCEL_MATRIX = { (True, True): ("Yes", "Yes", "Yes", "Refunable with penalty (partially refundable)"), (False, True): ("No", "Yes", "Yes", "Fully refundable (without penalty)"), (False, False): ("No", "No", "No", "Non-refundable"), (None, True): ("Unknown", "Yes", "Yes", "Refundable but penalty is unknown"), (None, False): ("No", "No", "No", "Non refundable"), (False, None): ("No", "Unknown", "Unknown", "Refundability Unknown"), (True, None): ("Yes", "Unknown", "Yes", "Cancel allowed with fee, refundability unknown"), (None, None): ("Unknown", "Unknown", "Unknown", "Cancellation details unknown") }
-    CHANGE_MATRIX = { (True, True): ("Yes", "Yes", "Change allowed with penalty + difference in fare"), (False, True): ("No", "Yes", "Free change + difference in fare"), (False, False): ("No", "No", "Change not allowed"), (None, True): ("Unknown", "Yes", "Change allowed, Penalty details unknown"), (None, False): ("No", "No", "Change not allowed"), (False, None): ("No", "Unknown", "Change allowed unknown"), (True, None): ("Yes", "Yes", "Change allowed with fee"), (None, None): ("Unknown", "Unknown", "Change allowed unknown") }
+    CANCEL_MATRIX = {
+        (True, True): ("Yes", "Yes", "Yes", "Refunable with penalty (partially refundable)"),
+        (False, True): ("No", "Yes", "Yes", "Fully refundable (without penalty)"),
+        (False, False): ("No", "No", "No", "Non-refundable"),
+        (None, True): ("Unknown", "Yes", "Yes", "Refundable but penalty is unknown"),
+        (None, False): ("No", "No", "No", "Non refundable"),
+        (False, None): ("No", "Unknown", "Unknown", "Refundability Unknown"),
+        (True, None): ("Yes", "Unknown", "Yes", "Cancel allowed with fee, refundability unknown"),
+        (None, None): ("Unknown", "Unknown", "Unknown", "Cancellation details unknown")
+    }
+    CHANGE_MATRIX = {
+        (True, True): ("Yes", "Yes", "Change allowed with penalty + difference in fare"),
+        (False, True): ("No", "Yes", "Free change + difference in fare"),
+        (False, False): ("No", "No", "Change not allowed"),
+        (None, True): ("Unknown", "Yes", "Change allowed, Penalty details unknown"),
+        (None, False): ("No", "No", "Change not allowed"),
+        (False, None): ("No", "Unknown", "Change allowed unknown"),
+        (True, None): ("Yes", "Yes", "Change allowed with fee"),
+        (None, None): ("Unknown", "Unknown", "Change allowed unknown")
+    }
 
     @classmethod
     def _safe_bool_convert(cls, value: Any) -> Optional[bool]:
@@ -108,7 +126,9 @@ class VDCPenaltyInterpreter:
         elif base_action_type == 'change':
             penalty_applicable, change_allowed_res, interpretation = cls.CHANGE_MATRIX.get((change_fee, change_allowed), ("Unknown", "Unknown", "Change allowed unknown"))
             refund_applicable, cancel_allowed_res = "N/A", "N/A"
-        if timing_code in [1, 3, 4]:
+        # Only override for scenarios where flight has actually departed (codes 1, 3)
+        # Code 4 (Before Departure No Show) should use matrix logic with penalties
+        if timing_code in [1, 3]:
             if base_action_type == 'cancel':
                 refund_applicable, cancel_allowed_res = "No", "No"
                 interpretation = f"Non-refundable ({timing_description.lower()})"

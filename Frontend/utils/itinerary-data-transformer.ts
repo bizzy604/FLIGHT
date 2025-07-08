@@ -991,21 +991,38 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
     paymentMethodLabel: PAYMENT_METHODS[payment?.Type?.Code || 'CA'] || 'Cash'
   };
 
-  // Extract passenger information with ticket numbers
+  // Extract passenger information with ticket numbers using ObjectKey-based mapping
   const passengers: PassengerInfo[] = [];
   const passengersData = response.Passengers?.Passenger || [];
   const ticketDocInfos = response.TicketDocInfos?.TicketDocInfo || [];
+
+  // Create a mapping of ObjectKey to ticket information for efficient lookup
+  const ticketMapping: Record<string, { ticketNumber: string; dateOfIssue: string; issuingAirline: string }> = {};
+  ticketDocInfos.forEach((ticketDoc: any) => {
+    const passengerRefs = ticketDoc.PassengerReference || [];
+    const ticketDocuments = ticketDoc.TicketDocument || [];
+
+    // Handle both single passenger reference and multiple passenger references
+    passengerRefs.forEach((passengerRef: string) => {
+      if (ticketDocuments.length > 0) {
+        ticketMapping[passengerRef] = {
+          ticketNumber: ticketDocuments[0].TicketDocNbr || 'N/A',
+          dateOfIssue: ticketDocuments[0].DateOfIssue || '',
+          issuingAirline: ticketDoc.IssuingAirlineInfo?.AirlineName || ''
+        };
+      }
+    });
+  });
 
   passengersData.forEach((passenger: any, index: number) => {
     const name = passenger.Name || {};
     const contact = passenger.Contacts?.Contact?.[0];
     const document = passenger.PassengerIDInfo?.PassengerDocument?.[0];
-    
-    // Find corresponding ticket number
-    let ticketNumber = 'N/A';
-    if (ticketDocInfos[index]?.TicketDocument?.[0]?.TicketDocNbr) {
-      ticketNumber = ticketDocInfos[index].TicketDocument[0].TicketDocNbr;
-    }
+
+    // Find corresponding ticket number using ObjectKey mapping
+    const passengerObjectKey = passenger.ObjectKey || `PAX${index + 1}`;
+    const ticketInfo = ticketMapping[passengerObjectKey] || {};
+    const ticketNumber = ticketInfo.ticketNumber || 'N/A';
 
     const passengerInfo: PassengerInfo = {
       objectKey: passenger.ObjectKey || `PAX${index + 1}`,
