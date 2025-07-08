@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import { Plane, Clock } from "lucide-react"
 import { ItineraryData, FlightSegment } from '@/utils/itinerary-data-transformer';
 
 interface OfficialItineraryProps {
@@ -49,47 +50,127 @@ const OfficialItinerary: React.FC<OfficialItineraryProps> = ({ data, className =
     }
   };
 
-  const renderFlightSegment = (segment: FlightSegment, index: number) => (
-    <div key={index} className={`border border-gray-200 rounded-lg ${isCompactMode ? 'p-2 mb-1' : 'p-3 mb-2'}`}>
-      <div className={`grid grid-cols-4 gap-2 ${isCompactMode ? 'text-xs' : 'text-xs'}`}>
-        <div className="flex items-center space-x-2">
-          <div className="flex-shrink-0">
-            <Image
-              src={segment.airlineLogo || `/airlines/${segment.airlineCode}.svg`}
-              alt={segment.airline}
-              width={isCompactMode ? 20 : 24}
-              height={isCompactMode ? 20 : 24}
-              className="rounded-full object-contain"
-              onError={(e) => {
-                // Fallback to a default airline icon if logo fails to load
-                (e.target as HTMLImageElement).src = '/airlines/default.svg';
-              }}
-            />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="font-semibold text-blue-600 truncate">
-              {segment.airline}
+  // Helper to calculate total duration from segments
+  const calculateTotalDuration = (segments: FlightSegment[]): string => {
+    let totalMinutes = 0;
+    segments.forEach(segment => {
+      const durationStr = segment.durationFormatted || segment.duration || "";
+      const hoursMatch = durationStr.match(/(\d+)\s*h/);
+      const minutesMatch = durationStr.match(/(\d+)\s*m/);
+      if (hoursMatch) totalMinutes += parseInt(hoursMatch[1]) * 60;
+      if (minutesMatch) totalMinutes += parseInt(minutesMatch[1]);
+    });
+
+    if (totalMinutes === 0) return "N/A";
+
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+    return `${hours}h ${mins}m`;
+  };
+
+  // Format date and time for display
+  const formatDateTime = (dateStr: string, timeStr: string) => {
+    if (!dateStr || !timeStr) return { time: 'N/A', date: 'N/A' };
+
+    try {
+      // Try to parse the date and time
+      const date = new Date(`${dateStr}T${timeStr}`);
+      if (isNaN(date.getTime())) {
+        // Fallback to original strings if parsing fails
+        return { time: timeStr, date: dateStr };
+      }
+
+      return {
+        time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+        date: date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
+      };
+    } catch {
+      return { time: timeStr, date: dateStr };
+    }
+  };
+
+  const renderFlightJourney = (segments: FlightSegment[], title: string) => {
+    if (!segments || segments.length === 0) return null;
+
+    const firstSegment = segments[0];
+    const lastSegment = segments[segments.length - 1];
+    const totalDuration = calculateTotalDuration(segments);
+    const stops = segments.length - 1;
+
+    const departure = formatDateTime(firstSegment.departure.date, firstSegment.departure.time);
+    const arrival = formatDateTime(lastSegment.arrival.date, lastSegment.arrival.time);
+
+    return (
+      <div className="mb-3">
+        <h4 className="font-semibold text-blue-600 mb-2 text-xs">{title}</h4>
+
+        {/* Card with border */}
+        <div className="border border-gray-200 rounded-lg p-3 bg-white">
+          {/* Overall Journey Summary */}
+          <div className={`flex items-center justify-between mb-2 ${isCompactMode ? 'text-xs' : 'text-sm'}`}>
+            <div className="text-center flex-1">
+              <div className={`${isCompactMode ? 'text-sm' : 'text-lg'} font-bold`}>{departure.time}</div>
+              <div className="text-xs text-gray-600">{firstSegment.departure.airport}</div>
+              <div className="text-xs text-gray-500">{departure.date}</div>
             </div>
-            <div className="text-gray-600">{segment.flightNumber}</div>
+
+            <div className="flex flex-col items-center px-2 flex-1">
+              <div className="text-xs text-gray-600 mb-1 flex items-center gap-1">
+                <Clock className="h-3 w-3 text-gray-600" />
+                <span>{totalDuration}</span>
+              </div>
+              <div className="flex w-full items-center">
+                <div className="h-px flex-1 bg-gray-300"></div>
+                <Plane className="mx-1 h-3 w-3 text-gray-600" />
+                <div className="h-px flex-1 bg-gray-300"></div>
+              </div>
+              <div className="text-xs text-gray-600 mt-1">
+                {stops > 0 ? `${stops} stop${stops > 1 ? 's' : ''}` : 'Direct'}
+              </div>
+            </div>
+
+            <div className="text-center flex-1">
+              <div className={`${isCompactMode ? 'text-sm' : 'text-lg'} font-bold`}>{arrival.time}</div>
+              <div className="text-xs text-gray-600">{lastSegment.arrival.airport}</div>
+              <div className="text-xs text-gray-500">{arrival.date}</div>
+            </div>
           </div>
-        </div>
-        <div>
-          <div className="font-semibold">{segment.departure.airport}</div>
-          <div className="text-gray-600">{segment.departure.time}</div>
-          <div className="text-xs text-gray-500">{segment.departure.date}</div>
-        </div>
-        <div>
-          <div className="font-semibold">{segment.arrival.airport}</div>
-          <div className="text-gray-600">{segment.arrival.time}</div>
-          <div className="text-xs text-gray-500">{segment.arrival.date}</div>
-        </div>
-        <div className="text-right">
-          <div className="text-gray-600">{segment.cabinClass}</div>
-          <div className="text-xs text-gray-500">{segment.duration}</div>
+
+          {/* Separator line */}
+          <div className="border-t border-gray-200 my-2"></div>
+
+          {/* Detailed Segments List */}
+          <div className={`space-y-2 ${isCompactMode ? 'mt-1' : 'mt-2'}`}>
+            {segments.map((segment, index) => (
+              <div key={index} className="flex items-start gap-2">
+                <Image
+                  src={segment.airlineLogo || `/airlines/${segment.airlineCode}.svg`}
+                  alt={segment.airline}
+                  width={isCompactMode ? 16 : 20}
+                  height={isCompactMode ? 16 : 20}
+                  className="rounded-full mt-1"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/airlines/default.svg';
+                  }}
+                />
+                <div className="flex-1 min-w-0">
+                  <p className={`font-semibold truncate ${isCompactMode ? 'text-xs' : 'text-sm'}`}>{segment.airline}</p>
+                  <p className="text-xs text-gray-600">{segment.flightNumber}</p>
+                  <p className="text-xs text-gray-500">Duration: {segment.durationFormatted || segment.duration}</p>
+                </div>
+                <div className="text-right text-xs flex-shrink-0">
+                  <p className="font-medium">{segment.departure.airport} → {segment.arrival.airport}</p>
+                  <p className="text-gray-600 text-xs">
+                    {formatDateTime(segment.departure.date, segment.departure.time).time} - {formatDateTime(segment.arrival.date, segment.arrival.time).time}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className={`bg-white text-black ${isCompactMode ? 'text-xs leading-tight' : 'text-sm leading-tight'} ${className}`} id="official-itinerary">
@@ -200,18 +281,10 @@ const OfficialItinerary: React.FC<OfficialItineraryProps> = ({ data, className =
           <h3 className="font-bold text-gray-800 mb-2 text-sm">FLIGHT DETAILS</h3>
 
           {/* Outbound Flight */}
-          <div className="mb-3">
-            <h4 className="font-semibold text-blue-600 mb-2 text-xs">🛫 OUTBOUND JOURNEY</h4>
-            {data.outboundFlight.map((segment, index) => renderFlightSegment(segment, index))}
-          </div>
+          {renderFlightJourney(data.outboundFlight, "🛫 OUTBOUND JOURNEY")}
 
           {/* Return Flight */}
-          {data.returnFlight && (
-            <div>
-              <h4 className="font-semibold text-blue-600 mb-2 text-xs">RETURN JOURNEY</h4>
-              {data.returnFlight.map((segment, index) => renderFlightSegment(segment, index))}
-            </div>
-          )}
+          {data.returnFlight && renderFlightJourney(data.returnFlight, "🛬 RETURN JOURNEY")}
         </div>
 
         {/* Pricing Summary */}
@@ -251,13 +324,23 @@ const OfficialItinerary: React.FC<OfficialItineraryProps> = ({ data, className =
               <div className="space-y-1">
                 <div className="flex justify-between">
                   <span>Allowed Pieces:</span>
-                  <span className="font-semibold">{data.baggageAllowance.checkedBags}</span>
+                  <span className="font-semibold">
+                    {data.baggageAllowance.checkedBagAllowance?.pieces ?? data.baggageAllowance.checkedBags}
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Weight Limit:</span>
-                  <span className="font-semibold">40 Kilogram</span>
-                </div>
-                <div className="text-xs text-blue-600">Note: Checked Bag Weight Allowance</div>
+                {data.baggageAllowance.checkedBagAllowance?.weight && (
+                  <div className="flex justify-between">
+                    <span>Weight Limit:</span>
+                    <span className="font-semibold">
+                      {data.baggageAllowance.checkedBagAllowance.weight.value} {data.baggageAllowance.checkedBagAllowance.weight.unit}
+                    </span>
+                  </div>
+                )}
+                {data.baggageAllowance.checkedBagAllowance?.description && (
+                  <div className="text-xs text-blue-600">
+                    Note: {data.baggageAllowance.checkedBagAllowance.description}
+                  </div>
+                )}
               </div>
             </div>
             <div className="bg-gray-50 p-2 rounded">
@@ -265,20 +348,30 @@ const OfficialItinerary: React.FC<OfficialItineraryProps> = ({ data, className =
               <div className="space-y-1">
                 <div className="flex justify-between">
                   <span>Allowed Pieces:</span>
-                  <span className="font-semibold">{data.baggageAllowance.carryOnBags} pieces</span>
+                  <span className="font-semibold">
+                    {data.baggageAllowance.carryOnAllowance?.pieces ?? data.baggageAllowance.carryOnBags}
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Total Allowance:</span>
-                  <span className="font-semibold">2 pieces</span>
-                </div>
-                <div className="text-xs text-blue-600">Note: Carry On Bag Allowance</div>
+                {data.baggageAllowance.carryOnAllowance?.weight && (
+                  <div className="flex justify-between">
+                    <span>Weight Limit:</span>
+                    <span className="font-semibold">
+                      {data.baggageAllowance.carryOnAllowance.weight.value} {data.baggageAllowance.carryOnAllowance.weight.unit}
+                    </span>
+                  </div>
+                )}
+                {data.baggageAllowance.carryOnAllowance?.description && (
+                  <div className="text-xs text-blue-600">
+                    Note: {data.baggageAllowance.carryOnAllowance.description}
+                  </div>
+                )}
               </div>
             </div>
           </div>
           <div className="mt-2 p-2 bg-yellow-50 rounded text-xs">
             <div className="font-semibold text-yellow-800 mb-1">📏 Size Limits:</div>
             <div className="text-yellow-700">
-              Checked bags max 23kg (50lbs), Carry-on max 7kg (15lbs). Additional fees may apply for excess baggage.
+              Please check with your airline for specific size and weight restrictions. Additional fees may apply for excess baggage.
             </div>
           </div>
         </div>

@@ -306,7 +306,20 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
     }
 
     console.warn('⚠️ No flight details found in booking data');
-    return null
+    // Return a safe fallback structure instead of null
+    return {
+      outbound: {
+        airline: { name: 'N/A', code: 'N/A', flightNumber: 'N/A', logo: '/placeholder.svg' },
+        departure: { airport: 'N/A', time: 'N/A', fullDate: 'N/A', terminal: 'N/A' },
+        arrival: { airport: 'N/A', time: 'N/A', fullDate: 'N/A', terminal: 'N/A' },
+        duration: 'N/A',
+        stops: 0
+      },
+      return: null,
+      pricing: { total: 0, currency: 'USD' },
+      passengers: [],
+      fareFamily: 'N/A'
+    }
   }
 
   // Helper function to get contact info from either format
@@ -693,10 +706,10 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
                     title: `Flight Booking - ${booking.id}`,
                     text: `My flight from ${(() => {
                        const flightDetails = getFlightDetails(booking);
-                       return flightDetails.outbound.departure?.city || 'departure city';
+                       return flightDetails?.outbound?.departure?.city || 'departure city';
                      })()} to ${(() => {
                        const flightDetails = getFlightDetails(booking);
-                       return flightDetails.outbound.arrival?.city || 'arrival city';
+                       return flightDetails?.outbound?.arrival?.city || 'arrival city';
                      })()} is confirmed!`,
                     url: window.location.href,
                   })
@@ -733,39 +746,39 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
                       )
                     }
 
-                    const outboundDepartureDateTime = parseDate(flightDetails.outbound.departure?.datetime) || 
-                      parseDate(flightDetails.outbound.departure?.date) || 
-                      parseDate(flightDetails.outbound.departure?.fullDate);
-                    const outboundDepartureTime = flightDetails.outbound.departure?.time || (outboundDepartureDateTime ? outboundDepartureDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A');
-                    const outboundDepartureAirportDisplay = flightDetails.outbound.departure?.airportName || flightDetails.outbound.departure?.airport || 'N/A';
+                    const outboundDepartureDateTime = parseDate(flightDetails?.outbound?.departure?.datetime) ||
+                      parseDate(flightDetails?.outbound?.departure?.date) ||
+                      parseDate(flightDetails?.outbound?.departure?.fullDate);
+                    const outboundDepartureTime = flightDetails?.outbound?.departure?.time || (outboundDepartureDateTime ? outboundDepartureDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A');
+                    const outboundDepartureAirportDisplay = flightDetails?.outbound?.departure?.airportName || flightDetails?.outbound?.departure?.airport || 'N/A';
                     const outboundDepartureFullDate = outboundDepartureDateTime ? outboundDepartureDateTime.toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
 
-                    const outboundArrivalDateTime = parseDate(flightDetails.outbound.arrival?.datetime) || 
-                      parseDate(flightDetails.outbound.arrival?.date) || 
-                      parseDate(flightDetails.outbound.arrival?.fullDate);
-                    const outboundArrivalTime = flightDetails.outbound.arrival?.time || (outboundArrivalDateTime ? outboundArrivalDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A');
-                    const outboundArrivalAirportDisplay = flightDetails.outbound.arrival?.airportName || flightDetails.outbound.arrival?.airport || 'N/A';
+                    const outboundArrivalDateTime = parseDate(flightDetails?.outbound?.arrival?.datetime) ||
+                      parseDate(flightDetails?.outbound?.arrival?.date) ||
+                      parseDate(flightDetails?.outbound?.arrival?.fullDate);
+                    const outboundArrivalTime = flightDetails?.outbound?.arrival?.time || (outboundArrivalDateTime ? outboundArrivalDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A');
+                    const outboundArrivalAirportDisplay = flightDetails?.outbound?.arrival?.airportName || flightDetails?.outbound?.arrival?.airport || 'N/A';
                     const outboundArrivalFullDate = outboundArrivalDateTime ? outboundArrivalDateTime.toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
 
                     return (
                       <>
                         <div className="mb-2 flex items-center justify-between">
                           <h4 className="font-medium">Outbound Flight</h4>
-                          <span className="text-sm text-muted-foreground">{flightDetails.outbound.duration || 'N/A'}</span>
+                          <span className="text-sm text-muted-foreground">{flightDetails?.outbound?.duration || 'N/A'}</span>
                         </div>
                         <div className="mb-2 flex items-center">
                           <Image
-                            src={flightDetails.outbound.airline?.logo || "/placeholder.svg"}
-                            alt={flightDetails.outbound.airline?.name || 'Airline'}
+                            src={flightDetails?.outbound?.airline?.logo || "/placeholder.svg"}
+                            alt={flightDetails?.outbound?.airline?.name || 'Airline'}
                             width={24}
                             height={24}
                             className="mr-2 rounded-full"
                           />
                           <span className="text-sm">
-                            {flightDetails.outbound.airline?.name || 'N/A'} {flightDetails.outbound.airline?.code || ''}
-                            {typeof flightDetails.outbound.airline?.flightNumber === 'object' && flightDetails.outbound.airline.flightNumber?.value 
-                              ? flightDetails.outbound.airline.flightNumber.value 
-                              : flightDetails.outbound.airline?.flightNumber || ''}
+                            {flightDetails?.outbound?.airline?.name || 'N/A'} {flightDetails?.outbound?.airline?.code || ''}
+                            {typeof flightDetails?.outbound?.airline?.flightNumber === 'object' && flightDetails?.outbound?.airline?.flightNumber?.value
+                              ? flightDetails?.outbound?.airline?.flightNumber.value
+                              : flightDetails?.outbound?.airline?.flightNumber || ''}
                           </span>
                         </div>
                         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
@@ -781,7 +794,7 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
                               <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full border border-muted bg-background"></div>
                               <div className="absolute -left-1 -top-1 h-3 w-3 rounded-full border border-muted bg-background"></div>
                             </div>
-                            <p className="mt-1">{(flightDetails.outbound.stops || 0) > 0 ? `${flightDetails.outbound.stops} Stop(s)` : 'Direct'}</p>
+                            <p className="mt-1">{(flightDetails?.outbound?.stops || 0) > 0 ? `${flightDetails?.outbound?.stops} Stop(s)` : 'Direct'}</p>
                           </div>
                           <div className="text-right">
                             <p className="text-lg font-bold">{outboundArrivalTime}</p>
@@ -797,24 +810,24 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
 
               {(() => {
                  const flightDetails = getFlightDetails(booking);
-                 return flightDetails.return;
+                 return flightDetails?.return;
                })() && (
                 <Card>
                   <CardContent className="p-4">
                     {(() => {
                       const flightDetails = getFlightDetails(booking);
-                      const returnDepartureDateTime = parseDate(flightDetails.return.departure?.datetime) || 
-                        parseDate(flightDetails.return.departure?.date) || 
-                        parseDate(flightDetails.return.departure?.fullDate);
-                      const returnDepartureTime = flightDetails.return.departure?.time || (returnDepartureDateTime ? returnDepartureDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A');
-                      const returnDepartureAirportDisplay = flightDetails.return.departure?.airportName || flightDetails.return.departure?.airport || 'N/A';
+                      const returnDepartureDateTime = parseDate(flightDetails?.return?.departure?.datetime) ||
+                        parseDate(flightDetails?.return?.departure?.date) ||
+                        parseDate(flightDetails?.return?.departure?.fullDate);
+                      const returnDepartureTime = flightDetails?.return?.departure?.time || (returnDepartureDateTime ? returnDepartureDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A');
+                      const returnDepartureAirportDisplay = flightDetails?.return?.departure?.airportName || flightDetails?.return?.departure?.airport || 'N/A';
                       const returnDepartureFullDate = returnDepartureDateTime ? returnDepartureDateTime.toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
 
-                      const returnArrivalDateTime = parseDate(flightDetails.return.arrival?.datetime) || 
-                        parseDate(flightDetails.return.arrival?.date) || 
-                        parseDate(flightDetails.return.arrival?.fullDate);
-                      const returnArrivalTime = flightDetails.return.arrival?.time || (returnArrivalDateTime ? returnArrivalDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A');
-                      const returnArrivalAirportDisplay = flightDetails.return.arrival?.airportName || flightDetails.return.arrival?.airport || 'N/A';
+                      const returnArrivalDateTime = parseDate(flightDetails?.return?.arrival?.datetime) ||
+                        parseDate(flightDetails?.return?.arrival?.date) ||
+                        parseDate(flightDetails?.return?.arrival?.fullDate);
+                      const returnArrivalTime = flightDetails?.return?.arrival?.time || (returnArrivalDateTime ? returnArrivalDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A');
+                      const returnArrivalAirportDisplay = flightDetails?.return?.arrival?.airportName || flightDetails?.return?.arrival?.airport || 'N/A';
                       const returnArrivalFullDate = returnArrivalDateTime ? returnArrivalDateTime.toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
 
                       return (
@@ -822,22 +835,22 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
                           <div className="mb-2 flex items-center justify-between">
                             <h4 className="font-medium">Return Flight</h4>
                             <span className="text-sm text-muted-foreground">
-                              {flightDetails.return.duration || 'N/A'}
+                              {flightDetails?.return?.duration || 'N/A'}
                             </span>
                           </div>
                           <div className="mb-2 flex items-center">
                             <Image
-                              src={flightDetails.return.airline?.logo || "/placeholder.svg"}
-                              alt={flightDetails.return.airline?.name || 'Airline'}
+                              src={flightDetails?.return?.airline?.logo || "/placeholder.svg"}
+                              alt={flightDetails?.return?.airline?.name || 'Airline'}
                               width={24}
                               height={24}
                               className="mr-2 rounded-full"
                             />
                             <span className="text-sm">
-                              {flightDetails.return.airline?.name || 'N/A'} {flightDetails.return.airline?.code || ''}
-                              {typeof flightDetails.return.airline?.flightNumber === 'object' && flightDetails.return.airline.flightNumber?.value 
-                                ? flightDetails.return.airline.flightNumber.value 
-                                : flightDetails.return.airline?.flightNumber || ''}
+                              {flightDetails?.return?.airline?.name || 'N/A'} {flightDetails?.return?.airline?.code || ''}
+                              {typeof flightDetails?.return?.airline?.flightNumber === 'object' && flightDetails?.return?.airline?.flightNumber?.value
+                                ? flightDetails?.return?.airline?.flightNumber.value
+                                : flightDetails?.return?.airline?.flightNumber || ''}
                             </span>
                           </div>
                           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
@@ -853,7 +866,7 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
                                 <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full border border-muted bg-background"></div>
                                 <div className="absolute -left-1 -top-1 h-3 w-3 rounded-full border border-muted bg-background"></div>
                               </div>
-                              <p className="mt-1">{(flightDetails.return.stops || 0) > 0 ? `${flightDetails.return.stops} Stop(s)` : 'Direct'}</p>
+                              <p className="mt-1">{(flightDetails?.return?.stops || 0) > 0 ? `${flightDetails?.return?.stops} Stop(s)` : 'Direct'}</p>
                             </div>
                             <div className="text-right">
                               <p className="text-lg font-bold">{returnArrivalTime}</p>
@@ -958,7 +971,7 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
                         <p className="text-sm">Outbound: {booking.extras.seats?.outbound || 'Not selected'}</p>
                         {(() => {
                            const flightDetails = getFlightDetails(booking);
-                           return flightDetails.return && booking.extras?.seats?.return && (
+                           return flightDetails?.return && booking.extras?.seats?.return && (
                              <p className="text-sm">Return: {booking.extras.seats.return}</p>
                            );
                          })()}
@@ -973,7 +986,7 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
                         <p className="text-sm">Outbound: {booking.extras.meals?.outbound || 'Not selected'}</p>
                         {(() => {
                            const flightDetails = getFlightDetails(booking);
-                           return flightDetails.return && booking.extras?.meals?.return && (
+                           return flightDetails?.return && booking.extras?.meals?.return && (
                              <p className="text-sm">Return: {booking.extras.meals.return}</p>
                            );
                          })()}
@@ -995,7 +1008,7 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
             </div>
           </div>
 
-          <div>
+          {/* <div>
             <h3 className="mb-2 text-lg font-medium">Payment Summary</h3>
             <div className="rounded-md border p-4">
               {(() => {
@@ -1055,7 +1068,7 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
                 );
               })()}
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 

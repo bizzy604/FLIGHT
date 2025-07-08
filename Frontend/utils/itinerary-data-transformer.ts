@@ -761,6 +761,14 @@ function transformFromFrontendAPIResponse(data: any): ItineraryData {
     phone: '+254 729 582 121'
   };
 
+  // Extract baggage allowance from transformed data if available
+  const baggageAllowance: BaggageDetails = {
+    checkedBags: data.baggageAllowance?.checkedBags || 1,
+    carryOnBags: data.baggageAllowance?.carryOnBags || 1,
+    checkedBagAllowance: data.baggageAllowance?.checkedBagAllowance,
+    carryOnAllowance: data.baggageAllowance?.carryOnAllowance
+  };
+
   return {
     bookingInfo,
     passengers,
@@ -768,7 +776,7 @@ function transformFromFrontendAPIResponse(data: any): ItineraryData {
     returnFlight: returnFlight.length > 0 ? returnFlight : null,
     pricing,
     contactInfo,
-    baggageAllowance: { checkedBags: 1, carryOnBags: 1 },
+    baggageAllowance,
     fareRules: []
   };
 }
@@ -868,6 +876,22 @@ function transformFromOriginalFlightOffer(originalFlightOffer: any, basicBooking
     phone: basicBookingData?.contactInfo?.phone || ''
   };
 
+  // Extract baggage allowance from originalFlightOffer if available
+  const baggageAllowance: BaggageDetails = {
+    checkedBags: originalFlightOffer?.baggage_allowance?.checked_bags || 1,
+    carryOnBags: originalFlightOffer?.baggage_allowance?.carry_on_bags || 1,
+    checkedBagAllowance: originalFlightOffer?.baggage_allowance?.checked_bag_details ? {
+      pieces: originalFlightOffer.baggage_allowance.checked_bag_details.pieces,
+      weight: originalFlightOffer.baggage_allowance.checked_bag_details.weight,
+      description: originalFlightOffer.baggage_allowance.checked_bag_details.description
+    } : undefined,
+    carryOnAllowance: originalFlightOffer?.baggage_allowance?.carry_on_details ? {
+      pieces: originalFlightOffer.baggage_allowance.carry_on_details.pieces,
+      weight: originalFlightOffer.baggage_allowance.carry_on_details.weight,
+      description: originalFlightOffer.baggage_allowance.carry_on_details.description
+    } : undefined
+  };
+
   return {
     bookingInfo,
     passengers,
@@ -875,10 +899,7 @@ function transformFromOriginalFlightOffer(originalFlightOffer: any, basicBooking
     returnFlight: null,
     pricing: pricingInfo,
     contactInfo,
-    baggageAllowance: {
-      checkedBags: 1,
-      carryOnBags: 1
-    },
+    baggageAllowance,
     fareRules: []
   };
 }
