@@ -99,7 +99,6 @@ const AIRPORT_NAMES: Record<string, string> = {
   'TUS': 'Tucson',
   'COS': 'Colorado Springs',
   'BOI': 'Boise',
-  'SLC': 'Salt Lake City',
   'BIL': 'Billings',
   'FAR': 'Fargo',
   'GFK': 'Grand Forks',
