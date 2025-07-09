@@ -18,6 +18,7 @@ import { LoadingSpinner } from "@/components/loading-spinner"
 import { toast } from "@/components/ui/use-toast"
 import { storeBookingData } from "@/utils/booking-storage"
 import { flightStorageManager } from "@/utils/flight-storage-manager"
+import { navigationCacheManager } from "@/utils/navigation-cache-manager"
 
 export default function PaymentPage() {
   const router = useRouter()
@@ -37,6 +38,8 @@ export default function PaymentPage() {
     const fetchBookingData = async () => {
       setIsLoading(true)
       try {
+        // Update navigation state
+        navigationCacheManager.updateNavigationState('payment', { flightId });
         let storedPendingBooking = sessionStorage.getItem("pendingBookingData")
         if (!storedPendingBooking) {
           // Try to recover from robust storage as fallback

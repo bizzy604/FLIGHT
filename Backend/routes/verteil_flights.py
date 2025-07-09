@@ -706,6 +706,49 @@ async def flight_price():
         return jsonify(_create_error_response("An unexpected error occurred", 500, request_id))
 
 
+@bp.route('/debug/token', methods=['GET', 'OPTIONS'])
+@route_cors(
+    allow_origin=ALLOWED_ORIGINS,
+    allow_methods=["GET", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+    expose_headers=["Content-Type"],
+    allow_credentials=True,
+    max_age=600
+)
+async def debug_token():
+    """
+    Debug endpoint to check token status and metrics.
+    """
+    try:
+        from utils.auth import TokenManager
+
+        token_manager = TokenManager.get_instance()
+        token_info = token_manager.get_token_info()
+
+        # Try to get a token to see if it triggers generation
+        try:
+            token = token_manager.get_token()
+            token_available = True
+        except Exception as e:
+            token_available = False
+            token_info['error'] = str(e)
+
+        return jsonify({
+            'status': 'success',
+            'token_available': token_available,
+            'token_info': token_info,
+            'config_set': bool(token_manager._config),
+            'persistence_enabled': token_manager._enable_persistence,
+            'token_file_path': token_manager._get_token_file_path() if token_manager._enable_persistence else None
+        })
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e)
+        }), 500
+
+
 @bp.route('/order-create', methods=['POST', 'OPTIONS'])
 @route_cors(
     allow_origin=ALLOWED_ORIGINS,

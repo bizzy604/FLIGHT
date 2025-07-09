@@ -284,6 +284,9 @@ class TokenManager:
                 logger.debug("TokenManager config unchanged, skipping update")
                 return
 
+            # Store previous config to check if credentials changed
+            previous_config = self._config
+
             # Log configuration update
             if self._config:
                 logger.info("TokenManager configuration updated")
@@ -292,10 +295,21 @@ class TokenManager:
 
             self._config = config
 
-            # Clear existing token when config changes to force refresh with new config
-            if self._token:
-                logger.info("Clearing existing token due to configuration change")
-                self.clear_token()
+            # Only clear existing token if authentication credentials actually changed
+            # Don't clear token when setting config for the first time
+            if self._token and previous_config:
+                # Check if authentication-related config changed
+                auth_keys = ['VERTEIL_USERNAME', 'VERTEIL_PASSWORD', 'VERTEIL_API_BASE_URL', 'VERTEIL_TOKEN_ENDPOINT']
+                config_changed = any(
+                    previous_config.get(key) != config.get(key)
+                    for key in auth_keys
+                )
+
+                if config_changed:
+                    logger.info("Clearing existing token due to authentication configuration change")
+                    self.clear_token()
+                else:
+                    logger.debug("Configuration updated but authentication settings unchanged, keeping existing token")
     
     def _get_effective_config(self, config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """

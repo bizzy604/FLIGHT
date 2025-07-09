@@ -10,6 +10,8 @@ import type { FlightSearchRequest } from "@/utils/api-client"
 import type { FlightOffer } from "@/types/flight-api"
 import { flightStorageManager, FlightSearchData } from "@/utils/flight-storage-manager"
 import { redisFlightStorage } from "@/utils/redis-flight-storage"
+import { navigationCacheManager } from "@/utils/navigation-cache-manager"
+
 
 import { Button, LoadingButton } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -238,6 +240,20 @@ function SearchParamsWrapper() {
       setLoading(false);
       return;
     }
+
+    // Update navigation state and setup cache management
+    const currentSearchParams = {
+      origin, destination, departDate, returnDate, tripType,
+      adults: adults.toString(), children: children.toString(), infants: infants.toString(),
+      cabinClass, outboundCabinClass, returnCabinClass
+    };
+    navigationCacheManager.updateNavigationState('search', { searchParams: currentSearchParams });
+
+    // Check if we should use cached data
+    const shouldUseCachedData = async () => {
+      const cacheValidation = await navigationCacheManager.validateFlightSearchCache(currentSearchParams);
+      return cacheValidation.isValid;
+    };
     
     // Convert trip type to backend format
     const convertTripType = (type: string): 'ONE_WAY' | 'ROUND_TRIP' | 'MULTI_CITY' => {
@@ -279,17 +295,14 @@ function SearchParamsWrapper() {
       directOnly: false
     };
     
-    // Create a unique storage key based on search parameters
-    const storageKey = `flightData_${origin}_${destination}_${departDate}_${tripType}_${adults}_${children}_${infants}_${cabinClass}_${outboundCabinClass}_${returnCabinClass}`;
-
-    // Check for cached data using robust storage manager
+    // Check for cached data using intelligent navigation cache manager
     const checkCachedData = async () => {
       try {
+        // Use navigation cache manager for intelligent cache validation
+        const cacheValidation = await navigationCacheManager.validateFlightSearchCache(currentSearchParams);
 
-        const result = await flightStorageManager.getFlightSearch();
-
-        if (result.success && result.data) {
-          const cachedData = result.data;
+        if (cacheValidation.isValid && cacheValidation.data) {
+          const cachedData = cacheValidation.data;
           const cachedParams = cachedData.searchParams;
 
 
@@ -346,7 +359,6 @@ function SearchParamsWrapper() {
             directFlights.forEach((flight: FlightOffer) => {
               if (flight.arrival && flight.arrival.airport) {
                 const airportCode = flight.arrival.airport;
-                const airportName = flight.arrival.airportName || airportCode;
 
                 const displayName = flight.arrival.airportName
                   ? `${airportCode} - ${flight.arrival.airportName}`
@@ -375,6 +387,17 @@ function SearchParamsWrapper() {
 
     // Try to load cached data first (async)
     const loadData = async () => {
+      // Use smart cache checking
+      const useCache = await shouldUseCachedData();
+
+      if (useCache) {
+        console.log('[FlightSearch] ⚡ Using cached data, skipping API call');
+        const hasCachedData = await checkCachedData();
+        if (hasCachedData) {
+          return; // Cache hit, data loaded
+        }
+      }
+
       const hasCachedData = await checkCachedData();
 
       // Only fetch from API if no valid cached data exists
@@ -502,7 +525,6 @@ function SearchParamsWrapper() {
         directFlights.forEach((flight: FlightOffer) => {
           if (flight.arrival && flight.arrival.airport) {
             const airportCode = flight.arrival.airport;
-            const airportName = flight.arrival.airportName || airportCode;
 
             // Create a display name that includes both code and name if available
             const displayName = flight.arrival.airportName

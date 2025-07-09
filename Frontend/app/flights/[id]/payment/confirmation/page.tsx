@@ -15,6 +15,7 @@ import { LoadingSpinner } from "@/components/loading-spinner"
 import { toast } from "@/components/ui/use-toast"
 import { getBookingData, getStorageInfo } from "@/utils/booking-storage"
 import { flightStorageManager } from "@/utils/flight-storage-manager"
+import { navigationCacheManager } from "@/utils/navigation-cache-manager"
 
 export default function ConfirmationPage() {
   const router = useRouter()
@@ -139,6 +140,9 @@ export default function ConfirmationPage() {
       try {
         setIsLoading(true)
         setError(null)
+
+        // Update navigation state
+        navigationCacheManager.updateNavigationState('confirmation');
 
         const bookingReference = searchParams.get("reference")
 

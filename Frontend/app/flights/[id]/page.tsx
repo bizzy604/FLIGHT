@@ -12,6 +12,7 @@ import { logger } from "@/utils/logger"
 
 import { flightStorageManager, FlightPriceData } from "@/utils/flight-storage-manager"
 import { redisFlightStorage } from "@/utils/redis-flight-storage"
+import { navigationCacheManager } from "@/utils/navigation-cache-manager"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -164,9 +165,26 @@ function FlightDetailsPageContent() {
       setIsLoading(true)
       setError(null)
       try {
+        // Update navigation state
+        navigationCacheManager.updateNavigationState('details', { flightId });
 
-
-
+        // Check if we should skip API call based on navigation context
+        if (navigationCacheManager.shouldSkipApiCall('details', { flightId })) {
+          const cacheValidation = await navigationCacheManager.validateFlightPriceCache(flightId);
+          if (cacheValidation.isValid && cacheValidation.data) {
+            const cachedPriceData = cacheValidation.data;
+            setPricedOffer(cachedPriceData.pricedOffer);
+            if (cachedPriceData.searchParams) {
+              setCachedSearchParams(cachedPriceData.searchParams);
+            }
+            sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(cachedPriceData.pricedOffer));
+            if (cachedPriceData.rawResponse) {
+              sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(cachedPriceData.rawResponse));
+            }
+            setIsLoading(false);
+            return;
+          }
+        }
 
         // Try to get existing flight price data from Redis first
         let flightPriceResult = await redisFlightStorage.getFlightPrice();
