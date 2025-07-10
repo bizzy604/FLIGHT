@@ -1260,7 +1260,7 @@ def _extract_penalty_info(priced_offer: Dict[str, Any], reference_data: Dict[str
     return valid_penalties
 
 
-from utils.airline_data import get_airline_name, AIRLINE_NAMES
+from utils.airline_data import get_airline_name
 
 def _get_airline_logo_url(airline_code):
     """Get the logo URL for an airline code.
@@ -1292,26 +1292,28 @@ def _get_airline_name(airline_code: str, reference_data: Dict[str, Any] = None) 
     2. MarketingCarrier in segments
     3. OperatingCarrier in segments
     4. Flight segments in reference data
-    5. Known airline codes mapping from AIRLINE_NAMES
+    5. Centralized airline mapping service
     6. Generic fallback with code
-    
+
     Args:
         airline_code: 2-letter IATA airline code
         reference_data: Dictionary containing airlines and flight segments
-        
+
     Returns:
         Airline name if found, or formatted code if not found
     """
     if not airline_code:
         logger.debug("Empty airline code provided")
         return "Unknown Airline"
-        
+
     # Clean and normalize the code
     code = str(airline_code).strip().upper()
-    
-    # 0. First check if we have a direct mapping in AIRLINE_NAMES
-    if code in AIRLINE_NAMES:
-        return AIRLINE_NAMES[code]
+
+    # 0. First check centralized airline mapping service
+    from services.airline_mapping_service import AirlineMappingService
+    centralized_name = AirlineMappingService.get_airline_display_name(code)
+    if centralized_name and not centralized_name.startswith("Airline "):
+        return centralized_name
     
     # 1. Check reference_data.airlines first (from segments)
     if reference_data and 'airlines' in reference_data and code in reference_data['airlines']:
@@ -1367,16 +1369,12 @@ def _get_airline_name(airline_code: str, reference_data: Dict[str, Any] = None) 
             except (KeyError, AttributeError) as e:
                 logger.debug(f"Error processing segment {segment_key}: {str(e)}")
     
-    # 4. Try to get from the imported get_airline_name function
+    # 4. Try to get from the imported get_airline_name function (which now uses centralized service)
     name = get_airline_name(code, log_missing=False)
     if name and name != f"Airline {code}":
         return name
-    
-    # 5. Final fallback - check if we have the code in our hardcoded AIRLINE_NAMES
-    if code in AIRLINE_NAMES:
-        return AIRLINE_NAMES[code]
-    
-    # 6. Last resort - return a generic name with the code
+
+    # 5. Last resort - return a generic name with the code
     logger.debug(f"Could not find airline name for code: {code}")
     return f"Airline {code}"
 

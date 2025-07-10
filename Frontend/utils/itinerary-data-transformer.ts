@@ -342,9 +342,11 @@ function formatDateTime(date: string, time: string): string {
 }
 
 /**
- * Airline mapping for proper airline names
+ * Airline mapping for proper airline names (FALLBACK ONLY)
+ * Note: This is now used as fallback only. API-provided names are prioritized.
+ * The backend now uses a centralized airline mapping service.
  */
-const AIRLINE_NAMES: { [key: string]: string } = {
+const AIRLINE_NAMES_FALLBACK: { [key: string]: string } = {
   'AF': 'Air France',
   'KL': 'KLM Royal Dutch Airlines',
   'EK': 'Emirates',
@@ -370,11 +372,14 @@ const AIRLINE_NAMES: { [key: string]: string } = {
   'JL': 'Japan Airlines',
   'CA': 'Air China',
   'CZ': 'China Southern Airlines',
-  'MU': 'China Eastern Airlines'
+  'MU': 'China Eastern Airlines',
+  'GF': 'Gulf Air'  // Added missing Gulf Air
 };
 
 /**
- * Get airline name from airline code
+ * Get airline name from airline code (FALLBACK ONLY)
+ * Note: This should only be used when API doesn't provide airline name.
+ * The backend now provides airline names through centralized mapping service.
  */
 function getAirlineName(airlineCode: string): string {
   if (!airlineCode) {
@@ -382,8 +387,8 @@ function getAirlineName(airlineCode: string): string {
     return 'Unknown Airline';
   }
   const code = airlineCode.trim().toUpperCase();
-  const airlineName = AIRLINE_NAMES[code];
-  console.log(`🔍 getAirlineName: Code "${code}" -> Name "${airlineName || `Airline ${code}`}"`);
+  const airlineName = AIRLINE_NAMES_FALLBACK[code];
+  console.log(`🔍 getAirlineName: Using FALLBACK mapping for code "${code}" -> Name "${airlineName || `Airline ${code}`}"`);
   return airlineName || `Airline ${code}`;
 }
 
@@ -1092,7 +1097,15 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
           const carrierName = flight.MarketingCarrier?.Name;
           const carrierCode = flight.MarketingCarrier?.AirlineID?.value;
           console.log(`🔍 Flight segment airline data: Name="${carrierName}", Code="${carrierCode}"`);
-          return carrierName || getAirlineName(carrierCode || '');
+
+          // Prioritize API-provided name, use fallback mapping only if API name is missing
+          if (carrierName && carrierName.trim() && carrierName !== 'None') {
+            console.log(`🔍 Using API-provided airline name: "${carrierName}"`);
+            return carrierName;
+          } else {
+            console.log(`🔍 API name missing/invalid, using fallback mapping for code: "${carrierCode}"`);
+            return getAirlineName(carrierCode || '');
+          }
         })(),
         airlineCode: flight.MarketingCarrier?.AirlineID?.value || '',
         airlineLogo: `/airlines/${flight.MarketingCarrier?.AirlineID?.value || 'default'}.svg`,

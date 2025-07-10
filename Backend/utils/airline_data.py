@@ -5,76 +5,9 @@ This module provides a centralized location for airline code mappings
 that can be used across different parts of the application.
 """
 
-# Mapping of IATA airline codes to airline names
-# Source: https://www.iata.org/en/publications/directories/code-search/
-AIRLINE_NAMES = {
-    # Major Airlines
-    'AA': 'American Airlines',
-    'KQ': 'Kenya Airways',
-    'DL': 'Delta Air Lines',
-    'UA': 'United Airlines',
-    'WN': 'Southwest Airlines',
-    'BA': 'British Airways',
-    'AF': 'Air France',
-    'LH': 'Lufthansa',
-    'KL': 'KLM Royal Dutch Airlines',
-    'EK': 'Emirates',
-    'QR': 'Qatar Airways',
-    'SQ': 'Singapore Airlines',
-    'CX': 'Cathay Pacific',
-    'QF': 'Qantas',
-    'EY': 'Etihad Airways',
-    'TK': 'Turkish Airlines',
-    'NH': 'ANA All Nippon Airways',
-    'JL': 'Japan Airlines',
-    'CA': 'Air China',
-    'CZ': 'China Southern Airlines',
-    'MU': 'China Eastern Airlines',
-    '6E': 'IndiGo',
-    'AI': 'Air India',
-    'IX': 'Air India Express',
-    'SU': 'Aeroflot',
-    'AC': 'Air Canada',
-    'LY': 'El Al',
-    'SV': 'Saudi Arabian Airlines',
-    'ET': 'Ethiopian Airlines',
-    'KE': 'Korean Air',
-    'OZ': 'Asiana Airlines',
-    'TG': 'Thai Airways',
-    'VN': 'Vietnam Airlines',
-    'GA': 'Garuda Indonesia',
-    'MH': 'Malaysia Airlines',
-    'PR': 'Philippine Airlines',
-    'BR': 'EVA Air',
-    'CI': 'China Airlines',
-    'NZ': 'Air New Zealand',
-    'VA': 'Virgin Australia',
-    'FZ': 'flydubai',
-    'G9': 'Air Arabia',
-    'JQ': 'Jetstar',
-    '3U': 'Sichuan Airlines',
-    'HU': 'Hainan Airlines',
-    'SC': 'Shandong Airlines',
-    'FM': 'Shanghai Airlines',
-    'MF': 'Xiamen Airlines',
-    'KY': 'Kunming Airlines',
-    '8L': 'Lucky Air',
-    'GS': 'Tianjin Airlines',
-    'PN': 'China West Air',
-    'G5': 'China Express Airlines',
-    'EU': 'Chengdu Airlines',
-    'DR': 'Ruili Airlines',
-    'UQ': 'Urumqi Air',
-    'A6': 'Air Travel',
-    'GT': 'Guangxi Beibu Gulf Airlines',
-    'QW': 'Qingdao Airlines',
-    'LT': 'LongJiang Airlines',
-    'GJ': 'Loong Air',
-    'RY': 'Jiangxi Air',
-    'VD': 'Henan Airlines',
-    'DZ': 'Donghai Airlines',
-    'GX': 'GX Airlines'
-}
+# NOTE: This file now uses the centralized airline mapping service.
+# The AIRLINE_NAMES dictionary has been moved to services/airline_mapping_service.py
+# to serve as the single source of truth for all airline name mappings.
 
 def get_airline_name(airline_code: str, log_missing: bool = True) -> str:
     """

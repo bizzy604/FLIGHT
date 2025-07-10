@@ -109,6 +109,31 @@ class AirlineMappingService:
         # Other Airlines
         'SU': 'Aeroflot',
         'QF': 'Qantas',
+
+        # Additional Airlines (consolidated from other mappings)
+        'AC': 'Air Canada',
+        'LY': 'El Al',
+        'SV': 'Saudi Arabian Airlines',
+        'KE': 'Korean Air',
+        'OZ': 'Asiana Airlines',
+        'TG': 'Thai Airways',
+        'VN': 'Vietnam Airlines',
+        'GA': 'Garuda Indonesia',
+        'MH': 'Malaysia Airlines',
+        'PR': 'Philippine Airlines',
+        'BR': 'EVA Air',
+        'CI': 'China Airlines',
+        'NZ': 'Air New Zealand',
+        'VA': 'Virgin Australia',
+        'FZ': 'flydubai',
+        'G9': 'Air Arabia',
+        'JQ': 'Jetstar',
+        '3U': 'Sichuan Airlines',
+        'HU': 'Hainan Airlines',
+        'SC': 'Shandong Airlines',
+        'FM': 'Shanghai Airlines',
+        'MF': 'Xiamen Airlines',
+        'WN': 'Southwest Airlines',
     }
     
     # Airline regions for grouping and filtering
