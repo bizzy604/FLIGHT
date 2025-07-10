@@ -62,31 +62,53 @@ class AirlineMappingService:
         'WY': 'WY',          # Oman Air
     }
     
-    # Airline display names for user interfaces
+    # Comprehensive airline display names for user interfaces
+    # This is the SINGLE SOURCE OF TRUTH for all airline name mappings
     AIRLINE_DISPLAY_NAMES = {
+        # Major European Airlines
         'KL': 'KLM Royal Dutch Airlines',
         'AF': 'Air France',
         'LHG': 'Lufthansa Group',
+        'LH': 'Lufthansa',
+        'SN': 'Brussels Airlines',
+        'BA': 'British Airways',
+        'A3': 'Aegean Airlines',
+
+        # North American Airlines
+        'UA': 'United Airlines',
+        'DL': 'Delta Air Lines',
+        'AA': 'American Airlines',
+        'WN': 'Southwest Airlines',
+
+        # Middle Eastern Airlines
         'QR': 'Qatar Airways',
         'EK': 'Emirates',
         'EY': 'Etihad Airways',
+        'GF': 'Gulf Air',  # ✅ Added missing Gulf Air
+        'WY': 'Oman Air',
+
+        # African Airlines
         'KQ': 'Kenya Airways',
         'ET': 'Ethiopian Airlines',
-        '6E': 'IndiGo',
-        'IX': 'Air India Express',
-        # Additional airlines from multi-airline responses
-        'SN': 'Brussels Airlines',
-        'LH': 'Lufthansa',
-        'UA': 'United Airlines',
-        'A3': 'Aegean Airlines',
-        'DL': 'Delta Air Lines',
+
+        # Asian Airlines
+        'SQ': 'Singapore Airlines',
         'CX': 'Cathay Pacific Airways',
         'TK': 'Turkish Airlines',
-        'SQ': 'Singapore Airlines',
-        'GF': 'Gulf Air',
-        'BA': 'British Airways',
-        'CX': 'Cathay Pacific Airways',
-        'WY': 'Oman Air',
+        'NH': 'ANA All Nippon Airways',
+        'JL': 'Japan Airlines',
+        'CA': 'Air China',
+        'CZ': 'China Southern Airlines',
+        'MU': 'China Eastern Airlines',
+
+        # Indian Airlines
+        '6E': 'IndiGo',
+        'AI': 'Air India',
+        'IX': 'Air India Express',
+
+        # Other Airlines
+        'SU': 'Aeroflot',
+        'QF': 'Qantas',
     }
     
     # Airline regions for grouping and filtering

@@ -112,10 +112,7 @@ def build_airshopping_request(
     # Prepare preferences
     preferences = {
         "CabinPreferences": cabin_preferences_obj,
-        "FarePreferences": fare_preferences,
-        "PricingMethodPreference": {
-            "BestPricingOption": "Y"
-        }
+        "FarePreferences": fare_preferences
     }
 
     # Prepare response parameters

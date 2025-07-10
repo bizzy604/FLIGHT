@@ -10,13 +10,11 @@ from collections import defaultdict
 from datetime import datetime
 
 # --- Airline Data & Helpers ---
-AIRLINE_NAMES = {
-    "EK": "Emirates", "KQ": "Kenya Airways", "AF": "Air France", "KL": "KLM Royal Dutch Airlines",
-    "QR": "Qatar Airways", "SQ": "Singapore Airlines", "BA": "British Airways", "LH": "Lufthansa"
-}
-
 def get_airline_name(code: str) -> str:
-    return AIRLINE_NAMES.get(code, f"Unknown Airline ({code})")
+    """Get airline name using centralized mapping service."""
+    # Import here to avoid circular imports
+    from services.airline_mapping_service import AirlineMappingService
+    return AirlineMappingService.get_airline_display_name(code)
 
 def get_airline_logo_url(airline_code: str) -> Optional[str]:
     if not airline_code: return None
@@ -218,11 +216,30 @@ def build_flight_segment(segment_data: Dict[str, Any]) -> FlightSegment:
     flight_num = marketing_carrier.get('FlightNumber', {}).get('value', '000')
     raw_duration = segment_data.get('FlightDetail', {}).get('FlightDuration', {}).get('Value', 'N/A')
     
+    # Combine Date and Time fields to create proper datetime strings
+    # FlightPrice response has separate Date and Time fields
+    def combine_date_time(date_str: str, time_str: str) -> str:
+        """Combine separate date and time fields into a proper datetime string."""
+        if not date_str or not time_str:
+            return date_str or ''
+
+        try:
+            # Extract date part from ISO string (e.g., "2025-07-15T00:00:00.000" -> "2025-07-15")
+            date_part = date_str.split('T')[0] if 'T' in date_str else date_str
+            # Combine with actual time (e.g., "04:15")
+            return f"{date_part}T{time_str}:00.000"
+        except Exception as e:
+            logger.warning(f"Error combining date and time: {e}")
+            return date_str
+
+    departure_datetime = combine_date_time(dep.get('Date', ''), dep.get('Time', ''))
+    arrival_datetime = combine_date_time(arr.get('Date', ''), arr.get('Time', ''))
+
     return FlightSegment(
         departure_airport=dep.get('AirportCode', {}).get('value', ''),
         arrival_airport=arr.get('AirportCode', {}).get('value', ''),
-        departure_datetime=dep.get('Date', ''),
-        arrival_datetime=arr.get('Date', ''),
+        departure_datetime=departure_datetime,
+        arrival_datetime=arrival_datetime,
         airline_code=airline_code,
         airline_name=get_airline_name(airline_code),
         airline_logo_url=get_airline_logo_url(airline_code),
@@ -258,16 +275,106 @@ def _get_od_mapping(refs: Dict[str, Any]) -> Dict[str, str]:
                     if seg_key: od_map[seg_key] = od_string
     return od_map
 
-def _extract_min_max_amount(penalty_detail: Dict[str, Any]) -> tuple:
+def _extract_currency_metadata(response: Dict[str, Any]) -> Dict[str, int]:
+    """
+    Extract currency metadata from FlightPrice response to get decimal places for each currency.
+
+    Args:
+        response: FlightPrice response containing metadata
+
+    Returns:
+        Dictionary mapping currency codes to decimal places (e.g., {'USD': 2, 'INR': 0})
+    """
+    currency_decimals = {}
+    try:
+        metadata = response.get('Metadata', {}).get('Other', {}).get('OtherMetadata', [])
+        if not isinstance(metadata, list):
+            metadata = [metadata] if metadata else []
+
+        for meta_item in metadata:
+            currency_metas = meta_item.get('CurrencyMetadatas', {}).get('CurrencyMetadata', [])
+            if not isinstance(currency_metas, list):
+                currency_metas = [currency_metas] if currency_metas else []
+
+            for curr_meta in currency_metas:
+                currency_code = curr_meta.get('MetadataKey')
+                decimals = curr_meta.get('Decimals')
+                if currency_code and decimals is not None:
+                    currency_decimals[currency_code] = int(decimals)
+
+    except Exception as e:
+        logger.warning(f"Failed to extract currency metadata: {e}")
+
+    return currency_decimals
+
+def _format_amount_with_decimals(amount: float, currency: str, currency_decimals: Dict[str, int]) -> float:
+    """
+    Convert raw amount according to currency decimal places from metadata.
+
+    The currency metadata decimals indicate how many decimal places are implied in the raw amount.
+    For example:
+    - USD (2 decimals): Raw 15000 → Actual 150.00 (divide by 10^2)
+    - INR (0 decimals): Raw 52206 → Actual 52206 (divide by 10^0 = no change)
+
+    IMPORTANT: If currency metadata is not available, returns raw amount as-is to avoid
+    misleading conversions.
+
+    Args:
+        amount: Raw amount value from API
+        currency: Currency code
+        currency_decimals: Dictionary mapping currency codes to decimal places
+
+    Returns:
+        Actual amount with decimal conversion applied, or raw amount if metadata missing
+    """
+    if amount is None:
+        return None
+
+    # Check if currency metadata is available for this specific currency
+    if currency not in currency_decimals:
+        # No metadata available - return raw amount as-is to avoid misleading conversions
+        logger.warning(f"No currency metadata found for {currency}, using raw amount: {amount}")
+        return float(amount)
+
+    # Use metadata to convert the amount
+    decimals = currency_decimals[currency]
+
+    # Convert raw amount by dividing by 10^decimals
+    divisor = 10 ** decimals
+    actual_amount = float(amount) / divisor
+
+    # Round to the specified decimal places for clean display
+    return round(actual_amount, decimals)
+
+def _extract_min_max_amount(penalty_detail: Dict[str, Any], currency_decimals: Dict[str, int] = None) -> tuple:
+    """
+    Extract min/max amounts from penalty detail and format according to currency metadata.
+
+    Args:
+        penalty_detail: Penalty detail from API response
+        currency_decimals: Dictionary mapping currency codes to decimal places
+
+    Returns:
+        Tuple of (min_amount, max_amount, currency) with properly formatted amounts
+    """
     min_amount, max_amount, currency = None, None, None
+    currency_decimals = currency_decimals or {}
+
     for amount in penalty_detail.get('Amounts', {}).get('Amount', []):
         app = amount.get('AmountApplication')
         value = amount.get('CurrencyAmountValue', {}).get('value')
-        if currency is None: currency = amount.get('CurrencyAmountValue', {}).get('Code')
-        if app == 'MIN': min_amount = value
-        elif app == 'MAX': max_amount = value
-    if min_amount is None and max_amount is not None: min_amount = max_amount
-    if max_amount is None and min_amount is not None: max_amount = min_amount
+        if currency is None:
+            currency = amount.get('CurrencyAmountValue', {}).get('Code')
+        if app == 'MIN':
+            min_amount = _format_amount_with_decimals(value, currency, currency_decimals)
+        elif app == 'MAX':
+            max_amount = _format_amount_with_decimals(value, currency, currency_decimals)
+
+    if min_amount is None and max_amount is not None:
+        min_amount = max_amount
+    if max_amount is None and min_amount is not None:
+        max_amount = min_amount
+
     return min_amount, max_amount, currency
 
 def _detect_round_trip_segments(segments: List[FlightSegment]) -> Tuple[List[FlightSegment], List[FlightSegment]]:
@@ -332,7 +439,7 @@ def _detect_round_trip_segments(segments: List[FlightSegment]) -> Tuple[List[Fli
     # If we can't detect round trip pattern, treat as one-way
     return segments, []
 
-def _transform_single_offer_for_frontend(offer: Dict[str, Any], refs: Dict[str, Any], all_travelers_map: Dict[str, str], od_map: Dict[str, str]) -> List[Dict[str, Any]]:
+def _transform_single_offer_for_frontend(offer: Dict[str, Any], refs: Dict[str, Any], all_travelers_map: Dict[str, str], od_map: Dict[str, str], currency_decimals: Dict[str, int] = None) -> List[Dict[str, Any]]:
     # --- FIX 2: Added logic to extract TimeLimits ---
     time_limits = offer.get('TimeLimits', {})
     offer_expiry = time_limits.get('OfferExpiration', {}).get('DateTime')
@@ -388,7 +495,7 @@ def _transform_single_offer_for_frontend(offer: Dict[str, Any], refs: Dict[str, 
                 if penalty_data := refs['penalties'].get(pen_ref):
                     for detail in penalty_data.get('Details', {}).get('Detail', []):
                         interp = VDCPenaltyInterpreter.interpret_penalty(penalty_data)
-                        min_amt, max_amt, pen_curr = _extract_min_max_amount(detail)
+                        min_amt, max_amt, pen_curr = _extract_min_max_amount(detail, currency_decimals)
                         penalty_type = interp.action_type.replace('-', ' ').title()
                         for seg_key in fc_seg_refs:
                             od_string = od_map.get(seg_key, "ALL")
@@ -398,13 +505,16 @@ def _transform_single_offer_for_frontend(offer: Dict[str, Any], refs: Dict[str, 
                             }
     
     final_passengers = [{'type': ptc, 'count': data['count'], 'baggage': data['baggage'], 'fare_rules': data['fare_rules']} for ptc, data in passenger_groups.items()]
-    
+
+    # Format total price according to currency metadata
+    formatted_total_price = _format_amount_with_decimals(total_price, currency or 'USD', currency_decimals or {})
+
     # If one-way, create a single offer; if round-trip, the total price applies to the whole package
     if not return_segs:
         return [{
             'offer_id': offer.get('OfferID', {}).get('value'), 'fare_family': fare_family_name,
             'flight_segments': [s.__dict__ for s in outbound_segs],
-            'passengers': final_passengers, 'total_price': {'amount': round(total_price, 2), 'currency': currency or 'USD'},
+            'passengers': final_passengers, 'total_price': {'amount': formatted_total_price, 'currency': currency or 'USD'},
             'time_limits': {'offer_expiration': offer_expiry, 'payment_deadline': payment_expiry}, 'direction': 'oneway'
         }]
     else:
@@ -415,7 +525,7 @@ def _transform_single_offer_for_frontend(offer: Dict[str, Any], refs: Dict[str, 
                 'outbound': [s.__dict__ for s in outbound_segs],
                 'return': [s.__dict__ for s in return_segs]
             },
-            'passengers': final_passengers, 'total_price': {'amount': round(total_price, 2), 'currency': currency or 'USD'},
+            'passengers': final_passengers, 'total_price': {'amount': formatted_total_price, 'currency': currency or 'USD'},
             'time_limits': {'offer_expiration': offer_expiry, 'payment_deadline': payment_expiry}, 'direction': 'roundtrip'
         }]
 
@@ -430,6 +540,13 @@ def transform_for_frontend(response: dict) -> dict:
     # [PASSENGER DEBUG] Log passenger data summary
     logger.info(f"[PASSENGER DEBUG] Flight Price Transformer - Processing {len(all_travelers_map)} traveler types")
 
+    # Extract currency metadata for proper decimal formatting
+    currency_decimals = _extract_currency_metadata(response)
+    if currency_decimals:
+        logger.info(f"[CURRENCY DEBUG] Extracted currency decimals: {currency_decimals}")
+    else:
+        logger.info("[CURRENCY DEBUG] No currency metadata found, using default decimal formatting")
+
     od_map = _get_od_mapping(refs)
     all_offers_raw = collect_all_offers(response)
 
@@ -437,7 +554,7 @@ def transform_for_frontend(response: dict) -> dict:
     for offer_data in all_offers_raw:
         try:
             transformed_offers.extend(
-                _transform_single_offer_for_frontend(offer_data, refs, all_travelers_map, od_map)
+                _transform_single_offer_for_frontend(offer_data, refs, all_travelers_map, od_map, currency_decimals)
             )
         except Exception as e:
             logger.error(f"Failed to transform offer {offer_data.get('OfferID', {}).get('value')}: {e}", exc_info=True)

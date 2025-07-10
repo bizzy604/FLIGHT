@@ -291,16 +291,13 @@ def _filter_airline_specific_data(data_lists, airline_owner):
 
             # Check if this traveler belongs to the selected airline
             if object_key.startswith(f"{airline_owner}-"):
-                # Transform airline-prefixed key to standard key
-                standard_key = object_key.replace(f"{airline_owner}-", "")
-                traveler_key_mapping[object_key] = standard_key
-
-                # Create filtered traveler with standard key
+                # Keep the original airline-prefixed ObjectKey to match OfferItemID refs
+                # The refs in OfferItemID should point to these ObjectKey values
                 filtered_traveler = traveler.copy()
-                filtered_traveler["ObjectKey"] = standard_key
+                # Keep original ObjectKey (e.g., "EK-T1") instead of transforming to standard key
                 filtered_travelers.append(filtered_traveler)
 
-                logger.debug(f"Included traveler: {object_key} -> {standard_key}")
+                logger.debug(f"Included traveler with original ObjectKey: {object_key}")
 
     if filtered_travelers:
         filtered_data_lists["AnonymousTravelerList"] = {
@@ -564,6 +561,8 @@ def _build_common_flight_price_request(airshopping_response, selected_offer, air
                 current_pax_refs = p_refs
 
         if offer_item_id_value and current_pax_refs:
+            # Keep original refs as they should point to AnonymousTravelerList ObjectKey values
+            # The refs (e.g., "EK-T1") should match the ObjectKey values in AnonymousTravelerList
             query_offer["OfferItemIDs"]["OfferItemID"].append({
                 "value": offer_item_id_value,
                 "refs": current_pax_refs
@@ -612,13 +611,35 @@ def _build_common_flight_price_request(airshopping_response, selected_offer, air
             segment_detail = segment_details_map.get(seg_key)
             if segment_detail:
                 # Build the flight object with SegmentKey and full flight details
+                # Process FlightDetail to exclude StopLocations as per Swagger documentation
+                # Only StopQuantity is optional in FlightDetail.Stops
+                original_flight_detail = segment_detail.get("FlightDetail", {})
+                processed_flight_detail = {}
+
+                # Copy FlightDuration if present
+                if "FlightDuration" in original_flight_detail:
+                    processed_flight_detail["FlightDuration"] = original_flight_detail["FlightDuration"]
+
+                # Process Stops - only include StopQuantity, exclude StopLocations
+                if "Stops" in original_flight_detail:
+                    original_stops = original_flight_detail["Stops"]
+                    processed_stops = {}
+
+                    # Only include StopQuantity if present
+                    if "StopQuantity" in original_stops:
+                        processed_stops["StopQuantity"] = original_stops["StopQuantity"]
+
+                    # Add processed stops only if it has content
+                    if processed_stops:
+                        processed_flight_detail["Stops"] = processed_stops
+
                 flight_obj = {
                     "SegmentKey": seg_key,
                     "Departure": segment_detail.get("Departure", {}),
                     "Arrival": segment_detail.get("Arrival", {}),
                     "MarketingCarrier": segment_detail.get("MarketingCarrier", {}),
                     "OperatingCarrier": segment_detail.get("OperatingCarrier", {}),
-                    "FlightDetail": segment_detail.get("FlightDetail", {})
+                    "FlightDetail": processed_flight_detail
                 }
                 od_flights.append(flight_obj)
                 logger.debug(f"Added flight segment {seg_key} to OriginDestination {od_ref_key_sorted}")

@@ -78,41 +78,27 @@ AIRLINE_NAMES = {
 
 def get_airline_name(airline_code: str, log_missing: bool = True) -> str:
     """
-    Get airline name from IATA code with fallback to a generic name.
-    
+    Get airline name from IATA code using centralized mapping service.
+
     Args:
         airline_code: 2-letter IATA airline code
         log_missing: Whether to log missing airline codes
-        
+
     Returns:
         str: Airline name or generic name if not found
     """
-    import logging
-    logger = logging.getLogger(__name__)
-    
+    # Import here to avoid circular imports
+    from services.airline_mapping_service import AirlineMappingService
+
     if not airline_code:
         if log_missing:
+            import logging
+            logger = logging.getLogger(__name__)
             logger.debug("Empty airline code provided")
         return "Unknown Airline"
-        
-    if not isinstance(airline_code, str):
-        airline_code = str(airline_code)
-        if log_missing:
-            logger.debug(f"Non-string airline code converted to string: {airline_code}")
-    
-    # Clean and normalize the code
-    code = airline_code.strip().upper()
-    
-    # Return the name if found
-    if code in AIRLINE_NAMES:
-        return AIRLINE_NAMES[code]
-    
-    # Log missing airline codes at debug level to avoid cluttering logs
-    if log_missing:
-        logger.debug(f"Airline code not found in mapping: {code}")
-    
-    # Return a generic name for missing codes
-    return f"Airline {code}"
+
+    # Use centralized airline mapping service
+    return AirlineMappingService.get_airline_display_name(airline_code)
 
 def get_airline_logo_url(airline_code: str) -> str:
     """
