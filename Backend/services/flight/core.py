@@ -20,6 +20,7 @@ import asyncio # For asyncio.sleep
 # e.g., from Backend.utils.cache_manager import cache_manager
 # e.g., from Backend.services.flight.decorators import ...
 from utils.cache_manager import cache_manager
+from utils.api_logger import api_logger
 from services.flight.decorators import async_cache, async_rate_limited
 from services.flight.exceptions import (
     FlightServiceError,
@@ -153,20 +154,32 @@ class FlightService:
         # Propagate request_id from calling context (e.g., route handler) if available
         # Otherwise, use the one generated in _get_headers or generate a new one for logging
         log_request_id = kwargs.get('request_id', headers.get('X-Request-ID', str(uuid.uuid4())))
-        
+
         # Ensure request_id is never in the payload - remove it if present
         api_payload = {k: v for k, v in payload.items() if k != 'request_id'}
-        
+
         # If payload originally had request_id, use that for logging consistency
         if 'request_id' in payload:
             log_request_id = payload['request_id']
 
         logger.info(f"Making {method} request to {url} for service {service_name} (ReqID: {log_request_id}).")
 
+        # Log the API request
+        api_logger.log_request(
+            service_name=service_name,
+            request_id=log_request_id,
+            payload=api_payload,
+            endpoint=endpoint,
+            headers=headers
+        )
+
 
 
         max_retries = int(self.config.get('VERTEIL_MAX_RETRIES', 3))
         retry_delay_base = int(self.config.get('VERTEIL_RETRY_DELAY', 1))
+
+        # Track request start time for response time calculation
+        request_start_time = time.time()
 
         for attempt in range(max_retries):
             try:
@@ -194,6 +207,18 @@ class FlightService:
 
 
                     if response.status >= 400:
+                        # Calculate response time for error cases too
+                        response_time_ms = (time.time() - request_start_time) * 1000
+
+                        # Log error response
+                        api_logger.log_response(
+                            service_name=service_name,
+                            request_id=log_request_id,
+                            response=response_data,
+                            status_code=response.status,
+                            response_time_ms=response_time_ms
+                        )
+
                         error_msg = f"API request for {service_name} (ReqID: {log_request_id}) failed with status {response.status}. Response: {json.dumps(response_data)}"
                         if response.status == 401: # Unauthorized
                             logger.warning(f"Received 401 (Unauthorized) for {service_name} (ReqID: {log_request_id}). Clearing TokenManager token.")
@@ -207,9 +232,19 @@ class FlightService:
                             raise APIError(error_msg, status_code=response.status, response=response_data)
                     
                     if response.status == 200:
+                        # Calculate response time
+                        response_time_ms = (time.time() - request_start_time) * 1000
+
                         logger.info(f"Successfully received API response for {service_name} (ReqID: {log_request_id}) with status {response.status}")
 
-
+                        # Log the API response
+                        api_logger.log_response(
+                            service_name=service_name,
+                            request_id=log_request_id,
+                            response=response_data,
+                            status_code=response.status,
+                            response_time_ms=response_time_ms
+                        )
 
                         # Log airline codes found in AirShopping response for debugging
                         if service_name == "AirShopping":
