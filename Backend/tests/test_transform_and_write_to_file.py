@@ -169,7 +169,6 @@ class TestVDCPenaltyInterpreter:
 def test_transform_real_responses(filename):
     """
     Loads real API responses, transforms them, and validates the high-level structure.
-    Also writes the output to a file for manual inspection.
     """
     input_path = os.path.join(os.path.dirname(__file__), filename)
 

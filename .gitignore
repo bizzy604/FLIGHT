@@ -38,7 +38,7 @@ ENV/
 .idea/
 *.swp
 *.swo
-
+*.md
 # Logs
 logs/
 *.log
