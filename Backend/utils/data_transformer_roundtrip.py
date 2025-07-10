@@ -9,6 +9,7 @@ by detecting multiple journey legs and creating separate flight offers for each 
 import logging
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional, Tuple
+from utils.data_transformer import available_logos
 
 logger = logging.getLogger(__name__)
 
@@ -18,17 +19,7 @@ def _get_airline_logo_url(airline_code):
         return None
     
     # Clean and normalize the airline code
-    code = airline_code.strip().upper()
-    
-    # List of available logos - updated with all current logos
-    available_logos = {
-        "3U", "6E", "A3", "AA", "AC", "AF", "AI", "AS", "AV", "AY", "B6", "BA", "BR", "CA",
-        "CI", "CM", "CX", "CZ", "DL", "EK", "ET", "EY", "F9", "FM", "FR", "FZ", "G9",
-        "GA", "GF", "HU", "IB", "IX", "JL", "JQ", "KE", "KL", "KQ", "LA", "LH", "LHG",
-        "LX", "LY", "MF", "MH", "MU", "NH", "NK", "NZ", "OZ", "PR", "QF", "QR", "SC",
-        "SK", "SN", "SQ", "SU", "SV", "TG", "TK", "TP", "UA", "UX", "VA", "VN", "VS",
-        "WN", "WY"
-    }
+    code = str(airline_code).strip().upper()
     
     if code in available_logos:
         return f"/airlines/{code}.svg"

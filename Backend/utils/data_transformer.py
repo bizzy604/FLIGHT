@@ -991,6 +991,19 @@ def _extract_penalty_info(priced_offer: Dict[str, Any], reference_data: Dict[str
 
 from utils.airline_data import get_airline_name
 
+# List of available logos - updated with all current logos
+AVAILABLE_LOGOS = {
+    "3U", "6E", "A3", "AA", "AC", "AF", "AI", "AS", "AV", "AY", "B6", "BA", "BR", "CA",
+    "CI", "CM", "CX", "CZ", "DL", "EK", "ET", "EY", "F9", "FM", "FR", "FZ", "G9",
+    "GA", "GF", "HU", "IB", "IX", "JL", "JQ", "KE", "KL", "KQ", "LA", "LH", "LHG",
+    "LX", "LY", "MF", "MH", "MU", "NH", "NK", "NZ", "OZ", "PR", "QF", "QR", "SC",
+    "SK", "SN", "SQ", "SU", "SV", "TG", "TK", "TP", "UA", "UX", "VA", "VN", "VS",
+    "WN", "WY"
+}
+
+# Alias for backward compatibility and easier imports
+available_logos = AVAILABLE_LOGOS
+
 def _get_airline_logo_url(airline_code):
     """Get the logo URL for an airline code.
     
@@ -1006,17 +1019,7 @@ def _get_airline_logo_url(airline_code):
     # Clean and normalize the airline code
     code = str(airline_code).strip().upper()
     
-    # List of available logos - updated with all current logos
-    available_logos = {
-        "3U", "6E", "A3", "AA", "AC", "AF", "AI", "AS", "AV", "AY", "B6", "BA", "BR", "CA",
-        "CI", "CM", "CX", "CZ", "DL", "EK", "ET", "EY", "F9", "FM", "FR", "FZ", "G9",
-        "GA", "GF", "HU", "IB", "IX", "JL", "JQ", "KE", "KL", "KQ", "LA", "LH", "LHG",
-        "LX", "LY", "MF", "MH", "MU", "NH", "NK", "NZ", "OZ", "PR", "QF", "QR", "SC",
-        "SK", "SN", "SQ", "SU", "SV", "TG", "TK", "TP", "UA", "UX", "VA", "VN", "VS",
-        "WN", "WY"
-    }
-    
-    if code in available_logos:
+    if code in AVAILABLE_LOGOS:
         return f"/airlines/{code}.svg"
     
     return None  # No logo available
