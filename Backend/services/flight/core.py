@@ -209,6 +209,8 @@ class FlightService:
                     if response.status == 200:
                         logger.info(f"Successfully received API response for {service_name} (ReqID: {log_request_id}) with status {response.status}")
 
+
+
                         # Log airline codes found in AirShopping response for debugging
                         if service_name == "AirShopping":
                             if 'DataLists' in response_data and 'AirlineList' in response_data['DataLists']:
@@ -238,7 +240,6 @@ class FlightService:
         # Should not be reached if max_retries > 0, as loop will either return or raise.
         # Adding for safety in case max_retries is 0 or loop logic changes.
         raise APIError(f"Request for {service_name} (ReqID: {log_request_id}) failed after all retries.")
-
 
     # Abstract methods to be implemented by subclasses
     async def search_flights(self, criteria: SearchCriteria) -> FlightSearchResponse:
