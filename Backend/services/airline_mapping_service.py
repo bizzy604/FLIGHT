@@ -35,6 +35,7 @@ class AirlineMappingService:
         # North American Airlines
         'UA': 'UA',          # United Airlines
         'DL': 'DL',          # Delta Air Lines
+        'AA': 'AA',          # American Airlines
 
         # Middle Eastern Airlines
         'QR': 'QR',          # Qatar Airways
@@ -78,7 +79,6 @@ class AirlineMappingService:
         'UA': 'United Airlines',
         'DL': 'Delta Air Lines',
         'AA': 'American Airlines',
-        'WN': 'Southwest Airlines',
 
         # Middle Eastern Airlines
         'QR': 'Qatar Airways',
@@ -109,7 +109,6 @@ class AirlineMappingService:
         # Other Airlines
         'SU': 'Aeroflot',
         'QF': 'Qantas',
-
         # Additional Airlines (consolidated from other mappings)
         'AC': 'Air Canada',
         'LY': 'El Al',
@@ -132,14 +131,14 @@ class AirlineMappingService:
         'HU': 'Hainan Airlines',
         'SC': 'Shandong Airlines',
         'FM': 'Shanghai Airlines',
-        'MF': 'Xiamen Airlines',
         'WN': 'Southwest Airlines',
+        'MF': 'Xiamen Airlines',
     }
     
     # Airline regions for grouping and filtering
     AIRLINE_REGIONS = {
         'Europe': ['KL', 'AF', 'LHG', 'LH', 'SN', 'BA', 'A3'],
-        'North America': ['UA', 'DL'],
+        'North America': ['UA', 'DL', 'AA'],
         'Middle East': ['QR', 'EK', 'EY', 'GF', 'WY'],
         'Africa': ['KQ', 'ET'],
         'Asia': ['6E', 'IX', 'TK', 'SQ', 'CX'],
@@ -147,11 +146,11 @@ class AirlineMappingService:
     
     # Airlines that support specific features
     FEATURE_SUPPORT = {
-        'multi_airline_shopping': ['KL', 'AF', 'LHG', 'LH', 'SN', 'UA', 'DL', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'IX', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY', 'A3'],
-        'flight_pricing': ['KL', 'AF', 'LHG', 'LH', 'SN', 'UA', 'DL', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'IX', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY', 'A3'],
-        'order_creation': ['KL', 'AF', 'LHG', 'LH', 'SN', 'UA', 'DL', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'IX', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY', 'A3'],
-        'baggage_services': ['KL', 'AF', 'LHG', 'LH', 'SN', 'UA', 'DL', 'QR', 'EK', 'EY', 'KQ', 'ET', 'IX', 'BA', 'CX', 'WY', 'A3'],
-        'seat_selection': ['KL', 'AF', 'LHG', 'LH', 'SN', 'UA', 'DL', 'QR', 'EK', 'EY', 'IX', 'BA', 'CX', 'A3'],
+        'multi_airline_shopping': ['KL', 'AF', 'LHG', 'LH', 'SN', 'UA', 'DL', 'AA', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'IX', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY', 'A3'],
+        'flight_pricing': ['KL', 'AF', 'LHG', 'LH', 'SN', 'UA', 'DL', 'AA', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'IX', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY', 'A3'],
+        'order_creation': ['KL', 'AF', 'LHG', 'LH', 'SN', 'UA', 'DL', 'AA', 'QR', 'EK', 'EY', 'KQ', 'ET', '6E', 'IX', 'TK', 'SQ', 'GF', 'BA', 'CX', 'WY', 'A3'],
+        'baggage_services': ['KL', 'AF', 'LHG', 'LH', 'SN', 'UA', 'DL', 'AA', 'QR', 'EK', 'EY', 'KQ', 'ET', 'IX', 'BA', 'CX', 'WY', 'A3'],
+        'seat_selection': ['KL', 'AF', 'LHG', 'LH', 'SN', 'UA', 'DL', 'AA', 'QR', 'EK', 'EY', 'IX', 'BA', 'CX', 'A3'],
     }
     
     @classmethod
