@@ -44,7 +44,7 @@ export function FareRulesTable({ passenger, allOds }: FareRulesTableProps) {
       <div className="p-3 sm:p-4 md:p-6 bg-muted/50 rounded-t-lg">
         <h3 className="text-base sm:text-lg font-semibold">{passenger.count} x {passenger.type}</h3>
         <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-          <span className="font-medium">Carry-on:</span> {passenger.baggage.carryOn} | <span className="font-medium">Checked:</span> {passenger.baggage.checked}
+          <span className="font-medium">Carry-on:</span> {passenger.baggage.carryOn || 'As per airline policy'} | <span className="font-medium">Checked:</span> {passenger.baggage.checked || 'As per airline policy'}
         </p>
       </div>
 

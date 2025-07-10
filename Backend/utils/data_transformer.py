@@ -5,6 +5,8 @@ from typing import Dict, List, Any, Optional, Union
 from datetime import datetime
 import logging
 
+from .flight_price_transformer import extract_reference_data
+
 logger = logging.getLogger(__name__)
 
 def transform_verteil_to_frontend(
@@ -52,8 +54,8 @@ def transform_verteil_to_frontend(
                 
             logger.info(f"Found {len(priced_offers)} PricedFlightOffer(s)")
             
-            # Extract reference data for lookups
-            reference_data = _extract_reference_data(verteil_response)
+            # Extract reference data for lookups using flight price transformer
+            reference_data = extract_reference_data(verteil_response)
             logger.info(f"Extracted reference data: {len(reference_data.get('flights', {}))} flights, "
                        f"{len(reference_data.get('segments', {}))} segments")
             
@@ -102,7 +104,7 @@ def transform_verteil_to_frontend(
             
             # Extract reference data for lookups if not already done
             if 'reference_data' not in locals():
-                reference_data = _extract_reference_data(verteil_response)
+                reference_data = extract_reference_data(verteil_response)
                 logger.info(f"Reference data extracted: flights={len(reference_data.get('flights', {}))}, segments={len(reference_data.get('segments', {}))}")
             
             for i, airline_offer_group in enumerate(airline_offers):
@@ -284,230 +286,7 @@ def _extract_airline_code_robust(airline_offer_group: Dict[str, Any]) -> str:
     logger.error("Could not extract airline code from any source, using 'Unknown'")
     return 'Unknown'
 
-def _extract_reference_data(response: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Extract reference data (flights, segments, airports, etc.) from Verteil response.
-    """
-    reference_data = {
-        'flights': {},
-        'segments': {},
-        'airports': {},
-        'aircraft': {},
-        'airlines': {},
-        'default_airline': None,  # Will store the default airline info
-        'carry_on_allowances': {},
-        'checked_bag_allowances': {},
-        'penalties': {}
-    }
-    
-    try:
-        # Extract flight references - FlightList is inside DataLists
-        data_lists = response.get('DataLists', {})
-        flight_list = data_lists.get('FlightList', {})
-        flights = flight_list.get('Flight', [])
-        if isinstance(flights, list):
-            for flight in flights:
-                flight_key = flight.get('FlightKey')
-                # Ensure flight_key is a valid string for use as dictionary key
-                if flight_key and isinstance(flight_key, str):
-                    reference_data['flights'][flight_key] = flight
-                elif flight_key:
-                    logger.warning(f"Invalid FlightKey type: {type(flight_key)} - {flight_key}")
-        
-        # Extract flight segment references - FlightSegmentList is inside DataLists
-        segment_list = data_lists.get('FlightSegmentList', {})
-        logger.info(f"FlightSegmentList found: {bool(segment_list)}")
-        segments = segment_list.get('FlightSegment', [])
-        logger.info(f"Found {len(segments)} flight segments in response")
-        if isinstance(segments, list):
-            logger.info(f"Processing {len(segments)} segments")
-            for i, segment in enumerate(segments[:2]):  # Log first 2 segments for debugging
-                logger.info(f"Segment {i} keys: {list(segment.keys()) if isinstance(segment, dict) else 'Not a dict'}")
-                
-            for segment in segments:
-                segment_key = segment.get('SegmentKey')
-                # Ensure segment_key is a valid string for use as dictionary key
-                if segment_key and isinstance(segment_key, str):
-                    reference_data['segments'][segment_key] = segment
-                    logger.info(f"Added segment {segment_key} to reference data")
-                    
-                    # Extract airline information from the segment
-                    for carrier_type in ['MarketingCarrier', 'OperatingCarrier']:
-                            carrier = segment.get(carrier_type, {})
-                            if not carrier:
-                                logger.debug(f"No {carrier_type} in segment {segment_key}")
-                                continue
-                                
-                            logger.info(f"Processing {carrier_type} for segment {segment_key}")
-                            logger.info(f"Carrier data: {carrier}")
-                            
-                            airline_id = carrier.get('AirlineID', {})
-                            logger.info(f"AirlineID: {airline_id}")
-                            
-                            # Extract airline code safely, ensuring it's always a string
-                            if isinstance(airline_id, dict):
-                                airline_code = airline_id.get('value')
-                            else:
-                                airline_code = airline_id
-                            
-                            # Ensure airline_code is a string and not None or empty
-                            if not airline_code or not isinstance(airline_code, str):
-                                logger.warning(f"Invalid airline_code extracted: {airline_code} (type: {type(airline_code)})")
-                                continue
-                                
-                            airline_name = carrier.get('Name')
-                            
-                            logger.info(f"Extracted - Code: {airline_code}, Name: {airline_name}")
-                            
-                            if not airline_code:
-                                logger.warning(f"Missing airline code in carrier data")
-                                continue
-                                
-                            # Use the name from the API if available, otherwise look it up
-                            if not airline_name:
-                                airline_name = get_airline_name(airline_code, log_missing=False)
-                                logger.debug(f"Looked up airline name for {airline_code}: {airline_name}")
-                            
-                            # Initialize airlines dictionary if it doesn't exist
-                            if 'airlines' not in reference_data:
-                                reference_data['airlines'] = {}
-                            
-                            # Store the airline info - we have a code and either have a name or looked it up
-                            reference_data['airlines'][airline_code] = airline_name
-                            logger.info(f"Added airline {airline_code}: {airline_name} from {carrier_type}")
-                            
-                            # Set default airline if not set yet (first airline found)
-                            if reference_data['default_airline'] is None:
-                                reference_data['default_airline'] = {
-                                    'code': airline_code,
-                                    'name': airline_name
-                                }
-                elif segment_key:
-                    logger.warning(f"Invalid SegmentKey type: {type(segment_key)} - {segment_key}")
-                else:
-                    logger.warning(f"Segment missing SegmentKey: {segment}")
-        else:
-            logger.warning(f"FlightSegment is not a list: {type(segments)}")
-        
-        logger.info(f"Total segments in reference_data: {len(reference_data['segments'])}")
-        
-        # Extract airport information from FlightSegmentList
-        for segment in reference_data['segments'].values():
-            # Extract departure airport
-            dep_airport_raw = segment.get('Departure', {}).get('AirportCode')
-            # Handle airport code extraction similar to airline code
-            if isinstance(dep_airport_raw, dict):
-                dep_airport = dep_airport_raw.get('value')
-            else:
-                dep_airport = dep_airport_raw
-            
-            # Ensure dep_airport is a valid string for use as dictionary key
-            if dep_airport and isinstance(dep_airport, str):
-                reference_data['airports'][dep_airport] = {
-                    'code': dep_airport,
-                    'name': segment['Departure'].get('AirportName', dep_airport),
-                    'terminal': segment['Departure'].get('Terminal')
-                }
-            elif dep_airport_raw:
-                logger.warning(f"Invalid departure AirportCode extraction: {type(dep_airport_raw)} - {dep_airport_raw}")
-            
-            # Extract arrival airport
-            arr_airport_raw = segment.get('Arrival', {}).get('AirportCode')
-            # Handle airport code extraction similar to airline code
-            if isinstance(arr_airport_raw, dict):
-                arr_airport = arr_airport_raw.get('value')
-            else:
-                arr_airport = arr_airport_raw
-            
-            # Ensure arr_airport is a valid string for use as dictionary key
-            if arr_airport and isinstance(arr_airport, str):
-                reference_data['airports'][arr_airport] = {
-                    'code': arr_airport,
-                    'name': segment['Arrival'].get('AirportName', arr_airport),
-                    'terminal': segment['Arrival'].get('Terminal')
-                }
-            elif arr_airport_raw:
-                logger.warning(f"Invalid arrival AirportCode extraction: {type(arr_airport_raw)} - {arr_airport_raw}")
-        
-        # Also try to extract from OriginDestinationList if available
-        od_list = response.get('OriginDestinationList', {})
-        origin_destinations = od_list.get('OriginDestination', [])
-        logger.debug(f"Found {len(origin_destinations)} origin-destinations in response")
-        
-        if isinstance(origin_destinations, list):
-            for od in origin_destinations:
-                # Extract departure airport
-                dep = od.get('Departure', {})
-                dep_airport_raw = dep.get('AirportCode')
-                # Handle airport code extraction similar to airline code
-                if isinstance(dep_airport_raw, dict):
-                    dep_airport = dep_airport_raw.get('value')
-                else:
-                    dep_airport = dep_airport_raw
-                
-                # Ensure dep_airport is a valid string for use as dictionary key
-                if dep_airport and isinstance(dep_airport, str) and dep_airport not in reference_data['airports']:
-                    reference_data['airports'][dep_airport] = {
-                        'code': dep_airport,
-                        'name': dep.get('AirportName', dep_airport),
-                        'terminal': dep.get('Terminal')
-                    }
-                elif dep_airport_raw and not isinstance(dep_airport, str):
-                    logger.warning(f"Invalid departure AirportCode extraction in OriginDestination: {type(dep_airport_raw)} - {dep_airport_raw}")
-                
-                # Extract arrival airport
-                arr = od.get('Arrival', {})
-                arr_airport_raw = arr.get('AirportCode')
-                # Handle airport code extraction similar to airline code
-                if isinstance(arr_airport_raw, dict):
-                    arr_airport = arr_airport_raw.get('value')
-                else:
-                    arr_airport = arr_airport_raw
-                
-                # Ensure arr_airport is a valid string for use as dictionary key
-                if arr_airport and isinstance(arr_airport, str) and arr_airport not in reference_data['airports']:
-                    reference_data['airports'][arr_airport] = {
-                        'code': arr_airport,
-                        'name': arr.get('AirportName', arr_airport),
-                        'terminal': arr.get('Terminal')
-                    }
-                elif arr_airport_raw and not isinstance(arr_airport, str):
-                    logger.warning(f"Invalid arrival AirportCode extraction in OriginDestination: {type(arr_airport_raw)} - {arr_airport_raw}")
-        
-        # Extract carry-on allowance list
-        carry_on_list = data_lists.get('CarryOnAllowanceList', {}).get('CarryOnAllowance', [])
-        for carry_on in carry_on_list:
-            list_key = carry_on.get('ListKey')
-            # Ensure list_key is a valid string for use as dictionary key
-            if list_key and isinstance(list_key, str):
-                reference_data['carry_on_allowances'][list_key] = carry_on
-            elif list_key:
-                logger.warning(f"Invalid ListKey type for carry-on allowance: {type(list_key)} - {list_key}")
-        
-        # Extract checked bag allowance list
-        checked_bag_list = data_lists.get('CheckedBagAllowanceList', {}).get('CheckedBagAllowance', [])
-        for checked_bag in checked_bag_list:
-            list_key = checked_bag.get('ListKey')
-            # Ensure list_key is a valid string for use as dictionary key
-            if list_key and isinstance(list_key, str):
-                reference_data['checked_bag_allowances'][list_key] = checked_bag
-            elif list_key:
-                logger.warning(f"Invalid ListKey type for checked bag allowance: {type(list_key)} - {list_key}")
-        
-        # Extract penalty list
-        penalty_list = data_lists.get('PenaltyList', {}).get('Penalty', [])
-        for penalty in penalty_list:
-            object_key = penalty.get('ObjectKey')
-            # Ensure object_key is a valid string for use as dictionary key
-            if object_key and isinstance(object_key, str):
-                reference_data['penalties'][object_key] = penalty
-            elif object_key:
-                logger.warning(f"Invalid ObjectKey type for penalty: {type(object_key)} - {object_key}")
-        
-    except Exception as e:
-        logger.warning(f"Error extracting reference data: {str(e)}")
-    
-    return reference_data
+# Note: _extract_reference_data function removed - now using flight_price_transformer.extract_reference_data
 
 def _transform_single_offer(
     priced_offer: Dict[str, Any], 
@@ -722,8 +501,7 @@ def _transform_single_offer(
             'flightNumber': f"{airline_code}{segments[0].get('flightNumber', '001')}"
         }
         
-        # Extract baggage and penalty information
-        baggage_info = _extract_baggage_info(offer_price, reference_data)
+        # Note: Baggage extraction is now handled by flight price transformer
         
         # Initialize fare_rules with default values
         fare_rules = _create_segment_fare_rules()
@@ -772,7 +550,7 @@ def _transform_single_offer(
             'price': price,
             'currency': currency,
             'seatsAvailable': 'Available',
-            'baggage': baggage_info,
+            # Note: Baggage info is now provided by flight price transformer
             'penalties': penalty_info,  # Keep original for backward compatibility
             'fareRules': fare_rules,    # New structured format
             'segments': segments,
@@ -992,59 +770,10 @@ def _build_price_breakdown(price_detail: Dict[str, Any], priced_offer: Dict[str,
         'currency': currency
     }
 
-def _extract_baggage_info(offer_price: Dict[str, Any], reference_data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Extract baggage information using references from OfferPrice.Associations.ApplicableFlight.FlightSegmentReference.BagDetailAssociation
-    and mapping to DataLists.
-    """
-    baggage_info = {
-        'carryOn': 'Not specified',
-        'checked': 'Not specified'
-    }
-    
-    try:
-        # Get baggage references from OfferPrice.RequestedDate.Associations
-        requested_date = offer_price.get('RequestedDate', {})
-        associations = requested_date.get('Associations', [])
-        if not associations:
-            return baggage_info
-        
-        # Navigate through the correct structure: Associations -> ApplicableFlight -> FlightSegmentReference -> BagDetailAssociation
-        for association in associations:
-            applicable_flight = association.get('ApplicableFlight', {})
-            flight_segment_refs = applicable_flight.get('FlightSegmentReference', [])
-            
-            for segment_ref in flight_segment_refs:
-                bag_detail = segment_ref.get('BagDetailAssociation', {})
-                
-                # Extract carry-on references
-                carry_on_refs = bag_detail.get('CarryOnReferences', [])
-                if carry_on_refs and reference_data.get('carry_on_allowances') and baggage_info['carryOn'] == 'Not specified':
-                    carry_on_ref = carry_on_refs[0] if isinstance(carry_on_refs, list) else carry_on_refs
-                    carry_on_data = reference_data['carry_on_allowances'].get(carry_on_ref)
-                    if carry_on_data:
-                        description = carry_on_data.get('AllowanceDescription', {}).get('Descriptions', {}).get('Description', [])
-                        if description and len(description) > 0:
-                            baggage_info['carryOn'] = description[0].get('Text', {}).get('value', 'Not specified')
-                
-                # Extract checked bag references
-                checked_bag_refs = bag_detail.get('CheckedBagReferences', [])
-                if checked_bag_refs and reference_data.get('checked_bag_allowances') and baggage_info['checked'] == 'Not specified':
-                    checked_ref = checked_bag_refs[0] if isinstance(checked_bag_refs, list) else checked_bag_refs
-                    checked_data = reference_data['checked_bag_allowances'].get(checked_ref)
-                    if checked_data:
-                        description = checked_data.get('AllowanceDescription', {}).get('Descriptions', {}).get('Description', [])
-                        if description and len(description) > 0:
-                            baggage_info['checked'] = description[0].get('Text', {}).get('value', 'Not specified')
-            
-            # If we found both carry-on and checked bag info, we can break
-            if baggage_info['carryOn'] != 'Not specified' and baggage_info['checked'] != 'Not specified':
-                break
-    
-    except Exception as e:
-        logger.error(f"Error extracting baggage info: {e}")
-    
-    return baggage_info
+# Note: _extract_baggage_info function removed - baggage extraction now handled by flight price transformer
+
+
+# Note: _format_baggage_allowance function removed - formatting now handled by flight price transformer
 
 
 def _extract_penalty_info(priced_offer: Dict[str, Any], reference_data: Dict[str, Any]) -> List[Dict[str, Any]]:

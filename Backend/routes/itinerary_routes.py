@@ -154,12 +154,8 @@ def extract_itinerary_data(order_create_response: Dict[str, Any]) -> Dict[str, A
                 else:
                     return_flight.append(segment)
 
-        # Extract baggage allowance
-        baggage_info = response.get('TicketDocInfos', {}).get('TicketDocInfo', [{}])[0].get('TicketDocument', [{}])[0].get('CouponInfo', [{}])
-        baggage_allowance = {
-            'checkedBags': baggage_info[0].get('AddlBaggageInfo', {}).get('AllowableBag', [{}])[0].get('Number', 1) if baggage_info else 1,
-            'carryOnBags': 1
-        }
+        # Extract baggage allowance from API response
+        baggage_allowance = _extract_baggage_allowance_from_response(response)
 
         return {
             'bookingInfo': booking_info,
@@ -174,6 +170,67 @@ def extract_itinerary_data(order_create_response: Dict[str, Any]) -> Dict[str, A
     except Exception as e:
         logger.error(f"Error extracting itinerary data: {str(e)}")
         raise
+
+
+def _extract_baggage_allowance_from_response(response: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Extract baggage allowance from OrderCreate response.
+    """
+    baggage_allowance = {
+        'checkedBags': None,
+        'carryOnBags': None
+    }
+
+    try:
+        # Try to extract from TicketDocInfos
+        ticket_doc_infos = response.get('TicketDocInfos', {}).get('TicketDocInfo', [])
+        if ticket_doc_infos:
+            ticket_doc = ticket_doc_infos[0].get('TicketDocument', [])
+            if ticket_doc:
+                coupon_info = ticket_doc[0].get('CouponInfo', [])
+                if coupon_info:
+                    addl_baggage_info = coupon_info[0].get('AddlBaggageInfo', {})
+                    allowable_bags = addl_baggage_info.get('AllowableBag', [])
+                    if allowable_bags:
+                        bag_number = allowable_bags[0].get('Number')
+                        if bag_number is not None:
+                            baggage_allowance['checkedBags'] = bag_number
+
+        # Try to extract from DataLists
+        data_lists = response.get('DataLists', {})
+
+        # Extract checked bag allowance
+        checked_bag_list = data_lists.get('CheckedBagAllowanceList', {}).get('CheckedBagAllowance', [])
+        if checked_bag_list and baggage_allowance['checkedBags'] is None:
+            checked_bag = checked_bag_list[0]
+            piece_allowance = checked_bag.get('PieceAllowance', [])
+            if piece_allowance:
+                if isinstance(piece_allowance, list):
+                    total_quantity = piece_allowance[0].get('TotalQuantity')
+                else:
+                    total_quantity = piece_allowance.get('TotalQuantity')
+
+                if total_quantity is not None:
+                    baggage_allowance['checkedBags'] = total_quantity
+
+        # Extract carry-on allowance
+        carry_on_list = data_lists.get('CarryOnAllowanceList', {}).get('CarryOnAllowance', [])
+        if carry_on_list:
+            carry_on = carry_on_list[0]
+            piece_allowance = carry_on.get('PieceAllowance', [])
+            if piece_allowance:
+                if isinstance(piece_allowance, list):
+                    total_quantity = piece_allowance[0].get('TotalQuantity')
+                else:
+                    total_quantity = piece_allowance.get('TotalQuantity')
+
+                if total_quantity is not None:
+                    baggage_allowance['carryOnBags'] = total_quantity
+
+    except Exception as e:
+        logger.error(f"Error extracting baggage allowance: {str(e)}")
+
+    return baggage_allowance
 
 
 @itinerary_bp.route('/api/itinerary/extract', methods=['POST'])

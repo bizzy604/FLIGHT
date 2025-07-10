@@ -95,7 +95,8 @@ class EnhancedReferenceExtractor:
                 'passengers': {},
                 'flights': {},
                 'origins': {},
-                'baggage': {},
+                'carry_on_allowances': {},
+                'checked_bag_allowances': {},
                 'services': {}
             }
         
@@ -139,7 +140,8 @@ class EnhancedReferenceExtractor:
             'passengers': {},
             'flights': {},
             'origins': {},
-            'baggage': {},
+            'carry_on_allowances': {},
+            'checked_bag_allowances': {},
             'services': {},
             'shopping_response_id': ''
         }
@@ -241,20 +243,41 @@ class EnhancedReferenceExtractor:
     
     def _extract_baggage_multi_airline(self, data_lists: Dict, refs: Dict) -> None:
         """Extract baggage information for multi-airline response."""
-        baggage_list = data_lists.get('BaggageAllowanceList', {}).get('BaggageAllowance', [])
-        
-        for baggage in baggage_list:
-            baggage_key = baggage.get('BaggageAllowanceID', '')
-            
+        # Extract carry-on allowances
+        carry_on_list = data_lists.get('CarryOnAllowanceList', {}).get('CarryOnAllowance', [])
+
+        for carry_on in carry_on_list:
+            carry_on_key = carry_on.get('ListKey', '')
+
             # Check if it's airline-prefixed
-            match = MultiAirlineDetector.PREFIXED_REFERENCE_PATTERN.match(baggage_key)
+            match = MultiAirlineDetector.PREFIXED_REFERENCE_PATTERN.match(carry_on_key)
             if match:
                 airline_code = match.group(1)
                 if airline_code in refs['by_airline']:
-                    refs['by_airline'][airline_code]['baggage'][baggage_key] = baggage
+                    if 'carry_on_allowances' not in refs['by_airline'][airline_code]:
+                        refs['by_airline'][airline_code]['carry_on_allowances'] = {}
+                    refs['by_airline'][airline_code]['carry_on_allowances'][carry_on_key] = carry_on
             else:
-                # Non-prefixed baggage, add to global
-                refs['global'].setdefault('baggage', {})[baggage_key] = baggage
+                # Non-prefixed carry-on, add to global
+                refs['global'].setdefault('carry_on_allowances', {})[carry_on_key] = carry_on
+
+        # Extract checked bag allowances
+        checked_bag_list = data_lists.get('CheckedBagAllowanceList', {}).get('CheckedBagAllowance', [])
+
+        for checked_bag in checked_bag_list:
+            checked_bag_key = checked_bag.get('ListKey', '')
+
+            # Check if it's airline-prefixed
+            match = MultiAirlineDetector.PREFIXED_REFERENCE_PATTERN.match(checked_bag_key)
+            if match:
+                airline_code = match.group(1)
+                if airline_code in refs['by_airline']:
+                    if 'checked_bag_allowances' not in refs['by_airline'][airline_code]:
+                        refs['by_airline'][airline_code]['checked_bag_allowances'] = {}
+                    refs['by_airline'][airline_code]['checked_bag_allowances'][checked_bag_key] = checked_bag
+            else:
+                # Non-prefixed checked bag, add to global
+                refs['global'].setdefault('checked_bag_allowances', {})[checked_bag_key] = checked_bag
     
     def _extract_services_multi_airline(self, data_lists: Dict, refs: Dict) -> None:
         """Extract service information for multi-airline response."""
@@ -311,12 +334,21 @@ class EnhancedReferenceExtractor:
 
     def _extract_baggage_single_airline(self, data_lists: Dict, refs: Dict) -> None:
         """Extract baggage information for single-airline response."""
-        baggage_list = data_lists.get('BaggageAllowanceList', {}).get('BaggageAllowance', [])
+        # Extract carry-on allowances using correct ListKey
+        carry_on_list = data_lists.get('CarryOnAllowanceList', {}).get('CarryOnAllowance', [])
+        refs['carry_on_allowances'] = {
+            allowance.get('ListKey'): allowance
+            for allowance in carry_on_list
+            if allowance.get('ListKey')
+        }
 
-        for baggage in baggage_list:
-            baggage_key = baggage.get('BaggageAllowanceID', '')
-            if baggage_key:
-                refs['baggage'][baggage_key] = baggage
+        # Extract checked bag allowances using correct ListKey
+        checked_bag_list = data_lists.get('CheckedBagAllowanceList', {}).get('CheckedBagAllowance', [])
+        refs['checked_bag_allowances'] = {
+            allowance.get('ListKey'): allowance
+            for allowance in checked_bag_list
+            if allowance.get('ListKey')
+        }
 
     def _extract_services_single_airline(self, data_lists: Dict, refs: Dict) -> None:
         """Extract service information for single-airline response."""
@@ -334,13 +366,15 @@ class EnhancedReferenceExtractor:
             'passengers': {},
             'flights': {},
             'origins': {},
-            'baggage': {},
+            'carry_on_allowances': {},
+            'checked_bag_allowances': {},
             'services': {}
         }
 
         for airline_code, airline_refs in by_airline.items():
             for ref_type, refs in airline_refs.items():
-                global_refs[ref_type].update(refs)
+                if ref_type in global_refs:
+                    global_refs[ref_type].update(refs)
 
         return global_refs
 
@@ -369,7 +403,8 @@ class EnhancedReferenceExtractor:
                 'passengers': {},
                 'flights': {},
                 'origins': {},
-                'baggage': {},
+                'carry_on_allowances': {},
+                'checked_bag_allowances': {},
                 'services': {},
                 'shopping_response_id': ''
             }

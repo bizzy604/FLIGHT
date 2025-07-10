@@ -78,23 +78,23 @@ export interface PricingInfo {
 }
 
 export interface BaggageDetails {
-  checkedBags: number;
-  carryOnBags: number;
+  checkedBags: number | null;
+  carryOnBags: number | null;
   checkedBagAllowance?: {
-    pieces?: number;
+    pieces?: number | null;
     weight?: {
       value: number;
       unit: string;
     };
-    description?: string;
+    description?: string | null;
   };
   carryOnAllowance?: {
-    pieces?: number;
+    pieces?: number | null;
     weight?: {
       value: number;
       unit: string;
     };
-    description?: string;
+    description?: string | null;
   };
 }
 
@@ -430,16 +430,21 @@ function extractBaggageDetails(orderCreateResponse: any): BaggageDetails {
   if (carryOnAllowance.length > 0) {
     const carryOn = carryOnAllowance[0];
     if (carryOn.PieceAllowance) {
+      const totalQuantity = carryOn.PieceAllowance[0]?.TotalQuantity;
       carryOnDetails = {
-        pieces: carryOn.PieceAllowance[0]?.TotalQuantity || 0,
-        description: 'Carry-On Bag Allowance'
+        pieces: totalQuantity !== undefined ? totalQuantity : null,
+        description: carryOn.AllowanceDescription?.Descriptions?.Description?.[0]?.Text?.value || null
       };
     }
   }
 
+  // Extract actual values from API response without hardcoded fallbacks
+  const checkedBagsCount = baggageInfo?.AllowableBag?.[0]?.Number || checkedBagDetails?.pieces || null;
+  const carryOnBagsCount = carryOnDetails?.pieces !== null ? carryOnDetails?.pieces : null;
+
   return {
-    checkedBags: baggageInfo?.AllowableBag?.[0]?.Number || checkedBagDetails?.pieces || 1,
-    carryOnBags: carryOnDetails?.pieces || 1,
+    checkedBags: checkedBagsCount,
+    carryOnBags: carryOnBagsCount,
     checkedBagAllowance: checkedBagDetails || undefined,
     carryOnAllowance: carryOnDetails || undefined
   };
@@ -766,10 +771,10 @@ function transformFromFrontendAPIResponse(data: any): ItineraryData {
     phone: '+254 729 582 121'
   };
 
-  // Extract baggage allowance from transformed data if available
+  // Extract baggage allowance from transformed data - use actual API values
   const baggageAllowance: BaggageDetails = {
-    checkedBags: data.baggageAllowance?.checkedBags || 1,
-    carryOnBags: data.baggageAllowance?.carryOnBags || 1,
+    checkedBags: data.baggageAllowance?.checkedBags || null,
+    carryOnBags: data.baggageAllowance?.carryOnBags || null,
     checkedBagAllowance: data.baggageAllowance?.checkedBagAllowance,
     carryOnAllowance: data.baggageAllowance?.carryOnAllowance
   };
@@ -881,10 +886,10 @@ function transformFromOriginalFlightOffer(originalFlightOffer: any, basicBooking
     phone: basicBookingData?.contactInfo?.phone || ''
   };
 
-  // Extract baggage allowance from originalFlightOffer if available
+  // Extract baggage allowance from originalFlightOffer if available - use actual API values
   const baggageAllowance: BaggageDetails = {
-    checkedBags: originalFlightOffer?.baggage_allowance?.checked_bags || 1,
-    carryOnBags: originalFlightOffer?.baggage_allowance?.carry_on_bags || 1,
+    checkedBags: originalFlightOffer?.baggage_allowance?.checked_bags || null,
+    carryOnBags: originalFlightOffer?.baggage_allowance?.carry_on_bags || null,
     checkedBagAllowance: originalFlightOffer?.baggage_allowance?.checked_bag_details ? {
       pieces: originalFlightOffer.baggage_allowance.checked_bag_details.pieces,
       weight: originalFlightOffer.baggage_allowance.checked_bag_details.weight,

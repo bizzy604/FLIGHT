@@ -8,9 +8,15 @@ import { Label } from "@/components/ui/label"
 interface BaggageOptionsProps {
   selectedBaggage: any; // Expects object like { checkedBags: number, specialEquipment: string }
   onBaggageChange: (updatedBaggage: any) => void;
+  flightBaggageAllowance?: {
+    carryOn?: string;
+    checked?: string;
+    additionalBagPrice?: number;
+    currency?: string;
+  };
 }
 
-export function BaggageOptions({ selectedBaggage, onBaggageChange }: BaggageOptionsProps) {
+export function BaggageOptions({ selectedBaggage, onBaggageChange, flightBaggageAllowance }: BaggageOptionsProps) {
   const checkedBags = selectedBaggage?.checkedBags ?? 0;
   const specialEquipment = selectedBaggage?.specialEquipment ?? 'none';
 
@@ -34,8 +40,16 @@ export function BaggageOptions({ selectedBaggage, onBaggageChange }: BaggageOpti
         <h4 className="mb-2 text-sm font-medium">Included in Your Fare</h4>
         <div className="space-y-2 text-sm">
           <p>• 1 personal item (must fit under the seat)</p>
-          <p>• 1 carry-on bag (max 8 kg)</p>
-          <p>• 1 checked bag (max 23 kg)</p>
+          {flightBaggageAllowance?.carryOn ? (
+            <p>• Carry-on: {flightBaggageAllowance.carryOn}</p>
+          ) : (
+            <p>• Carry-on allowance as per airline policy</p>
+          )}
+          {flightBaggageAllowance?.checked ? (
+            <p>• Checked baggage: {flightBaggageAllowance.checked}</p>
+          ) : (
+            <p>• Checked baggage allowance as per airline policy</p>
+          )}
         </div>
       </div>
 
@@ -43,8 +57,14 @@ export function BaggageOptions({ selectedBaggage, onBaggageChange }: BaggageOpti
         <h4 className="mb-4 text-sm font-medium">Additional Checked Baggage</h4>
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-medium">Checked Bags</p>
-            <p className="text-sm text-muted-foreground">$35.00 per bag (max 23 kg each)</p>
+            <p className="font-medium">Additional Checked Bags</p>
+            {flightBaggageAllowance?.additionalBagPrice && flightBaggageAllowance?.currency ? (
+              <p className="text-sm text-muted-foreground">
+                {flightBaggageAllowance.additionalBagPrice} {flightBaggageAllowance.currency} per bag
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">Additional fees apply as per airline policy</p>
+            )}
           </div>
           <div className="flex items-center space-x-3">
             <Button

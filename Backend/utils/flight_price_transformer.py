@@ -138,45 +138,82 @@ class VDCPenaltyInterpreter:
 
 
 def _format_allowance_description(allowance: Dict[str, Any]) -> str:
-    if not allowance: return "N/A"
+    if not allowance:
+        return None
+
     parts = []
     piece_allowance_list = allowance.get('PieceAllowance', [])
-    if isinstance(piece_allowance_list, dict): piece_allowance_list = [piece_allowance_list]
+    if isinstance(piece_allowance_list, dict):
+        piece_allowance_list = [piece_allowance_list]
+
     if piece_allowance_list and (total_quantity := piece_allowance_list[0].get('TotalQuantity')) is not None:
-        if total_quantity == 0: return "No baggage"
+        if total_quantity == 0:
+            return "No baggage allowance"
         parts.append(f"{total_quantity} piece{'s' if total_quantity > 1 else ''}")
+
     weight_allowance_list = allowance.get('WeightAllowance', {}).get('MaximumWeight', [])
-    if isinstance(weight_allowance_list, dict): weight_allowance_list = [weight_allowance_list]
+    if isinstance(weight_allowance_list, dict):
+        weight_allowance_list = [weight_allowance_list]
+
     if weight_allowance_list and (weight := weight_allowance_list[0].get('Value')) is not None:
-        uom = weight_allowance_list[0].get('UOM', 'kg').capitalize()
-        parts.append(f"up to {weight} {uom}")
-    if not parts and (desc := allowance.get('AllowanceDescription', {}).get('Descriptions', {}).get('Description', [])):
-        return desc[0].get('Text', {}).get('value', "Details available")
-    return ", ".join(parts) if parts else "Details available"
+        uom = weight_allowance_list[0].get('UOM')
+        if uom:
+            parts.append(f"up to {weight} {uom.capitalize()}")
+        else:
+            parts.append(f"up to {weight}")
+
+    # Try to get description from API response
+    if not parts:
+        desc_list = allowance.get('AllowanceDescription', {}).get('Descriptions', {}).get('Description', [])
+        if desc_list and len(desc_list) > 0:
+            desc_text = desc_list[0].get('Text', {}).get('value')
+            if desc_text:
+                return desc_text
+
+    return ", ".join(parts) if parts else None
 
 def extract_baggage_from_association(assoc: Dict[str, Any], refs: Dict[str, Any]) -> Dict[str, str]:
-    price_class_ref = assoc.get('PriceClass', {}).get('PriceClassReference')
-    if price_class_ref and (price_class_data := refs.get('price_classes', {}).get(price_class_ref)):
-        descs = price_class_data.get('Descriptions', {}).get('Description', [])
-        carry_text = next((d.get('Text', {}).get('value', '').replace('BAGGAGEALLOWANCE_CARRYON-', '') for d in descs if 'CARRYON' in d.get('Text', {}).get('value', '')), None)
-        checked_text = next((d.get('Text', {}).get('value', '').replace('BAGGAGEALLOWANCE_CHECKED-', '') for d in descs if 'CHECKED' in d.get('Text', {}).get('value', '')), None)
-        if carry_text or checked_text:
-            return {'carryOn': carry_text or "N/A", 'checked': checked_text or "N/A"}
-    carry_on_desc, checked_desc = "N/A", "N/A"
+    # Extract ONLY from actual ListKey references in CarryOnAllowanceList and CheckedBagAllowanceList
+    carry_on_desc = None
+    checked_desc = None
+
     for seg_ref in assoc.get('ApplicableFlight', {}).get('FlightSegmentReference', []):
         bag_detail = seg_ref.get('BagDetailAssociation', {})
-        if not bag_detail: continue
-        if carry_on_desc == "N/A":
+        if not bag_detail:
+            continue
+
+        # Extract carry-on information from ListKey references only
+        if carry_on_desc is None:
+            # Check for inline carry-on allowance
             inline_carry = bag_detail.get('CarryOnAllowance', [])
-            if inline_carry: carry_on_desc = _format_allowance_description(inline_carry[0] if isinstance(inline_carry, list) else inline_carry)
-            elif (carry_refs := bag_detail.get('CarryOnReferences', [])) and (allowance_obj := refs['carryon'].get(carry_refs[0])):
-                carry_on_desc = _format_allowance_description(allowance_obj)
-        if checked_desc == "N/A":
+            if inline_carry:
+                carry_on_desc = _format_allowance_description(inline_carry[0] if isinstance(inline_carry, list) else inline_carry)
+            # Check for carry-on references to CarryOnAllowanceList
+            elif (carry_refs := bag_detail.get('CarryOnReferences', [])) and refs.get('carry_on_allowances'):
+                if carry_refs and (allowance_obj := refs['carry_on_allowances'].get(carry_refs[0])):
+                    carry_on_desc = _format_allowance_description(allowance_obj)
+
+        # Extract checked baggage information from ListKey references only
+        if checked_desc is None:
+            # Check for inline checked baggage allowance
             inline_checked = bag_detail.get('CheckedBagAllowance', [])
-            if inline_checked: checked_desc = _format_allowance_description(inline_checked[0] if isinstance(inline_checked, list) else inline_checked)
-            elif (checked_refs := bag_detail.get('CheckedBagReferences', [])) and (allowance_obj := refs['checked'].get(checked_refs[0])):
-                checked_desc = _format_allowance_description(allowance_obj)
-        if carry_on_desc != "N/A" and checked_desc != "N/A": break
+            if inline_checked:
+                checked_desc = _format_allowance_description(inline_checked[0] if isinstance(inline_checked, list) else inline_checked)
+            # Check for checked bag references to CheckedBagAllowanceList
+            elif (checked_refs := bag_detail.get('CheckedBagReferences', [])) and refs.get('checked_bag_allowances'):
+                if checked_refs and (allowance_obj := refs['checked_bag_allowances'].get(checked_refs[0])):
+                    checked_desc = _format_allowance_description(allowance_obj)
+
+        # Break if we found both
+        if carry_on_desc is not None and checked_desc is not None:
+            break
+
+    # If no baggage information found, indicate not available
+    if carry_on_desc is None:
+        carry_on_desc = "Not available"
+    if checked_desc is None:
+        checked_desc = "Not available"
+
     return {'carryOn': carry_on_desc, 'checked': checked_desc}
 
 def extract_reference_data(response: Dict[str, Any]) -> Dict[str, Any]:
@@ -186,8 +223,8 @@ def extract_reference_data(response: Dict[str, Any]) -> Dict[str, Any]:
         'flights': {f.get('FlightKey'): f for f in lists.get('FlightList', {}).get('Flight', []) if f.get('FlightKey')},
         'segments': {s.get('SegmentKey'): s for s in lists.get('FlightSegmentList', {}).get('FlightSegment', []) if s.get('SegmentKey')},
         'penalties': {p.get('ObjectKey'): p for p in lists.get('PenaltyList', {}).get('Penalty', []) if p.get('ObjectKey')},
-        'carryon': {c.get('ListKey'): c for c in lists.get('CarryOnAllowanceList', {}).get('CarryOnAllowance', []) if c.get('ListKey')},
-        'checked': {c.get('ListKey'): c for c in lists.get('CheckedBagAllowanceList', {}).get('CheckedBagAllowance', []) if c.get('ListKey')},
+        'carry_on_allowances': {c.get('ListKey'): c for c in lists.get('CarryOnAllowanceList', {}).get('CarryOnAllowance', []) if c.get('ListKey')},
+        'checked_bag_allowances': {c.get('ListKey'): c for c in lists.get('CheckedBagAllowanceList', {}).get('CheckedBagAllowance', []) if c.get('ListKey')},
         'price_classes': {pc.get('ObjectKey'): pc for pc in lists.get('PriceClassList', {}).get('PriceClass', []) if pc.get('ObjectKey')},
         'origin_destinations': lists.get('OriginDestinationList', {}).get('OriginDestination', [])
     }

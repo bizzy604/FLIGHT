@@ -332,8 +332,8 @@ function SearchParamsWrapper() {
               currency: offer.currency,
               aircraft: offer.aircraft,
               segments: offer.segments,
-              // Removed fields that are no longer provided by backend
-              baggage: offer.baggage || { checked: "23kg", carryon: "7kg" }, // Default fallback
+              // Use actual baggage data from backend, no hardcoded fallbacks
+              baggage: offer.baggage || null,
               fare: offer.fare || { type: "Economy", refundable: false }, // Default fallback
               priceBreakdown: offer.priceBreakdown || { totalPrice: offer.price, currency: offer.currency }, // Default fallback
               additionalServices: offer.additionalServices || [],
@@ -496,8 +496,8 @@ function SearchParamsWrapper() {
           currency: offer.currency,
           aircraft: offer.aircraft,
           segments: offer.segments,
-          // Removed fields that are no longer provided by backend - use fallbacks
-          baggage: offer.baggage || { checked: "23kg", carryon: "7kg" }, // Default fallback
+          // Use actual baggage data from backend, no hardcoded fallbacks
+          baggage: offer.baggage || null,
           fare: offer.fare || { type: "Economy", refundable: false }, // Default fallback
           priceBreakdown: offer.priceBreakdown || { totalPrice: offer.price, currency: offer.currency }, // Default fallback
           additionalServices: offer.additionalServices || [],

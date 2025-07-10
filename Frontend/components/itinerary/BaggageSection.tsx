@@ -23,7 +23,9 @@ const BaggageSection: React.FC<BaggageSectionProps> = ({ baggageAllowance }) => 
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-gray-600">Allowed Pieces:</span>
-              <span className="font-medium">{baggageAllowance.checkedBags}</span>
+              <span className="font-medium">
+                {baggageAllowance.checkedBags !== null ? baggageAllowance.checkedBags : 'As per airline policy'}
+              </span>
             </div>
             
             {baggageAllowance.checkedBagAllowance?.pieces && (
@@ -60,7 +62,9 @@ const BaggageSection: React.FC<BaggageSectionProps> = ({ baggageAllowance }) => 
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-gray-600">Allowed Pieces:</span>
-              <span className="font-medium">{baggageAllowance.carryOnBags}</span>
+              <span className="font-medium">
+                {baggageAllowance.carryOnBags !== null ? baggageAllowance.carryOnBags : 'As per airline policy'}
+              </span>
             </div>
             
             {baggageAllowance.carryOnAllowance?.pieces && (
@@ -90,13 +94,12 @@ const BaggageSection: React.FC<BaggageSectionProps> = ({ baggageAllowance }) => 
 
       {/* General Baggage Guidelines */}
       <div className="mt-6 p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-400">
-        <h4 className="font-semibold text-gray-800 mb-2">Important Baggage Guidelines</h4>
+        <h4 className="font-semibold text-gray-800 mb-2">Important Baggage Information</h4>
         <ul className="text-sm text-gray-700 space-y-1">
-          <li>• Ensure all baggage complies with airline size and weight restrictions</li>
-          <li>• Prohibited items must not be packed in carry-on or checked baggage</li>
-          <li>• Additional baggage fees may apply for excess weight or pieces</li>
-          <li>• Fragile items should be properly protected and declared</li>
-          <li>• Check with the airline for specific restrictions on liquids and electronics</li>
+          <li>• Baggage allowances are subject to airline policies and may vary</li>
+          <li>• Additional fees may apply for excess baggage or special items</li>
+          <li>• Please verify current baggage restrictions with your airline</li>
+          <li>• Prohibited items regulations apply as per aviation security guidelines</li>
         </ul>
       </div>
     </div>
