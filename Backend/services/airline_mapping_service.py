@@ -23,19 +23,36 @@ class AirlineMappingService:
     
     # Airline code to ThirdParty ID mappings
     # This mapping defines which ThirdParty ID to use for each airline in API calls
+    # Updated to include ALL airlines that have logos available
     AIRLINE_TO_THIRD_PARTY_ID = {
         # Major European Airlines
         'KL': 'KL',          # KLM Royal Dutch Airlines
         'AF': 'AF',          # Air France
         'LHG': 'LHG',        # Lufthansa Group
         'LH': 'LH',          # Lufthansa
+        'LX': 'LX',          # Swiss International Air Lines
         'SN': 'SN',          # Brussels Airlines
         'BA': 'BA',          # British Airways
+        'A3': 'A3',          # Aegean Airlines
+        'AY': 'AY',          # Finnair
+        'SK': 'SK',          # Scandinavian Airlines
+        'IB': 'IB',          # Iberia
+        'UX': 'UX',          # Air Europa
+        'TP': 'TP',          # TAP Air Portugal
+        'VS': 'VS',          # Virgin Atlantic
+        'FR': 'FR',          # Ryanair
 
         # North American Airlines
         'UA': 'UA',          # United Airlines
         'DL': 'DL',          # Delta Air Lines
         'AA': 'AA',          # American Airlines
+        'AC': 'AC',          # Air Canada
+        'AS': 'AS',          # Alaska Airlines
+        'B6': 'B6',          # JetBlue Airways
+        'F9': 'F9',          # Frontier Airlines
+        'NK': 'NK',          # Spirit Airlines
+        'WN': 'WN',          # Southwest Airlines
+        'AV': 'AV',          # Avianca
 
         # Middle Eastern Airlines
         'QR': 'QR',          # Qatar Airways
@@ -43,6 +60,8 @@ class AirlineMappingService:
         'EY': 'EY',          # Etihad Airways
         'GF': 'GF',          # Gulf Air
         'WY': 'WY',          # Oman Air
+        'SV': 'SV',          # Saudi Arabian Airlines
+        'LY': 'LY',          # El Al Israel Airlines
 
         # African Airlines
         'KQ': 'KQ',          # Kenya Airways
@@ -54,38 +73,65 @@ class AirlineMappingService:
         'TK': 'TK',          # Turkish Airlines
         'SQ': 'SQ',          # Singapore Airlines
         'CX': 'CX',          # Cathay Pacific Airways
-        'A3': 'A3',          # Aegean Airlines
-
-        # Other Airlines
-        'GF': 'GF',          # Gulf Air
-        'BA': 'BA',          # British Airways
-        'CX': 'CX',          # Cathay Pacific Airways
-        'WY': 'WY',          # Oman Air
+        'NH': 'NH',          #ANA All Nippon Airways
+        'JL': 'JL',          #Japan Airlines
+        'CA': 'CA',          #Air China
+        'CZ': 'CZ',          #China Southern Airlines
+        'MU': 'MU',          #China Eastern Airlines
+        'KE': 'KE',          #Korean Air
+        'OZ': 'OZ',          #Asiana Airlines
+        'TG': 'TG',          #Thai Airways
+        'VN': 'VN',          #Vietnam Airlines
+        'GA': 'GA',          #Garuda Indonesia
+        'MH': 'MH',          #Malaysia Airlines
+        'PR': 'PR',          #Philippine Airlines
+        'BR': 'BR',          #EVA Air
+        'CI': 'CI',          #China Airlines
+        'JQ': 'JQ',          #Jetstar
+        'SU': 'SU',          #Aeroflot
     }
     
     # Comprehensive airline display names for user interfaces
     # This is the SINGLE SOURCE OF TRUTH for all airline name mappings
+    # Updated to include ALL airlines that have logos available
     AIRLINE_DISPLAY_NAMES = {
         # Major European Airlines
         'KL': 'KLM Royal Dutch Airlines',
         'AF': 'Air France',
         'LHG': 'Lufthansa Group',
         'LH': 'Lufthansa',
+        'LX': 'Swiss International Air Lines',
         'SN': 'Brussels Airlines',
         'BA': 'British Airways',
         'A3': 'Aegean Airlines',
+        'AY': 'Finnair',
+        'SK': 'Scandinavian Airlines',
+        'IB': 'Iberia',
+        'UX': 'Air Europa',
+        'TP': 'TAP Air Portugal',
+        'VS': 'Virgin Atlantic',
+        'FR': 'Ryanair',
 
         # North American Airlines
         'UA': 'United Airlines',
         'DL': 'Delta Air Lines',
         'AA': 'American Airlines',
+        'AC': 'Air Canada',
+        'AS': 'Alaska Airlines',
+        'B6': 'JetBlue Airways',
+        'F9': 'Frontier Airlines',
+        'NK': 'Spirit Airlines',
+        'WN': 'Southwest Airlines',
+        'AV': 'Avianca',
 
         # Middle Eastern Airlines
         'QR': 'Qatar Airways',
         'EK': 'Emirates',
         'EY': 'Etihad Airways',
-        'GF': 'Gulf Air',  # ✅ Added missing Gulf Air
+        'GF': 'Gulf Air',
         'WY': 'Oman Air',
+        'SV': 'Saudi Arabian Airlines',
+        'LY': 'El Al Israel Airlines',
 
         # African Airlines
         'KQ': 'Kenya Airways',
@@ -100,19 +146,6 @@ class AirlineMappingService:
         'CA': 'Air China',
         'CZ': 'China Southern Airlines',
         'MU': 'China Eastern Airlines',
-
-        # Indian Airlines
-        '6E': 'IndiGo',
-        'AI': 'Air India',
-        'IX': 'Air India Express',
-
-        # Other Airlines
-        'SU': 'Aeroflot',
-        'QF': 'Qantas',
-        # Additional Airlines (consolidated from other mappings)
-        'AC': 'Air Canada',
-        'LY': 'El Al',
-        'SV': 'Saudi Arabian Airlines',
         'KE': 'Korean Air',
         'OZ': 'Asiana Airlines',
         'TG': 'Thai Airways',
@@ -122,17 +155,29 @@ class AirlineMappingService:
         'PR': 'Philippine Airlines',
         'BR': 'EVA Air',
         'CI': 'China Airlines',
+        'JQ': 'Jetstar',
+        'SU': 'Aeroflot',
+
+        # Indian Airlines
+        '6E': 'IndiGo',
+        'AI': 'Air India',
+        'IX': 'Air India Express',
+
+        # Oceania Airlines
+        'QF': 'Qantas',
         'NZ': 'Air New Zealand',
         'VA': 'Virgin Australia',
-        'FZ': 'flydubai',
-        'G9': 'Air Arabia',
-        'JQ': 'Jetstar',
+
+        # Additional Airlines
+        'CM': 'Copa Airlines',
+        'LA': 'LATAM Airlines',
         '3U': 'Sichuan Airlines',
         'HU': 'Hainan Airlines',
         'SC': 'Shandong Airlines',
         'FM': 'Shanghai Airlines',
-        'WN': 'Southwest Airlines',
         'MF': 'Xiamen Airlines',
+        'FZ': 'flydubai',
+        'G9': 'Air Arabia',
     }
     
     # Airline regions for grouping and filtering

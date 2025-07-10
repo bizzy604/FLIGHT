@@ -20,8 +20,15 @@ def _get_airline_logo_url(airline_code):
     # Clean and normalize the airline code
     code = airline_code.strip().upper()
     
-    # List of available logos
-    available_logos = {"AA", "AC", "AF", "AI", "AS", "AV", "B6", "BA", "CM", "CX", "DL", "EK", "EY", "F9", "FR", "GA", "IB", "JL", "JQ", "KL", "KQ", "LA", "LH", "LX", "MH", "NK", "NZ", "OZ", "PR", "QF", "QR", "SK", "SQ", "SV", "TK", "TP", "UA", "UX", "VA", "VN", "VS", "WN", "WY"}
+    # List of available logos - updated with all current logos
+    available_logos = {
+        "3U", "6E", "A3", "AA", "AC", "AF", "AI", "AS", "AV", "AY", "B6", "BA", "BR", "CA",
+        "CI", "CM", "CX", "CZ", "DL", "EK", "ET", "EY", "F9", "FM", "FR", "FZ", "G9",
+        "GA", "GF", "HU", "IB", "IX", "JL", "JQ", "KE", "KL", "KQ", "LA", "LH", "LHG",
+        "LX", "LY", "MF", "MH", "MU", "NH", "NK", "NZ", "OZ", "PR", "QF", "QR", "SC",
+        "SK", "SN", "SQ", "SU", "SV", "TG", "TK", "TP", "UA", "UX", "VA", "VN", "VS",
+        "WN", "WY"
+    }
     
     if code in available_logos:
         return f"/airlines/{code}.svg"

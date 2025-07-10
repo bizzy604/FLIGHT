@@ -19,7 +19,15 @@ def get_airline_name(code: str) -> str:
 def get_airline_logo_url(airline_code: str) -> Optional[str]:
     if not airline_code: return None
     code = airline_code.strip().upper()
-    available_logos = {"AA", "AC", "AF", "AI", "AS", "AV", "B6", "BA", "CM", "CX", "DL", "EK", "EY", "F9", "FR", "GA", "IB", "JL", "JQ", "KL", "KQ", "LA", "LH", "LX", "MH", "NK", "NZ", "OZ", "PR", "QF", "QR", "SK", "SQ", "SV", "TK", "TP", "UA", "UX", "VA", "VN", "VS", "WN", "WY"}
+    # Updated with ALL available logos from Frontend/public/airlines directory
+    available_logos = {
+        "3U", "6E", "A3", "AA", "AC", "AF", "AI", "AS", "AV", "AY", "B6", "BA", "BR", "CA",
+        "CI", "CM", "CX", "CZ", "DL", "EK", "ET", "EY", "F9", "FM", "FR", "FZ", "G9",
+        "GA", "GF", "HU", "IB", "IX", "JL", "JQ", "KE", "KL", "KQ", "LA", "LH", "LHG",
+        "LX", "LY", "MF", "MH", "MU", "NH", "NK", "NZ", "OZ", "PR", "QF", "QR", "SC",
+        "SK", "SN", "SQ", "SU", "SV", "TG", "TK", "TP", "UA", "UX", "VA", "VN", "VS",
+        "WN", "WY"
+    }
     return f"/airlines/{code}.svg" if code in available_logos else None
 
 def parse_iso_duration(duration_str: str) -> str:
@@ -567,6 +575,17 @@ def _transform_single_offer_for_frontend(offer: Dict[str, Any], refs: Dict[str, 
         }]
 
 def transform_for_frontend(response: dict) -> dict:
+    # Write raw API response to file for cross-checking
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    raw_response_file = f"flight_price_raw_response_{timestamp}.json"
+
+    try:
+        with open(raw_response_file, 'w', encoding='utf-8') as f:
+            json.dump(response, f, indent=2, ensure_ascii=False, default=str)
+        logger.info(f"[API RESPONSE LOG] Raw flight price response saved to: {raw_response_file}")
+    except Exception as e:
+        logger.error(f"Failed to save raw response to file: {e}")
+
     refs = extract_reference_data(response)
     all_travelers_map = {
         anon.get('ObjectKey'): anon.get('PTC', {}).get('value', 'ADT')
@@ -596,7 +615,92 @@ def transform_for_frontend(response: dict) -> dict:
         except Exception as e:
             logger.error(f"Failed to transform offer {offer_data.get('OfferID', {}).get('value')}: {e}", exc_info=True)
 
-    return {'offers': transformed_offers}
+    # Prepare final result
+    final_result = {'offers': transformed_offers}
+
+    # Write transformed result to file for cross-checking
+    transformed_result_file = f"flight_price_transformed_result_{timestamp}.json"
+
+    try:
+        with open(transformed_result_file, 'w', encoding='utf-8') as f:
+            json.dump(final_result, f, indent=2, ensure_ascii=False, default=str)
+        logger.info(f"[TRANSFORMATION LOG] Transformed flight price result saved to: {transformed_result_file}")
+    except Exception as e:
+        logger.error(f"Failed to save transformed result to file: {e}")
+
+    # Write comparison summary to file
+    comparison_file = f"flight_price_comparison_{timestamp}.txt"
+
+    try:
+        with open(comparison_file, 'w', encoding='utf-8') as f:
+            f.write("FLIGHT PRICE API RESPONSE vs TRANSFORMED RESULT COMPARISON\n")
+            f.write("=" * 60 + "\n\n")
+
+            # Raw API summary
+            f.write("RAW API RESPONSE SUMMARY:\n")
+            f.write("-" * 30 + "\n")
+            f.write(f"Document: {response.get('Document', {}).get('Name', 'N/A')}\n")
+
+            priced_offers = response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
+            f.write(f"Total Priced Offers: {len(priced_offers)}\n")
+
+            if priced_offers:
+                first_offer = priced_offers[0]
+                offer_prices = first_offer.get('OfferPrice', [])
+                f.write(f"Offer Prices in first offer: {len(offer_prices)}\n")
+
+                if offer_prices:
+                    total_amount = offer_prices[0].get('RequestedDate', {}).get('TotalPrice', {}).get('DetailCurrencyPrice', {}).get('Total', {}).get('value', 'N/A')
+                    currency = offer_prices[0].get('RequestedDate', {}).get('TotalPrice', {}).get('DetailCurrencyPrice', {}).get('Total', {}).get('Code', 'N/A')
+                    f.write(f"Raw Total Price: {total_amount} {currency}\n")
+
+            # DataLists summary
+            data_lists = response.get('DataLists', {})
+            f.write(f"CarryOn Allowances: {len(data_lists.get('CarryOnAllowanceList', {}).get('CarryOnAllowance', []))}\n")
+            f.write(f"Checked Bag Allowances: {len(data_lists.get('CheckedBagAllowanceList', {}).get('CheckedBagAllowance', []))}\n")
+            f.write(f"Anonymous Travelers: {len(data_lists.get('AnonymousTravelerList', {}).get('AnonymousTraveler', []))}\n")
+
+            f.write("\n" + "=" * 60 + "\n\n")
+
+            # Transformed result summary
+            f.write("TRANSFORMED RESULT SUMMARY:\n")
+            f.write("-" * 30 + "\n")
+            f.write(f"Total Offers: {len(final_result.get('offers', []))}\n")
+
+            if final_result.get('offers'):
+                first_transformed = final_result['offers'][0]
+                f.write(f"Offer ID: {first_transformed.get('offer_id', 'N/A')}\n")
+                f.write(f"Fare Family: {first_transformed.get('fare_family', 'N/A')}\n")
+                f.write(f"Total Price: {first_transformed.get('total_price', {}).get('amount', 'N/A')} {first_transformed.get('total_price', {}).get('currency', 'N/A')}\n")
+                f.write(f"Passengers: {len(first_transformed.get('passengers', []))}\n")
+
+                # Baggage details
+                f.write("\nBAGGAGE DETAILS:\n")
+                for i, passenger in enumerate(first_transformed.get('passengers', [])):
+                    baggage = passenger.get('baggage', {})
+                    f.write(f"  {passenger.get('type', 'Unknown')} (Count: {passenger.get('count', 0)}):\n")
+                    f.write(f"    - Carry-on: {baggage.get('carryOn', 'N/A')}\n")
+                    f.write(f"    - Checked: {baggage.get('checked', 'N/A')}\n")
+
+                # Flight segments
+                flight_segments = first_transformed.get('flight_segments', {})
+                outbound = flight_segments.get('outbound', [])
+                return_segs = flight_segments.get('return', [])
+                f.write(f"\nFLIGHT SEGMENTS:\n")
+                f.write(f"  Outbound: {len(outbound)} segments\n")
+                f.write(f"  Return: {len(return_segs)} segments\n")
+
+            f.write("\n" + "=" * 60 + "\n")
+            f.write("FILES GENERATED:\n")
+            f.write(f"- Raw API Response: {raw_response_file}\n")
+            f.write(f"- Transformed Result: {transformed_result_file}\n")
+            f.write(f"- This Comparison: {comparison_file}\n")
+
+        logger.info(f"[COMPARISON LOG] Comparison summary saved to: {comparison_file}")
+    except Exception as e:
+        logger.error(f"Failed to save comparison summary to file: {e}")
+
+    return final_result
 
 
 def transform_flight_price_response(response: dict) -> dict:
