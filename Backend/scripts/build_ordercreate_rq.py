@@ -658,6 +658,12 @@ def process_payments_for_order_create(
 
     method_type = payment_input_info.get("MethodType", "Cash").upper()
     payment_details_input = payment_input_info.get("Details", {})
+
+    # If Details is empty but we have card data at top level, use the top level data
+    if not payment_details_input and method_type == "PAYMENTCARD":
+        # Check if card details are at the top level (new backend format)
+        if any(key in payment_input_info for key in ['CardNumberToken', 'CardType', 'CardHolderName']):
+            payment_details_input = payment_input_info
     
     # Initialize total amount
     total_amount = 0.0
@@ -696,7 +702,12 @@ def process_payments_for_order_create(
 
     payment_method_object = {}
     if method_type == "CASH":
-        payment_method_object = {"Cash": {"CashInd": payment_details_input.get("CashInd", True)}}
+        # For CASH, check if CashInd is at top level when Details is empty
+        cash_details = payment_details_input
+        if not cash_details and 'CashInd' in payment_input_info:
+            cash_details = payment_input_info
+
+        payment_method_object = {"Cash": {"CashInd": cash_details.get("CashInd", True)}}
     elif method_type == "PAYMENTCARD":
         card_input_details = payment_details_input
         payment_card_node = {}
@@ -770,6 +781,12 @@ def process_payments_for_order_create(
 
     elif method_type == "EASYPAY":
         ep_details = payment_details_input
+
+        # If Details is empty but we have EasyPay data at top level, use the top level data
+        if not ep_details and any(key in payment_input_info for key in ['AccountNumber', 'ExpirationDate']):
+            ep_details = payment_input_info
+
+
         if "AccountNumber" not in ep_details or "ExpirationDate" not in ep_details:
             raise ValueError("AccountNumber and ExpirationDate are mandatory for EasyPay.")
         payment_method_object = {"EasyPay": {
@@ -777,7 +794,12 @@ def process_payments_for_order_create(
             "ExpirationDate": ep_details["ExpirationDate"]
         }}
     elif method_type == "OTHER":
-        remarks_input = payment_details_input.get("Remarks", [])
+        # For OTHER, check if Remarks is at top level when Details is empty
+        other_details = payment_details_input
+        if not other_details and 'Remarks' in payment_input_info:
+            other_details = payment_input_info
+
+        remarks_input = other_details.get("Remarks", [])
         formatted_remarks = []
         if isinstance(remarks_input, list):
             for r_item in remarks_input:

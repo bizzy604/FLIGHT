@@ -29,6 +29,7 @@ interface CardPaymentFormProps {
 }
 
 export function CardPaymentForm({
+  bookingReference,
   amount,
   currency,
   flightDetails,
@@ -113,6 +114,15 @@ export function CardPaymentForm({
     return Object.keys(errors).length === 0
   }
 
+  // Helper function to determine card type based on card number
+  const getCardType = (cardNumber: string) => {
+    const firstDigit = cardNumber.charAt(0)
+    if (firstDigit === '4') return 'VI' // Visa
+    if (firstDigit === '5') return 'MC' // Mastercard
+    if (firstDigit === '3') return 'AX' // American Express
+    return 'VI' // Default to Visa
+  }
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
 
@@ -124,54 +134,36 @@ export function CardPaymentForm({
     setError(null)
 
     try {
-      
-      const response = await fetch("/api/payments", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          cardDetails: {
-            cardNumber: cardNumber.replace(/\s/g, ""), // Remove spaces for processing
-            cardName,
-            expiryMonth,
-            expiryYear,
-            cvv,
-          },
-          bookingData: {
-            amount,
-            currency,
-            flightDetails
-          }
-        }),
-      })
+      // Instead of calling /api/payments, directly prepare the payment data
+      // and pass it to the parent component for the main booking flow
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error?.message || "Failed to process payment")
-      }
+      setSucceeded(true)
 
-      const data = await response.json()
-      
-      if (data.success) {
-        setSucceeded(true)
-        
-        // Pass payment data to the success callback
-        // This includes the payment info structure needed for the backend booking API
-        const paymentData = {
-          id: data.paymentId, // Payment method ID for backend
-          paymentId: data.paymentId,
-          status: data.status,
-          message: data.message,
-          paymentInfo: data.paymentInfo, // Include backend-ready payment info
-          bookingReference: data.bookingReference
+      // Create payment info structure that matches backend expectations
+      const paymentInfo = {
+        MethodType: "PAYMENTCARD",
+        Details: {
+          CardCode: getCardType(cardNumber.replace(/\s/g, "")),
+          CardNumberToken: `${cardNumber.replace(/\s/g, "")}`, // In production, this would be a secure token
+          CardHolderName: cardName,
+          EffectiveExpireDate: { Expiration: `${expiryMonth}${expiryYear}` },
+          CardType: getCardType(cardNumber.replace(/\s/g, ""))
         }
-        
-        // Call the parent's payment success handler which will create the actual booking
-        onPaymentSuccess(paymentData)
-      } else {
-        throw new Error(data.message || "Card details capture failed")
       }
+
+      // Pass payment data to the success callback
+      // This includes the payment info structure needed for the backend booking API
+      const paymentData = {
+        id: `pm_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`, // Generate payment method ID
+        paymentId: `pi_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+        status: "captured",
+        message: "Card details captured successfully",
+        paymentInfo: paymentInfo, // Include backend-ready payment info
+        bookingReference: bookingReference
+      }
+
+      // Call the parent's payment success handler which will create the actual booking
+      onPaymentSuccess(paymentData)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred"
       setError(errorMessage)

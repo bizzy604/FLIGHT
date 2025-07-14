@@ -8,6 +8,8 @@ import Link from "next/link"
 import { ChevronLeft, Lock, Shield } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { LoadingButton } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { MainNav } from "@/components/main-nav"
 import { UserNav } from "@/components/user-nav"
 import { CardPaymentForm } from "@/components/card-payment-form"
@@ -32,6 +34,14 @@ export default function PaymentPage() {
   const [booking, setBooking] = useState<any>(null)
   const [flightOffer, setFlightOffer] = useState<any>(null)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
+
+  // EasyPay form state
+  const [easyPayData, setEasyPayData] = useState({
+    accountNumber: '',
+    expirationMonth: '',
+    expirationYear: ''
+  })
+  const [easyPayErrors, setEasyPayErrors] = useState<{[key: string]: string}>({})
 
   // Fetch booking data using robust storage manager
   useEffect(() => {
@@ -171,6 +181,48 @@ export default function PaymentPage() {
     fetchBookingData()
   }, [flightId, router])
 
+  // EasyPay form validation
+  const validateEasyPayForm = () => {
+    const errors: {[key: string]: string} = {}
+
+    if (!easyPayData.accountNumber.trim()) {
+      errors.accountNumber = 'Account number is required'
+    } else if (!/^\d{10,16}$/.test(easyPayData.accountNumber.trim())) {
+      errors.accountNumber = 'Account number must be 10-16 digits'
+    }
+
+    if (!easyPayData.expirationMonth.trim()) {
+      errors.expirationMonth = 'Expiration month is required'
+    } else if (!/^(0[1-9]|1[0-2])$/.test(easyPayData.expirationMonth.trim())) {
+      errors.expirationMonth = 'Month must be 01-12'
+    }
+
+    if (!easyPayData.expirationYear.trim()) {
+      errors.expirationYear = 'Expiration year is required'
+    } else if (!/^\d{2}$/.test(easyPayData.expirationYear.trim())) {
+      errors.expirationYear = 'Year must be 2 digits (YY)'
+    } else {
+      // Check if the expiration date is in the future
+      const currentDate = new Date()
+      const currentYear = currentDate.getFullYear() % 100 // Get last 2 digits
+      const currentMonth = currentDate.getMonth() + 1 // 1-based month
+
+      const expYear = parseInt(easyPayData.expirationYear.trim())
+      const expMonth = parseInt(easyPayData.expirationMonth.trim())
+
+      // Handle year comparison (assuming years 00-30 are 2000s, 31-99 are 1900s)
+      const fullExpYear = expYear <= 30 ? 2000 + expYear : 1900 + expYear
+      const fullCurrentYear = currentDate.getFullYear()
+
+      if (fullExpYear < fullCurrentYear || (fullExpYear === fullCurrentYear && expMonth < currentMonth)) {
+        errors.expirationYear = 'Expiration date must be in the future'
+      }
+    }
+
+    setEasyPayErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
   const createBookingWithBackend = async (paymentData: any) => {
     try {
       if (!booking) {
@@ -207,11 +259,20 @@ export default function PaymentPage() {
         if (paymentData.id) {
           paymentInfo.paymentMethodId = paymentData.id;
         }
-        
+
         // Include the structured payment info for backend processing
         if (paymentData.paymentInfo) {
           paymentInfo.paymentInfo = paymentData.paymentInfo;
         }
+      } else if (paymentInfo.payment_method === 'EASYPAY' && paymentData && typeof paymentData === 'object') {
+        // Include EasyPay payment info for backend processing
+        paymentInfo.paymentInfo = {
+          MethodType: 'EASYPAY',
+          Details: {
+            AccountNumber: paymentData.accountNumber,
+            ExpirationDate: paymentData.expirationDate
+          }
+        };
       }
       // For other payment methods like 'cash', no additional data from paymentData is added by default.
       // If other methods require specific fields from paymentData, they should be explicitly and safely added here.
@@ -264,6 +325,21 @@ export default function PaymentPage() {
     } catch (error) {
       throw error
     }
+  }
+
+  const handleEasyPaySubmit = async () => {
+    if (!validateEasyPayForm()) {
+      return
+    }
+
+    // Format expiration date as MMYY
+    const formattedExpirationDate = `${easyPayData.expirationMonth.trim()}${easyPayData.expirationYear.trim()}`
+
+    // Call handlePaymentSuccess with EasyPay data
+    await handlePaymentSuccess({
+      accountNumber: easyPayData.accountNumber.trim(),
+      expirationDate: formattedExpirationDate
+    })
   }
 
   const handlePaymentSuccess = async (paymentData: any = {}) => {
@@ -538,33 +614,111 @@ export default function PaymentPage() {
                       </div>
                     ) : booking.paymentMethod === 'EASYPAY' ? (
                       <div className="p-6">
-                        <div className="text-center space-y-4">
-                          <div className="w-16 h-16 mx-auto bg-purple-100 rounded-full flex items-center justify-center">
-                            <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                            </svg>
-                          </div>
-                          <h3 className="text-lg font-semibold">EasyPay Payment</h3>
-                          <p className="text-muted-foreground">
-                            Complete your payment using your EasyPay account.
-                          </p>
-                          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                            <p className="text-sm text-purple-800">
-                              You will be redirected to EasyPay to complete your payment of ${booking.totalAmount}.
+                        <div className="space-y-6">
+                          <div className="text-center space-y-4">
+                            <div className="w-16 h-16 mx-auto bg-purple-100 rounded-full flex items-center justify-center">
+                              <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                              </svg>
+                            </div>
+                            <h3 className="text-lg font-semibold">EasyPay Payment</h3>
+                            <p className="text-muted-foreground">
+                              Enter your EasyPay account details to complete payment of {booking.currency} {booking.totalAmount}.
                             </p>
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                              <p className="text-sm text-blue-800">
+                                <strong>Note:</strong> Expiration date should be in MMYY format (e.g., 0629 for June 2029)
+                              </p>
+                            </div>
                           </div>
-                          <LoadingButton
-                            onClick={() => {
-                              // In a real implementation, this would redirect to EasyPay
-                              alert('Redirecting to EasyPay...');
-                              handlePaymentSuccess();
-                            }}
-                            loading={isProcessingPayment}
-                            loadingText="Redirecting..."
-                            className="w-full bg-purple-600 text-white hover:bg-purple-700"
-                          >
-                            Pay with EasyPay
-                          </LoadingButton>
+
+                          {/* EasyPay Form */}
+                          <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleEasyPaySubmit(); }}>
+                            <div className="space-y-2">
+                              <Label htmlFor="accountNumber">Account Number</Label>
+                              <Input
+                                id="accountNumber"
+                                type="text"
+                                placeholder="Enter your EasyPay account number (10-16 digits)"
+                                value={easyPayData.accountNumber}
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(/\D/g, ''); // Only allow digits
+                                  setEasyPayData(prev => ({ ...prev, accountNumber: value }));
+                                  if (easyPayErrors.accountNumber) {
+                                    setEasyPayErrors(prev => ({ ...prev, accountNumber: '' }));
+                                  }
+                                }}
+                                className={easyPayErrors.accountNumber ? "border-red-500" : ""}
+                                maxLength={16}
+                              />
+                              {easyPayErrors.accountNumber && (
+                                <p className="text-sm text-red-500">{easyPayErrors.accountNumber}</p>
+                              )}
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Expiration Date (MMYY)</Label>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                  <Label htmlFor="expirationMonth" className="text-sm text-muted-foreground">Month</Label>
+                                  <Input
+                                    id="expirationMonth"
+                                    type="text"
+                                    placeholder="MM"
+                                    value={easyPayData.expirationMonth}
+                                    onChange={(e) => {
+                                      const value = e.target.value.replace(/\D/g, '').slice(0, 2); // Only digits, max 2 chars
+                                      setEasyPayData(prev => ({ ...prev, expirationMonth: value }));
+                                      if (easyPayErrors.expirationMonth) {
+                                        setEasyPayErrors(prev => ({ ...prev, expirationMonth: '' }));
+                                      }
+                                    }}
+                                    className={easyPayErrors.expirationMonth ? "border-red-500" : ""}
+                                    maxLength={2}
+                                  />
+                                  {easyPayErrors.expirationMonth && (
+                                    <p className="text-xs text-red-500">{easyPayErrors.expirationMonth}</p>
+                                  )}
+                                </div>
+                                <div className="space-y-1">
+                                  <Label htmlFor="expirationYear" className="text-sm text-muted-foreground">Year</Label>
+                                  <Input
+                                    id="expirationYear"
+                                    type="text"
+                                    placeholder="YY"
+                                    value={easyPayData.expirationYear}
+                                    onChange={(e) => {
+                                      const value = e.target.value.replace(/\D/g, '').slice(0, 2); // Only digits, max 2 chars
+                                      setEasyPayData(prev => ({ ...prev, expirationYear: value }));
+                                      if (easyPayErrors.expirationYear) {
+                                        setEasyPayErrors(prev => ({ ...prev, expirationYear: '' }));
+                                      }
+                                    }}
+                                    className={easyPayErrors.expirationYear ? "border-red-500" : ""}
+                                    maxLength={2}
+                                  />
+                                  {easyPayErrors.expirationYear && (
+                                    <p className="text-xs text-red-500">{easyPayErrors.expirationYear}</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                              <p className="text-sm text-purple-800">
+                                Please ensure your EasyPay account has sufficient balance for the payment amount.
+                              </p>
+                            </div>
+
+                            <LoadingButton
+                              type="submit"
+                              loading={isProcessingPayment}
+                              loadingText="Processing..."
+                              className="w-full bg-purple-600 text-white hover:bg-purple-700"
+                            >
+                              Pay with EasyPay
+                            </LoadingButton>
+                          </form>
                         </div>
                       </div>
                     ) : booking.paymentMethod === 'OTHER' ? (

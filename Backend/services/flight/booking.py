@@ -697,11 +697,22 @@ class FlightBookingService(FlightService):
                 from utils.cache_manager import cache_manager
 
                 # Try multiple cache keys since request_id might be different between pricing and booking
+                # Check if metadata contains the actual cache key
+                metadata_cache_key = None
+                if isinstance(flight_price_response, dict) and 'metadata' in flight_price_response:
+                    metadata = flight_price_response['metadata']
+                    metadata_cache_key = metadata.get('flight_price_cache_key')
+                    logger.info(f"[DEBUG] Found metadata cache key: {metadata_cache_key} (ReqID: {request_id})")
+
                 cache_keys_to_try = [
                     f"flight_price_response:{request_id}",  # Current request_id
                     f"flight_price_response:{shopping_response_id}",  # ShoppingResponseID-based key
                     f"flight_price_response:{offer_id}",  # OfferID-based key
                 ]
+
+                # Add the metadata cache key if available
+                if metadata_cache_key:
+                    cache_keys_to_try.insert(0, metadata_cache_key)  # Try this first
 
                 # Also try to find any cache key that contains the shopping_response_id or offer_id
                 # This is a fallback for when the exact key format might be different
@@ -831,7 +842,7 @@ class FlightBookingService(FlightService):
                     'ms': 'Ms', 
                     'mrs': 'Mrs',
                     'miss': 'Miss',
-                    'dr': 'Dr'
+                    'mstr': 'Mstr'
                 }
                 title = title_mapping.get(passenger.get('title', '').lower(), 
                                         "Mr" if passenger.get('gender', '').lower() == 'male' else "Ms")
@@ -918,7 +929,20 @@ class FlightBookingService(FlightService):
                 transformed_passengers.append(transformed_passenger)
             
             # Transform payment info to match expected format
-            payment_method = payment_info.get('payment_method', 'PaymentCard')
+            # Try to get payment method from nested structure first, then fallback to top-level
+            nested_payment_info = payment_info.get('paymentInfo', {})
+
+            # DEBUG: Log payment info structure
+            logger.info(f"[DEBUG] Raw payment_info structure (ReqID: {request_id}): {payment_info}")
+            logger.info(f"[DEBUG] Nested paymentInfo structure (ReqID: {request_id}): {nested_payment_info}")
+
+            payment_method = (
+                payment_info.get('payment_method') or
+                nested_payment_info.get('MethodType') or
+                'PaymentCard'  # Default fallback
+            )
+
+            logger.info(f"[DEBUG] Extracted payment_method (ReqID: {request_id}): {payment_method}")
             
             # Map payment method values to what build_ordercreate_rq expects
             method_type_mapping = {
@@ -937,31 +961,130 @@ class FlightBookingService(FlightService):
                 'currency': payment_info.get('currency', 'USD'),
                 'Details': {}
             }
+
+            # For build_ordercreate_rq.py compatibility, we need to structure the data differently
+            # The function expects card details at the top level for PAYMENTCARD method
             
             if mapped_method_type == 'PAYMENTCARD':
-                transformed_payment['Details'].update({
-                    'CardNumberToken': payment_info.get('CardNumberToken', payment_info.get('card_number')),
-                    'CardType': payment_info.get('CardType', payment_info.get('card_type', 'VI')),
+                # Handle nested paymentInfo structure from frontend
+                nested_payment_info = payment_info.get('paymentInfo', {})
+                nested_details = nested_payment_info.get('Details', {})
+
+                # Extract CardHolderName with proper fallback handling
+                card_holder_name_value = ''
+                card_holder_name_refs = []
+
+                # Try to get from nested structure first
+                if nested_details.get('CardHolderName'):
+                    if isinstance(nested_details['CardHolderName'], dict):
+                        card_holder_name_value = nested_details['CardHolderName'].get('value', '')
+                        card_holder_name_refs = nested_details['CardHolderName'].get('refs', [])
+                    else:
+                        card_holder_name_value = str(nested_details['CardHolderName'])
+                # Fallback to direct payment_info
+                elif payment_info.get('CardHolderName'):
+                    if isinstance(payment_info['CardHolderName'], dict):
+                        card_holder_name_value = payment_info['CardHolderName'].get('value', '')
+                        card_holder_name_refs = payment_info['CardHolderName'].get('refs', [])
+                    else:
+                        card_holder_name_value = str(payment_info['CardHolderName'])
+                # Final fallback to legacy field
+                else:
+                    card_holder_name_value = payment_info.get('cardholder_name', '')
+
+                # DEBUG: Log card holder name extraction
+                logger.info(f"[DEBUG] CardHolderName extraction (ReqID: {request_id}): nested='{nested_details.get('CardHolderName')}', direct='{payment_info.get('CardHolderName')}', final='{card_holder_name_value}'")
+
+                # Extract EffectiveExpireDate with proper fallback handling
+                expiration_date = ''
+                effective_date = None
+
+                # Try nested structure first
+                if nested_details.get('EffectiveExpireDate'):
+                    if isinstance(nested_details['EffectiveExpireDate'], dict):
+                        expiration_date = nested_details['EffectiveExpireDate'].get('Expiration', '')
+                        effective_date = nested_details['EffectiveExpireDate'].get('Effective')
+                    else:
+                        expiration_date = str(nested_details['EffectiveExpireDate'])
+                # Fallback to direct payment_info
+                elif payment_info.get('EffectiveExpireDate'):
+                    if isinstance(payment_info['EffectiveExpireDate'], dict):
+                        expiration_date = payment_info['EffectiveExpireDate'].get('Expiration', '')
+                        effective_date = payment_info['EffectiveExpireDate'].get('Effective')
+                    else:
+                        expiration_date = str(payment_info['EffectiveExpireDate'])
+                # Final fallback to legacy field
+                else:
+                    expiration_date = payment_info.get('expiry_date', '')
+
+                # For build_ordercreate_rq.py, put card details at top level (not in Details)
+                # Use CardNumber instead of CardNumberToken since we're using actual card numbers
+                card_number_token = (
+                    payment_info.get('CardNumberToken') or
+                    payment_info.get('card_number') or
+                    nested_details.get('CardNumberToken') or
+                    nested_details.get('card_number') or
+                    nested_details.get('CardNumber')  # Add this fallback
+                )
+
+                # DEBUG: Log card number token extraction
+                logger.info(f"[DEBUG] CardNumberToken extraction (ReqID: {request_id}): nested='{nested_details.get('CardNumberToken')}', direct='{payment_info.get('CardNumberToken')}', final='{card_number_token}'")
+
+                transformed_payment.update({
+                    'CardNumberToken': card_number_token,
+                    'CardType': (
+                        payment_info.get('CardType') or
+                        payment_info.get('card_type', 'VI') or
+                        nested_details.get('CardType') or
+                        nested_details.get('card_type', 'VI')
+                    ),
                     'CardHolderName': {
-                        'value': payment_info.get('CardHolderName', payment_info.get('cardholder_name', '')),
-                        'refs': []
+                        'value': card_holder_name_value,
+                        'refs': card_holder_name_refs
                     },
                     'EffectiveExpireDate': {
-                        'Expiration': payment_info.get('EffectiveExpireDate', {}).get('Expiration', payment_info.get('expiry_date', '')),
-                        'Effective': payment_info.get('EffectiveExpireDate', {}).get('Effective')
+                        'Expiration': expiration_date,
+                        'Effective': effective_date
                     },
-                    'CardCode': payment_info.get('CardCode', payment_info.get('cvv', '')),
-                    'ProductTypeCode': payment_info.get('ProductTypeCode', payment_info.get('product_type_code', ''))
+                    'CardCode': (
+                        payment_info.get('CardCode') or
+                        payment_info.get('cvv', '') or
+                        nested_details.get('CardCode') or
+                        nested_details.get('cvv', '')
+                    ),
+                    'ProductTypeCode': (
+                        payment_info.get('ProductTypeCode') or
+                        payment_info.get('product_type_code', '') or
+                        nested_details.get('ProductTypeCode') or
+                        nested_details.get('product_type_code', '')
+                    )
                 })
             elif mapped_method_type == 'CASH':
-                transformed_payment['Details']['CashInd'] = payment_info.get('CashInd', True)
+                # For build_ordercreate_rq.py, put CashInd at top level
+                transformed_payment['CashInd'] = payment_info.get('CashInd', True)
             elif mapped_method_type == 'EASYPAY':
-                 transformed_payment['Details'].update({
-                     'AccountNumber': payment_info.get('AccountNumber', payment_info.get('account_number')),
-                     'ExpirationDate': payment_info.get('ExpirationDate', payment_info.get('expiration_date'))
-                 })
+                # Handle nested paymentInfo structure from frontend
+                nested_payment_info = payment_info.get('paymentInfo', {})
+                nested_details = nested_payment_info.get('Details', {})
+
+                # For build_ordercreate_rq.py, put EasyPay details at top level (not in Details)
+                transformed_payment.update({
+                    'AccountNumber': (
+                        payment_info.get('AccountNumber') or
+                        payment_info.get('account_number') or
+                        nested_details.get('AccountNumber') or
+                        nested_details.get('account_number')
+                    ),
+                    'ExpirationDate': (
+                        payment_info.get('ExpirationDate') or
+                        payment_info.get('expiration_date') or
+                        nested_details.get('ExpirationDate') or
+                        nested_details.get('expiration_date')
+                    )
+                })
             elif mapped_method_type == 'OTHER':
-                transformed_payment['Details']['Remarks'] = payment_info.get('remarks', [])
+                # For build_ordercreate_rq.py, put Remarks at top level
+                transformed_payment['Remarks'] = payment_info.get('remarks', [])
             
             # Enhance flight_price_response with extracted IDs if available
             # (enhanced_flight_price_response was already initialized at the beginning of the function)
@@ -1022,6 +1145,7 @@ class FlightBookingService(FlightService):
             logger.info(f"[DEBUG] Transformed payment keys: {list(transformed_payment.keys()) if isinstance(transformed_payment, dict) else 'Not a dict'}")
 
             logger.info(f"[DEBUG] ===== CALLING generate_order_create_rq FUNCTION =====")
+            logger.info(f"[DEBUG] Final transformed_payment structure (ReqID: {request_id}): {transformed_payment}")
             payload = current_func(
                 flight_price_response=enhanced_flight_price_response,
                 passengers_data=transformed_passengers,
