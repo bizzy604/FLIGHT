@@ -1,8 +1,7 @@
 "use client"
 
 import Image from "next/image";
-import { MainNav } from "@/components/main-nav";
-import { UserNav } from "@/components/user-nav";
+import { MainNav, UserNav } from "@/components/organisms";
 
 export default function AboutPage() {
   return (

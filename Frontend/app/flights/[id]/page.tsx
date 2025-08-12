@@ -16,12 +16,8 @@ import { navigationCacheManager } from "@/utils/navigation-cache-manager"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { MainNav } from "@/components/main-nav"
-import { UserNav } from "@/components/user-nav"
-import { FlightDetailsHeader } from "@/components/flight-details-header"
-import { BookingForm } from "@/components/booking-form"
-import { FareRulesTable } from "@/components/fare-rules-table"
-import { FlightItineraryCard } from "@/components/flight-itinerary-card"
+import { MainNav, UserNav, BookingForm, FlightItineraryCard } from "@/components/organisms"
+import { FlightRouteInfo, FareRulesTable } from "@/components/molecules"
 
 // Airport code to name mapping for route display
 const AIRPORT_NAMES: Record<string, string> = {
@@ -185,71 +181,168 @@ function FlightDetailsPageContent() {
           }
         }
 
-        // Try to get existing flight price data from Redis first
-        let flightPriceResult = await redisFlightStorage.getFlightPrice();
-
-
-
-        // If Redis has flight price data, use it directly
-        if (flightPriceResult.success && flightPriceResult.data) {
-          const cachedPriceData = flightPriceResult.data;
-
-          if (cachedPriceData.pricedOffer) {
-            setPricedOffer(cachedPriceData.pricedOffer);
-
-            // Store search parameters for back button navigation
-            if (cachedPriceData.searchParams) {
-              setCachedSearchParams(cachedPriceData.searchParams);
-            }
-
-            // Store in sessionStorage for booking and faster future access
-            sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(cachedPriceData.pricedOffer));
-            if (cachedPriceData.rawResponse) {
-              sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(cachedPriceData.rawResponse));
-            }
-
-            setIsLoading(false);
-            return; // Data found and loaded, no need to fetch from API
-          }
-        }
-
-        // If no flight price data found, try to make API call as fallback
-
-        // Get flight search data for API call
-        const flightSearchResult = await redisFlightStorage.getFlightSearch();
-
-        if (!flightSearchResult.success || !flightSearchResult.data) {
-          throw new Error('Flight data not found. Your session may have expired. Please start a new search.');
-        }
-
-        const rawAirShoppingResponse = flightSearchResult.data.airShoppingResponse;
-        let airShoppingMetadata = {};
-        let shoppingResponseId = 'BACKEND_WILL_EXTRACT';
-
-        // Extract search parameters from flight search data for route display
-        if (flightSearchResult.data.searchParams && !cachedSearchParams) {
-          setCachedSearchParams(flightSearchResult.data.searchParams);
-        }
-
-        // Extract metadata for backend cache retrieval
-        if (rawAirShoppingResponse?.data?.metadata) {
-          airShoppingMetadata = rawAirShoppingResponse.data.metadata;
-        } else if (rawAirShoppingResponse?.metadata) {
-          airShoppingMetadata = rawAirShoppingResponse.metadata;
-        }
-
-        // Make flight pricing API call
+        // Try to get flight pricing from cache first using backend API
         const flightIndex = parseInt(flightId);
+        const shoppingResponseId = 'BACKEND_WILL_EXTRACT';
 
         if (isNaN(flightIndex) || flightIndex < 0) {
           throw new Error(`Invalid flight ID: ${flightId}. Please select a flight again.`);
         }
 
+        try {
+          // Check cache first via backend API
+          logger.info(`🔍 Checking flight price cache for flight ID: ${flightId}`);
+          const cacheCheckResponse = await api.checkFlightPriceCache(flightId, shoppingResponseId);
+          
+          if (cacheCheckResponse.data.status === 'success' && cacheCheckResponse.data.source === 'cache') {
+            logger.info('🚀 Flight price cache hit! Using cached pricing data from backend');
+            
+            const cachedPricingData = cacheCheckResponse.data.data;
+            
+            // Extract the priced offer from cached response
+            const pricedOfferData = cachedPricingData.priced_offers ? cachedPricingData.priced_offers[0] : cachedPricingData;
+            
+            if (pricedOfferData) {
+              setPricedOffer(pricedOfferData);
+              
+              // Store in sessionStorage for booking access
+              sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(pricedOfferData));
+              
+              if (cachedPricingData.metadata) {
+                sessionStorage.setItem('flightPriceMetadata', JSON.stringify(cachedPricingData.metadata));
+              }
+              
+              // Try to get search params from URL parameters (more reliable than cache)
+              const urlSearchParams = {
+                origin: searchParams.get('origin'),
+                destination: searchParams.get('destination'),
+                departDate: searchParams.get('departDate'),
+                returnDate: searchParams.get('returnDate'),
+                tripType: searchParams.get('tripType'),
+                adults: searchParams.get('adults'),
+                children: searchParams.get('children'),
+                infants: searchParams.get('infants'),
+                cabinClass: searchParams.get('cabinClass')
+              };
+
+              // Only set cached params if we have the essential ones
+              if (urlSearchParams.origin && urlSearchParams.destination && urlSearchParams.departDate) {
+                setCachedSearchParams(urlSearchParams);
+                logger.info('✅ Using search params from URL');
+              } else {
+                logger.warn('⚠️ Could not get search params from URL, will use flight data for route display');
+              }
+              
+              setIsLoading(false);
+              return; // Successfully loaded from cache
+            }
+          }
+        } catch (cacheError) {
+          logger.warn('⚠️ Flight price cache check failed, falling back to API:', cacheError);
+        }
+
+        // Cache miss - get flight search data for API call using new cache system
+        logger.info(`💫 Cache miss for flight ID: ${flightId} - calling pricing API`);
+        
+        let airShoppingMetadata = {};
+        
+        // Try to get search parameters from URL first
+        const urlSearchParams = {
+          origin: searchParams.get('origin'),
+          destination: searchParams.get('destination'),
+          departDate: searchParams.get('departDate'),
+          returnDate: searchParams.get('returnDate'),
+          tripType: searchParams.get('tripType'),
+          adults: Number(searchParams.get('adults')) || 1,
+          children: Number(searchParams.get('children')) || 0,
+          infants: Number(searchParams.get('infants')) || 0,
+          cabinClass: searchParams.get('cabinClass') || 'ECONOMY'
+        };
+
+        // Set cached search params if available from URL
+        if (urlSearchParams.origin && urlSearchParams.destination && urlSearchParams.departDate && !cachedSearchParams) {
+          setCachedSearchParams(urlSearchParams);
+        }
+
+        // Try to get flight search data from new cache system
+        if (urlSearchParams.origin && urlSearchParams.destination && urlSearchParams.departDate) {
+          const flightSearchParams = {
+            tripType: urlSearchParams.tripType === 'round-trip' ? 'ROUND_TRIP' : 'ONE_WAY',
+            odSegments: [{
+              origin: urlSearchParams.origin,
+              destination: urlSearchParams.destination,
+              departureDate: urlSearchParams.departDate,
+              ...(urlSearchParams.tripType === 'round-trip' && urlSearchParams.returnDate ? { returnDate: urlSearchParams.returnDate } : {})
+            }],
+            numAdults: urlSearchParams.adults,
+            numChildren: urlSearchParams.children,
+            numInfants: urlSearchParams.infants,
+            cabinPreference: urlSearchParams.cabinClass,
+            directOnly: false
+          };
+
+          try {
+            // Check the new cache-first system for flight search data
+            const cacheCheckResponse = await api.checkFlightSearchCache(flightSearchParams);
+            
+            if (cacheCheckResponse.data.status === 'success' && cacheCheckResponse.data.source === 'cache') {
+              logger.info('✅ Found flight search data in new cache system for pricing API');
+              
+              const cachedFlightData = cacheCheckResponse.data.data;
+              
+              // Extract metadata if available
+              if (cachedFlightData?.metadata) {
+                airShoppingMetadata = cachedFlightData.metadata;
+                logger.info('✅ Using metadata from new cache system for pricing API');
+              } else if (cachedFlightData?.raw_response) {
+                // Use raw response if metadata not available
+                airShoppingMetadata = cachedFlightData.raw_response;
+                logger.info('✅ Using raw response from new cache system for pricing API');
+              } else {
+                // Fallback to the whole cached data
+                airShoppingMetadata = cachedFlightData;
+                logger.info('✅ Using full cached data from new cache system for pricing API');
+              }
+            } else {
+              logger.warn('⚠️ No flight search data found in new cache system, backend will handle cache retrieval');
+            }
+          } catch (cacheError) {
+            logger.warn('⚠️ Failed to check new cache system for pricing API, backend will handle cache retrieval:', cacheError);
+          }
+        } else {
+          logger.warn('⚠️ No search parameters available from URL, backend will handle cache retrieval');
+        }
+
+        // Make flight pricing API call
         const response = await api.getFlightPrice(
           flightIndex,
           shoppingResponseId,
           airShoppingMetadata
         );
+
+        // Handle expired offers error specifically
+        if (response.data?.status === 'expired_offer_error') {
+          logger.warn('⚠️ Flight offers have expired, redirecting to search results');
+          
+          // Redirect back to search results page with a message
+          alert('Flight offers have expired. You will be redirected to search for current flights.');
+          
+          // Build the search URL with current parameters
+          const searchUrl = new URLSearchParams();
+          if (urlSearchParams.origin) searchUrl.set('origin', urlSearchParams.origin);
+          if (urlSearchParams.destination) searchUrl.set('destination', urlSearchParams.destination);
+          if (urlSearchParams.departDate) searchUrl.set('departDate', urlSearchParams.departDate);
+          if (urlSearchParams.returnDate) searchUrl.set('returnDate', urlSearchParams.returnDate);
+          if (urlSearchParams.tripType) searchUrl.set('tripType', urlSearchParams.tripType);
+          if (urlSearchParams.adults) searchUrl.set('adults', urlSearchParams.adults.toString());
+          if (urlSearchParams.children) searchUrl.set('children', urlSearchParams.children.toString());
+          if (urlSearchParams.infants) searchUrl.set('infants', urlSearchParams.infants.toString());
+          if (urlSearchParams.cabinClass) searchUrl.set('cabinClass', urlSearchParams.cabinClass);
+          
+          // Redirect to flights page to trigger fresh search
+          window.location.href = `/flights?${searchUrl.toString()}`;
+          return;
+        }
 
         if (!response.data || response.data.status !== 'success') {
           throw new Error(response.data?.error || 'Failed to get flight pricing');
@@ -272,18 +365,8 @@ function FlightDetailsPageContent() {
 
         setPricedOffer(firstPricedOffer);
 
-        // Store the data in Redis for future use
-        const flightPriceData = {
-          flightId: flightId,
-          pricedOffer: firstPricedOffer,
-          rawResponse: response.data.data.raw_response, // This will be null when caching works
-          metadata: response.data.data.metadata, // Store metadata with cache keys
-          searchParams: cachedSearchParams || {},
-          timestamp: Date.now(),
-          expiresAt: Date.now() + (30 * 60 * 1000) // 30 minutes
-        };
-
-        const redisStoreResult = await redisFlightStorage.storeFlightPrice(flightPriceData);
+        // Note: Flight pricing data is now automatically cached by the backend Redis system
+        // No need for client-side storage as backend handles caching with the new Redis implementation
 
         // Store in session storage for booking
         sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(firstPricedOffer));
@@ -431,13 +514,12 @@ function FlightDetailsPageContent() {
             </Link>
 
             {/* ## FIX 3: Use original search parameters for route display instead of flight segments ## */}
-            <FlightDetailsHeader
+            <FlightRouteInfo
               origin={getAirportDisplay(cachedSearchParams?.origin || outboundSegments[0]?.departure_airport)}
               originCode={cachedSearchParams?.origin || outboundSegments[0]?.departure_airport}
               destination={getAirportDisplay(cachedSearchParams?.destination || outboundSegments[outboundSegments.length - 1]?.arrival_airport)}
               destinationCode={cachedSearchParams?.destination || outboundSegments[outboundSegments.length - 1]?.arrival_airport}
               departDate={cachedSearchParams?.departDate || outboundSegments[0]?.departure_datetime}
-              returnDate={cachedSearchParams?.returnDate || returnSegments[0]?.departure_datetime} // Safely access for round-trip
               price={pricedOffer.total_price.amount}
               currency={pricedOffer.total_price.currency}
               adults={adults}

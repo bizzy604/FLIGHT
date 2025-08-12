@@ -14,6 +14,7 @@ import logging
 
 import redis
 import os
+from config.redis_config import get_redis_connection, _mask_password
 
 logger = logging.getLogger(__name__)
 
@@ -21,49 +22,21 @@ class RedisFlightStorage:
     """Redis-based storage for flight data with automatic expiration."""
 
     def __init__(self):
-        # Create Redis connection using environment variables or defaults
-        redis_host = os.getenv('REDIS_HOST', 'localhost')
-        redis_port = int(os.getenv('REDIS_PORT', 6379))
-        redis_db = int(os.getenv('REDIS_DB', 0))
-        redis_password = os.getenv('REDIS_PASSWORD', None)
-
-        # Check for Redis URL (common in cloud deployments)
-        redis_url = os.getenv('REDIS_URL')
-
+        """Initialize Redis Flight Storage with enhanced connection handling"""
         try:
-            if redis_url:
-                # Use Redis URL if provided (common for cloud deployments)
-                self.redis_client = redis.from_url(
-                    redis_url,
-                    socket_timeout=5,
-                    socket_connect_timeout=5,
-                    retry_on_timeout=True,
-                    decode_responses=True
-                )
-            else:
-                # Use individual connection parameters
-                self.redis_client = redis.Redis(
-                    host=redis_host,
-                    port=redis_port,
-                    db=redis_db,
-                    password=redis_password,
-                    socket_timeout=5,
-                    socket_connect_timeout=5,
-                    retry_on_timeout=True,
-                    decode_responses=True  # Automatically decode responses to UTF-8
-                )
-
-            # Test the connection
-            self.redis_client.ping()
+            # Use the centralized Redis connection configuration
+            self.redis_client = get_redis_connection()
             self.redis_available = True
-            logger.info(f"Redis connection established successfully to {redis_host}:{redis_port}")
+            
+            redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+            logger.info(f"Redis Flight Storage initialized successfully using: {_mask_password(redis_url)}")
 
         except Exception as e:
             logger.warning(f"Redis connection failed: {e}. Running without Redis cache.")
             self.redis_client = None
             self.redis_available = False
 
-        self.default_ttl = 1800  # 30 minutes in seconds
+        self.default_ttl = 300  # 5 minutes in seconds (reduced to match typical offer expiration times)
         
     def _generate_session_id(self) -> str:
         """Generate a unique session ID for flight data."""

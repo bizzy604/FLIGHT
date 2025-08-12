@@ -1,0 +1,111 @@
+---
+globs: "*.md,*.mdc"
+---
+
+# Documentation & Planning Patterns for Flight Booking Portal
+
+## Document Structure Standards for Travel Systems
+- Follow established patterns from airline integration specifications and booking system documentation
+- Use natural language descriptions for booking flows and airline API integrations (avoid code snippets in specifications)
+- Focus on booking system architecture, payment flow decisions, and airline partnership requirements
+- Include comprehensive metadata: version, date, author, airline partners affected, compliance status
+
+## Key Documentation Files for Flight Booking Systems
+- **PRD.md**: Product Requirements Document with traveler user stories, booking scenarios, and airline partner acceptance criteria
+- **airline_integration_specification.md**: Technical architecture for NDC API integrations, GDS connections, and airline-specific requirements
+- **booking_flow_specification.md**: Complete booking journey architecture from search to confirmation
+- **payment_integration_specification.md**: Secure payment processing architecture with PCI compliance requirements
+- **security_compliance_specification.md**: Aviation security standards, PCI DSS compliance, and passenger data protection
+- **rules.md**: Flight booking development best practices, airline integration standards, and coding guidelines
+- **mvp_plan.md**: 15-day sprint plan for core booking functionality and priority airline integrations
+- **roadmap_plan.md**: 12-month implementation roadmap for multi-airline expansion and advanced booking features
+
+## Documentation Principles for Travel Technology
+- Write for airline integration developers who will implement booking flows and API connections
+- Include aviation industry context, IATA standards, and regulatory requirements (GDPR, PCI DSS)
+- Maintain version control with airline partner approval tracking and compliance change history
+- Cross-reference booking system components, airline API documentation, and payment processing guides
+- Use clear section numbering with airline-specific subsections and integration hierarchies
+
+## Planning Document Requirements for Flight Booking Systems
+- **Executive summaries** for airline partnership stakeholder overview and business impact
+- **Detailed technical requirements** for booking system development teams and airline integration specialists
+- **Risk assessment** for airline API dependencies, payment processing failures, and booking system outages
+- **Success criteria** including booking conversion rates, payment success rates, and airline SLA compliance
+- **Timeline** with realistic airline integration milestones, certification requirements, and go-live dependencies
+
+## Booking System Documentation Standards
+- **Booking Flow Documentation** - Complete traveler journey from search to post-travel
+- **Airline API Integration Guides** - NDC, GDS, and airline-specific integration patterns
+- **Payment Processing Documentation** - Secure payment flows, refund processes, and fraud prevention
+- **Error Handling Documentation** - Booking failure scenarios, airline API errors, and recovery procedures
+- **Security and Compliance Documentation** - PCI DSS compliance, passenger data protection, audit requirements
+
+## Airline Integration Planning Requirements
+- **Partner Onboarding Documentation** - Step-by-step airline integration and certification process
+- **API Specification Mapping** - Map airline APIs to internal booking system interfaces
+- **Testing and Certification Plans** - Airline sandbox testing, production readiness, and go-live procedures
+- **Monitoring and SLA Documentation** - Performance monitoring, alerting, and airline partner SLA tracking
+- **Maintenance and Support Documentation** - Ongoing airline relationship management and technical support
+
+## Markdown Standards for Travel Documentation
+- Use consistent heading hierarchy (H1 for major booking flows, H2 for airline-specific sections)
+- Include table of contents for complex booking system documents
+- Use code blocks only for configuration examples and API endpoint references, not booking implementation code
+- Include airline partnership metadata tables for integration versioning and compliance tracking
+- Use bullet points for booking step sequences and numbered lists for integration procedures
+
+## Documentation Categories for Flight Booking Portal
+
+### Business Documentation
+- **Booking System PRD** - Product requirements for flight search, booking, and payment systems
+- **Airline Partnership Strategy** - Business requirements for airline integrations and revenue models
+- **Compliance Requirements** - Regulatory compliance documentation (PCI DSS, GDPR, aviation security)
+- **User Experience Specifications** - Traveler journey mapping and booking flow optimization
+
+### Technical Architecture Documentation
+- **System Architecture Overview** - High-level booking system architecture and component interactions
+- **Airline Integration Architecture** - NDC API integration patterns, GDS connections, and data transformation
+- **Payment System Architecture** - Secure payment processing, tokenization, and fraud prevention
+- **Security Architecture** - Authentication systems, data encryption, and audit trail implementation
+
+### Operational Documentation
+- **Deployment Procedures** - Booking system deployment, airline API configuration, and production readiness
+- **Monitoring and Alerting** - System health monitoring, airline API performance tracking, and incident response
+- **Disaster Recovery Plans** - Booking system backup procedures, airline failover strategies, and business continuity
+- **Support and Maintenance** - Ongoing system maintenance, airline relationship management, and technical support
+
+## Review and Update Process for Travel Systems
+- **Documents are living artifacts** that evolve with airline partnerships and booking system enhancements
+- **Regular reviews** ensure accuracy with current airline APIs, compliance requirements, and booking flows
+- **Version control** tracks all changes, airline partner approvals, and compliance audit requirements
+- **Airline partner sign-offs** for major integration specification changes and booking flow modifications
+- **Compliance updates** track regulatory changes affecting passenger data handling and payment processing
+
+## Travel Industry Documentation Best Practices
+
+### Airline Integration Documentation
+- **API Version Tracking** - Document airline API versions, deprecation schedules, and migration requirements
+- **Certification Documentation** - Track airline certification status, testing completion, and production approval
+- **SLA Documentation** - Record airline performance requirements, response time expectations, and availability standards
+- **Error Handling Documentation** - Document airline-specific error codes, retry policies, and escalation procedures
+
+### Booking System Documentation
+- **Flow Documentation** - Document complete booking flows with decision points and error scenarios
+- **State Management Documentation** - Track booking states, payment statuses, and confirmation processes
+- **Data Validation Documentation** - Document passenger data validation rules, format requirements, and error handling
+- **Audit Trail Documentation** - Record booking modifications, cancellations, and refund processing
+
+### Payment Processing Documentation
+- **PCI Compliance Documentation** - Track PCI DSS requirements, audit schedules, and compliance validation
+- **Payment Method Documentation** - Document supported payment types, processing flows, and security measures
+- **Fraud Prevention Documentation** - Record fraud detection rules, risk scoring, and prevention measures
+- **Refund Processing Documentation** - Document refund policies, processing procedures, and timeline requirements
+
+## Documentation Quality Standards for Flight Booking Systems
+- **Accuracy** - All booking flows and airline integrations must be accurately documented
+- **Completeness** - Documentation must cover all booking scenarios, error cases, and airline variations
+- **Clarity** - Technical specifications must be clear for both internal developers and airline partners
+- **Compliance** - All documentation must meet aviation industry standards and regulatory requirements
+- **Traceability** - Requirements must be traceable from business needs through technical implementation
+- **Maintainability** - Documentation must be easily updated as airline partnerships and booking systems evolve

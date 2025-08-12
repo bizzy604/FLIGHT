@@ -8,19 +8,14 @@ import { useSearchParams } from "next/navigation"
 import { api } from "@/utils/api-client"
 import type { FlightSearchRequest } from "@/utils/api-client"
 import type { FlightOffer } from "@/types/flight-api"
-import { flightStorageManager, FlightSearchData } from "@/utils/flight-storage-manager"
-import { redisFlightStorage } from "@/utils/redis-flight-storage"
+// Note: Using backend Redis caching instead of client-side storage
 import { navigationCacheManager } from "@/utils/navigation-cache-manager"
 
 
 import { Button, LoadingButton } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { MainNav } from "@/components/main-nav"
-import { UserNav } from "@/components/user-nav"
-import { FlightFilters } from "@/components/flight-filters"
-import { EnhancedFlightCard } from "@/components/enhanced-flight-card"
-import { FlightSortOptions } from "@/components/flight-sort-options"
-import { FlightSearchSummary } from "@/components/flight-search-summary"
+import { MainNav, UserNav, EnhancedFlightCard } from "@/components/organisms"
+import { FlightFilters, FlightSortOptions, FlightSearchSummary } from "@/components/molecules"
 
 // Define interfaces for flight data types
 interface StopDetail {
@@ -241,19 +236,13 @@ function SearchParamsWrapper() {
       return;
     }
 
-    // Update navigation state and setup cache management
+    // Update navigation state for tracking
     const currentSearchParams = {
       origin, destination, departDate, returnDate, tripType,
       adults: adults.toString(), children: children.toString(), infants: infants.toString(),
       cabinClass, outboundCabinClass, returnCabinClass
     };
     navigationCacheManager.updateNavigationState('search', { searchParams: currentSearchParams });
-
-    // Check if we should use cached data
-    const shouldUseCachedData = async () => {
-      const cacheValidation = await navigationCacheManager.validateFlightSearchCache(currentSearchParams);
-      return cacheValidation.isValid;
-    };
     
     // Convert trip type to backend format
     const convertTripType = (type: string): 'ONE_WAY' | 'ROUND_TRIP' | 'MULTI_CITY' => {
@@ -294,31 +283,23 @@ function SearchParamsWrapper() {
       }),
       directOnly: false
     };
-    
-    // Check for cached data using intelligent navigation cache manager
-    const checkCachedData = async () => {
+
+    // Smart cache-first data loading with Redis backend
+    const loadData = async () => {
       try {
-        // Use navigation cache manager for intelligent cache validation
-        const cacheValidation = await navigationCacheManager.validateFlightSearchCache(currentSearchParams);
-
-        if (cacheValidation.isValid && cacheValidation.data) {
-          const cachedData = cacheValidation.data;
-          const cachedParams = cachedData.searchParams;
-
-
-
-          if (cachedParams &&
-              cachedParams.origin === origin &&
-              cachedParams.destination === destination &&
-              cachedParams.departDate === departDate &&
-              cachedParams.tripType === tripType &&
-              cachedParams.passengers?.adults === adults &&
-              cachedParams.passengers?.children === children &&
-              cachedParams.passengers?.infants === infants) {
-
-            // Extract flights from cached data
-            const cachedFlights = cachedData.airShoppingResponse?.offers || [];
-            const directFlights = cachedFlights.map((offer: any) => ({
+        // First, try to get data from Redis cache via backend API
+        console.log('[FlightSearch] 🔍 Checking Redis cache via backend API...');
+        
+        const cacheCheckResponse = await api.checkFlightSearchCache(flightSearchParams);
+        
+        if (cacheCheckResponse.data.status === 'success' && cacheCheckResponse.data.source === 'cache') {
+          console.log('[FlightSearch] 🚀 Cache hit! Using backend Redis cached data');
+          
+          // Extract flight offers from cached data
+          const cachedData = cacheCheckResponse.data.data;
+          
+          if (cachedData && cachedData.offers) {
+            const cachedFlights = cachedData.offers.map((offer: any) => ({
               id: offer.id,
               offer_index: offer.offer_index,
               original_offer_id: offer.original_offer_id,
@@ -332,20 +313,19 @@ function SearchParamsWrapper() {
               currency: offer.currency,
               aircraft: offer.aircraft,
               segments: offer.segments,
-              // Use actual baggage data from backend, no hardcoded fallbacks
               baggage: offer.baggage || null,
-              fare: offer.fare || { type: "Economy", refundable: false }, // Default fallback
-              priceBreakdown: offer.priceBreakdown || { totalPrice: offer.price, currency: offer.currency }, // Default fallback
+              fare: offer.fare || { type: "Economy", refundable: false },
+              priceBreakdown: offer.priceBreakdown || { totalPrice: offer.price, currency: offer.currency },
               additionalServices: offer.additionalServices || [],
               fareRules: offer.fareRules || [],
               penalties: offer.penalties || [],
               time_limits: offer.time_limits || {}
             }));
-
-            // Extract unique airlines
+            
+            // Extract unique airlines and airports from cached data
             const uniqueAirlines = new Map<string, {id: string, name: string}>();
-            directFlights.forEach((flight: FlightOffer) => {
-              if (flight.airline && flight.airline.code && flight.airline.name) {
+            cachedFlights.forEach((flight: FlightOffer) => {
+              if (flight.airline?.code && flight.airline?.name) {
                 uniqueAirlines.set(flight.airline.code, {
                   id: flight.airline.code,
                   name: flight.airline.name
@@ -354,56 +334,36 @@ function SearchParamsWrapper() {
             });
             const airlineOptions = Array.from(uniqueAirlines.values()).sort((a, b) => a.name.localeCompare(b.name));
 
-            // Extract unique arrival airports
             const uniqueAirports = new Map<string, {id: string, name: string, city?: string}>();
-            directFlights.forEach((flight: FlightOffer) => {
-              if (flight.arrival && flight.arrival.airport) {
+            cachedFlights.forEach((flight: FlightOffer) => {
+              if (flight.arrival?.airport) {
                 const airportCode = flight.arrival.airport;
-
                 const displayName = flight.arrival.airportName
                   ? `${airportCode} - ${flight.arrival.airportName}`
                   : airportCode;
-
-                uniqueAirports.set(airportCode, {
-                  id: airportCode,
-                  name: displayName
-                });
+                uniqueAirports.set(airportCode, { id: airportCode, name: displayName });
               }
             });
             const airportOptions = Array.from(uniqueAirports.values()).sort((a, b) => a.id.localeCompare(b.id));
 
             setAvailableAirlines(airlineOptions);
             setAvailableAirports(airportOptions);
-            setAllFlights(directFlights);
+            setAllFlights(cachedFlights);
             setLoading(false);
-            return true; // Data found and loaded
+            
+            console.log(`[FlightSearch] ✅ Loaded ${cachedFlights.length} flights from Redis cache`);
+            return; // Successfully loaded from cache
           }
         }
-      } catch (error) {
-        // Silently handle cache check errors
+        
+        // Cache miss - need to fetch from API
+        console.log('[FlightSearch] 💫 Cache miss, fetching fresh data from API...');
+        
+      } catch (cacheError) {
+        console.warn('[FlightSearch] ⚠️ Cache check failed, falling back to API:', cacheError);
       }
-      return false; // No valid cached data found
-    };
-
-    // Try to load cached data first (async)
-    const loadData = async () => {
-      // Use smart cache checking
-      const useCache = await shouldUseCachedData();
-
-      if (useCache) {
-        console.log('[FlightSearch] ⚡ Using cached data, skipping API call');
-        const hasCachedData = await checkCachedData();
-        if (hasCachedData) {
-          return; // Cache hit, data loaded
-        }
-      }
-
-      const hasCachedData = await checkCachedData();
-
-      // Only fetch from API if no valid cached data exists
-      if (!hasCachedData) {
-
-      // Fetch flights from the API
+      
+      // Fetch flights from the API (cache miss or error)
       const fetchFlights = async () => {
         try {
           const response = await api.searchFlights(flightSearchParams);
@@ -413,7 +373,7 @@ function SearchParamsWrapper() {
         const apiResponse = response.data;
         let apiFlights: any[] = [];
 
-        // The actual structure is response.data.data.offers
+        // The actual structure is response.data.data.offers (response.data is FlightSearchResponse, .data contains offers)
         if (apiResponse && apiResponse.data && apiResponse.data.offers) {
           apiFlights = apiResponse.data.offers;
         } else if (Array.isArray(apiResponse)) {
@@ -421,65 +381,8 @@ function SearchParamsWrapper() {
           apiFlights = apiResponse;
         }
         
-        // Clear ALL previous flight data before storing new search results
-        // This prevents conflicts with old search data
-        Object.keys(localStorage).forEach(key => {
-          if (key.startsWith('flightData_') || key.startsWith('flight_') || key === 'currentFlightDataKey' || key === 'currentFlightKey' || key === 'returnFlightKey') {
-            localStorage.removeItem(key);
-          }
-        });
-
-        // Store complete flight data using robust storage manager
-        const flightSearchData: FlightSearchData = {
-          airShoppingResponse: apiResponse.data, // Backend response data (contains status, data with offers and raw_response)
-          searchParams: {
-            origin,
-            destination,
-            departDate,
-            returnDate,
-            tripType,
-            passengers: {
-              adults,
-              children,
-              infants
-            },
-            cabinClass,
-            outboundCabinClass,
-            returnCabinClass
-          },
-          timestamp: Date.now(),
-          expiresAt: Date.now() + (30 * 60 * 1000) // 30 minutes expiration
-        };
-
-        // Store flight data using Redis storage (no size limitations)
-        try {
-
-
-          // Optimize data for Redis storage - store only metadata (raw response is cached in backend)
-          const optimizedFlightData = {
-            airShoppingResponse: {
-              data: {
-                // Store only metadata which includes the cache key for backend to retrieve raw response
-                metadata: apiResponse.data.data?.metadata || apiResponse.data.metadata
-              }
-            },
-            searchParams: flightSearchData.searchParams,
-            timestamp: flightSearchData.timestamp,
-            expiresAt: flightSearchData.expiresAt
-          };
-
-
-
-          // Try Redis storage first (preferred method)
-          const redisStoreResult = await redisFlightStorage.storeFlightSearch(optimizedFlightData);
-
-          if (!redisStoreResult.success) {
-            // Fallback to browser storage if Redis fails
-            await flightStorageManager.storeFlightSearch(flightSearchData);
-          }
-        } catch (storageError) {
-          // Continue execution even if storage fails
-        }
+        // Note: Data is now automatically cached by the backend Redis system
+        // No need for client-side storage management
         
         // Use backend-provided FlightOffer data directly
         const directFlights = apiFlights.map((offer: any) => ({
@@ -552,8 +455,7 @@ function SearchParamsWrapper() {
     };
 
         fetchFlights();
-      } // Close the conditional block for !hasCachedData
-    };
+      };
 
     // Call the async function
     loadData();

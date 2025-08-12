@@ -1,7 +1,5 @@
 import { ReactNode } from 'react';
-import { MainNav } from '@/components/main-nav';
-import { UserNav } from '@/components/user-nav';
-import { SimpleFooter } from '@/components/simple-footer';
+import { MainNav, UserNav, SimpleFooter } from '@/components/organisms';
 import Image from 'next/image';
 
 export default function BookingsLayout({

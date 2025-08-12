@@ -1,8 +1,5 @@
 "use client"
-import { DashboardMetrics } from "@/components/admin/dashboard-metrics"
-import { RecentBookings } from "@/components/admin/recent-bookings"
-import { SystemStatus } from "@/components/admin/system-status"
-import { AdminTools } from "@/components/admin/admin-tools"
+import { DashboardMetrics, RecentBookings, SystemStatus, AdminTools } from "@/components/organisms"
 import { Protect } from '@clerk/nextjs'
 
 export default function AdminDashboardPage() {

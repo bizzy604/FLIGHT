@@ -38,7 +38,7 @@ import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { transformOrderCreateToItinerary, type ItineraryData } from "@/utils/itinerary-data-transformer"
 import { generatePDFFromComponent } from "@/utils/download-utils"
-import OfficialItinerary from "@/components/itinerary/OfficialItinerary"
+import { OfficialItinerary } from "@/components/organisms"
 
 interface Booking {
   id: number

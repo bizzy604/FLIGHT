@@ -1,0 +1,1 @@
+export { SkipToContent } from "./skip-to-content"

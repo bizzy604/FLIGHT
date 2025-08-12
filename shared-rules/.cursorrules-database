@@ -1,0 +1,220 @@
+---
+globs: "*.py,*.sql,*.json,*.yml,*.yaml"
+---
+
+# Database Development Rules for Flight Booking Portal
+
+## Redis Best Practices for Flight Data
+
+### Schema Design Principles for Travel Data
+- **Use meaningful key patterns** - flight:search:{uuid}, booking:{pnr}, user:session:{id}
+- **Implement proper TTL strategies** - Flight searches (15 min), airport data (24h), airline logos (7d)
+- **Use appropriate data structures** - Hashes for flight details, Sets for airline codes, Sorted Sets for price ranges
+- **Design for booking state management** - Track booking progress, payment status, confirmation states
+- **Plan for cache invalidation** - Invalidate flight data on schedule changes, price updates
+- **Implement consistent naming conventions** - Use colons for hierarchy, avoid spaces and special chars
+
+### Caching Strategy for Flight Booking
+- **Flight search results** - Cache popular route searches with 5-15 minute TTL
+- **Airport and airline data** - Long-term cache with daily refresh cycles
+- **User session data** - Secure session storage with appropriate expiration
+- **Booking progression data** - Temporary storage for multi-step booking process
+- **Payment processing state** - Secure temporary storage for payment flows
+- **Fare rules and restrictions** - Cache complex airline fare rule data
+
+### Performance Optimization for Travel Systems
+- **Connection pooling** - Configure Redis connection pools for high concurrency
+- **Async operations** - Use aioredis for non-blocking flight data operations
+- **Batch operations** - Use pipelines for multiple flight data updates
+- **Memory optimization** - Monitor Redis memory usage for large flight datasets
+- **Clustering strategy** - Plan for Redis clustering for high-availability booking systems
+- **Regular monitoring** - Track Redis performance metrics and hit rates
+
+## PRISMA Core Implementation for Flight Data
+
+### Table Definitions for Travel Systems
+- **Flight data tables** - flights, airlines, airports, aircraft_types
+- **Booking system tables** - bookings, passengers, payment_transactions, pnr_records
+- **User management tables** - users, traveler_profiles, preferences, loyalty_accounts
+- **Audit and compliance tables** - booking_audit_log, payment_audit_log, gdpr_consent_log
+- **Integration tables** - airline_api_configs, payment_gateway_configs, external_system_logs
+- **Operational tables** - system_health_checks, api_rate_limits, maintenance_windows
+
+### Query Patterns for Flight Booking
+- **Use async operations** - asyncpg with aioredis for concurrent flight data processing
+- **Implement connection pooling** - Separate pools for booking writes and search reads
+- **Use transactions for booking flows** - Ensure ACID compliance for payment and confirmation
+- **Implement proper error handling** - Handle airline API timeouts and payment failures
+- **Use prepared statements** - For frequently executed flight search queries
+- **Implement query timeouts** - Prevent long-running flight search operations from hanging
+
+### Migration Management for Travel Data
+- **Use Prisma** for flight database schema migrations
+- **Version booking system changes** - Track schema changes affecting active bookings
+- **Test with booking data** - Validate migrations with representative flight and booking data
+- **Implement rollback strategies** - Plan rollbacks that preserve active booking integrity
+- **Document airline impacts** - Note which airlines are affected by schema changes
+- **Backup before booking migrations** - Critical for production booking system changes
+
+## Data Access Layer Patterns for Flight Systems
+
+### Repository Pattern for Travel Data
+- **FlightRepository** - Flight search, availability, and schedule data operations
+- **BookingRepository** - Reservation creation, modification, and cancellation operations
+- **PaymentRepository** - Payment processing, refund, and transaction history operations
+- **UserRepository** - Traveler profiles, preferences, and authentication data
+- **AirlineRepository** - Airline configuration, API credentials, and integration settings
+- **AuditRepository** - Compliance logging, audit trails, and regulatory reporting
+
+### Query Optimization for Flight Data
+- **Index flight search columns** - origin, destination, departure_date, airline_code
+- **Use composite indexes** - (origin, destination, departure_date) for route searches
+- **Implement booking query optimization** - Index PNR, booking_reference, user_id columns
+- **Cache frequent airline queries** - Airport codes, airline information, aircraft data
+- **Optimize payment queries** - Index transaction_id, payment_status, created_date
+- **Monitor flight search performance** - Track slow queries affecting user experience
+
+### Transaction Management for Booking Operations
+- **Atomic booking creation** - Single transaction for booking, passenger, and payment data
+- **Handle payment processing** - Proper isolation levels for concurrent payment operations
+- **Implement booking modification transactions** - Ensure consistency during itinerary changes
+- **Use savepoints for complex bookings** - Group bookings with multiple passengers and flights
+- **Handle airline API failures** - Rollback incomplete bookings on external system errors
+- **Implement timeout handling** - Prevent hanging transactions during airline API calls
+
+## Data Security and Compliance for Travel Systems
+
+### Travel Industry Data Protection
+- **Encrypt PII at rest** - Passenger names, passport numbers, contact information
+- **Implement data masking** - Mask sensitive passenger data in non-production environments
+- **Use role-based access** - Separate access for booking agents, customer service, administrators
+- **Log passenger data access** - Comprehensive audit trails for GDPR compliance
+- **Implement data retention policies** - Automatic purging per travel industry regulations
+- **Support right to deletion** - Secure deletion of passenger data while preserving booking records
+
+### Payment Data Security (PCI Compliance)
+- **Never store card numbers** - Use tokenization for all payment processing
+- **Encrypt payment tokens** - Secure storage of payment processor tokens
+- **Implement secure payment flows** - PCI DSS compliant payment data handling
+- **Log payment transactions** - Comprehensive audit trails without exposing card data
+- **Monitor payment fraud** - Real-time fraud detection and prevention measures
+- **Secure payment API integration** - Encrypted communication with payment processors
+
+### Booking System Audit Trails
+- **Track all booking modifications** - Creation, changes, cancellations with timestamps
+- **Log payment processing events** - Authorization, capture, refund operations
+- **Record airline API interactions** - Request/response logging for debugging and compliance
+- **Implement tamper-proof logging** - Immutable audit records for regulatory compliance
+- **Monitor unauthorized access** - Alert on suspicious booking system access patterns
+- **Generate compliance reports** - Automated reporting for travel industry audits
+
+## Backup and Recovery for Flight Booking Systems
+
+### Backup Strategy for Travel Data
+- **Automated booking data backups** - Daily backups with point-in-time recovery capability
+- **Cross-region replication** - Disaster recovery for critical booking and payment data
+- **Regular backup testing** - Validate restoration of booking system functionality
+- **Retention aligned with travel regulations** - Long-term storage for tax and compliance requirements
+- **Encrypted backup storage** - Protect passenger and payment data in backups
+- **Document recovery procedures** - Step-by-step restoration guide for booking systems
+
+### High Availability for Booking Operations
+- **Multi-region deployment** - Global availability for international flight bookings
+- **Read replicas for reporting** - Separate reporting queries from live booking operations
+- **Redis clustering** - High-availability caching for flight data and user sessions
+- **Health monitoring** - Real-time monitoring of booking system components
+- **Failover testing** - Regular validation of disaster recovery procedures
+- **Load balancing** - Distribute booking load across multiple application instances
+
+## Development Workflow for Flight Data
+
+### Local Development Environment
+- **Docker containers** - Consistent Redis and PostgreSQL environments for flight data
+- **Seed data scripts** - Sample flight data, airlines, airports, and booking scenarios
+- **Database reset procedures** - Clean state for flight booking system testing
+- **Environment-specific configs** - Development, staging, and production data configurations
+- **Local migration testing** - Validate schema changes with representative travel data
+- **Development monitoring** - Local performance monitoring for flight search optimization
+
+### Testing Practices for Flight Systems
+- **Unit tests for repositories** - Test flight data operations with mock airline APIs
+- **Integration tests** - End-to-end booking flow testing with test payment processing
+- **Performance tests** - Flight search and booking performance under load
+- **Data migration tests** - Validate booking system schema changes
+- **Booking flow tests** - Complete traveler journey from search to confirmation
+- **Payment processing tests** - Secure payment flow testing with sandbox environments
+
+## Monitoring and Observability for Flight Data
+
+### Database Monitoring for Travel Systems
+- **Flight search performance** - Monitor query response times for search operations
+- **Booking operation monitoring** - Track booking creation, modification, payment processing
+- **Redis cache monitoring** - Monitor hit rates, memory usage, and key expiration patterns
+- **Connection pool monitoring** - Track database connections during peak booking periods
+- **Slow query analysis** - Identify and optimize slow flight search and booking queries
+- **Data consistency checks** - Validate booking data integrity across system components
+
+### Application-Level Monitoring for Bookings
+- **Booking conversion metrics** - Track search-to-book conversion rates by route and airline
+- **Payment success rates** - Monitor payment authorization and capture success rates
+- **Airline API performance** - Track response times and error rates for each airline partner
+- **User session monitoring** - Monitor booking session duration and abandonment rates
+- **Cache performance metrics** - Track Redis hit rates for flight searches and booking data
+- **Security monitoring** - Monitor suspicious booking patterns and payment fraud attempts
+
+## Travel-Specific Anti-Patterns to Avoid
+
+### Flight Data Query Anti-Patterns
+- **Expensive flight search queries** - Avoid complex queries without proper indexing
+- **Missing flight search caching** - Cache popular route searches to reduce database load
+- **Synchronous airline API calls** - Use async operations for airline data retrieval
+- **Booking state inconsistency** - Maintain consistent booking state across all operations
+- **Large flight result sets** - Implement proper pagination for flight search results
+- **Missing booking timeouts** - Always implement timeouts for booking operations
+
+### Booking System Schema Anti-Patterns
+- **Storing card numbers** - Never store sensitive payment data (PCI violation)
+- **Missing audit trails** - Always track booking modifications for compliance
+- **Inappropriate data types** - Use proper types for currencies, dates, and booking references
+- **No data retention policies** - Implement proper data lifecycle management
+- **Missing booking constraints** - Enforce business rules at database level
+- **Denormalized booking data** - Maintain normalized structure for booking integrity
+
+### Travel Industry Compliance Anti-Patterns
+- **No passenger data encryption** - Encrypt all PII at rest and in transit
+- **Missing GDPR compliance** - Implement right to deletion and data portability
+- **No payment audit trails** - Maintain comprehensive payment processing logs
+- **Inadequate backup strategies** - Ensure business continuity for critical booking data
+- **No access controls** - Implement role-based access for booking system operations
+- **Missing fraud detection** - Implement real-time fraud monitoring for booking operations
+
+## Redis Data Structures for Flight Booking
+
+### Flight Search Caching
+```
+# Flight search results
+flight:search:{search_id} -> Hash {origin, destination, flights_json, expires_at}
+flight:popular_routes -> Sorted Set {route_key: search_count}
+flight:price_alerts:{user_id} -> Set {route_alert_configs}
+```
+
+### Booking Session Management
+```
+# Booking progression
+booking:session:{session_id} -> Hash {step, selected_flights, passenger_count, expires_at}
+booking:locks:{flight_id} -> String {user_session_id} [TTL: 10 minutes]
+```
+
+### User and Authentication
+```
+# User sessions and preferences
+user:session:{user_id} -> Hash {session_token, last_activity, preferences}
+user:recent_searches:{user_id} -> List {search_configs} [MAX: 10]
+```
+
+### System Performance and Monitoring
+```
+# API performance tracking
+api:airline:{airline_code}:performance -> Hash {avg_response_time, error_count, last_success}
+api:rate_limits:{endpoint}:{user_id} -> String {request_count} [TTL: based on limit window]
+```

@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm install:*)",
+      "Bash(npm test)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm run lint)",
+      "Bash(rm:*)",
+      "Bash(mv:*)",
+      "Bash(find:*)",
+      "Bash(sed:*)",
+      "Bash(timeout 20 npm run dev)",
+      "Bash(npm run dev:*)",
+      "Bash(python:*)",
+      "Bash(curl:*)"
+    ],
+    "deny": []
+  }
+}

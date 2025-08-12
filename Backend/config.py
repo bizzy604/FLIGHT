@@ -24,7 +24,9 @@ class Config:
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:3001",
-        "http://127.0.0.1:3001",
+        "http://127.0.0.1:3001", 
+        "http://localhost:3002",
+        "http://127.0.0.1:3002",
         "https://flight-pearl.vercel.app"
     ]
     CORS_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
@@ -52,8 +54,8 @@ class Config:
     # API timeout configuration
     VERTEIL_API_TIMEOUT = int(os.environ.get('VERTEIL_API_TIMEOUT', 60))  # Increased for air shopping requests
 
-    # Redis configuration
-    REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+    # Redis configuration - defaults to Redis Cloud, fallback to localhost
+    REDIS_URL = os.environ.get('REDIS_URL', 'redis://default:9CTbyLNREutwAduVCxkCA9kgI3sj9tEG@redis-14657.c89.us-east-1-3.ec2.redns.redis-cloud.com:14657/0')
     
     # JWT settings
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'jwt-secret-key-change-in-production'

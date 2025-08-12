@@ -190,13 +190,16 @@ class AirShoppingService(FlightService):
 
             # Step 4: Cache raw response for flight pricing
             cache_start = datetime.now()
-            raw_response_cache_key = f"air_shopping_raw_{request_id}_{int(cache_start.timestamp())}"
+            # Use deterministic cache key based on request_id only (no timestamp)
+            # This ensures consistency between flight search and pricing calls
+            raw_response_cache_key = f"air_shopping_raw_{request_id}"
 
             # Store raw response in backend cache for flight pricing
             try:
                 from utils.cache_manager import cache_manager
-                # Cache for 30 minutes (1800 seconds) - same as frontend session
-                cache_manager.set(raw_response_cache_key, raw_response, ttl=1800)
+                # Cache for same duration as flight search (300 seconds = 5 minutes)
+                # This ensures both caches expire together
+                cache_manager.set(raw_response_cache_key, raw_response, ttl=300)
                 logger.info(f"Raw response cached with key: {raw_response_cache_key}")
             except Exception as cache_error:
                 logger.warning(f"Failed to cache raw response: {cache_error}")

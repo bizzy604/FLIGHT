@@ -1,0 +1,51 @@
+app/admin/bookings/page.tsx(2,31): error TS2307: Cannot find module '@/components/admin/bookings-table' or its corresponding type declarations.
+app/admin/bookings/page.tsx(3,32): error TS2307: Cannot find module '@/components/admin/bookings-filter' or its corresponding type declarations.
+app/admin/settings/page.tsx(3,38): error TS2307: Cannot find module '@/components/admin/admin-general-settings' or its corresponding type declarations.
+app/admin/settings/page.tsx(4,34): error TS2307: Cannot find module '@/components/admin/admin-api-settings' or its corresponding type declarations.
+app/admin/settings/page.tsx(5,37): error TS2307: Cannot find module '@/components/admin/admin-user-management' or its corresponding type declarations.
+app/bookings/[bookingId]/itinerary/page.tsx(15,31): error TS2307: Cannot find module '@/components/itinerary/OfficialItinerary' or its corresponding type declarations.
+app/bookings/[bookingId]/itinerary/page.tsx(16,35): error TS2307: Cannot find module '@/components/itinerary/BoardingPassItinerary' or its corresponding type declarations.
+app/layout.tsx(4,35): error TS2307: Cannot find module '@/components/conditional-footer' or its corresponding type declarations.
+app/layout.tsx(5,27): error TS2307: Cannot find module '@/components/providers' or its corresponding type declarations.
+app/manage/[bookingId]/edit/page.tsx(17,31): error TS2307: Cannot find module '@/components/seat-selection' or its corresponding type declarations.
+app/manage/[bookingId]/edit/page.tsx(18,32): error TS2307: Cannot find module '@/components/baggage-options' or its corresponding type declarations.
+app/manage/[bookingId]/edit/page.tsx(19,29): error TS2307: Cannot find module '@/components/meal-options' or its corresponding type declarations.
+app/manage/[bookingId]/edit/page.tsx(344,34): error TS7006: Parameter 'updatedMeals' implicitly has an 'any' type.
+app/manage/[bookingId]/page.tsx(41,31): error TS2307: Cannot find module '@/components/itinerary/OfficialItinerary' or its corresponding type declarations.
+app/manage/page.tsx(13,30): error TS2307: Cannot find module '@/components/manage/bookings-list' or its corresponding type declarations.
+app/manage/page.tsx(15,31): error TS2307: Cannot find module '@/components/manage/empty-bookings' or its corresponding type declarations.
+components/atoms/auth-check/auth-check.tsx(8,32): error TS2307: Cannot find module '@/components/loading-spinner' or its corresponding type declarations.
+components/atoms/image/index.ts(1,10): error TS2614: Module '"./image"' has no exported member 'Image'. Did you mean to use 'import Image from "./image"' instead?
+components/molecules/additional-services/index.ts(1,10): error TS2459: Module '"./additional-services"' declares 'AdditionalServices' locally, but it is not exported.
+components/molecules/baggage-info/index.ts(1,10): error TS2305: Module '"./baggage-info"' has no exported member 'BaggageInfo'.
+components/molecules/card-payment-form/card-payment-form.tsx(11,32): error TS2307: Cannot find module '@/components/loading-spinner' or its corresponding type declarations.
+components/molecules/payment-confirmation/payment-confirmation.tsx(8,31): error TS2307: Cannot find module './itinerary/OfficialItinerary' or its corresponding type declarations.
+components/molecules/payment-confirmation/payment-confirmation.tsx(9,35): error TS2307: Cannot find module './itinerary/BoardingPassItinerary' or its corresponding type declarations.
+components/molecules/payment-form/payment-form.tsx(16,31): error TS2307: Cannot find module '@/components/error-boundary' or its corresponding type declarations.
+components/organisms/index.ts(39,37): error TS2307: Cannot find module './sections/destinations-section' or its corresponding type declarations.
+components/organisms/index.ts(40,35): error TS2307: Cannot find module './sections/newsletter-section' or its corresponding type declarations.
+components/organisms/index.ts(41,33): error TS2307: Cannot find module './sections/partners-section' or its corresponding type declarations.
+components/organisms/index.ts(42,33): error TS2307: Cannot find module './sections/services-section' or its corresponding type declarations.
+components/organisms/index.ts(43,30): error TS2307: Cannot find module './sections/stats-section' or its corresponding type declarations.
+components/organisms/index.ts(44,37): error TS2307: Cannot find module './sections/testimonials-section' or its corresponding type declarations.
+components/organisms/index.ts(47,29): error TS2307: Cannot find module './admin/admin-header' or its corresponding type declarations.
+components/organisms/index.ts(48,30): error TS2307: Cannot find module './admin/admin-sidebar' or its corresponding type declarations.
+components/organisms/index.ts(49,34): error TS2307: Cannot find module './admin/admin-api-settings' or its corresponding type declarations.
+components/organisms/index.ts(50,38): error TS2307: Cannot find module './admin/admin-general-settings' or its corresponding type declarations.
+components/organisms/index.ts(51,28): error TS2307: Cannot find module './admin/admin-tools' or its corresponding type declarations.
+components/organisms/index.ts(52,37): error TS2307: Cannot find module './admin/admin-user-management' or its corresponding type declarations.
+components/organisms/index.ts(53,32): error TS2307: Cannot find module './admin/bookings-filter' or its corresponding type declarations.
+components/organisms/index.ts(54,31): error TS2307: Cannot find module './admin/bookings-table' or its corresponding type declarations.
+components/organisms/index.ts(55,34): error TS2307: Cannot find module './admin/dashboard-metrics' or its corresponding type declarations.
+components/organisms/index.ts(56,32): error TS2307: Cannot find module './admin/recent-bookings' or its corresponding type declarations.
+components/organisms/index.ts(57,30): error TS2307: Cannot find module './admin/system-status' or its corresponding type declarations.
+components/organisms/index.ts(60,32): error TS2307: Cannot find module './itinerary/BaggageSection' or its corresponding type declarations.
+components/organisms/index.ts(61,39): error TS2307: Cannot find module './itinerary/BoardingPassItinerary' or its corresponding type declarations.
+components/organisms/index.ts(62,34): error TS2307: Cannot find module './itinerary/FareRulesSection' or its corresponding type declarations.
+components/organisms/index.ts(63,31): error TS2307: Cannot find module './itinerary/FlightSection' or its corresponding type declarations.
+components/organisms/index.ts(64,31): error TS2307: Cannot find module './itinerary/ImportantInfo' or its corresponding type declarations.
+components/organisms/index.ts(65,33): error TS2307: Cannot find module './itinerary/ItineraryHeader' or its corresponding type declarations.
+components/organisms/index.ts(66,35): error TS2307: Cannot find module './itinerary/OfficialItinerary' or its corresponding type declarations.
+components/organisms/index.ts(67,34): error TS2307: Cannot find module './itinerary/PassengerSection' or its corresponding type declarations.
+components/organisms/index.ts(70,30): error TS2307: Cannot find module './manage/bookings-list' or its corresponding type declarations.
+components/organisms/index.ts(71,31): error TS2307: Cannot find module './manage/empty-bookings' or its corresponding type declarations.

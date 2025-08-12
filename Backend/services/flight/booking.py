@@ -691,10 +691,11 @@ class FlightBookingService(FlightService):
             logger.info(f"[DEBUG] Extracted offer_id from frontend (ReqID: {request_id}): {offer_id}")
             logger.info(f"[DEBUG] Extracted shopping_response_id from frontend (ReqID: {request_id}): {shopping_response_id}")
 
-            # Try to get the raw flight price response from cache instead of using the transformed frontend data
+            # Try to get the raw flight price response from the new Redis flight storage system
             raw_flight_price_response = None
             try:
-                from utils.cache_manager import cache_manager
+                from services.redis_flight_storage import RedisFlightStorage
+                redis_flight_storage = RedisFlightStorage()
 
                 # Try multiple cache keys since request_id might be different between pricing and booking
                 # Check if metadata contains the actual cache key
@@ -704,26 +705,31 @@ class FlightBookingService(FlightService):
                     metadata_cache_key = metadata.get('flight_price_cache_key')
                     logger.info(f"[DEBUG] Found metadata cache key: {metadata_cache_key} (ReqID: {request_id})")
 
-                cache_keys_to_try = [
-                    f"flight_price_response:{request_id}",  # Current request_id
-                    f"flight_price_response:{shopping_response_id}",  # ShoppingResponseID-based key
-                    f"flight_price_response:{offer_id}",  # OfferID-based key
-                ]
-
-                # Add the metadata cache key if available
+                # Generate cache keys using the same format as flight pricing endpoint
+                from routes.verteil_flights import _generate_flight_price_cache_key
+                
+                cache_keys_to_try = []
+                
+                # Add metadata cache key first if available (most likely to work)
                 if metadata_cache_key:
-                    cache_keys_to_try.insert(0, metadata_cache_key)  # Try this first
+                    cache_keys_to_try.append(metadata_cache_key)
 
-                # Also try to find any cache key that contains the shopping_response_id or offer_id
-                # This is a fallback for when the exact key format might be different
+                # Try to generate cache key using same method as pricing endpoint
+                if offer_id and shopping_response_id:
+                    pricing_cache_key = _generate_flight_price_cache_key(offer_id, shopping_response_id)
+                    cache_keys_to_try.append(pricing_cache_key)
+                    logger.info(f"[DEBUG] Generated pricing cache key: {pricing_cache_key} (ReqID: {request_id})")
+
+                # Try to get cached data from Redis flight storage
                 for cache_key in cache_keys_to_try:
-                    raw_flight_price_response = cache_manager.get(cache_key)
-                    if raw_flight_price_response:
-                        logger.info(f"[DEBUG] Found raw flight price response using cache key: {cache_key} (ReqID: {request_id})")
+                    cached_result = redis_flight_storage.get_flight_price(cache_key)
+                    if cached_result['success']:
+                        raw_flight_price_response = cached_result['data']
+                        logger.info(f"[DEBUG] Found raw flight price response in Redis using key: {cache_key} (ReqID: {request_id})")
                         break
 
                 if not raw_flight_price_response:
-                    logger.info(f"[DEBUG] Trying to find cache by scanning for shopping_response_id: {shopping_response_id} (ReqID: {request_id})")
+                    logger.info(f"[DEBUG] No flight price data found in Redis for keys: {cache_keys_to_try} (ReqID: {request_id})")
 
                     # If no cache found, check if the frontend data might actually contain the raw response
                     # Sometimes the frontend might send the raw response embedded in the transformed data

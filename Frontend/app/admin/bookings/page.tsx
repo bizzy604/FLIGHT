@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
-import { BookingsTable } from "@/components/admin/bookings-table"
-import { BookingsFilter } from "@/components/admin/bookings-filter"
+import { BookingsTable, BookingsFilter } from "@/components/organisms"
 
 export const metadata: Metadata = {
   title: "Rea Travel Admin - Bookings",

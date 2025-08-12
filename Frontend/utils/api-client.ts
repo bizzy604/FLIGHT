@@ -136,6 +136,47 @@ const debouncedSearchFlights = debounce(async (params: FlightSearchRequest, reso
 }, 1000); // 1 second debounce delay
 
 export const api = {
+    // Flight Search Cache Check
+    checkFlightSearchCache: async (params: FlightSearchRequest): Promise<{ data: any }> => {
+        try {
+            const response = await apiClient.post('/api/verteil/air-shopping/cache-check', params);
+            logger.info('Flight search cache check response:', response.data);
+            return response;
+        } catch (error) {
+            logger.error('Error checking flight search cache:', error);
+            throw error;
+        }
+    },
+
+    // Flight Price Cache Check
+    checkFlightPriceCache: async (offerId: string, shoppingResponseId: string): Promise<{ data: any }> => {
+        try {
+            const response = await apiClient.post('/api/verteil/flight-price/cache-check', {
+                offer_id: offerId,
+                shopping_response_id: shoppingResponseId
+            });
+            logger.info('Flight price cache check response:', response.data);
+            return response;
+        } catch (error) {
+            logger.error('Error checking flight price cache:', error);
+            throw error;
+        }
+    },
+
+    // Booking Cache Check
+    checkBookingCache: async (bookingId: string): Promise<{ data: any }> => {
+        try {
+            const response = await apiClient.post('/api/verteil/booking/cache-check', {
+                booking_id: bookingId
+            });
+            logger.info('Booking cache check response:', response.data);
+            return response;
+        } catch (error) {
+            logger.error('Error checking booking cache:', error);
+            throw error;
+        }
+    },
+
     // Flight Search with debouncing
     searchFlights: async (params: FlightSearchRequest): Promise<{ data: FlightSearchResponse }> => {
         return new Promise((resolve, reject) => {

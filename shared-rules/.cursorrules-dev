@@ -1,0 +1,137 @@
+---
+globs: "*.py,requirements*.txt,Dockerfile,docker-compose*.yml,render*.sh"
+---
+
+# Python Development Practices for Flight Booking Portal
+
+## Python Zen Principles for Travel Technology Systems
+Following the Zen of Python (PEP 20) with aviation industry-specific interpretations:
+
+- **Beautiful is better than ugly** - Write clean, readable code that airline partners and auditors can understand
+- **Explicit is better than implicit** - Make NDC API dependencies, booking flows, and business rules clear
+- **Simple is better than complex** - But not simpler than airline regulations and IATA standards demand  
+- **Complex is better than complicated** - Handle complex fare rules with well-structured, not convoluted code
+- **Flat is better than nested** - Avoid deep service hierarchies; prefer composition over inheritance
+- **Sparse is better than dense** - Code should be readable, especially for airline integration reviews
+- **Readability counts** - Critical for airline certification reviews and knowledge transfer
+- **Special cases aren't special enough to break the rules** - Maintain consistency across all airline integrations
+- **Although practicality beats purity** - Travel booking deadlines matter, but don't compromise payment security
+- **Errors should never pass silently** - Log everything for PNR audit trails and debugging
+- **Unless explicitly silenced** - But provide proper error handling for expected booking scenarios
+- **In the face of ambiguity, refuse the temptation to guess** - Clarify airline requirements rather than assume
+- **There should be one obvious way to do it** - Establish patterns and stick to them across the codebase
+- **Now is better than never** - Deliver working booking systems, but ensure they meet airline standards
+- **Although never is often better than right now** - Don't rush payment-critical or PNR-sensitive features
+
+## Modular Design Principles
+
+### Domain-Driven Design (DDD)
+- **Bounded Contexts**: Each service represents a clear aviation business domain
+  - Flight Search Management: Search criteria, airline filtering, availability
+  - Flight Pricing Management: Fare calculations, pricing rules, currency handling
+  - Booking Management: Reservations, PNR creation, booking modifications
+  - Airport & Route Management: Airport data, route validation, schedule management
+  - User Management: Traveler profiles, authentication, preferences
+  - Payment Management: Card processing, refunds, fare collection
+  - External API Integration: NDC API orchestration, airline-specific adaptations
+
+### Module Structure Standards
+- **Service Layer**: Business logic for flight operations and booking rules
+- **Repository Layer**: Data access abstractions for flight and booking data
+- **Controller Layer**: API endpoints and Quart route handling  
+- **Model Layer**: Flight data models, booking entities, and validation
+- **Utility Layer**: Airline mappings, transformers, and API helpers
+
+## Separation of Concerns (SoC)
+
+### Clear Responsibility Boundaries
+- **Controllers**: Handle HTTP requests/responses, input validation, route handling for booking flows
+- **Services**: Implement flight search logic, coordinate NDC API calls, enforce airline business rules
+- **Repositories**: Handle Redis caching, flight data persistence, booking storage operations
+- **Models**: Define flight structures, booking validation rules, airline data mappings
+- **Middleware**: Cross-cutting concerns (API logging, token management, rate limiting)
+
+### Business Logic Isolation
+- **No NDC API calls in controllers** - Delegate to flight services
+- **No HTTP concerns in services** - Focus on flight search and booking rules only
+- **No business logic in repositories** - Pure data access and caching operations
+- **No external API calls in models** - Keep models focused on flight data representation
+
+### Configuration Management
+- **Airline-specific settings** in separate configuration files
+- **API credentials management** through secure environment variables
+- **Feature flags** for airline integrations and payment methods
+- **NDC endpoint configurations** externalized from code
+
+### Error Handling Separation
+- **Domain Exceptions**: Business rule violations (InvalidFlightSearch, BookingNotAllowed, PricingError)
+- **Infrastructure Exceptions**: NDC API failures, Redis connection errors, payment gateway issues
+- **Validation Exceptions**: Search criteria validation, booking data format errors
+- **System Exceptions**: Token refresh failures, rate limiting, external service timeouts
+
+## Mandatory Practices
+- **ALWAYS create a virtual environment first** - never install dependencies globally
+- Use Python 3.8+ as the minimum version (Quart compatibility requirement)
+- Follow PEP 8 style guidelines with Black formatter
+- Use type hints throughout the codebase, especially for flight data structures
+- Structure code using Quart async best practices
+
+## Database Operations
+- **CRITICAL**: Use Redis for flight data caching and session management
+- Implement proper Redis connection pooling and error handling
+- Use async Redis operations with aioredis
+- Cache flight search results with appropriate TTL values
+- Implement proper cache invalidation strategies for booking updates
+
+## Code Quality Requirements
+- 80%+ test coverage minimum (target 90%) - critical for payment and booking flows
+- Use pytest with asyncio support for async testing
+- Implement proper error handling and structured logging for airline operations
+- Use centralized API logging for NDC request/response debugging
+- Follow SOLID principles and clean architecture patterns
+
+## Dependency Injection Patterns
+- **Singleton Pattern**: Use centralized TokenManager for all airline API authentication
+- **Service Registration**: Register flight services with proper lifecycle management  
+- **Interface Segregation**: Define specific interfaces for different airline integrations
+- **Dependency Inversion**: Depend on abstractions for airline APIs, not concrete implementations
+- **Testability**: Mock airline API responses easily for comprehensive testing
+
+## Security Requirements
+- Never store airline API credentials in code - use environment variables
+- Implement proper token lifecycle management with automatic refresh
+- Use secure payment data handling with PCI compliance considerations
+- Implement rate limiting for airline API protection
+- Follow OWASP security guidelines, especially for payment processing
+
+## Performance Considerations
+- Use async/await patterns throughout for concurrent airline API calls
+- Implement multi-level caching strategies (Redis + in-memory for airline data)
+- Optimize NDC API request batching and response transformation
+- Monitor airline API response times and implement circuit breakers
+- Use connection pooling for Redis and external airline API services
+
+## NDC API Integration Standards
+- **Centralized Authentication**: Single TokenManager instance across all airline services
+- **Request/Response Logging**: Enable API_DEBUG_LOGGING for troubleshooting airline integrations
+- **Error Recovery**: Implement retry logic with exponential backoff for airline API calls  
+- **Data Transformation**: Use dedicated transformers for airline-specific response formats
+- **Multi-Airline Support**: Design services to handle multiple airline integrations seamlessly
+
+## Dependencies Management  
+- Pin exact versions in requirements.txt for airline integration stability
+- Separate dev dependencies in requirements-dev.txt
+- Regular security audits of dependencies, especially payment-related packages
+- Use virtual environments for all development and deployment
+- Document airline-specific dependency requirements
+
+## Anti-Patterns to Avoid
+- **God Services**: Large services that handle multiple airline operations
+- **Circular Dependencies**: Flight services depending on each other
+- **Tight Coupling**: Services that know too much about specific airline implementations
+- **Magic Numbers**: Hard-coded fare values, airline codes, or API timeouts without explanation
+- **Duplicate Code**: Repeated airline integration logic across multiple services
+- **Deep Nesting**: Complex nested booking validation structures
+- **Mixed Concerns**: Flight search logic mixed with payment processing code
+- **Direct API Calls**: Bypassing the centralized TokenManager for airline authentication
+- **Synchronous Blocking**: Using sync calls for airline APIs in async contexts

@@ -25,7 +25,7 @@ def create_app(test_config=None):
     load_dotenv()
     
     # Load configuration
-    from Backend.config import get_config
+    from config import get_config
     env = os.environ.get('QUART_ENV', 'development')
     config = get_config(env)
     app.config.from_object(config)

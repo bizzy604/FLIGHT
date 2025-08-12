@@ -6,9 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { MainNav } from "@/components/main-nav";
-import { UserNav } from "@/components/user-nav";
-import { SimpleFooter } from "@/components/simple-footer";
+import { MainNav, UserNav, SimpleFooter } from "@/components/organisms";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({

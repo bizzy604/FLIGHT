@@ -1,8 +1,6 @@
 import type { Metadata } from "next"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AdminGeneralSettings } from "@/components/admin/admin-general-settings"
-import { AdminApiSettings } from "@/components/admin/admin-api-settings"
-import { AdminUserManagement } from "@/components/admin/admin-user-management"
+import { AdminGeneralSettings, AdminApiSettings, AdminUserManagement } from "@/components/organisms"
 
 export const metadata: Metadata = {
   title: "Rea Travel Admin - Settings",

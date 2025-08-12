@@ -1,0 +1,260 @@
+---
+alwaysApply: true
+---
+
+# API Design and Integration Rules for Flight Booking Portal
+
+## RESTful API Design Principles
+
+### Resource-Based URL Design
+- **Nouns over Verbs** - Use `/flights` not `/searchFlights`
+- **Hierarchical Resources** - `/bookings/{id}/passengers` for related resources
+- **Consistent Naming** - Use kebab-case for URLs: `/flight-search`, not `/flightSearch`
+- **Plural Nouns** - Use plural for collections: `/airports`, `/airlines`
+- **Meaningful Resource Names** - Use aviation domain terms: `/flight-pricing`, `/booking-confirmations`
+- **Avoid Deep Nesting** - Maximum 2 levels: `/bookings/{id}/modifications`
+
+### HTTP Method Usage
+- **GET** - Retrieve flight data, search results, booking details (safe and idempotent)
+- **POST** - Create bookings, initiate searches, process payments
+- **PUT** - Full booking replacement, complete itinerary updates (idempotent)
+- **PATCH** - Partial booking updates, passenger detail modifications
+- **DELETE** - Cancel bookings, remove saved searches (idempotent)
+- **OPTIONS** - CORS preflight for frontend booking flows
+
+### Status Code Standards
+- **200 OK** - Successful flight searches, booking retrievals, price updates
+- **201 Created** - Successful booking creation, PNR generation
+- **204 No Content** - Successful booking cancellation or modification
+- **400 Bad Request** - Invalid search criteria, malformed booking data
+- **401 Unauthorized** - Missing or invalid airline API authentication
+- **403 Forbidden** - Valid auth but insufficient booking permissions
+- **404 Not Found** - Flight not available, booking doesn't exist
+- **409 Conflict** - Booking already exists, fare no longer available
+- **422 Unprocessable Entity** - Valid format but business rule violations (fare rules, availability)
+- **429 Too Many Requests** - Rate limit exceeded for airline APIs
+- **500 Internal Server Error** - Unexpected airline API or system errors
+- **503 Service Unavailable** - Airline system maintenance or outage
+
+## API Security Implementation
+
+### Authentication and Authorization
+- **OAuth 2.0 + JWT** - Centralized TokenManager for airline API authentication
+- **Token Refresh** - Automatic 11+ hour token lifecycle management
+- **API Key Authentication** - For internal service-to-service communication
+- **Airline Partner Auth** - Mutual TLS for sensitive airline integrations
+- **Passenger Authentication** - Secure traveler profile and booking access
+- **Session Management** - Secure booking session handling with timeouts
+
+### Input Validation and Sanitization
+- **Schema Validation** - Validate flight search criteria against airline schemas
+- **Data Type Validation** - Ensure correct types for dates, passenger counts, fare amounts
+- **Range Validation** - Validate date ranges, passenger limits, fare boundaries
+- **Format Validation** - Validate passport numbers, phone numbers, IATA airport codes
+- **SQL Injection Prevention** - Use parameterized queries for booking data
+- **XSS Prevention** - Sanitize passenger names and booking references
+
+### Rate Limiting and Travel-Specific Protection
+- **Airline API Rate Limiting** - Respect airline partner SLA limits
+- **Search Rate Limiting** - Prevent abuse of expensive flight search operations
+- **Booking Rate Limiting** - Prevent fraudulent booking attempts
+- **Payment Rate Limiting** - Protect payment processing endpoints
+- **Geographic Rate Limiting** - Different limits based on booking origin
+- **Fare Shopping Protection** - Prevent automated fare scraping
+
+## Data Formats and Serialization
+
+### Request/Response Format Standards
+- **JSON Primary Format** - Use JSON for all booking API communications
+- **Content-Type Headers** - Always specify `application/json`
+- **Character Encoding** - Use UTF-8 for international passenger names
+- **Date/Time Format** - ISO 8601 for flight times (2023-12-31T14:30:00Z)
+- **Currency Format** - ISO 4217 currency codes (USD, EUR, GBP)
+- **Airport Codes** - IATA 3-letter codes (JFK, LAX, LHR)
+- **Airline Codes** - IATA 2-letter codes (AA, BA, LH)
+- **Null Handling** - Use null for missing optional booking data
+
+### Pagination Standards for Travel Data
+- **Cursor-Based Pagination** - For flight search results and large booking lists
+- **Offset-Based Pagination** - For smaller datasets like passenger lists
+- **Page Size Limits** - Maximum 50 flights per page, default 20
+- **Metadata Inclusion** - Include total_results, has_more_flights, next_cursor
+- **Search Context Preservation** - Maintain search criteria across pages
+- **Fare Consistency** - Ensure fare validity across paginated results
+
+### Error Response Format for Booking Systems
+- **Consistent Error Structure** - Standard error format for all booking endpoints
+- **Airline Error Codes** - Map airline-specific errors to standard codes
+- **Booking Error Messages** - Clear messages for booking failures
+- **Field-Level Validation Errors** - Specific errors for passenger data validation
+- **Request ID Inclusion** - Include booking_request_id for support tracking
+- **Fare Error Details** - Detailed fare rule violation explanations
+
+## External System Integration
+
+### Airline System Integration
+- **NDC API Integration** - New Distribution Capability standard compliance
+  - AirShopping requests for flight availability
+  - FlightPrice requests for fare details
+  - OrderCreate requests for booking confirmation
+  - OrderRetrieve for booking status updates
+
+- **Traditional GDS Integration** - Global Distribution System APIs
+  - Amadeus, Sabre, Travelport integration
+  - Real-time availability and pricing
+  - Seat map and ancillary service data
+  - Booking modification and cancellation
+
+- **Low-Cost Carrier APIs** - Direct airline integration
+  - Airline-specific booking flows
+  - Baggage and seat selection APIs
+  - Check-in and boarding pass generation
+  - Schedule change notifications
+
+### Payment System Integration
+- **Payment Gateway APIs** - Credit card and alternative payment processing
+  - PCI-compliant tokenization
+  - Real-time fraud detection
+  - Multi-currency processing
+  - Refund and chargeback handling
+
+- **Travel-Specific Payment Networks**
+  - IATA BSP (Billing and Settlement Plan) integration
+  - Airline credit and voucher processing
+  - Corporate travel account management
+  - Split payment handling for group bookings
+
+### Regulatory and Compliance Integration
+- **Government APIs** - Travel document and security screening
+  - Passport validation services
+  - Visa requirement checking
+  - TSA/Security screening integration
+  - Customs declaration APIs
+
+- **Travel Insurance APIs** - Insurance provider integration
+  - Policy quotation and purchase
+  - Claim submission and tracking
+  - Coverage verification
+  - Emergency assistance coordination
+
+### Integration Patterns and Resilience
+
+#### Circuit Breaker Pattern for Airline APIs
+- **Airline Service Monitoring** - Monitor each airline's API health and response times
+- **Circuit States** - Closed (normal), Open (airline down), Half-Open (testing recovery)
+- **Fallback Mechanisms** - Switch to alternative airlines or cached data
+- **Recovery Testing** - Gradually restore traffic to recovered airline APIs
+- **Timeout Configuration** - Set appropriate timeouts for each airline (30-60s)
+- **Booking Completion Priority** - Prioritize completing existing bookings over new searches
+
+#### Retry Mechanisms for Travel Operations
+- **Exponential Backoff** - Increase delays for airline API retries
+- **Maximum Retry Limits** - 3 retries for searches, 5 for critical booking operations
+- **Jitter Addition** - Prevent thundering herd to airline systems
+- **Idempotency Keys** - Safe retries for booking creation and payment processing
+- **Error Classification** - Retry network errors, fail fast on fare unavailability
+- **Booking State Management** - Track booking state across retry attempts
+
+#### Asynchronous Processing for Travel Operations
+- **Booking Confirmation Queues** - Process booking confirmations asynchronously
+- **Payment Processing Queues** - Handle payment authorization and capture separately
+- **Email/SMS Notification Queues** - Send booking confirmations and updates
+- **Schedule Change Processing** - Handle airline schedule changes asynchronously
+- **Fare Monitoring Queues** - Track fare changes for saved searches
+- **Cancellation Processing** - Handle booking cancellations and refunds
+
+## Performance Optimization for Travel Systems
+
+### Caching Strategies for Flight Data
+- **Flight Search Caching** - Cache popular route searches (5-15 minute TTL)
+- **Airport Data Caching** - Cache airport information and codes (24 hour TTL)
+- **Airline Data Caching** - Cache airline information and logos (weekly TTL)
+- **Fare Rules Caching** - Cache complex fare rules and restrictions (hourly TTL)
+- **Seat Map Caching** - Cache aircraft seat configurations (daily TTL)
+- **Schedule Caching** - Cache airline schedules with appropriate refresh rates
+
+### Database Optimization for Booking Systems
+- **Connection Pooling** - Efficient Redis and database connection management
+- **Booking Data Indexes** - Optimize indexes for PNR lookups and passenger searches
+- **Search Result Storage** - Temporary storage for flight search pagination
+- **Booking History Partitioning** - Partition large booking tables by date
+- **Read Replicas** - Use read replicas for booking history and reporting
+- **Bulk Booking Operations** - Optimize group booking and corporate travel operations
+
+### API Gateway Configuration for Travel APIs
+- **Load Balancing** - Distribute airline API calls across multiple instances
+- **Request Routing** - Route requests based on airline and booking type
+- **Response Aggregation** - Combine multiple airline responses for comparison
+- **Protocol Translation** - Support different airline API protocols and formats
+- **Request/Response Transformation** - Transform between internal and airline formats
+- **Travel Analytics** - Track booking funnel and conversion metrics
+
+## Monitoring and Observability for Travel Operations
+
+### Travel-Specific API Monitoring
+- **Airline API Response Times** - Monitor each airline's performance separately
+- **Booking Success Rates** - Track booking completion rates by airline
+- **Search-to-Book Conversion** - Monitor conversion funnel performance
+- **Payment Success Rates** - Track payment authorization and capture rates
+- **Schedule Change Impact** - Monitor schedule change frequency and passenger impact
+- **Fare Accuracy Monitoring** - Track fare consistency between search and booking
+
+### Logging and Tracing for Booking Operations
+- **Booking Journey Tracing** - Trace complete booking flow across services
+- **Airline API Correlation** - Correlate internal requests with airline responses
+- **Payment Flow Logging** - Detailed logging for payment processing (PCI compliant)
+- **Passenger Data Logging** - Secure logging of passenger information access
+- **Schedule Change Logging** - Log all schedule changes and passenger notifications
+- **Error Context Logging** - Rich context for booking and payment failures
+
+### Health Checks for Travel Systems
+- **Airline API Health** - Monitor each airline partner's API availability
+- **Payment Gateway Health** - Monitor payment processor status
+- **Booking System Health** - Check booking creation and retrieval capabilities
+- **Email/SMS Service Health** - Monitor notification service availability
+- **Cache System Health** - Monitor Redis and caching layer performance
+- **Regulatory Service Health** - Monitor government and compliance API status
+
+## Documentation and API Governance for Travel APIs
+
+### Travel API Documentation Standards
+- **OpenAPI 3.0 Specification** - Document all booking and search endpoints
+- **Interactive Documentation** - Swagger UI with booking flow examples
+- **Airline Integration Guides** - Specific guides for each airline partner
+- **Booking Flow Examples** - Complete booking scenarios with sample requests
+- **Error Handling Documentation** - Travel-specific error scenarios and responses
+- **Rate Limit Documentation** - Clear limits for each endpoint and use case
+
+### Versioning Strategy for Travel Systems
+- **URL Versioning** - Use `/api/v1/` for booking API versions
+- **Backward Compatibility** - Maintain compatibility for active bookings
+- **Deprecation Policy** - 6-month notice for breaking changes
+- **Airline API Versioning** - Handle different airline API versions transparently
+- **Booking Format Versioning** - Version booking confirmation formats
+- **Migration Tools** - Provide tools for booking data format migrations
+
+## Travel-Specific Integration Anti-Patterns to Avoid
+
+### Booking API Anti-Patterns
+- **Chatty Booking APIs** - Don't require multiple calls for simple bookings
+- **Synchronous Payment Processing** - Process payments asynchronously when possible
+- **Stateful Search APIs** - Make flight searches stateless and cacheable
+- **Ignoring Fare Rules** - Always validate fare rules before booking confirmation
+- **No Booking Timeouts** - Implement appropriate timeouts for booking holds
+- **Mixing Search and Book** - Separate search and booking concerns clearly
+
+### Airline Integration Anti-Patterns
+- **Single Airline Dependency** - Don't depend on only one airline for routes
+- **No Failover Strategy** - Always have backup options for critical routes
+- **Ignoring Schedule Changes** - Handle airline schedule changes proactively
+- **No Rate Limit Handling** - Respect airline API rate limits and quotas
+- **Synchronous Airline Calls** - Make airline API calls asynchronous
+- **No Circuit Breakers** - Implement circuit breakers for all airline integrations
+
+### Payment and Security Anti-Patterns
+- **Storing Payment Data** - Never store credit card numbers or CVV codes
+- **No PCI Compliance** - Ensure PCI DSS compliance for all payment handling
+- **Trusting Fare Data** - Always validate fares with airline before charging
+- **No Fraud Detection** - Implement real-time fraud detection for bookings
+- **Weak Booking Authentication** - Secure booking access with proper authentication
+- **No Audit Trails** - Maintain comprehensive audit logs for all booking operations

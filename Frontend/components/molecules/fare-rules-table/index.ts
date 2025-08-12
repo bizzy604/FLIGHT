@@ -1,0 +1,1 @@
+export { FareRulesTable } from "./fare-rules-table"
