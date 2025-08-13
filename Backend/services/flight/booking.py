@@ -93,6 +93,10 @@ class FlightBookingService(FlightService):
         request_id: Optional[str] = None,
         offer_id: Optional[str] = None,
         shopping_response_id: Optional[str] = None,
+        servicelist_response: Optional[Dict[str, Any]] = None,
+        seatavailability_response: Optional[Dict[str, Any]] = None,
+        selected_services: Optional[List[str]] = None,
+        selected_seats: Optional[List[str]] = None,
     ) -> BookingResponse:
         # VERY FIRST LOG - This should appear if method is called
         print("🟢🟢🟢 FIRST LINE OF create_booking METHOD 🟢🟢🟢")
@@ -147,7 +151,11 @@ class FlightBookingService(FlightService):
                 contact_info=contact_info,
                 request_id=request_id,
                 offer_id=offer_id,
-                shopping_response_id=shopping_response_id
+                shopping_response_id=shopping_response_id,
+                servicelist_response=servicelist_response,
+                seatavailability_response=seatavailability_response,
+                selected_services=selected_services,
+                selected_seats=selected_seats
             )
             logger.info(f"[DEBUG] Finished calling _build_booking_payload (ReqID: {request_id})")
             print(f"[PRINT DEBUG] Finished calling _build_booking_payload (ReqID: {request_id})")
@@ -629,7 +637,11 @@ class FlightBookingService(FlightService):
         contact_info: Dict[str, str],
         request_id: str,
         offer_id: Optional[str] = None,
-        shopping_response_id: Optional[str] = None
+        shopping_response_id: Optional[str] = None,
+        servicelist_response: Optional[Dict[str, Any]] = None,
+        seatavailability_response: Optional[Dict[str, Any]] = None,
+        selected_services: Optional[List[str]] = None,
+        selected_seats: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """
         Build the OrderCreate request payload using the request builder.
@@ -1155,7 +1167,11 @@ class FlightBookingService(FlightService):
             payload = current_func(
                 flight_price_response=enhanced_flight_price_response,
                 passengers_data=transformed_passengers,
-                payment_input_info=transformed_payment
+                payment_input_info=transformed_payment,
+                servicelist_response=servicelist_response,
+                seatavailability_response=seatavailability_response,
+                selected_services=selected_services,
+                selected_seats=selected_seats
             )
             logger.info(f"[DEBUG] ===== generate_order_create_rq FUNCTION COMPLETED SUCCESSFULLY =====")
             
@@ -2279,7 +2295,11 @@ async def process_order_create(order_data: Dict[str, Any]) -> Dict[str, Any]:
                 contact_info=order_data.get('contact_info', {}),
                 request_id=order_data.get('request_id'),
                 offer_id=order_data.get('offer_id'),
-                shopping_response_id=order_data.get('shopping_response_id')
+                shopping_response_id=order_data.get('shopping_response_id'),
+                servicelist_response=order_data.get('servicelist_response'),
+                seatavailability_response=order_data.get('seatavailability_response'),
+                selected_services=order_data.get('selected_services'),
+                selected_seats=order_data.get('selected_seats')
             )
 
             print(f"🟢🟢🟢 create_booking returned successfully! 🟢🟢🟢")

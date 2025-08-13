@@ -53,6 +53,7 @@ export { BaggageInfo } from "./baggage-info"
 export { BaggageOptions } from "./baggage-options"
 export { MealOptions } from "./meal-options"
 export { SeatSelection } from "./seat-selection"
+export { ServiceSelection } from "./service-selection"
 export { AdditionalServices } from "./additional-services"
 
 // Payment Components

@@ -268,6 +268,134 @@ export const api = {
         return apiClient.get(`/api/airports/autocomplete?query=${encodeURIComponent(query)}`);
     },
 
+    // ServiceList API
+    getServiceList: async (flightPriceResponse: any): Promise<{ data: any }> => {
+        try {
+            const response = await fetch('/api/verteil/service-list', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    flight_price_response: flightPriceResponse
+                })
+            });
+            
+            const data = await response.json();
+            
+            logger.info('ServiceList API Response', { status: response.status, url: '/api/verteil/service-list' });
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'ServiceList request failed');
+            }
+            
+            return { data };
+        } catch (error) {
+            logger.error('ServiceList API Error:', error);
+            throw error;
+        }
+    },
+
+    // ServiceList Cache Check
+    checkServiceListCache: async (flightPriceResponse: any): Promise<{ data: any }> => {
+        try {
+            const response = await fetch('/api/verteil/service-list/cache-check', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    flight_price_response: flightPriceResponse
+                })
+            });
+            
+            const data = await response.json();
+            
+            logger.info('ServiceList Cache Check Response', { status: response.status, url: '/api/verteil/service-list/cache-check' });
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'ServiceList cache check failed');
+            }
+            
+            return { data };
+        } catch (error) {
+            logger.error('ServiceList Cache Check Error:', error);
+            throw error;
+        }
+    },
+
+    // SeatAvailability API
+    getSeatAvailability: async (flightPriceResponse: any, segmentKey?: string): Promise<{ data: any }> => {
+        try {
+            const requestData: any = {
+                flight_price_response: flightPriceResponse
+            };
+            
+            if (segmentKey) {
+                requestData.segment_key = segmentKey;
+            }
+            
+            const response = await fetch('/api/verteil/seat-availability', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+            
+            const data = await response.json();
+            
+            logger.info('SeatAvailability API Response', { status: response.status, url: '/api/verteil/seat-availability' });
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'SeatAvailability request failed');
+            }
+            
+            return { data };
+        } catch (error) {
+            logger.error('SeatAvailability API Error:', error);
+            throw error;
+        }
+    },
+
+    // SeatAvailability Cache Check
+    checkSeatAvailabilityCache: async (flightPriceResponse: any, segmentKey?: string): Promise<{ data: any }> => {
+        try {
+            const requestData: any = {
+                flight_price_response: flightPriceResponse
+            };
+            
+            if (segmentKey) {
+                requestData.segment_key = segmentKey;
+            }
+            
+            const response = await fetch('/api/verteil/seat-availability/cache-check', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+            
+            const data = await response.json();
+            
+            logger.info('SeatAvailability Cache Check Response', { status: response.status, url: '/api/verteil/seat-availability/cache-check' });
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'SeatAvailability cache check failed');
+            }
+            
+            return { data };
+        } catch (error) {
+            logger.error('SeatAvailability Cache Check Error:', error);
+            throw error;
+        }
+    },
+
     // Health Check
     healthCheck: async () => {
         return apiClient.get('/api/health');

@@ -1,1 +1,1 @@
-export { OrderSummary } from "./order-summary"
+export { default as OrderSummary } from "./order-summary"

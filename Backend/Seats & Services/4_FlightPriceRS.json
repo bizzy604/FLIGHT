@@ -1,0 +1,918 @@
+{
+    "Document": {
+        "Name": "QR"
+    },
+    "ShoppingResponseID": {
+        "ResponseID": {
+            "value": "05uZVQ--RrjkD5NXVzf6e-eGw5gN0fS-U4xNxBC33lA-QR"
+        }
+    },
+    "PricedFlightOffers": {
+        "PricedFlightOffer": [
+            {
+                "OfferID": {
+                    "ObjectKey": "1H1QRZ_8R3DV7PKM2X5WKONAZCLRI21MC8O",
+                    "value": "1H1QRZ_8R3DV7PKM2X5WKONAZCLRI21MC8O",
+                    "Owner": "QR",
+                    "Channel": "NDC"
+                },
+                "OfferPrice": [
+                    {
+                        "RequestedDate": {
+                            "Associations": [
+                                {
+                                    "AssociatedTraveler": {
+                                        "TravelerReferences": [
+                                            "PAX1"
+                                        ]
+                                    },
+                                    "ApplicableFlight": {
+                                        "FlightSegmentReference": [
+                                            {
+                                                "ClassOfService": {
+                                                    "Code": {
+                                                        "value": "S"
+                                                    },
+                                                    "MarketingName": {
+                                                        "value": "ECO",
+                                                        "CabinDesignator": "Y"
+                                                    },
+                                                    "refs": [
+                                                        "FG-279451045860650"
+                                                    ]
+                                                },
+                                                "BagDetailAssociation": {
+                                                    "CheckedBagReferences": [
+                                                        "FBA1"
+                                                    ],
+                                                    "CarryOnReferences": [
+                                                        "BAGGAGEALLOWANCE_CARRYON-1piece,7kgtotal"
+                                                    ]
+                                                },
+                                                "ref": "SEG2"
+                                            },
+                                            {
+                                                "ClassOfService": {
+                                                    "Code": {
+                                                        "value": "S"
+                                                    },
+                                                    "MarketingName": {
+                                                        "value": "ECO",
+                                                        "CabinDesignator": "Y"
+                                                    },
+                                                    "refs": [
+                                                        "FG-279451045860650"
+                                                    ]
+                                                },
+                                                "BagDetailAssociation": {
+                                                    "CheckedBagReferences": [
+                                                        "FBA1"
+                                                    ],
+                                                    "CarryOnReferences": [
+                                                        "BAGGAGEALLOWANCE_CARRYON-1piece,7kgtotal"
+                                                    ]
+                                                },
+                                                "ref": "SEG5"
+                                            }
+                                        ],
+                                        "OriginDestinationReferences": [
+                                            "BOMLHR"
+                                        ],
+                                        "FlightReferences": {
+                                            "value": [
+                                                "FLT0"
+                                            ]
+                                        }
+                                    },
+                                    "PriceClass": {
+                                        "PriceClassReference": "CONVENIENC"
+                                    }
+                                }
+                            ],
+                            "PriceDetail": {
+                                "TotalAmount": {
+                                    "SimpleCurrencyPrice": {
+                                        "value": 56415,
+                                        "Code": "INR"
+                                    }
+                                },
+                                "BaseAmount": {
+                                    "value": 39510,
+                                    "Code": "INR"
+                                },
+                                "Discount": [
+                                    {
+                                        "DiscountAmount": {
+                                            "value": 1976,
+                                            "Code": "INR"
+                                        },
+                                        "DiscountPercent": 5,
+                                        "discountOwner": "Magellan Travel Services (P) Ltd.",
+                                        "discountCode": "Disc_rea",
+                                        "discountName": "ReaDiscount",
+                                        "preDiscountedAmount": {
+                                            "value": 58391,
+                                            "Code": "INR"
+                                        }
+                                    }
+                                ],
+                                "Taxes": {
+                                    "Total": {
+                                        "value": 18881,
+                                        "Code": "INR"
+                                    },
+                                    "Breakdown": {
+                                        "Tax": [
+                                            {
+                                                "Amount": {
+                                                    "value": 9196,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "YQ"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 1928,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "YR"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 726,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "IN"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 2532,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "K3"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 1240,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "P2"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 1443,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "G4"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 132,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "PZ"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 1443,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "QA"
+                                            },
+                                            {
+                                                "Amount": {
+                                                    "value": 241,
+                                                    "Code": "INR"
+                                                },
+                                                "TaxCode": "R9"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "FareDetail": {
+                            "FareComponent": [
+                                {
+                                    "FareBasis": {
+                                        "FareBasisCode": {
+                                            "Code": "SJR4I1SI"
+                                        },
+                                        "RBD": "S"
+                                    },
+                                    "FareRules": {
+                                        "Penalty": {
+                                            "refs": [
+                                                "Penalty-FLAG4: Change_MAX_6570_INR_MIN_0_INR",
+                                                "Penalty-FLAG18: Cancel-NoShow_MAX_11385_INR_MIN_11385_INR",
+                                                "Penalty-FLAG13: Change-NoShow_MAX_6570_INR_MIN_6570_INR",
+                                                "Penalty-FLAG15: Cancel_MAX_11385_INR_MIN_7885_INR",
+                                                "Penalty-FLAG10: Change_MAX_6570_INR_MIN_0_INR",
+                                                "Penalty-FLAG17: Cancel_MAX_11385_INR_MIN_7885_INR",
+                                                "Penalty-FLAG16: Cancel-NoShow_MAX_11385_INR_MIN_11385_INR",
+                                                "Penalty-FLAG7: Change-NoShow_MAX_6570_INR_MIN_6570_INR"
+                                            ]
+                                        }
+                                    },
+                                    "refs": [
+                                        "SEG2"
+                                    ]
+                                },
+                                {
+                                    "FareBasis": {
+                                        "FareBasisCode": {
+                                            "Code": "SJR4I1SI"
+                                        },
+                                        "RBD": "S"
+                                    },
+                                    "FareRules": {
+                                        "Penalty": {
+                                            "refs": [
+                                                "Penalty-FLAG4: Change_MAX_6570_INR_MIN_0_INR",
+                                                "Penalty-FLAG18: Cancel-NoShow_MAX_11385_INR_MIN_11385_INR",
+                                                "Penalty-FLAG13: Change-NoShow_MAX_6570_INR_MIN_6570_INR",
+                                                "Penalty-FLAG15: Cancel_MAX_11385_INR_MIN_7885_INR",
+                                                "Penalty-FLAG10: Change_MAX_6570_INR_MIN_0_INR",
+                                                "Penalty-FLAG17: Cancel_MAX_11385_INR_MIN_7885_INR",
+                                                "Penalty-FLAG16: Cancel-NoShow_MAX_11385_INR_MIN_11385_INR",
+                                                "Penalty-FLAG7: Change-NoShow_MAX_6570_INR_MIN_6570_INR"
+                                            ]
+                                        }
+                                    },
+                                    "refs": [
+                                        "SEG5"
+                                    ]
+                                }
+                            ]
+                        },
+                        "OfferItemID": "1H1QRZ_8R3DV7PKM2X5WKONAZCLRI21MC8O-1-1"
+                    }
+                ],
+                "TimeLimits": {
+                    "OfferExpiration": {
+                        "DateTime": "2025-08-13T07:12:01.000"
+                    },
+                    "Payment": {
+                        "DateTime": "2025-08-14T06:42:00.000"
+                    }
+                }
+            }
+        ]
+    },
+    "DataLists": {
+        "AnonymousTravelerList": {
+            "AnonymousTraveler": [
+                {
+                    "ObjectKey": "PAX1",
+                    "PTC": {
+                        "value": "ADT"
+                    }
+                }
+            ]
+        },
+        "CarryOnAllowanceList": {
+            "CarryOnAllowance": [
+                {
+                    "ListKey": "BAGGAGEALLOWANCE_CARRYON-1piece,7kgtotal",
+                    "AllowanceDescription": {
+                        "ApplicableParty": "Traveler"
+                    },
+                    "PieceAllowance": [
+                        {
+                            "ApplicableParty": "Traveler",
+                            "TotalQuantity": 1,
+                            "PieceMeasurements": [
+                                {
+                                    "Quantity": 1
+                                }
+                            ]
+                        }
+                    ],
+                    "WeightAllowance": {
+                        "ApplicableParty": "Traveler",
+                        "MaximumWeight": [
+                            {
+                                "Value": 7,
+                                "UOM": "Kilogram"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "CheckedBagAllowanceList": {
+            "CheckedBagAllowance": [
+                {
+                    "ListKey": "FBA1",
+                    "AllowanceDescription": {
+                        "ApplicableParty": "Traveler"
+                    },
+                    "WeightAllowance": {
+                        "ApplicableParty": "Traveler",
+                        "MaximumWeight": [
+                            {
+                                "Value": 30,
+                                "UOM": "Kilogram"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "FareList": {
+            "FareGroup": [
+                {
+                    "ListKey": "FG-279451045860650",
+                    "Fare": {
+                        "FareCode": {
+                            "Code": "70J"
+                        },
+                        "FareDetail": {
+                            "Remarks": {
+                                "Remark": [
+                                    {
+                                        "value": "PUBL"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "FareBasisCode": {
+                        "Code": "SJR4I1SI"
+                    }
+                }
+            ]
+        },
+        "FlightSegmentList": {
+            "FlightSegment": [
+                {
+                    "SegmentKey": "SEG2",
+                    "Departure": {
+                        "AirportCode": {
+                            "value": "BOM"
+                        },
+                        "Date": "2025-08-17T04:20:00.000",
+                        "Time": "04:20",
+                        "Terminal": {
+                            "Name": "2"
+                        }
+                    },
+                    "Arrival": {
+                        "AirportCode": {
+                            "value": "DOH"
+                        },
+                        "Date": "2025-08-17T05:20:00.000",
+                        "Time": "05:20"
+                    },
+                    "MarketingCarrier": {
+                        "AirlineID": {
+                            "value": "QR"
+                        },
+                        "Name": "Qatar Airways",
+                        "FlightNumber": {
+                            "value": "4791"
+                        }
+                    },
+                    "Equipment": {
+                        "AircraftCode": {
+                            "value": "320"
+                        }
+                    },
+                    "ClassOfService": {
+                        "Code": {
+                            "value": "S"
+                        },
+                        "refs": [
+                            "FG-279451045860650"
+                        ]
+                    },
+                    "FlightDetail": {
+                        "FlightDuration": {
+                            "Value": "PT3H30M"
+                        }
+                    }
+                },
+                {
+                    "SegmentKey": "SEG5",
+                    "Departure": {
+                        "AirportCode": {
+                            "value": "DOH"
+                        },
+                        "Date": "2025-08-17T08:50:00.000",
+                        "Time": "08:50"
+                    },
+                    "Arrival": {
+                        "AirportCode": {
+                            "value": "LHR"
+                        },
+                        "Date": "2025-08-17T14:05:00.000",
+                        "Time": "14:05",
+                        "Terminal": {
+                            "Name": "4"
+                        }
+                    },
+                    "MarketingCarrier": {
+                        "AirlineID": {
+                            "value": "QR"
+                        },
+                        "Name": "Qatar Airways",
+                        "FlightNumber": {
+                            "value": "109"
+                        }
+                    },
+                    "Equipment": {
+                        "AircraftCode": {
+                            "value": "359"
+                        }
+                    },
+                    "ClassOfService": {
+                        "Code": {
+                            "value": "S"
+                        },
+                        "refs": [
+                            "FG-279451045860650"
+                        ]
+                    },
+                    "FlightDetail": {
+                        "FlightDuration": {
+                            "Value": "PT7H15M"
+                        }
+                    }
+                }
+            ]
+        },
+        "FlightList": {
+            "Flight": [
+                {
+                    "FlightKey": "FLT0",
+                    "SegmentReferences": {
+                        "value": [
+                            "SEG2",
+                            "SEG5"
+                        ]
+                    }
+                }
+            ]
+        },
+        "OriginDestinationList": {
+            "OriginDestination": [
+                {
+                    "OriginDestinationKey": "BOMLHR",
+                    "FlightReferences": {
+                        "value": [
+                            "FLT0"
+                        ]
+                    },
+                    "DepartureCode": {
+                        "value": "BOM"
+                    },
+                    "ArrivalCode": {
+                        "value": "LHR"
+                    }
+                }
+            ]
+        },
+        "PenaltyList": {
+            "Penalty": [
+                {
+                    "ObjectKey": "Penalty-FLAG4: Change_MAX_6570_INR_MIN_0_INR",
+                    "Details": {
+                        "Detail": [
+                            {
+                                "Type": "Change",
+                                "Application": {
+                                    "Code": "2"
+                                },
+                                "Amounts": {
+                                    "Amount": [
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 6570,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MAX",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "1 free change, charge will apply to further changes"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 0,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MIN",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "1 free change, charge will apply to further changes"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "ChangeFeeInd": true,
+                    "ChangeAllowedInd": true
+                },
+                {
+                    "ObjectKey": "Penalty-FLAG18: Cancel-NoShow_MAX_11385_INR_MIN_11385_INR",
+                    "Details": {
+                        "Detail": [
+                            {
+                                "Type": "Cancel-NoShow",
+                                "Application": {
+                                    "Code": "1"
+                                },
+                                "Amounts": {
+                                    "Amount": [
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 11385,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MAX",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 11385,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MIN",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "CancelFeeInd": true,
+                    "RefundableInd": true
+                },
+                {
+                    "ObjectKey": "Penalty-FLAG13: Change-NoShow_MAX_6570_INR_MIN_6570_INR",
+                    "Details": {
+                        "Detail": [
+                            {
+                                "Type": "Change-NoShow",
+                                "Application": {
+                                    "Code": "1"
+                                },
+                                "Amounts": {
+                                    "Amount": [
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 6570,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MAX",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 6570,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MIN",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "ChangeFeeInd": true,
+                    "ChangeAllowedInd": true
+                },
+                {
+                    "ObjectKey": "Penalty-FLAG15: Cancel_MAX_11385_INR_MIN_7885_INR",
+                    "Details": {
+                        "Detail": [
+                            {
+                                "Type": "Cancel",
+                                "Application": {
+                                    "Code": "2"
+                                },
+                                "Amounts": {
+                                    "Amount": [
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 11385,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MAX",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Charges will apply"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 7885,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MIN",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Charges will apply"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "CancelFeeInd": true,
+                    "RefundableInd": true
+                },
+                {
+                    "ObjectKey": "Penalty-FLAG10: Change_MAX_6570_INR_MIN_0_INR",
+                    "Details": {
+                        "Detail": [
+                            {
+                                "Type": "Change",
+                                "Application": {
+                                    "Code": "3"
+                                },
+                                "Amounts": {
+                                    "Amount": [
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 6570,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MAX",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 0,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MIN",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "ChangeFeeInd": true,
+                    "ChangeAllowedInd": true
+                },
+                {
+                    "ObjectKey": "Penalty-FLAG17: Cancel_MAX_11385_INR_MIN_7885_INR",
+                    "Details": {
+                        "Detail": [
+                            {
+                                "Type": "Cancel",
+                                "Application": {
+                                    "Code": "3"
+                                },
+                                "Amounts": {
+                                    "Amount": [
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 11385,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MAX",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 7885,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MIN",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "CancelFeeInd": true,
+                    "RefundableInd": true
+                },
+                {
+                    "ObjectKey": "Penalty-FLAG16: Cancel-NoShow_MAX_11385_INR_MIN_11385_INR",
+                    "Details": {
+                        "Detail": [
+                            {
+                                "Type": "Cancel-NoShow",
+                                "Application": {
+                                    "Code": "4"
+                                },
+                                "Amounts": {
+                                    "Amount": [
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 11385,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MAX",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 11385,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MIN",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "CancelFeeInd": true,
+                    "RefundableInd": true
+                },
+                {
+                    "ObjectKey": "Penalty-FLAG7: Change-NoShow_MAX_6570_INR_MIN_6570_INR",
+                    "Details": {
+                        "Detail": [
+                            {
+                                "Type": "Change-NoShow",
+                                "Application": {
+                                    "Code": "4"
+                                },
+                                "Amounts": {
+                                    "Amount": [
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 6570,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MAX",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "CurrencyAmountValue": {
+                                                "value": 6570,
+                                                "Code": "INR"
+                                            },
+                                            "AmountApplication": "MIN",
+                                            "ApplicableFeeRemarks": {
+                                                "Remark": [
+                                                    {
+                                                        "value": "Allowed"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "ChangeFeeInd": true,
+                    "ChangeAllowedInd": true
+                }
+            ]
+        },
+        "PriceClassList": {
+            "PriceClass": [
+                {
+                    "ObjectKey": "CONVENIENC",
+                    "Name": "ECONOMY CONVENIENCE",
+                    "Descriptions": {
+                        "Description": [
+                            {
+                                "Text": {
+                                    "value": "AWARD_ACCRUAL-75% Avios accumulation"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "AWARD_UPGRADE-Upgrade with Avios"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "BAGGAGEALLOWANCE_CARRYON-1 piece, 7kg total"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "BAGGAGEALLOWANCE_CHECKED-Weight concept routes: 30kg\nPiece concept routes: 2 pieces, 23kg each"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "CANCEL_BEFOREDEPARTURE-Charges will apply"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "CHANGE_BEFOREDEPARTURE-1 free change, charge will apply to further changes"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "DISCLAIMER-Remember to check your immigration and health requirements before you travel and ensure you carry the required travel documents. Please note that if the flight is operated by another airline then the on-board product or service maybe different to that described."
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "LOUNGEACCESS-Charges will apply"
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "MIXEDFARETYPE-When a ticket is booked with a combination of fares, the most restrictive cancellation rule will apply."
+                                }
+                            },
+                            {
+                                "Text": {
+                                    "value": "SEATSELECTION-Standard Seat :Standard seat selection\nPreferred Seat :Charges will apply"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

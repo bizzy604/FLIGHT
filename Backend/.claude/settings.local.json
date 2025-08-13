@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -m pytest --help)"
+      "Bash(python -m pytest --help)",
+      "Bash(python -m pytest tests/test_multi_airline_request_builders.py::TestMultiAirlineRequestBuilders::test_air_france_servicelist_generation -v -s)",
+      "Bash(grep:*)",
+      "Bash(python scripts/manage_api_logging.py:*)"
     ],
     "deny": []
   }

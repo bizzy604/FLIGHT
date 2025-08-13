@@ -1139,6 +1139,7 @@ async def debug_token():
     """
     try:
         from utils.auth import TokenManager
+        import os
 
         token_manager = TokenManager.get_instance()
         token_info = token_manager.get_token_info()
@@ -1151,13 +1152,32 @@ async def debug_token():
             token_available = False
             token_info['error'] = str(e)
 
+        # Add config debugging to this working endpoint
+        config_debug = {
+            'app_config': {
+                'VERTEIL_USERNAME': 'SET' if current_app.config.get('VERTEIL_USERNAME') else 'NOT SET',
+                'VERTEIL_PASSWORD': 'SET' if current_app.config.get('VERTEIL_PASSWORD') else 'NOT SET', 
+                'VERTEIL_API_BASE_URL': current_app.config.get('VERTEIL_API_BASE_URL'),
+                'VERTEIL_OFFICE_ID': current_app.config.get('VERTEIL_OFFICE_ID'),
+                'VERTEIL_THIRD_PARTY_ID': current_app.config.get('VERTEIL_THIRD_PARTY_ID'),
+            },
+            'env_vars': {
+                'VERTEIL_USERNAME': 'SET' if os.getenv('VERTEIL_USERNAME') else 'NOT SET',
+                'VERTEIL_PASSWORD': 'SET' if os.getenv('VERTEIL_PASSWORD') else 'NOT SET', 
+                'VERTEIL_API_BASE_URL': os.getenv('VERTEIL_API_BASE_URL'),
+                'VERTEIL_OFFICE_ID': os.getenv('VERTEIL_OFFICE_ID'),
+                'VERTEIL_THIRD_PARTY_ID': os.getenv('VERTEIL_THIRD_PARTY_ID'),
+            }
+        }
+
         return jsonify({
             'status': 'success',
             'token_available': token_available,
             'token_info': token_info,
             'config_set': bool(token_manager._config),
             'persistence_enabled': token_manager._enable_persistence,
-            'token_file_path': token_manager._get_token_file_path() if token_manager._enable_persistence else None
+            'token_file_path': token_manager._get_token_file_path() if token_manager._enable_persistence else None,
+            'config_debug': config_debug
         })
 
     except Exception as e:
@@ -1166,6 +1186,52 @@ async def debug_token():
             'error': str(e)
         }), 500
 
+@bp.route('/debug/config', methods=['GET', 'OPTIONS'])
+@route_cors(
+    allow_origin=ALLOWED_ORIGINS,
+    allow_methods=["GET", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+    expose_headers=["Content-Type"],
+    allow_credentials=True,
+    max_age=600
+)
+async def debug_config():
+    """Debug endpoint to check configuration values."""
+    try:
+        if request.method == 'OPTIONS':
+            return '', 200
+            
+        # Import os to check env vars directly
+        import os
+        
+        config_debug = {
+            'app_config': {
+                'VERTEIL_USERNAME': 'SET' if current_app.config.get('VERTEIL_USERNAME') else 'NOT SET',
+                'VERTEIL_PASSWORD': 'SET' if current_app.config.get('VERTEIL_PASSWORD') else 'NOT SET', 
+                'VERTEIL_API_BASE_URL': current_app.config.get('VERTEIL_API_BASE_URL'),
+                'VERTEIL_OFFICE_ID': current_app.config.get('VERTEIL_OFFICE_ID'),
+                'VERTEIL_THIRD_PARTY_ID': current_app.config.get('VERTEIL_THIRD_PARTY_ID'),
+            },
+            'env_vars': {
+                'VERTEIL_USERNAME': 'SET' if os.getenv('VERTEIL_USERNAME') else 'NOT SET',
+                'VERTEIL_PASSWORD': 'SET' if os.getenv('VERTEIL_PASSWORD') else 'NOT SET', 
+                'VERTEIL_API_BASE_URL': os.getenv('VERTEIL_API_BASE_URL'),
+                'VERTEIL_OFFICE_ID': os.getenv('VERTEIL_OFFICE_ID'),
+                'VERTEIL_THIRD_PARTY_ID': os.getenv('VERTEIL_THIRD_PARTY_ID'),
+            },
+            'config_keys_count': len(current_app.config.keys())
+        }
+        
+        return jsonify({
+            'status': 'success',
+            'config': config_debug
+        })
+    except Exception as e:
+        logger.error(f"Debug config endpoint failed: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
 @bp.route('/order-create', methods=['POST', 'OPTIONS'])
 @route_cors(
@@ -1185,7 +1251,11 @@ async def create_order():
         "flight_price_response": {...},  # Direct flight price response from frontend
         "passengers": [...],    # Passenger details from frontend
         "payment": {...},       # Payment information
-        "contact_info": {...}   # Contact information
+        "contact_info": {...},  # Contact information
+        "servicelist_response": {...},  # Optional ServiceListRS response data
+        "seatavailability_response": {...},  # Optional SeatAvailabilityRS response data
+        "selected_services": [...],  # Optional list of selected service ObjectKeys
+        "selected_seats": [...]  # Optional list of selected seat ObjectKeys
     }
     """
     request_id = _get_request_id()
@@ -1208,6 +1278,12 @@ async def create_order():
         contact_info = data.get('contact_info', {})
         frontend_offer_id = data.get('OfferID')  # Extract OfferID sent from frontend (might be index)
         shopping_response_id = data.get('ShoppingResponseID')  # Extract ShoppingResponseID sent from frontend
+        
+        # Extract service and seat data from frontend request
+        servicelist_response = data.get('servicelist_response')
+        seatavailability_response = data.get('seatavailability_response')
+        selected_services = data.get('selected_services', [])
+        selected_seats = data.get('selected_seats', [])
 
         # Extract the REAL OfferID from the raw flight price response instead of using the index
         offer_id = None
@@ -1355,7 +1431,11 @@ async def create_order():
             'request_id': request_id,
             'config': dict(current_app.config),  # Pass the app configuration
             'offer_id': offer_id,  # Pass the extracted OfferID
-            'shopping_response_id': shopping_response_id  # Pass the extracted ShoppingResponseID
+            'shopping_response_id': shopping_response_id,  # Pass the extracted ShoppingResponseID
+            'servicelist_response': servicelist_response,  # Pass ServiceListRS response
+            'seatavailability_response': seatavailability_response,  # Pass SeatAvailabilityRS response
+            'selected_services': selected_services,  # Pass selected service ObjectKeys
+            'selected_seats': selected_seats  # Pass selected seat ObjectKeys
         }
         
         # DEBUG: Log order data summary (without verbose content)

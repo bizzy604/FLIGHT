@@ -1,0 +1,645 @@
+{
+  "Query": {
+    "OrderItems": {
+      "ShoppingResponse": {
+        "Owner": "QR",
+        "ResponseID": {
+          "value": "05uZVQ--RrjkD5NXVzf6e-eGw5gN0fS-U4xNxBC33lA-QR"
+        },
+        "Offers": {
+          "Offer": [
+            {
+              "OfferID": {
+                "ObjectKey": "1H1QRZ_8R3DV7PKM2X5WKONAZCLRI21MC8O",
+                "value": "1H1QRZ_8R3DV7PKM2X5WKONAZCLRI21MC8O",
+                "Owner": "QR",
+                "Channel": "NDC"
+              },
+              "OfferItems": {
+                "OfferItem": [
+                  {
+                    "OfferItemID": {
+                      "Owner": "QR",
+                      "value": "1H1QRZ_8R3DV7PKM2X5WKONAZCLRI21MC8O-1-1"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "OfferItem": [
+        {
+          "OfferItemID": {
+            "Owner": "QR",
+            "value": "1H1QRZ_8R3DV7PKM2X5WKONAZCLRI21MC8O-1-1"
+          },
+          "OfferItemType": {
+            "DetailedFlightItem": [
+              {
+                "Price": {
+                  "BaseAmount": {
+                    "value": 39510,
+                    "Code": "INR"
+                  },
+                  "Taxes": {
+                    "Total": {
+                      "value": 18881,
+                      "Code": "INR"
+                    }
+                  }
+                },
+                "OriginDestination": [
+                  {
+                    "Flight": [
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "BOM"
+                          },
+                          "Date": "2025-08-17T04:20:00.000",
+                          "Time": "04:20",
+                          "Terminal": {
+                            "Name": "2"
+                          }
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "DOH"
+                          },
+                          "Date": "2025-08-17T05:20:00.000",
+                          "Time": "05:20"
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "S"
+                          },
+                          "MarketingName": {
+                            "value": "ECO",
+                            "CabinDesignator": "Y"
+                          },
+                          "refs": [
+                            "FG-279451045860650"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "QR"
+                          },
+                          "Name": "Qatar Airways",
+                          "FlightNumber": {
+                            "value": "4791"
+                          }
+                        },
+                        "Equipment": {
+                          "AircraftCode": {
+                            "value": "320"
+                          }
+                        },
+                        "FlightDetail": {
+                          "FlightDuration": {
+                            "Value": "PT3H30M"
+                          }
+                        },
+                        "SegmentKey": "SEG2"
+                      },
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "DOH"
+                          },
+                          "Date": "2025-08-17T08:50:00.000",
+                          "Time": "08:50"
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "LHR"
+                          },
+                          "Date": "2025-08-17T14:05:00.000",
+                          "Time": "14:05",
+                          "Terminal": {
+                            "Name": "4"
+                          }
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "S"
+                          },
+                          "MarketingName": {
+                            "value": "ECO",
+                            "CabinDesignator": "Y"
+                          },
+                          "refs": [
+                            "FG-279451045860650"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "QR"
+                          },
+                          "Name": "Qatar Airways",
+                          "FlightNumber": {
+                            "value": "109"
+                          }
+                        },
+                        "Equipment": {
+                          "AircraftCode": {
+                            "value": "359"
+                          }
+                        },
+                        "FlightDetail": {
+                          "FlightDuration": {
+                            "Value": "PT7H15M"
+                          }
+                        },
+                        "SegmentKey": "SEG5"
+                      }
+                    ],
+                    "OriginDestinationKey": "BOMLHR"
+                  }
+                ],
+                "refs": [
+                  "PAX1"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "1H1QRZ_8R3DV7PKM2X5WKONAZCLRI21MC8O-37",
+            "Owner": "QR",
+            "refs": [
+              "SRV4",
+              "05uZVQ--RrjkD5NXVzf6e-eGw5gN0fS-U4xNxBC33lA-QR"
+            ],
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "OtherItem": [
+              {
+                "refs": [
+                  "PAX1",
+                  "1-ServiceIdQR-4"
+                ],
+                "Price": {
+                  "SimpleCurrencyPrice": {
+                    "value": 2760,
+                    "Code": "INR"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "1H1QRZ_8R3DV7PKM2X5WKONAZCLRI21MC8O-7",
+            "Owner": "QR",
+            "refs": [
+              "SRV5",
+              "05uZVQ--RrjkD5NXVzf6e-eGw5gN0fS-U4xNxBC33lA-QR"
+            ],
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "OtherItem": [
+              {
+                "refs": [
+                  "PAX1",
+                  "1-ServiceIdQR-5"
+                ],
+                "Price": {
+                  "SimpleCurrencyPrice": {
+                    "value": 0,
+                    "Code": "INR"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "PRICE2-SEG5",
+            "refs": [
+              "PRICE",
+              "05uZVQ--RrjkD5NXVzf6e-eGw5gN0fS-U4xNxBC33lA-QR"
+            ],
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "SeatItem": [
+              {
+                "Price": {
+                  "value": 11823,
+                  "Code": "INR"
+                },
+                "Descriptions": {
+                  "Description": [
+                    {
+                      "Text": {
+                        "value": "Service not refundable but value of EMD can be applied on future purchase"
+                      }
+                    },
+                    {
+                      "Text": {
+                        "value": "Service is not Commissionable"
+                      }
+                    }
+                  ]
+                },
+                "Location": {
+                  "Column": "A",
+                  "Row": {
+                    "Number": {
+                      "value": "16"
+                    }
+                  },
+                  "Characteristics": {
+                    "Characteristic": [
+                      {
+                        "Code": "CH"
+                      },
+                      {
+                        "Code": "K"
+                      },
+                      {
+                        "Code": "LS"
+                      },
+                      {
+                        "Code": "OW"
+                      },
+                      {
+                        "Code": "W"
+                      },
+                      {
+                        "Remarks": {
+                          "Remark": [
+                            {
+                              "value": "A"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                "SeatAssociation": [
+                  {
+                    "SegmentReferences": {
+                      "value": [
+                        "SEG5"
+                      ]
+                    },
+                    "TravelerReference": "PAX1"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "DataLists": {
+      "FareList": {
+        "FareGroup": [
+          {
+            "ListKey": "FG-279451045860650",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              }
+            },
+            "FareBasisCode": {
+              "Code": "SJR4I1SI"
+            }
+          }
+        ]
+      },
+      "ServiceList": {
+        "Service": [
+          {
+            "ObjectKey": "1-ServiceIdQR-4",
+            "ServiceID": {
+              "ObjectKey": "1H1QRZ_8R3DV7PKM2X5WKONAZCLRI21MC8O-37",
+              "value": "SRV4",
+              "Owner": "QR"
+            },
+            "Name": {
+              "value": "BAG:WEIGHT SYSTEM CHARGE"
+            },
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "WEIGHT SYSTEM CHARGE"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "Chargeable"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "P"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "01"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "BG"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "XS"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "WT"
+                  }
+                }
+              ]
+            },
+            "Price": [
+              {
+                "Total": {
+                  "value": 2760,
+                  "Code": "INR"
+                }
+              }
+            ],
+            "BookingInstructions": {
+              "SSRCode": [
+                "XWBG"
+              ],
+              "OSIText": [
+                "TTL%WVAL%KG"
+              ],
+              "Method": "SSR",
+              "Text": [
+                "WVAL",
+                "[0-9]{1,3}"
+              ]
+            },
+            "Associations": [
+              {
+                "Traveler": {
+                  "TravelerReferences": [
+                    "PAX1"
+                  ]
+                },
+                "Flight": {
+                  "originDestinationReferencesOrSegmentReferences": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "SEG2",
+                          "SEG5"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "ObjectKey": "1-ServiceIdQR-5",
+            "ServiceID": {
+              "ObjectKey": "1H1QRZ_8R3DV7PKM2X5WKONAZCLRI21MC8O-7",
+              "value": "SRV5",
+              "Owner": "QR"
+            },
+            "Name": {
+              "value": "MEAL:VEGETARIAN HINDU MEAL"
+            },
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "VEGETARIAN HINDU MEAL"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "Free"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "MEAL"
+                  }
+                }
+              ]
+            },
+            "Price": [
+              {
+                "Total": {
+                  "value": 0,
+                  "Code": "INR"
+                }
+              }
+            ],
+            "BookingInstructions": {
+              "SSRCode": [
+                "AVML"
+              ],
+              "Method": "SSR"
+            },
+            "Associations": [
+              {
+                "Traveler": {
+                  "TravelerReferences": [
+                    "PAX1"
+                  ]
+                },
+                "Flight": {
+                  "originDestinationReferencesOrSegmentReferences": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "SEG5"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "PricedInd": true
+          },
+          {
+            "ObjectKey": "PRICE2-SEG5",
+            "ServiceID": {
+              "value": "SERVICE-1"
+            },
+            "Name": {
+              "value": "EXTRA LEGROOM"
+            },
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "Service not refundable but value of EMD can be applied on future purchase"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "Service is not Commissionable"
+                  }
+                }
+              ]
+            },
+            "Price": [
+              {
+                "Total": {
+                  "value": 11823,
+                  "Code": "INR"
+                }
+              }
+            ],
+            "Associations": [
+              {
+                "Traveler": {
+                  "TravelerReferences": [
+                    "PAX1"
+                  ]
+                },
+                "Flight": {
+                  "originDestinationReferencesOrSegmentReferences": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "SEG5"
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "Offer": {
+                  "OfferReferences": [
+                    "PRICE"
+                  ]
+                }
+              }
+            ],
+            "PricedInd": true
+          }
+        ]
+      }
+    },
+    "Passengers": {
+      "Passenger": [
+        {
+          "ObjectKey": "PAX1",
+          "PTC": {
+            "value": "ADT"
+          },
+          "Name": {
+            "Title": "Mr",
+            "Given": [
+              {
+                "value": "John"
+              }
+            ],
+            "Surname": {
+              "value": "Doe"
+            }
+          },
+          "AdditionalRoles": {
+            "PaymentContactInd": true
+          },
+          "Gender": {
+            "value": "Male"
+          },
+          "Age": {
+            "BirthDate": {
+              "value": "1990-01-01"
+            }
+          },
+          "Contacts": {
+            "Contact": [
+              {
+                "EmailContact": {
+                  "Address": {
+                    "value": "john.doe@example.com"
+                  }
+                },
+                "PhoneContact": {
+                  "Application": "Home",
+                  "Number": [
+                    {
+                      "value": "1234567890",
+                      "CountryCode": "1"
+                    }
+                  ]
+                },
+                "AddressContact": {
+                  "Street": [
+                    "123 Main Street"
+                  ],
+                  "CityName": "Unknown City",
+                  "PostalCode": "00000",
+                  "CountryCode": {
+                    "value": "US"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "Payments": {
+      "Payment": [
+        {
+          "Amount": {
+            "Code": "INR",
+            "value": 72974.0
+          },
+          "Method": {
+            "Cash": {
+              "CashInd": true
+            }
+          }
+        }
+      ]
+    },
+    "Metadata": {
+      "PassengerMetadata": [
+        {
+          "AugmentationPoint": {
+            "AugPoint": [
+              {
+                "any": {
+                  "VdcAugPoint": {
+                    "Value": "TRApprovalDate=08/13/2025"
+                  }
+                }
+              },
+              {
+                "any": {
+                  "VdcAugPoint": {
+                    "Value": "TRCreationDate=08/13/2025"
+                  }
+                }
+              }
+            ]
+          },
+          "refs": [
+            "PAX1"
+          ]
+        }
+      ]
+    }
+  }
+}

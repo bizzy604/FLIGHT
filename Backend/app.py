@@ -91,6 +91,10 @@ def create_app(test_config=None):
     app.register_blueprint(airport_bp)  # Register the airport blueprint (prefix is in blueprint definition)
     app.register_blueprint(itinerary_bp)  # Register the itinerary blueprint
     app.register_blueprint(flight_storage_bp)  # Register the flight storage blueprint
+    
+    # Register clean seat and service routes
+    from routes import clean_seat_service
+    app.register_blueprint(clean_seat_service.bp)
 
     # Initialize centralized authentication
     @app.before_serving

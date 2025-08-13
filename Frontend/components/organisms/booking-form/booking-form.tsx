@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@clerk/nextjs"
 import { ChevronRight, CreditCard, Luggage, User, Users, AlertCircle, CheckCircle } from "lucide-react"
@@ -15,7 +15,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { PassengerForm, SeatSelection, BaggageOptions, MealOptions } from "@/components/molecules"
+import { PassengerForm } from "@/components/molecules"
+import { ServiceSelection, SeatSelection } from "@/components/molecules"
 
 interface ContactInfoState {
   email?: string;
@@ -76,6 +77,19 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
 
   const passengerTypes = generatePassengerTypes();
 
+  // Load flight price response for services and seats
+  useEffect(() => {
+    const storedFlightPriceResponse = sessionStorage.getItem('flightPriceResponseForBooking')
+    if (storedFlightPriceResponse) {
+      try {
+        const flightData = JSON.parse(storedFlightPriceResponse)
+        setFlightPriceResponse(flightData)
+      } catch (error) {
+        console.error('Error parsing flight price response:', error)
+      }
+    }
+  }, [])
+
   // --- Add State Variables Start ---
   const [passengers, setPassengers] = useState<any[]>(() => {
     // Initialize passengers with their types
@@ -84,10 +98,26 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
       passengerLabel: passengerType.label
     }));
   }); // State for passenger details
+
+  // Generate passengers array for services and seats
+  const passengersForServices = useMemo(() => {
+    return passengerTypes.map((passengerType, index) => {
+      const passengerData = passengers[index]
+      const actualName = passengerData?.firstName && passengerData?.lastName 
+        ? `${passengerData.firstName} ${passengerData.lastName}`
+        : passengerType.label
+      
+      return {
+        objectKey: `PAX${index + 1}`, // Backend expects this format
+        name: actualName,
+        type: passengerType.type
+      }
+    })
+  }, [passengerTypes, passengers])
   const [contactInfo, setContactInfo] = useState<ContactInfoState>({}); // State for contact info
-  const [selectedSeats, setSelectedSeats] = useState<any>({}); // State for seat selection
-  const [selectedBaggage, setSelectedBaggage] = useState<any>({}); // State for baggage options
-  const [selectedMeals, setSelectedMeals] = useState<any>({}); // State for meal options
+  const [selectedSeats, setSelectedSeats] = useState<{outbound: string[], return: string[]}>({outbound: [], return: []}); // State for seat selection
+  const [selectedServices, setSelectedServices] = useState<string[]>([]); // State for additional services
+  const [flightPriceResponse, setFlightPriceResponse] = useState<any>(null); // Flight price response for services/seats
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('PAYMENTCARD');
   const [pricingDetails, setPricingDetails] = useState<any>({}); // State for pricing details
   const [termsAccepted, setTermsAccepted] = useState(false); // State for terms acceptance
@@ -215,18 +245,13 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
   };
 
   // --- Add Handler for Seat Selection Changes ---
-  const handleSeatChange = (flightType: 'outbound' | 'return', updatedSeats: any) => {
-    setSelectedSeats((prev: any) => ({ ...prev, [flightType]: updatedSeats }));
+  const handleSeatChange = (flightType: 'outbound' | 'return', updatedSeats: string[]) => {
+    setSelectedSeats((prev) => ({ ...prev, [flightType]: updatedSeats }));
   };
 
-  // --- Add Handler for Baggage Changes ---
-  const handleBaggageChange = (updatedBaggage: any) => {
-    setSelectedBaggage(updatedBaggage);
-  };
-
-  // --- Add Handler for Meal Changes ---
-  const handleMealChange = (updatedMeals: any) => {
-    setSelectedMeals(updatedMeals);
+  // --- Add Handler for Service Changes ---
+  const handleServiceChange = (updatedServices: string[]) => {
+    setSelectedServices(updatedServices);
   };
 
   // Handle passenger count changes with validation
@@ -252,7 +277,7 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
   const steps = [
     { id: 1, name: "Passenger Details" },
     { id: 2, name: "Seat Selection" },
-    { id: 3, name: "Extras" },
+    { id: 3, name: "Services" },
     { id: 4, name: "Payment Method" },
     { id: 5, name: "Review" },
   ]
@@ -286,9 +311,7 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
       contactInfo: contactInfo,
       extras: {
         seats: selectedSeats,
-        baggage: selectedBaggage,
-        meals: selectedMeals,
-        additionalServices: []
+        services: selectedServices
       },
       paymentMethod: selectedPaymentMethod,
       pricing: pricingDetails
@@ -708,57 +731,65 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
                 <p className="text-xs sm:text-sm text-muted-foreground">Choose your preferred seats for your flights</p>
               </div>
 
-              <div className="space-y-4 sm:space-y-6">
-                <div>
-                  <h4 className="mb-2 text-sm sm:text-base font-medium">Outbound Flight</h4>
-                  <SeatSelection
-                    flightType="outbound"
-                    selectedSeats={selectedSeats.outbound || []}
-                    onSeatChange={handleSeatChange}
-                  />
-                </div>
+              {flightPriceResponse ? (
+                <div className="space-y-4 sm:space-y-6">
+                  <div>
+                    <h4 className="mb-2 text-sm sm:text-base font-medium">Outbound Flight</h4>
+                    <SeatSelection
+                      flightPriceResponse={flightPriceResponse}
+                      flightType="outbound"
+                      segmentKey="SEG1"
+                      selectedSeats={selectedSeats.outbound || []}
+                      onSeatChange={handleSeatChange}
+                      passengers={passengersForServices}
+                      className="border-none shadow-none"
+                    />
+                  </div>
 
-                <Separator />
+                  <Separator />
 
-                <div>
-                  <h4 className="mb-2 text-sm sm:text-base font-medium">Return Flight</h4>
-                  <SeatSelection
-                    flightType="return"
-                    selectedSeats={selectedSeats.return || []}
-                    onSeatChange={handleSeatChange}
-                  />
+                  <div>
+                    <h4 className="mb-2 text-sm sm:text-base font-medium">Return Flight (if applicable)</h4>
+                    <SeatSelection
+                      flightPriceResponse={flightPriceResponse}
+                      flightType="return"
+                      segmentKey="SEG2"
+                      selectedSeats={selectedSeats.return || []}
+                      onSeatChange={handleSeatChange}
+                      passengers={passengersForServices}
+                      className="border-none shadow-none"
+                    />
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="p-6 text-center border rounded-lg">
+                  <p className="text-sm text-muted-foreground">Loading seat availability...</p>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Step 3: Extras */}
+          {/* Step 3: Additional Services */}
           {currentStep === 3 && (
             <div className="space-y-4 sm:space-y-6">
               <div>
-                <h3 className="text-base sm:text-lg font-medium">Optional Extras</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Enhance your journey with additional services</p>
+                <h3 className="text-base sm:text-lg font-medium">Additional Services</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Enhance your journey with additional services like meals, baggage, and more</p>
               </div>
 
-              <div className="space-y-4 sm:space-y-6">
-                <div>
-                  <h4 className="mb-2 text-sm sm:text-base font-medium">Baggage Options</h4>
-                  <BaggageOptions
-                    selectedBaggage={selectedBaggage}
-                    onBaggageChange={handleBaggageChange}
-                  />
+              {flightPriceResponse ? (
+                <ServiceSelection
+                  flightPriceResponse={flightPriceResponse}
+                  selectedServices={selectedServices}
+                  onServiceChange={handleServiceChange}
+                  passengers={passengersForServices}
+                  className="border-none shadow-none"
+                />
+              ) : (
+                <div className="p-6 text-center border rounded-lg">
+                  <p className="text-sm text-muted-foreground">Loading additional services...</p>
                 </div>
-
-                <Separator />
-
-                <div>
-                  <h4 className="mb-2 text-base font-medium">Meal Preferences</h4>
-                  <MealOptions 
-                    selectedMeals={selectedMeals} 
-                    onMealChange={handleMealChange} 
-                  />
-                </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -946,6 +977,44 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
                       <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 flex-shrink-0 ml-2" />
                     )}
                   </div>
+                </div>
+              </div>
+
+              {/* Seat Selection Summary */}
+              <div className="space-y-2">
+                <h4 className="text-sm sm:text-base font-medium">Selected Seats</h4>
+                <div className="p-2 sm:p-3 border rounded-md">
+                  <div className="space-y-2">
+                    {selectedSeats.outbound.length > 0 && (
+                      <div className="text-sm sm:text-base">
+                        <span className="font-medium">Outbound: </span>
+                        <span>{selectedSeats.outbound.join(", ")}</span>
+                      </div>
+                    )}
+                    {selectedSeats.return.length > 0 && (
+                      <div className="text-sm sm:text-base">
+                        <span className="font-medium">Return: </span>
+                        <span>{selectedSeats.return.join(", ")}</span>
+                      </div>
+                    )}
+                    {selectedSeats.outbound.length === 0 && selectedSeats.return.length === 0 && (
+                      <div className="text-xs sm:text-sm text-muted-foreground">No seats selected</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Services Summary */}
+              <div className="space-y-2">
+                <h4 className="text-sm sm:text-base font-medium">Additional Services</h4>
+                <div className="p-2 sm:p-3 border rounded-md">
+                  {selectedServices.length > 0 ? (
+                    <div className="text-sm sm:text-base">
+                      {selectedServices.length} service(s) selected
+                    </div>
+                  ) : (
+                    <div className="text-xs sm:text-sm text-muted-foreground">No additional services selected</div>
+                  )}
                 </div>
               </div>
 

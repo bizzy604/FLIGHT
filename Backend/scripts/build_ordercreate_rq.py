@@ -248,16 +248,24 @@ def create_passenger_mapping(flight_price_response: Dict[str, Any], passengers_d
 def generate_order_create_rq(
     flight_price_response: Dict[str, Any],
     passengers_data: List[Dict[str, Any]],
-    payment_input_info: Dict[str, Any]
+    payment_input_info: Dict[str, Any],
+    servicelist_response: Optional[Dict[str, Any]] = None,
+    seatavailability_response: Optional[Dict[str, Any]] = None,
+    selected_services: Optional[List[str]] = None,
+    selected_seats: Optional[List[str]] = None
 ) -> Dict[str, Any]:
     """
-    Enhanced OrderCreate request builder with multi-airline support.
+    Enhanced OrderCreate request builder with multi-airline support, services, and seats.
 
     Args:
         flight_price_response: The FlightPriceResponse JSON as a Python dictionary.
         passengers_data: A list of dictionaries, where each dictionary contains
                          details for one passenger.
         payment_input_info: A dictionary containing payment details.
+        servicelist_response: Optional ServiceListRS response data for selected services.
+        seatavailability_response: Optional SeatAvailabilityRS response data for selected seats.
+        selected_services: Optional list of selected service ObjectKeys.
+        selected_seats: Optional list of selected seat ObjectKeys.
 
     Returns:
         dict: The generated OrderCreateRQ as a Python dictionary.
@@ -426,7 +434,42 @@ def generate_order_create_rq(
 
     # --- 4. Process Other Sections ---
     process_passengers_for_order_create(passengers_data, order_create_rq["Query"]["Passengers"]["Passenger"])
-    process_payments_for_order_create(payment_input_info, order_create_rq["Query"]["Payments"]["Payment"], actual_flight_price_response)
+    process_payments_for_order_create(
+        payment_input_info, 
+        order_create_rq["Query"]["Payments"]["Payment"], 
+        actual_flight_price_response,
+        servicelist_response,
+        selected_services,
+        seatavailability_response,
+        selected_seats
+    )
+    
+    # --- 4.5. Add Metadata Section ---
+    add_metadata_for_order_create(passengers_data, order_create_rq["Query"])
+    
+    # --- 5. Process Selected Services ---
+    if servicelist_response and selected_services:
+        process_selected_services_for_order_create(
+            servicelist_response, 
+            selected_services, 
+            order_create_rq["Query"]["OrderItems"]["OfferItem"],
+            order_create_rq["Query"]["DataLists"],
+            selected_offer_owner,
+            airline_code
+        )
+        logger.info(f"[DEBUG] Added {len(selected_services)} selected services to OrderCreate")
+    
+    # --- 6. Process Selected Seats ---
+    if seatavailability_response and selected_seats:
+        process_selected_seats_for_order_create(
+            seatavailability_response, 
+            selected_seats, 
+            order_create_rq["Query"]["OrderItems"]["OfferItem"],
+            order_create_rq["Query"]["DataLists"],
+            selected_offer_owner,
+            airline_code
+        )
+        logger.info(f"[DEBUG] Added {len(selected_seats)} selected seats to OrderCreate")
     
     return order_create_rq
 
@@ -585,12 +628,87 @@ def process_passengers_for_order_create(
                 "Given": given_names_list,
                 "Surname": {"value": passenger_name_node.get("Surname")}
             },
+            "AdditionalRoles": {
+                "PaymentContactInd": True
+            },
             "Gender": {"value": pax_data.get("Gender")},
             "Age": {"BirthDate": {"value": pax_data.get("BirthDate")}}
         }
 
-        if "Contacts" in pax_data and pax_data["Contacts"]:
-            passenger_entry["Contacts"] = pax_data["Contacts"]
+        # Process contacts with comprehensive structure
+        contacts_data = pax_data.get("Contacts", {})
+        if contacts_data:
+            # Use existing contact structure if already properly formatted
+            if isinstance(contacts_data, dict) and "Contact" in contacts_data:
+                passenger_entry["Contacts"] = contacts_data
+            else:
+                # Build comprehensive contact structure
+                contact_entry = {}
+                
+                # Add email contact
+                email = contacts_data.get("Email") or contacts_data.get("EmailContact", {}).get("Address")
+                if isinstance(email, dict) and "value" in email:
+                    email = email["value"]
+                if email:
+                    contact_entry["EmailContact"] = {
+                        "Address": {"value": email} if not isinstance(email, dict) else email
+                    }
+                
+                # Add phone contact
+                phone_data = contacts_data.get("Phone") or contacts_data.get("PhoneContact", {})
+                if phone_data:
+                    phone_number = phone_data.get("Number", phone_data.get("value", ""))
+                    country_code = phone_data.get("CountryCode", "1")
+                    if phone_number:
+                        contact_entry["PhoneContact"] = {
+                            "Application": phone_data.get("Application", "Home"),
+                            "Number": [{
+                                "value": str(phone_number),
+                                "CountryCode": str(country_code)
+                            }]
+                        }
+                
+                # Add address contact
+                address_data = contacts_data.get("Address") or contacts_data.get("AddressContact", {})
+                if address_data:
+                    street = address_data.get("Street", ["123 Main St"])
+                    if isinstance(street, str):
+                        street = [street]
+                    
+                    contact_entry["AddressContact"] = {
+                        "Street": street,
+                        "CityName": address_data.get("CityName", "Unknown City"),
+                        "PostalCode": address_data.get("PostalCode", "00000"),
+                        "CountryCode": {
+                            "value": address_data.get("CountryCode", {}).get("value", address_data.get("CountryCode", "US"))
+                        }
+                    }
+                    
+                    # Add optional fields if present
+                    if address_data.get("CountrySubDivisionCode"):
+                        contact_entry["AddressContact"]["CountrySubDivisionCode"] = address_data.get("CountrySubDivisionCode", "")
+                
+                if contact_entry:
+                    passenger_entry["Contacts"] = {"Contact": [contact_entry]}
+        else:
+            # Provide default contact structure if none provided
+            passenger_entry["Contacts"] = {
+                "Contact": [{
+                    "EmailContact": {
+                        "Address": {"value": f"{passenger_name_node.get('Given', ['Unknown'])[0].lower()}.{passenger_name_node.get('Surname', 'passenger').lower()}@example.com"}
+                    },
+                    "PhoneContact": {
+                        "Application": "Home",
+                        "Number": [{"value": "1234567890", "CountryCode": "1"}]
+                    },
+                    "AddressContact": {
+                        "Street": ["123 Main Street"],
+                        "CityName": "Unknown City",
+                        "PostalCode": "00000",
+                        "CountryCode": {"value": "US"}
+                    }
+                }]
+            }
         
         # Handle infant passenger association
         if ptc == "INF":
@@ -646,10 +764,66 @@ def process_passengers_for_order_create(
         order_rq_passenger_list.append(passenger_entry)
 
 
+def add_metadata_for_order_create(passengers_data: List[Dict[str, Any]], query_section: Dict[str, Any]):
+    """
+    Add Metadata section with PassengerMetadata and AugmentationPoint to OrderCreate request.
+    
+    Args:
+        passengers_data: List of passenger data
+        query_section: Query section of OrderCreate request to add metadata to
+    """
+    from datetime import datetime
+    
+    try:
+        current_date = datetime.now().strftime("%m/%d/%Y")
+        
+        passenger_metadata_list = []
+        
+        for pax in passengers_data:
+            object_key = pax.get("ObjectKey", "PAX1")
+            
+            passenger_metadata = {
+                "AugmentationPoint": {
+                    "AugPoint": [
+                        {
+                            "any": {
+                                "VdcAugPoint": {
+                                    "Value": f"TRApprovalDate={current_date}"
+                                }
+                            }
+                        },
+                        {
+                            "any": {
+                                "VdcAugPoint": {
+                                    "Value": f"TRCreationDate={current_date}"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "refs": [object_key]
+            }
+            
+            passenger_metadata_list.append(passenger_metadata)
+        
+        if passenger_metadata_list:
+            query_section["Metadata"] = {
+                "PassengerMetadata": passenger_metadata_list
+            }
+            
+    except Exception as e:
+        print(f"Warning: Could not add metadata section: {e}")
+        # Metadata is optional, so we continue without it
+
+
 def process_payments_for_order_create(
     payment_input_info: Dict[str, Any], 
     order_rq_payment_list: List[Dict[str, Any]],
-    flight_price_response: Dict[str, Any] 
+    flight_price_response: Dict[str, Any],
+    servicelist_response: Optional[Dict[str, Any]] = None,
+    selected_services: Optional[List[str]] = None,
+    seatavailability_response: Optional[Dict[str, Any]] = None,
+    selected_seats: Optional[List[str]] = None
 ):
     if not payment_input_info:
         print("Warning: No payment info for OrderCreateRQ. Defaulting to Cash for testing.")
@@ -672,12 +846,12 @@ def process_payments_for_order_create(
     # Get all offer prices from the flight price response
     offer_prices = flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [{}])[0].get('OfferPrice', [])
     
-    # Calculate total amount from each offer item
+    # Calculate total amount from each offer item using BaseAmount + Taxes (to match OrderCreate structure)
     for offer in offer_prices:
-        # Get price detail and total amount
+        # Get price detail components
         price_detail = offer.get('RequestedDate', {}).get('PriceDetail', {})
-        total_amount_obj = price_detail.get('TotalAmount', {})
-        simple_price = total_amount_obj.get('SimpleCurrencyPrice', {})
+        base_amount = price_detail.get('BaseAmount', {})
+        taxes_total = price_detail.get('Taxes', {}).get('Total', {})
         
         # Get passenger count from associations
         passenger_count = 1  # Default to 1 if no associations found
@@ -688,17 +862,54 @@ def process_payments_for_order_create(
             if isinstance(traveler_refs, list):
                 passenger_count = len(traveler_refs)
         
-        # Calculate amount for this offer
-        if 'value' in simple_price:
-            amount = float(simple_price['value']) * passenger_count
-            total_amount += amount
+        # Calculate amount using BaseAmount + Taxes (consistent with OrderCreate OfferItem structure)
+        base_value = base_amount.get('value', 0)
+        tax_value = taxes_total.get('value', 0)
+        if base_value > 0:
+            flight_total = float(base_value + tax_value) * passenger_count
+            total_amount += flight_total
+            print(f"Flight pricing: Base={base_value} + Taxes={tax_value} = {base_value + tax_value} x {passenger_count} pax = {flight_total}")
             
-            # Set currency from the first valid offer
-            if currency_code is None and 'Code' in simple_price:
-                currency_code = simple_price['Code']
+            # Set currency from base amount
+            if currency_code is None and 'Code' in base_amount:
+                currency_code = base_amount['Code']
+    
+    # Add service costs to total amount
+    service_costs = 0.0
+    if servicelist_response and selected_services:
+        services = servicelist_response.get('Services', {}).get('Service', [])
+        if not isinstance(services, list):
+            services = [services] if services else []
+        
+        for service in services:
+            if service.get('ObjectKey') in selected_services:
+                service_price = service.get('Price', [{}])
+                if isinstance(service_price, list) and service_price:
+                    service_total = service_price[0].get('Total', {}).get('value', 0)
+                    service_costs += float(service_total)
+                    print(f"Added service cost: {service.get('ObjectKey')} = {service_total} {service_price[0].get('Total', {}).get('Code', currency_code)}")
+    
+    # Add seat costs to total amount
+    seat_costs = 0.0
+    if seatavailability_response and selected_seats:
+        seat_services = seatavailability_response.get('Services', {}).get('Service', [])
+        if not isinstance(seat_services, list):
+            seat_services = [seat_services] if seat_services else []
+        
+        for seat_service in seat_services:
+            if seat_service.get('ObjectKey') in selected_seats:
+                seat_price = seat_service.get('Price', [{}])
+                if isinstance(seat_price, list) and seat_price:
+                    seat_total = seat_price[0].get('Total', {}).get('value', 0)
+                    seat_costs += float(seat_total)
+                    print(f"Added seat cost: {seat_service.get('ObjectKey')} = {seat_total} {seat_price[0].get('Total', {}).get('Code', currency_code)}")
+    
+    # Calculate final total amount (Flight + Services + Seats)
+    final_total_amount = total_amount + service_costs + seat_costs
+    print(f"Payment calculation: Flight={total_amount} + Services={service_costs} + Seats={seat_costs} = {final_total_amount} {currency_code}")
     
     # Create payment amount object with the calculated total
-    payment_amount_for_rq = {"Code": currency_code, "value": round(total_amount, 2)}
+    payment_amount_for_rq = {"Code": currency_code, "value": round(final_total_amount, 2)}
 
     payment_method_object = {}
     if method_type == "CASH":
@@ -734,7 +945,7 @@ def process_payments_for_order_create(
         if "CardType" not in card_input_details: raise ValueError("CardType mandatory.")
         payment_card_node["CardType"] = card_input_details["CardType"]
 
-        payment_card_node["Amount"] = {"value": round(total_amount, 2), "Code": currency_code}
+        payment_card_node["Amount"] = {"value": round(final_total_amount, 2), "Code": currency_code}
 
         if "CardCode" not in card_input_details: raise ValueError("CardCode mandatory.")
         payment_card_node["CardCode"] = card_input_details["CardCode"]
@@ -815,6 +1026,295 @@ def process_payments_for_order_create(
 
     payment_entry = {"Amount": payment_amount_for_rq, "Method": payment_method_object}
     order_rq_payment_list.append(payment_entry)
+
+
+def clean_airline_prefix_from_key(object_key: str, airline_code: str) -> str:
+    """Remove airline prefix from object keys for clean OrderCreate references."""
+    if not object_key or not airline_code:
+        return object_key
+    
+    # Remove airline prefix if it exists (e.g., "AF-PAX1" -> "PAX1")
+    if object_key.startswith(f"{airline_code}-"):
+        return object_key[len(airline_code) + 1:]
+    return object_key
+
+
+def process_selected_services_for_order_create(
+    servicelist_response: Dict[str, Any],
+    selected_services: List[str],
+    offer_item_list: List[Dict[str, Any]],
+    data_lists: Dict[str, Any],
+    offer_owner: str,
+    airline_code: Optional[str] = None
+) -> None:
+    """
+    Process selected services from ServiceListRS and add them to OrderCreateRQ.
+    
+    Args:
+        servicelist_response: ServiceListRS response data
+        selected_services: List of selected service ObjectKeys
+        offer_item_list: OrderCreate OfferItem list to append to
+        data_lists: OrderCreate DataLists section
+        offer_owner: Offer owner (airline code)
+        airline_code: Airline code for filtering (optional)
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    try:
+        services = servicelist_response.get('Services', {}).get('Service', [])
+        if not isinstance(services, list):
+            services = [services] if services else []
+        
+        shopping_response_id = servicelist_response.get('ShoppingResponseID', {}).get('ResponseID', {}).get('value', '')
+        
+        # Initialize ServiceList in DataLists if not exists
+        if 'ServiceList' not in data_lists:
+            data_lists['ServiceList'] = {'Service': []}
+        
+        for service_key in selected_services:
+            # Find matching service
+            selected_service = None
+            for service in services:
+                if service.get('ObjectKey') == service_key:
+                    selected_service = service
+                    break
+            
+            if not selected_service:
+                logger.warning(f"Selected service {service_key} not found in ServiceListRS")
+                continue
+            
+            # Extract service details
+            service_id = selected_service.get('ServiceID', {})
+            service_price = selected_service.get('Price', [{}])[0] if selected_service.get('Price') else {}
+            
+            # Get traveler references and clean them
+            traveler_refs = []
+            associations = selected_service.get('Associations', [])
+            for assoc in associations:
+                traveler_assoc = assoc.get('Traveler', {}).get('TravelerReferences', [])
+                for trav_ref in traveler_assoc:
+                    cleaned_ref = clean_airline_prefix_from_key(trav_ref, airline_code or offer_owner)
+                    if cleaned_ref:
+                        traveler_refs.append(cleaned_ref)
+            
+            # Create service OfferItem following the VDC documentation pattern
+            service_offer_item = {
+                "OfferItemID": {
+                    "value": service_id.get('ObjectKey', service_key),
+                    "Owner": service_id.get('Owner', offer_owner),
+                    "refs": [
+                        service_id.get('value', ''),
+                        shopping_response_id
+                    ],
+                    "Channel": "NDC"
+                },
+                "OfferItemType": {
+                    "OtherItem": [
+                        {
+                            "refs": traveler_refs + [service_key],
+                            "Price": {
+                                "SimpleCurrencyPrice": service_price.get('Total', {"value": 0, "Code": "USD"})
+                            }
+                        }
+                    ]
+                }
+            }
+            
+            offer_item_list.append(service_offer_item)
+            
+            # Add service to DataLists.ServiceList
+            service_copy = selected_service.copy()
+            
+            # Clean airline prefixes from traveler references in associations
+            if 'Associations' in service_copy:
+                for assoc in service_copy['Associations']:
+                    if 'Traveler' in assoc and 'TravelerReferences' in assoc['Traveler']:
+                        assoc['Traveler']['TravelerReferences'] = [
+                            clean_airline_prefix_from_key(ref, airline_code or offer_owner)
+                            for ref in assoc['Traveler']['TravelerReferences']
+                        ]
+            
+            data_lists['ServiceList']['Service'].append(service_copy)
+            
+            logger.info(f"Added service {service_key} to OrderCreate")
+        
+    except Exception as e:
+        logger.error(f"Error processing selected services: {str(e)}")
+        raise
+
+
+def process_selected_seats_for_order_create(
+    seatavailability_response: Dict[str, Any],
+    selected_seats: List[str],
+    offer_item_list: List[Dict[str, Any]],
+    data_lists: Dict[str, Any],
+    offer_owner: str,
+    airline_code: Optional[str] = None
+) -> None:
+    """
+    Process selected seats from SeatAvailabilityRS and add them to OrderCreateRQ.
+    
+    Args:
+        seatavailability_response: SeatAvailabilityRS response data
+        selected_seats: List of selected seat ObjectKeys
+        offer_item_list: OrderCreate OfferItem list to append to
+        data_lists: OrderCreate DataLists section
+        offer_owner: Offer owner (airline code)
+        airline_code: Airline code for filtering (optional)
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    try:
+        seat_services = seatavailability_response.get('Services', {}).get('Service', [])
+        if not isinstance(seat_services, list):
+            seat_services = [seat_services] if seat_services else []
+        
+        seat_data = seatavailability_response.get('DataLists', {}).get('SeatList', {}).get('Seats', [])
+        if not isinstance(seat_data, list):
+            seat_data = [seat_data] if seat_data else []
+        
+        shopping_response_id = seatavailability_response.get('ShoppingResponseID', {}).get('ResponseID', {}).get('value', '')
+        
+        # Initialize ServiceList in DataLists if not exists (seats are also services)
+        if 'ServiceList' not in data_lists:
+            data_lists['ServiceList'] = {'Service': []}
+        
+        for seat_key in selected_seats:
+            # Find matching seat service
+            selected_seat_service = None
+            for service in seat_services:
+                if service.get('ObjectKey') == seat_key:
+                    selected_seat_service = service
+                    break
+            
+            if not selected_seat_service:
+                logger.warning(f"Selected seat {seat_key} not found in SeatAvailabilityRS services")
+                continue
+            
+            # Find matching seat location data using refs field
+            seat_location = {}
+            for seat in seat_data:
+                # Check if this seat references our selected seat service
+                seat_refs = seat.get('refs', [])
+                if isinstance(seat_refs, list) and seat_key in seat_refs:
+                    full_location = seat.get('Location', {})
+                    if full_location:
+                        # Extract complete seat location information
+                        seat_location = {
+                            "Column": full_location.get('Column', ''),
+                            "Row": {
+                                "Number": {
+                                    "value": str(full_location.get('Row', {}).get('Number', {}).get('value', ''))
+                                }
+                            }
+                        }
+                        
+                        # Add characteristics if present
+                        characteristics = full_location.get('Characteristics', {}).get('Characteristic', [])
+                        if characteristics:
+                            if not isinstance(characteristics, list):
+                                characteristics = [characteristics]
+                            
+                            formatted_characteristics = []
+                            for char in characteristics:
+                                if isinstance(char, dict):
+                                    formatted_char = {}
+                                    if 'Code' in char:
+                                        formatted_char['Code'] = char['Code']
+                                    if 'Remarks' in char:
+                                        formatted_char['Remarks'] = char['Remarks']
+                                    formatted_characteristics.append(formatted_char)
+                                elif isinstance(char, str):
+                                    formatted_characteristics.append({"Code": char})
+                            
+                            if formatted_characteristics:
+                                seat_location['Characteristics'] = {
+                                    'Characteristic': formatted_characteristics
+                                }
+                        
+                        logger.info(f"Found seat location for {seat_key}: Column={seat_location.get('Column')}, Row={seat_location.get('Row', {}).get('Number', {}).get('value')}")
+                    break
+            
+            if not seat_location:
+                logger.warning(f"Seat location data not found for {seat_key}")
+            
+            # Extract seat details
+            seat_price = selected_seat_service.get('Price', [{}])[0] if selected_seat_service.get('Price') else {}
+            
+            # Get segment and traveler references
+            segment_refs = []
+            traveler_refs = []
+            
+            associations = selected_seat_service.get('Associations', [])
+            for assoc in associations:
+                # Get segment references
+                flight_assoc = assoc.get('Flight', {}).get('originDestinationReferencesOrSegmentReferences', [])
+                for flight_ref in flight_assoc:
+                    if 'SegmentReferences' in flight_ref:
+                        for seg_ref in flight_ref['SegmentReferences'].get('value', []):
+                            cleaned_ref = clean_airline_prefix_from_key(seg_ref, airline_code or offer_owner)
+                            if cleaned_ref:
+                                segment_refs.append(cleaned_ref)
+                
+                # Get traveler references
+                traveler_assoc = assoc.get('Traveler', {}).get('TravelerReferences', [])
+                for trav_ref in traveler_assoc:
+                    cleaned_ref = clean_airline_prefix_from_key(trav_ref, airline_code or offer_owner)
+                    if cleaned_ref:
+                        traveler_refs.append(cleaned_ref)
+            
+            # Create seat OfferItem following the VDC documentation pattern
+            seat_offer_item = {
+                "OfferItemID": {
+                    "value": seat_key,
+                    "refs": [
+                        "PRICE",
+                        shopping_response_id
+                    ],
+                    "Channel": "NDC"
+                },
+                "OfferItemType": {
+                    "SeatItem": [
+                        {
+                            "Price": seat_price.get('Total', {"value": 0, "Code": "USD"}),
+                            "Descriptions": selected_seat_service.get('Descriptions', {"Description": []}),
+                            "Location": seat_location,
+                            "SeatAssociation": [
+                                {
+                                    "SegmentReferences": {
+                                        "value": segment_refs
+                                    },
+                                    "TravelerReference": traveler_refs[0] if traveler_refs else "PAX1"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+            
+            offer_item_list.append(seat_offer_item)
+            
+            # Add seat service to DataLists.ServiceList
+            service_copy = selected_seat_service.copy()
+            
+            # Clean airline prefixes from traveler references in associations
+            if 'Associations' in service_copy:
+                for assoc in service_copy['Associations']:
+                    if 'Traveler' in assoc and 'TravelerReferences' in assoc['Traveler']:
+                        assoc['Traveler']['TravelerReferences'] = [
+                            clean_airline_prefix_from_key(ref, airline_code or offer_owner)
+                            for ref in assoc['Traveler']['TravelerReferences']
+                        ]
+            
+            data_lists['ServiceList']['Service'].append(service_copy)
+            
+            logger.info(f"Added seat {seat_key} to OrderCreate")
+        
+    except Exception as e:
+        logger.error(f"Error processing selected seats: {str(e)}")
+        raise
 
 if __name__ == "__main__":
     # This script is meant to be imported, not run directly

@@ -777,7 +777,7 @@ def main():
 
     # Determine the correct input file name based on your previous uploads
     # It seems AirShoppingRS.txt was the source for the selected offer.
-    input_file_name = "airshoping_response.json" 
+    input_file_name = "airshopingRS.json"
     input_file_path = Path(input_file_name)
     output_file_path = Path("flightprice_request_generated.json")
 
