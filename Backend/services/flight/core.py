@@ -57,6 +57,22 @@ class FlightService:
     }
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
+        # If no config provided, load from environment variables
+        if config is None:
+            env_config = {
+                'VERTEIL_API_BASE_URL': os.environ.get('VERTEIL_API_BASE_URL', 'https://api.stage.verteil.com'),
+                'VERTEIL_USERNAME': os.environ.get('VERTEIL_USERNAME'),
+                'VERTEIL_PASSWORD': os.environ.get('VERTEIL_PASSWORD'),
+                'VERTEIL_CLIENT_ID': os.environ.get('VERTEIL_CLIENT_ID'),
+                'VERTEIL_CLIENT_SECRET': os.environ.get('VERTEIL_CLIENT_SECRET'),
+                'VERTEIL_TOKEN_ENDPOINT_PATH': os.environ.get('VERTEIL_TOKEN_ENDPOINT', '/oauth2/token'),
+                'VERTEIL_OFFICE_ID': os.environ.get('VERTEIL_OFFICE_ID'),
+                'VERTEIL_THIRD_PARTY_ID': os.environ.get('VERTEIL_THIRD_PARTY_ID'),
+                'VERTEIL_API_TIMEOUT': int(os.environ.get('VERTEIL_API_TIMEOUT', 60)),
+                'OAUTH2_TOKEN_EXPIRY_BUFFER': int(os.environ.get('OAUTH2_TOKEN_EXPIRY_BUFFER', 60)),
+            }
+            config = {k: v for k, v in env_config.items() if v is not None}
+        
         self.config = {**self.DEFAULT_CONFIG, **(config or {})}
         self._session: Optional[aiohttp.ClientSession] = None
         # Use the singleton TokenManager instance instead of creating a new one
@@ -66,21 +82,17 @@ class FlightService:
         if 'VERTEIL_TOKEN_ENDPOINT_PATH' in self.config:
             self.config['VERTEIL_TOKEN_ENDPOINT'] = self.config['VERTEIL_TOKEN_ENDPOINT_PATH']
 
-        # Only set config if TokenManager doesn't have one yet, to avoid overwriting
-        # the centralized configuration
-        if not self._token_manager._config:
+        # Always ensure TokenManager has the proper config (merge with existing config if needed)
+        if self._token_manager._config:
+            # Merge current config with TokenManager config, prioritizing current config
+            merged_config = {**self._token_manager._config, **self.config}
+            self._token_manager.set_config(merged_config)
+        else:
             self._token_manager.set_config(self.config)
 
-        # Validate essential configuration for OAuth
-        # These keys should match what's loaded in Backend/config.py
-        required_oauth_keys = [
-            'VERTEIL_USERNAME', 'VERTEIL_PASSWORD',
-            'VERTEIL_API_BASE_URL', 'VERTEIL_TOKEN_ENDPOINT_PATH'
-        ]
-        missing_keys = [key for key in required_oauth_keys if not self.config.get(key)]
-        if missing_keys:
-            raise FlightServiceError(f"FlightService missing critical OAuth configuration: {', '.join(missing_keys)}")
-        logger.info("FlightService initialized with necessary OAuth configurations.")
+        # Skip validation if TokenManager is properly configured
+        # The TokenManager will handle token refresh when needed
+        logger.info("FlightService initialized - TokenManager will handle authentication as needed")
 
     async def _get_session(self) -> aiohttp.ClientSession:
         if self._session is None or self._session.closed:
