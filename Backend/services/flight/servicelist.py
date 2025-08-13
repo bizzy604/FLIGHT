@@ -197,28 +197,39 @@ async def get_service_list(
     # Use centralized TokenManager configuration like working services
     from utils.auth import TokenManager
     
+    # Get token from the working TokenManager
     token_manager = TokenManager.get_instance()
-    if token_manager._config:
-        config = token_manager._config
-        logger.info(f"Using TokenManager config: {list(config.keys())}")
-    else:
-        # Fallback to environment loading if TokenManager not configured
-        import os
-        from dotenv import load_dotenv
-        
-        load_dotenv()
-        config = {
-            'VERTEIL_USERNAME': os.getenv('VERTEIL_USERNAME'),
-            'VERTEIL_PASSWORD': os.getenv('VERTEIL_PASSWORD'),
-            'VERTEIL_API_BASE_URL': os.getenv('VERTEIL_API_BASE_URL'),
-            'VERTEIL_TOKEN_ENDPOINT_PATH': os.getenv('VERTEIL_TOKEN_ENDPOINT', '/oauth2/token'),
-            'VERTEIL_OFFICE_ID': os.getenv('VERTEIL_OFFICE_ID'),
-            'VERTEIL_THIRD_PARTY_ID': os.getenv('VERTEIL_THIRD_PARTY_ID'),
-        }
-        logger.info(f"Using environment config: {list(config.keys())}")
+    token = token_manager.get_token()
     
-    async with ServiceListService(config) as service:
-        return await service.get_service_list(flight_price_response, selected_offer_index)
+    # Import required modules for direct API call
+    from scripts.build_servicelist_rq import build_servicelist_request
+    import aiohttp
+    import os
+    
+    # Build the request
+    servicelist_request = build_servicelist_request(
+        flight_price_response, selected_offer_index
+    )
+    
+    # Make direct API call (like working air shopping does)
+    api_url = f"{os.environ.get('VERTEIL_API_BASE_URL', 'https://api.stage.verteil.com')}/entrygate/rest/request:preServiceList"
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'Accept': '*/*',
+        'Authorization': token,
+        'OfficeId': os.environ.get('VERTEIL_OFFICE_ID', 'OFF3746'),
+        'service': 'ServiceList',
+        'User-Agent': 'PostmanRuntime/7.41',
+        'Cache-Control': 'no-cache',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive'
+    }
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.post(api_url, headers=headers, json=servicelist_request, timeout=30) as response:
+            result = await response.json()
+            return result
 
 async def get_services_by_type(
     flight_price_response: Dict[str, Any],

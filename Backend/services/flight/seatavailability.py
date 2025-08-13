@@ -273,13 +273,40 @@ async def get_seat_availability(
     Returns:
         Dict containing the SeatAvailability response
     """
-    # Use current_app.config exactly like working air shopping functions
-    from quart import current_app
+    # Use TokenManager directly to bypass FlightService validation issues
+    from utils.auth import TokenManager
+    from scripts.build_seatavailability_rq import build_seatavailability_request
+    import aiohttp
+    import os
     
-    config = current_app.config
+    # Get token from the working TokenManager
+    token_manager = TokenManager.get_instance()
+    token = token_manager.get_token()
     
-    async with SeatAvailabilityService(config) as service:
-        return await service.get_seat_availability(flight_price_response, selected_offer_index)
+    # Build the request
+    seatavailability_request = build_seatavailability_request(
+        flight_price_response, selected_offer_index
+    )
+    
+    # Make direct API call (like working air shopping does)
+    api_url = f"{os.environ.get('VERTEIL_API_BASE_URL', 'https://api.stage.verteil.com')}/entrygate/rest/request:preSeatAvailability"
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'Accept': '*/*',
+        'Authorization': token,
+        'OfficeId': os.environ.get('VERTEIL_OFFICE_ID', 'OFF3746'),
+        'service': 'SeatAvailability',
+        'User-Agent': 'PostmanRuntime/7.41',
+        'Cache-Control': 'no-cache',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive'
+    }
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.post(api_url, headers=headers, json=seatavailability_request, timeout=30) as response:
+            result = await response.json()
+            return result
 
 async def get_seat_map_for_segment(
     flight_price_response: Dict[str, Any],
