@@ -1,0 +1,230 @@
+{
+  "timestamp": "2025-08-15T12:35:27.657131",
+  "service": "FlightPrice",
+  "request_id": "09763f6f-4e63-4401-9945-972f5b71c9d2",
+  "endpoint": "/entrygate/rest/request:flightPrice",
+  "headers": {
+    "Content-Type": "application/json",
+    "Accept": "*/*",
+    "Authorization": "Bearer ***099n6keA",
+    "OfficeId": "***3746",
+    "service": "FlightPrice",
+    "User-Agent": "PostmanRuntime/7.41",
+    "Cache-Control": "no-cache",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "ThirdpartyId": "***"
+  },
+  "payload": {
+    "DataLists": {
+      "FareGroup": [
+        {
+          "ListKey": "QR-FG-167683522050073",
+          "FareBasisCode": {
+            "Code": "TLUSI6RI"
+          }
+        }
+      ],
+      "AnonymousTravelerList": {
+        "AnonymousTraveler": [
+          {
+            "ObjectKey": "QR-PAX1",
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      }
+    },
+    "Query": {
+      "OriginDestination": [
+        {
+          "Flight": [
+            {
+              "SegmentKey": "QR-SEG2",
+              "Departure": {
+                "AirportCode": {
+                  "value": "LAX"
+                },
+                "Date": "2025-08-28T16:20:00.000",
+                "Time": "16:20",
+                "Terminal": {
+                  "Name": "B"
+                }
+              },
+              "Arrival": {
+                "AirportCode": {
+                  "value": "DOH"
+                },
+                "Date": "2025-08-29T17:50:00.000",
+                "Time": "17:50"
+              },
+              "MarketingCarrier": {
+                "AirlineID": {
+                  "value": "QR"
+                },
+                "Name": "Qatar Airways",
+                "FlightNumber": {
+                  "value": "740"
+                }
+              },
+              "OperatingCarrier": {
+                "AirlineID": {
+                  "value": "QR"
+                },
+                "Name": "Qatar Airways"
+              },
+              "FlightDetail": {
+                "FlightDuration": {
+                  "Value": "PT15H30M"
+                }
+              }
+            },
+            {
+              "SegmentKey": "QR-SEG3",
+              "Departure": {
+                "AirportCode": {
+                  "value": "DOH"
+                },
+                "Date": "2025-08-29T20:05:00.000",
+                "Time": "20:05"
+              },
+              "Arrival": {
+                "AirportCode": {
+                  "value": "BOM"
+                },
+                "Date": "2025-08-30T02:10:00.000",
+                "Time": "02:10",
+                "Terminal": {
+                  "Name": "2"
+                }
+              },
+              "MarketingCarrier": {
+                "AirlineID": {
+                  "value": "QR"
+                },
+                "Name": "Qatar Airways",
+                "FlightNumber": {
+                  "value": "4770"
+                }
+              },
+              "OperatingCarrier": {
+                "AirlineID": {
+                  "value": "6E"
+                },
+                "Name": "IndiGo"
+              },
+              "FlightDetail": {
+                "FlightDuration": {
+                  "Value": "PT3H35M"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "Offers": {
+        "Offer": [
+          {
+            "OfferID": {
+              "value": "1H0QRZ_HA51UGFRMROKTI6MXG6ZDODPYMPM",
+              "Owner": "QR",
+              "Channel": "NDC"
+            },
+            "OfferItemIDs": {
+              "OfferItemID": [
+                {
+                  "value": "1H0QRZ_HA51UGFRMROKTI6MXG6ZDODPYMPM-1",
+                  "refs": [
+                    "QR-PAX1"
+                  ]
+                }
+              ]
+            },
+            "refs": [
+              {
+                "Ref": "VDC-CARRY_ON_ALLOWANCE-1H0QRZ_HA51UGFRMROKTI6MXG6ZDODPYMPM"
+              },
+              {
+                "Ref": "VDC-AIRLINE-SRID"
+              },
+              {
+                "Ref": "VDC-PR-eET8OlBaN4gPSDD5GqXY"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "ShoppingResponseID": {
+      "Owner": "QR",
+      "ResponseID": {
+        "value": "wcNlxOuuDuT0gUSKKSNf69dbU-ccR7wwue-4UpENmac-QR"
+      }
+    },
+    "Travelers": {
+      "Traveler": [
+        {
+          "AnonymousTraveler": [
+            {
+              "PTC": {
+                "value": "ADT"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Metadata": {
+      "Other": {
+        "OtherMetadata": [
+          {
+            "PriceMetadatas": {
+              "PriceMetadata": [
+                {
+                  "MetadataKey": "VDC-CARRY_ON_ALLOWANCE-1H0QRZ_HA51UGFRMROKTI6MXG6ZDODPYMPM",
+                  "AugmentationPoint": {
+                    "AugPoint": [
+                      {
+                        "any": {
+                          "@type": "java.util.HashMap",
+                          "value": "{\"ADT\":[{\"ListKey\":\"ADT-BAGGAGEALLOWANCE_CARRYON-1piece,7kgtotal\",\"AllowanceDescription\":{\"ApplicableParty\":\"Traveler\",\"Descriptions\":{\"Description\":[{\"Text\":{\"value\":\"1 piece, 7kg total\"}}]}},\"PieceAllowance\":[{\"ApplicableParty\":\"Traveler\",\"TotalQuantity\":1,\"PieceMeasurements\":[{\"Quantity\":1}]}],\"WeightAllowance\":{\"ApplicableParty\":\"Traveler\",\"MaximumWeight\":[{\"Value\":7,\"UOM\":\"Kilogram\"}]},\"refs\":[\"LAX|DOH|2025-08-28|16:20\",\"DOH|BOM|2025-08-29|20:05\"]}]}"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "MetadataKey": "VDC-AIRLINE-SRID",
+                  "AugmentationPoint": {
+                    "AugPoint": [
+                      {
+                        "any": {
+                          "value": "eyJRUiI6IjFIMFFSWl9SNEJNVU1WRlBBV0k2NUFFSkdWWFRURUZRSEU1IiwiS0wiOiJ5UVAyeWxiT1ZmYWVqSnZEaVNkZyIsIkVZIjoiOElCSUgyTzdYTzVTMVhGR0dFUUU0WU5ENTAiLCJBRiI6Ik45RFdidHlrWkZOcmNEZ1VOTmpXIiwiQ1giOiIxSDBDWFpfV0lFMkFGSUpKSTYwWVNFRFJZWThZR0xBN1JGTiIsIkVLIjoiWEVBNjlCMEJBLTkzREUtNDk1NC1CMDdCIiwiS1EiOiIxSDFLUVpfVUFISTBKVTFWVUJTMUlIUEo3OVFBVVY3OVZBSSIsIkFZIjoiMUgxQVlaX0FaVUozNTdDREFXOUlDM0s1UlJaVFI5NzY4WVkiLCJMSEciOiJYQTFBMjBCMkMtMUNDMC00MjkyLUJBNDAiLCJTUSI6IjFIMVNRWl8wUTRXVDU4Qkc1RjNQR0xSWkRXQkVIWUNIR1RQIiwiR0YiOiIzMTRjOTJiMi01ZmNiLTRiYWEtODNlYS0zMTYyMTVjZGM2N2E6MzE0YzkyYjItNWZjYi00YmFhLTgzZWEtMzE2MjE1Y2RjNjdhIiwiQkEiOiJhYzIudHgtcGwtM2ViZmE1MzctYjA4Yy00M2Y2LWEwN2UtMmIyYzgwMWRiYjViIn0=",
+                          "type": "java.util.HashMap"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "MetadataKey": "VDC-PR-eET8OlBaN4gPSDD5GqXY",
+                  "AugmentationPoint": {
+                    "AugPoint": [
+                      {
+                        "any": {
+                          "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
+                          "value": "3xczpUNTD+GIVR92IeVrGyQyVlVHdhI9bK4UrgdPAXvxVjNuNlpKbbhwGHNf39LjxaG3siThMXl4LBQ5B3ZNdorb4KqzE++WPp2ycD+B16Q5SNYHOTQuX+D9ZlkdVxqQ4C2tMQfKPDoCyux0zb81CC9FRwNNpcy2Wkc/CM3WXKxGT+E5m+y8paYNbT5yR7FgJejmG/icK8KsqZ72+wjGq0MyjenQs7S1x+OfNFfP653hExz9LNg2uiVdSLSoq9fAedwFKCmiV7nUc8LnaltxEkX782CK1LivwPksjS0afMEjf1+8qhbI0x0D15kRRntqYBTcF8w3IyeIPECtwNbAFGQSaklItHwyKaXEMZw7H9jYDS37Z3wh0Q3/vBHxgS3DCcpzeBg="
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

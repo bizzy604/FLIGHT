@@ -1,0 +1,153 @@
+{
+  "timestamp": "2025-08-15T16:21:05.085010",
+  "service": "ServiceList",
+  "request_id": "21b9b2e4-8741-40cf-8b17-709473656e7a",
+  "endpoint": "/entrygate/rest/request:preServiceList",
+  "headers": {
+    "Content-Type": "application/json",
+    "Accept": "*/*",
+    "Authorization": "Bearer ***099n6keA",
+    "OfficeId": "***3746",
+    "service": "ServiceList",
+    "User-Agent": "PostmanRuntime/7.41",
+    "Cache-Control": "no-cache",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "ThirdpartyId": "***"
+  },
+  "payload": {
+    "Travelers": {
+      "Traveler": [
+        {
+          "AnonymousTraveler": [
+            {
+              "ObjectKey": "PAX1",
+              "PTC": {
+                "value": "ADT"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Query": {
+      "OriginDestination": [
+        {
+          "Flight": [
+            {
+              "SegmentKey": "SEG8",
+              "Departure": {
+                "AirportCode": {
+                  "value": "LHR"
+                },
+                "Date": "2025-08-22T08:05:00.000",
+                "Time": "08:05",
+                "AirportName": null,
+                "Terminal": {
+                  "Name": "4"
+                }
+              },
+              "Arrival": {
+                "AirportCode": {
+                  "value": "DOH"
+                },
+                "Date": "2025-08-22T16:55:00.000",
+                "Time": "16:55",
+                "AirportName": null,
+                "Terminal": {}
+              },
+              "MarketingCarrier": {
+                "AirlineID": {
+                  "value": "QR"
+                },
+                "Name": "Qatar Airways",
+                "FlightNumber": {
+                  "value": "6"
+                }
+              },
+              "Equipment": {
+                "AircraftCode": {
+                  "value": "388"
+                }
+              },
+              "FlightDetail": {
+                "FlightDuration": {
+                  "Value": "PT6H50M"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "Flight": [
+            {
+              "SegmentKey": "SEG3",
+              "Departure": {
+                "AirportCode": {
+                  "value": "DOH"
+                },
+                "Date": "2025-08-22T20:35:00.000",
+                "Time": "20:35",
+                "AirportName": null,
+                "Terminal": {}
+              },
+              "Arrival": {
+                "AirportCode": {
+                  "value": "BOM"
+                },
+                "Date": "2025-08-23T02:40:00.000",
+                "Time": "02:40",
+                "AirportName": null,
+                "Terminal": {
+                  "Name": "2"
+                }
+              },
+              "MarketingCarrier": {
+                "AirlineID": {
+                  "value": "QR"
+                },
+                "Name": "Qatar Airways",
+                "FlightNumber": {
+                  "value": "556"
+                }
+              },
+              "Equipment": {
+                "AircraftCode": {
+                  "value": "77W"
+                }
+              },
+              "FlightDetail": {
+                "FlightDuration": {
+                  "Value": "PT3H35M"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "Offers": {
+        "Offer": [
+          {
+            "OfferID": {
+              "value": "1H0QRZ_1LR8QW3JJAA4BX2NFRX5BG0PARDD",
+              "Owner": "QR",
+              "Channel": "NDC"
+            },
+            "OfferItemIDs": {
+              "OfferItemID": [
+                {
+                  "value": "1H0QRZ_1LR8QW3JJAA4BX2NFRX5BG0PARDD-1-1"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "ShoppingResponseID": {
+      "ResponseID": {
+        "value": "wqPJ-N4oxW6KUU58rX5wu8qCNA--ivfhLWVCwOlY0zM-QR"
+      }
+    }
+  }
+}

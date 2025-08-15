@@ -271,15 +271,29 @@ export const api = {
     // ServiceList API
     getServiceList: async (flightPriceResponse: any): Promise<{ data: any }> => {
         try {
+            // 🚀 ROBUST CACHE KEY EXTRACTION - Multiple fallback methods
+            const requestBody: any = {};
+            
+            let cacheKey = flightPriceResponse?.metadata?.flight_price_cache_key ||
+                          flightPriceResponse?.flight_price_cache_key ||
+                          flightPriceResponse?.data?.metadata?.flight_price_cache_key ||
+                          flightPriceResponse?.cache_key;
+            
+            if (cacheKey) {
+                requestBody.flight_price_cache_key = cacheKey;
+                logger.info(`🔑 Using flight_price_cache_key for service list: ${cacheKey}`);
+            } else {
+                logger.warn('⚠️ No flight_price_cache_key found for service list, falling back to full response');
+                requestBody.flight_price_response = flightPriceResponse;
+            }
+
             const response = await fetch('/api/verteil/service-list', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify({
-                    flight_price_response: flightPriceResponse
-                })
+                body: JSON.stringify(requestBody)
             });
             
             const data = await response.json();
@@ -300,15 +314,29 @@ export const api = {
     // ServiceList Cache Check
     checkServiceListCache: async (flightPriceResponse: any): Promise<{ data: any }> => {
         try {
+            // 🚀 ROBUST CACHE KEY EXTRACTION - Multiple fallback methods
+            const requestBody: any = {};
+            
+            let cacheKey = flightPriceResponse?.metadata?.flight_price_cache_key ||
+                          flightPriceResponse?.flight_price_cache_key ||
+                          flightPriceResponse?.data?.metadata?.flight_price_cache_key ||
+                          flightPriceResponse?.cache_key;
+            
+            if (cacheKey) {
+                requestBody.flight_price_cache_key = cacheKey;
+                logger.info(`🔑 Using flight_price_cache_key for service cache check: ${cacheKey}`);
+            } else {
+                logger.warn('⚠️ No flight_price_cache_key found for service cache check, falling back to full response');
+                requestBody.flight_price_response = flightPriceResponse;
+            }
+
             const response = await fetch('/api/verteil/service-list/cache-check', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify({
-                    flight_price_response: flightPriceResponse
-                })
+                body: JSON.stringify(requestBody)
             });
             
             const data = await response.json();
@@ -329,9 +357,34 @@ export const api = {
     // SeatAvailability API
     getSeatAvailability: async (flightPriceResponse: any, segmentKey?: string): Promise<{ data: any }> => {
         try {
-            const requestData: any = {
-                flight_price_response: flightPriceResponse
-            };
+            // 🚀 ROBUST CACHE KEY EXTRACTION - Multiple fallback methods
+            const requestData: any = {};
+            
+            // Method 1: From metadata (preferred)
+            let cacheKey = flightPriceResponse?.metadata?.flight_price_cache_key;
+            
+            // Method 2: From top level (backend guarantee)
+            if (!cacheKey) {
+                cacheKey = flightPriceResponse?.flight_price_cache_key;
+            }
+            
+            // Method 3: From data.metadata (nested structure)
+            if (!cacheKey) {
+                cacheKey = flightPriceResponse?.data?.metadata?.flight_price_cache_key;
+            }
+            
+            // Method 4: Extract from any cache_key field
+            if (!cacheKey) {
+                cacheKey = flightPriceResponse?.cache_key;
+            }
+            
+            if (cacheKey) {
+                requestData.flight_price_cache_key = cacheKey;
+                logger.info(`🔑 Using flight_price_cache_key for seat availability: ${cacheKey}`);
+            } else {
+                logger.warn('⚠️ No flight_price_cache_key found, falling back to full response');
+                requestData.flight_price_response = flightPriceResponse;
+            }
             
             if (segmentKey) {
                 requestData.segment_key = segmentKey;
@@ -364,9 +417,21 @@ export const api = {
     // SeatAvailability Cache Check
     checkSeatAvailabilityCache: async (flightPriceResponse: any, segmentKey?: string): Promise<{ data: any }> => {
         try {
-            const requestData: any = {
-                flight_price_response: flightPriceResponse
-            };
+            // 🚀 ROBUST CACHE KEY EXTRACTION - Multiple fallback methods
+            const requestData: any = {};
+            
+            let cacheKey = flightPriceResponse?.metadata?.flight_price_cache_key ||
+                          flightPriceResponse?.flight_price_cache_key ||
+                          flightPriceResponse?.data?.metadata?.flight_price_cache_key ||
+                          flightPriceResponse?.cache_key;
+            
+            if (cacheKey) {
+                requestData.flight_price_cache_key = cacheKey;
+                logger.info(`🔑 Using flight_price_cache_key for seat cache check: ${cacheKey}`);
+            } else {
+                logger.warn('⚠️ No flight_price_cache_key found for cache check, falling back to full response');
+                requestData.flight_price_response = flightPriceResponse;
+            }
             
             if (segmentKey) {
                 requestData.segment_key = segmentKey;

@@ -10,6 +10,7 @@ import uuid
 import sys
 import os
 from datetime import datetime
+import asyncio
 
 # Import the flight price transformer and request builder from their respective packages
 from utils.flight_price_transformer import transform_for_frontend, transform_flight_price_response
@@ -84,11 +85,48 @@ class FlightPricingService(FlightService):
                         logger.info(f"✅ Retrieved raw air shopping response from cache using key: {cache_key}")
                         actual_airshopping_response = cached_raw_response
                     else:
-                        logger.error(f"❌ Raw response not found in cache for key: {cache_key}")
-                        raise ValidationError(f"Raw air shopping response not found in cache. Cache key: {cache_key}")
+                        logger.warning(f"⚠️ Raw response not found in cache for key: {cache_key}")
+                        logger.warning("Raw cache likely expired. Checking for alternative cache keys...")
+                        
+                        # Try alternative cache key patterns as fallback
+                        alternative_keys = [
+                            cache_key.replace('air_shopping_raw_', 'flight_search_'),  # Check flight search cache
+                            cache_key + '_backup',  # Check backup cache
+                            cache_key.split('_')[0] + '_' + '_'.join(cache_key.split('_')[1:])  # Alternative format
+                        ]
+                        
+                        fallback_found = False
+                        for alt_key in alternative_keys:
+                            try:
+                                fallback_response = cache_manager.get(alt_key)
+                                if fallback_response:
+                                    logger.info(f"✅ Found fallback cache data with key: {alt_key}")
+                                    actual_airshopping_response = fallback_response
+                                    fallback_found = True
+                                    break
+                            except Exception:
+                                continue
+                        
+                        if not fallback_found:
+                            logger.error("No fallback cache data found. Flight search results have expired.")
+                            raise ValidationError(
+                                "Flight search results have expired (cache TTL: 30 minutes). "
+                                "Please perform a new flight search to get updated pricing and seat/service options. "
+                                f"Expired cache key: {cache_key}"
+                            )
                 except Exception as cache_error:
                     logger.error(f"❌ Failed to retrieve raw response from cache: {cache_error}")
-                    raise ValidationError(f"Failed to retrieve raw air shopping response from cache: {cache_error}")
+                    # Check if this is a cache miss vs other errors
+                    if any(term in str(cache_error).lower() for term in ["not found", "expired", "missing", "key error"]):
+                        raise ValidationError(
+                            "Flight search results are no longer available (expired after 30 minutes). "
+                            "Please perform a new flight search to get updated pricing."
+                        )
+                    else:
+                        raise ValidationError(
+                            f"Unable to retrieve flight search data from cache. "
+                            f"Please try searching again. Technical error: {cache_error}"
+                        )
 
             # Also check the raw_response_cache_key parameter (alternative method)
             elif raw_response_cache_key:

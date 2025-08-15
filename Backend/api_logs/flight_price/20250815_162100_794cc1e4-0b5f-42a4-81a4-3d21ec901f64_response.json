@@ -1,0 +1,925 @@
+{
+  "timestamp": "2025-08-15T16:21:00.064791",
+  "service": "FlightPrice",
+  "request_id": "794cc1e4-0b5f-42a4-81a4-3d21ec901f64",
+  "status_code": 200,
+  "response_time_ms": 2285.151958465576,
+  "response": {
+    "Document": {
+      "Name": "QR"
+    },
+    "ShoppingResponseID": {
+      "ResponseID": {
+        "value": "wqPJ-N4oxW6KUU58rX5wu8qCNA--ivfhLWVCwOlY0zM-QR"
+      }
+    },
+    "PricedFlightOffers": {
+      "PricedFlightOffer": [
+        {
+          "OfferID": {
+            "ObjectKey": "1H0QRZ_1LR8QW3JJAA4BX2NFRX5BG0PARDD",
+            "value": "1H0QRZ_1LR8QW3JJAA4BX2NFRX5BG0PARDD",
+            "Owner": "QR",
+            "Channel": "NDC"
+          },
+          "OfferPrice": [
+            {
+              "RequestedDate": {
+                "Associations": [
+                  {
+                    "AssociatedTraveler": {
+                      "TravelerReferences": [
+                        "PAX1"
+                      ]
+                    },
+                    "ApplicableFlight": {
+                      "FlightSegmentReference": [
+                        {
+                          "ClassOfService": {
+                            "Code": {
+                              "value": "O"
+                            },
+                            "MarketingName": {
+                              "value": "ECO",
+                              "CabinDesignator": "Y"
+                            },
+                            "refs": [
+                              "FG-73178919740411"
+                            ]
+                          },
+                          "BagDetailAssociation": {
+                            "CheckedBagReferences": [
+                              "FBA1"
+                            ],
+                            "CarryOnReferences": [
+                              "BAGGAGEALLOWANCE_CARRYON-1piece,7kgtotal"
+                            ]
+                          },
+                          "ref": "SEG8"
+                        },
+                        {
+                          "ClassOfService": {
+                            "Code": {
+                              "value": "O"
+                            },
+                            "MarketingName": {
+                              "value": "ECO",
+                              "CabinDesignator": "Y"
+                            },
+                            "refs": [
+                              "FG-73178919740411"
+                            ]
+                          },
+                          "BagDetailAssociation": {
+                            "CheckedBagReferences": [
+                              "FBA1"
+                            ],
+                            "CarryOnReferences": [
+                              "BAGGAGEALLOWANCE_CARRYON-1piece,7kgtotal"
+                            ]
+                          },
+                          "ref": "SEG3"
+                        }
+                      ],
+                      "OriginDestinationReferences": [
+                        "LHRBOM"
+                      ],
+                      "FlightReferences": {
+                        "value": [
+                          "FLT0"
+                        ]
+                      }
+                    },
+                    "PriceClass": {
+                      "PriceClassReference": "CLASSIC"
+                    }
+                  }
+                ],
+                "PriceDetail": {
+                  "TotalAmount": {
+                    "SimpleCurrencyPrice": {
+                      "value": 41291,
+                      "Code": "INR"
+                    }
+                  },
+                  "BaseAmount": {
+                    "value": 7280,
+                    "Code": "INR"
+                  },
+                  "Discount": [
+                    {
+                      "DiscountAmount": {
+                        "value": 364,
+                        "Code": "INR"
+                      },
+                      "DiscountPercent": 5,
+                      "discountOwner": "Magellan Travel Services (P) Ltd.",
+                      "discountCode": "Disc_rea",
+                      "discountName": "ReaDiscount",
+                      "preDiscountedAmount": {
+                        "value": 41655,
+                        "Code": "INR"
+                      }
+                    }
+                  ],
+                  "Taxes": {
+                    "Total": {
+                      "value": 34375,
+                      "Code": "INR"
+                    },
+                    "Breakdown": {
+                      "Tax": [
+                        {
+                          "Amount": {
+                            "value": 12439,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "YQ"
+                        },
+                        {
+                          "Amount": {
+                            "value": 1738,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "YR"
+                        },
+                        {
+                          "Amount": {
+                            "value": 307,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "IN"
+                        },
+                        {
+                          "Amount": {
+                            "value": 10562,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "GB"
+                        },
+                        {
+                          "Amount": {
+                            "value": 6070,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "UB"
+                        },
+                        {
+                          "Amount": {
+                            "value": 1443,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "G4"
+                        },
+                        {
+                          "Amount": {
+                            "value": 132,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "PZ"
+                        },
+                        {
+                          "Amount": {
+                            "value": 1443,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "QA"
+                        },
+                        {
+                          "Amount": {
+                            "value": 241,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "R9"
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              "FareDetail": {
+                "FareComponent": [
+                  {
+                    "FareBasis": {
+                      "FareBasisCode": {
+                        "Code": "OLGBP1RI"
+                      },
+                      "RBD": "O"
+                    },
+                    "FareRules": {
+                      "Penalty": {
+                        "refs": [
+                          "Penalty-FLAG17: Cancel_MAX_41655_INR_MIN_41655_INR",
+                          "Penalty-FLAG16: Cancel-NoShow_MAX_41655_INR_MIN_41655_INR",
+                          "Penalty-FLAG7: Change-NoShow_MAX_16205_INR_MIN_16205_INR",
+                          "Penalty-FLAG15: Cancel_MAX_41655_INR_MIN_41655_INR",
+                          "Penalty-FLAG4: Change_MAX_16205_INR_MIN_0_INR",
+                          "Penalty-FLAG10: Change_MAX_16205_INR_MIN_0_INR",
+                          "Penalty-FLAG18: Cancel-NoShow_MAX_41655_INR_MIN_41655_INR",
+                          "Penalty-FLAG13: Change-NoShow_MAX_16205_INR_MIN_16205_INR"
+                        ]
+                      }
+                    },
+                    "refs": [
+                      "SEG8"
+                    ]
+                  },
+                  {
+                    "FareBasis": {
+                      "FareBasisCode": {
+                        "Code": "OLGBP1RI"
+                      },
+                      "RBD": "O"
+                    },
+                    "FareRules": {
+                      "Penalty": {
+                        "refs": [
+                          "Penalty-FLAG17: Cancel_MAX_41655_INR_MIN_41655_INR",
+                          "Penalty-FLAG16: Cancel-NoShow_MAX_41655_INR_MIN_41655_INR",
+                          "Penalty-FLAG7: Change-NoShow_MAX_16205_INR_MIN_16205_INR",
+                          "Penalty-FLAG15: Cancel_MAX_41655_INR_MIN_41655_INR",
+                          "Penalty-FLAG4: Change_MAX_16205_INR_MIN_0_INR",
+                          "Penalty-FLAG10: Change_MAX_16205_INR_MIN_0_INR",
+                          "Penalty-FLAG18: Cancel-NoShow_MAX_41655_INR_MIN_41655_INR",
+                          "Penalty-FLAG13: Change-NoShow_MAX_16205_INR_MIN_16205_INR"
+                        ]
+                      }
+                    },
+                    "refs": [
+                      "SEG3"
+                    ]
+                  }
+                ]
+              },
+              "OfferItemID": "1H0QRZ_1LR8QW3JJAA4BX2NFRX5BG0PARDD-1-1"
+            }
+          ],
+          "TimeLimits": {
+            "OfferExpiration": {
+              "DateTime": "2025-08-15T13:50:59.000"
+            },
+            "Payment": {
+              "DateTime": "2025-08-16T22:59:00.000"
+            }
+          }
+        }
+      ]
+    },
+    "DataLists": {
+      "AnonymousTravelerList": {
+        "AnonymousTraveler": [
+          {
+            "ObjectKey": "PAX1",
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      },
+      "CarryOnAllowanceList": {
+        "CarryOnAllowance": [
+          {
+            "ListKey": "BAGGAGEALLOWANCE_CARRYON-1piece,7kgtotal",
+            "AllowanceDescription": {
+              "ApplicableParty": "Traveler"
+            },
+            "PieceAllowance": [
+              {
+                "ApplicableParty": "Traveler",
+                "TotalQuantity": 1,
+                "PieceMeasurements": [
+                  {
+                    "Quantity": 1
+                  }
+                ]
+              }
+            ],
+            "WeightAllowance": {
+              "ApplicableParty": "Traveler",
+              "MaximumWeight": [
+                {
+                  "Value": 7,
+                  "UOM": "Kilogram"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "CheckedBagAllowanceList": {
+        "CheckedBagAllowance": [
+          {
+            "ListKey": "FBA1",
+            "AllowanceDescription": {
+              "ApplicableParty": "Traveler"
+            },
+            "WeightAllowance": {
+              "ApplicableParty": "Traveler",
+              "MaximumWeight": [
+                {
+                  "Value": 25,
+                  "UOM": "Kilogram"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "FareList": {
+        "FareGroup": [
+          {
+            "ListKey": "FG-73178919740411",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              },
+              "FareDetail": {
+                "Remarks": {
+                  "Remark": [
+                    {
+                      "value": "PUBL"
+                    }
+                  ]
+                }
+              }
+            },
+            "FareBasisCode": {
+              "Code": "OLGBP1RI"
+            }
+          }
+        ]
+      },
+      "FlightSegmentList": {
+        "FlightSegment": [
+          {
+            "SegmentKey": "SEG8",
+            "Departure": {
+              "AirportCode": {
+                "value": "LHR"
+              },
+              "Date": "2025-08-22T08:05:00.000",
+              "Time": "08:05",
+              "Terminal": {
+                "Name": "4"
+              }
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "DOH"
+              },
+              "Date": "2025-08-22T16:55:00.000",
+              "Time": "16:55"
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "QR"
+              },
+              "Name": "Qatar Airways",
+              "FlightNumber": {
+                "value": "6"
+              }
+            },
+            "Equipment": {
+              "AircraftCode": {
+                "value": "388"
+              }
+            },
+            "ClassOfService": {
+              "Code": {
+                "value": "O"
+              },
+              "refs": [
+                "FG-73178919740411"
+              ]
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT6H50M"
+              }
+            }
+          },
+          {
+            "SegmentKey": "SEG3",
+            "Departure": {
+              "AirportCode": {
+                "value": "DOH"
+              },
+              "Date": "2025-08-22T20:35:00.000",
+              "Time": "20:35"
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "BOM"
+              },
+              "Date": "2025-08-23T02:40:00.000",
+              "Time": "02:40",
+              "Terminal": {
+                "Name": "2"
+              }
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "QR"
+              },
+              "Name": "Qatar Airways",
+              "FlightNumber": {
+                "value": "556"
+              }
+            },
+            "Equipment": {
+              "AircraftCode": {
+                "value": "77W"
+              }
+            },
+            "ClassOfService": {
+              "Code": {
+                "value": "O"
+              },
+              "refs": [
+                "FG-73178919740411"
+              ]
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT3H35M"
+              }
+            }
+          }
+        ]
+      },
+      "FlightList": {
+        "Flight": [
+          {
+            "FlightKey": "FLT0",
+            "SegmentReferences": {
+              "value": [
+                "SEG8",
+                "SEG3"
+              ]
+            }
+          }
+        ]
+      },
+      "OriginDestinationList": {
+        "OriginDestination": [
+          {
+            "OriginDestinationKey": "LHRBOM",
+            "FlightReferences": {
+              "value": [
+                "FLT0"
+              ]
+            },
+            "DepartureCode": {
+              "value": "LHR"
+            },
+            "ArrivalCode": {
+              "value": "BOM"
+            }
+          }
+        ]
+      },
+      "PenaltyList": {
+        "Penalty": [
+          {
+            "ObjectKey": "Penalty-FLAG17: Cancel_MAX_41655_INR_MIN_41655_INR",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Cancel",
+                  "Application": {
+                    "Code": "3"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 41655,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Not Allowed"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 41655,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Not Allowed"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "CancelFeeInd": false,
+            "RefundableInd": false
+          },
+          {
+            "ObjectKey": "Penalty-FLAG16: Cancel-NoShow_MAX_41655_INR_MIN_41655_INR",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Cancel-NoShow",
+                  "Application": {
+                    "Code": "4"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 41655,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Not Allowed"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 41655,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Not Allowed"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "CancelFeeInd": false,
+            "RefundableInd": false
+          },
+          {
+            "ObjectKey": "Penalty-FLAG7: Change-NoShow_MAX_16205_INR_MIN_16205_INR",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Change-NoShow",
+                  "Application": {
+                    "Code": "4"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 16205,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Allowed"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 16205,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Allowed"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "ChangeFeeInd": true,
+            "ChangeAllowedInd": true
+          },
+          {
+            "ObjectKey": "Penalty-FLAG15: Cancel_MAX_41655_INR_MIN_41655_INR",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Cancel",
+                  "Application": {
+                    "Code": "2"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 41655,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Charges will apply"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 41655,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Charges will apply"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "CancelFeeInd": false,
+            "RefundableInd": false
+          },
+          {
+            "ObjectKey": "Penalty-FLAG4: Change_MAX_16205_INR_MIN_0_INR",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Change",
+                  "Application": {
+                    "Code": "2"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 16205,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Charges will apply"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 0,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Charges will apply"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "ChangeFeeInd": true,
+            "ChangeAllowedInd": true
+          },
+          {
+            "ObjectKey": "Penalty-FLAG10: Change_MAX_16205_INR_MIN_0_INR",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Change",
+                  "Application": {
+                    "Code": "3"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 16205,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Allowed"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 0,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Allowed"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "ChangeFeeInd": true,
+            "ChangeAllowedInd": true
+          },
+          {
+            "ObjectKey": "Penalty-FLAG18: Cancel-NoShow_MAX_41655_INR_MIN_41655_INR",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Cancel-NoShow",
+                  "Application": {
+                    "Code": "1"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 41655,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Not Allowed"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 41655,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Not Allowed"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "CancelFeeInd": false,
+            "RefundableInd": false
+          },
+          {
+            "ObjectKey": "Penalty-FLAG13: Change-NoShow_MAX_16205_INR_MIN_16205_INR",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Change-NoShow",
+                  "Application": {
+                    "Code": "1"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 16205,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Allowed"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 16205,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Allowed"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "ChangeFeeInd": true,
+            "ChangeAllowedInd": true
+          }
+        ]
+      },
+      "PriceClassList": {
+        "PriceClass": [
+          {
+            "ObjectKey": "CLASSIC",
+            "Name": "ECONOMY CLASSIC",
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "AWARD_ACCRUAL-50% Avios accumulation"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "AWARD_UPGRADE-Upgrade with Avios"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "BAGGAGEALLOWANCE_CARRYON-1 piece, 7kg total"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "BAGGAGEALLOWANCE_CHECKED-Weight concept routes: 25kg\nPiece concept routes: 2 pieces, 23kg each"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "CANCEL_BEFOREDEPARTURE-Charges will apply"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "CHANGE_BEFOREDEPARTURE-Charges will apply"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "DISCLAIMER-Remember to check your immigration and health requirements before you travel and ensure you carry the required travel documents. Please note that if the flight is operated by another airline then the on-board product or service maybe different to that described."
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "LOUNGEACCESS-Charges will apply"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "MIXEDFARETYPE-When a ticket is booked with a combination of fares, the most restrictive cancellation rule will apply."
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "SEATSELECTION-Standard Seat :Charges will apply\nPreferred Seat :Charges will apply"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

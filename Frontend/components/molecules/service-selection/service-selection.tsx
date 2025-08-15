@@ -11,6 +11,9 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { LoadingSpinner } from "@/components/atoms"
 import { api } from "@/utils/api-client"
+import { seatServiceCache } from "@/utils/seat-service-cache-manager"
+import { logger } from "@/utils/logger"
+import { formatCurrency, formatCurrencyForDisplay } from "@/utils/currency-formatter"
 
 interface Service {
   objectKey: string
@@ -91,7 +94,7 @@ export function ServiceSelection({
   const [servicesByCategory, setServicesByCategory] = useState<Record<string, Service[]>>({})
   const [activeTab, setActiveTab] = useState('meals')
 
-  // Load services from backend
+  // Load services from backend with intelligent caching
   useEffect(() => {
     const loadServices = async () => {
       if (!flightPriceResponse) return
@@ -100,38 +103,148 @@ export function ServiceSelection({
       setError(null)
 
       try {
-        // Check cache first
-        const cacheResponse = await api.checkServiceListCache(flightPriceResponse)
+        logger.info('🛎️ Loading service list data...')
         
-        let servicesData = null
+        // 🚀 STEP 1: Check our pre-loaded cache first
+        const cachedResult = seatServiceCache.getCachedServiceList(flightPriceResponse)
         
-        if (cacheResponse.data?.cache_hit) {
-          console.log("ServiceList cache hit")
-          servicesData = cacheResponse.data.data
-        } else {
-          console.log("ServiceList cache miss, fetching from API")
-          const response = await api.getServiceList(flightPriceResponse)
-          servicesData = response.data
+        if (cachedResult.data) {
+          logger.info('⚡ Using pre-loaded service list data from cache!')
+          const servicesData = cachedResult.data
+          
+          // Process cached data
+          processServiceListData(servicesData)
+          setLoading(false)
+          return
+        } 
+        
+        if (cachedResult.isLoading) {
+          logger.info('🔄 Service list data is still loading in background, waiting with exponential backoff...')
+          // Use exponential backoff to wait for global preloading to complete
+          await waitForCacheWithBackoff(flightPriceResponse, 5, 1000) // 5 retries, starting with 1 second
+          return
         }
 
-        if (servicesData?.services?.service) {
-          const servicesList = servicesData.services.service
-          setServices(servicesList)
-          
-          // Categorize services
-          const categorized = categorizeServices(servicesList)
-          setServicesByCategory(categorized)
-        } else {
-          setServices([])
-          setServicesByCategory({})
+        if (cachedResult.error) {
+          logger.warn('⚠️ Service pre-loading failed with error:', cachedResult.error)
         }
+
+        // 🚀 STEP 2: Fall back to direct API call
+        logger.info('💻 No pre-loaded service data available, using direct API call')
+        await fallbackToApiCall()
+
       } catch (err) {
-        console.error("Error loading services:", err)
+        logger.error("❌ Error loading services:", err)
         setError("Failed to load services. Please try again.")
         setServices([])
         setServicesByCategory({})
       } finally {
         setLoading(false)
+      }
+    }
+
+    // 🚀 ENHANCED: Wait for cache with exponential backoff to prevent redundant API calls
+    const waitForCacheWithBackoff = async (flightPriceResponse: any, maxRetries: number, initialDelay: number) => {
+      let delay = initialDelay
+      
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        logger.info(`🔄 Service cache wait attempt ${attempt}/${maxRetries}, delay: ${delay}ms`)
+        
+        await new Promise(resolve => setTimeout(resolve, delay))
+        
+        const retryResult = seatServiceCache.getCachedServiceList(flightPriceResponse)
+        
+        if (retryResult.data) {
+          logger.info(`✅ Got pre-loaded service list data after ${attempt} attempts!`)
+          processServiceListData(retryResult.data)
+          setLoading(false)
+          return
+        }
+        
+        if (!retryResult.isLoading) {
+          logger.info(`🚫 Global loading completed but no service data available after ${attempt} attempts`)
+          break
+        }
+        
+        // Exponential backoff with jitter
+        delay = Math.min(delay * 2, 10000) + Math.random() * 1000
+      }
+      
+      // If we reach here, fall back to API call as last resort
+      logger.warn(`⚠️ Service cache wait timeout after ${maxRetries} attempts, falling back to API call`)
+      await fallbackToApiCall()
+      setLoading(false)
+    }
+
+    // Helper function to process service list data
+    const processServiceListData = (servicesData: any) => {
+      logger.info('🔍 Processing service list data structure:', Object.keys(servicesData || {}))
+      
+      // Handle the backend transformer response structure
+      let actualData = servicesData
+      
+      // If it's wrapped in a status response, extract the data
+      if (servicesData?.status === 'success' && servicesData?.data) {
+        actualData = servicesData.data
+        logger.info('✅ Extracted services data from status wrapper')
+      }
+      
+      // Look for services in multiple possible locations
+      let servicesList = null
+      
+      if (actualData?.services?.service) {
+        servicesList = actualData.services.service
+        logger.info(`✅ Found ${servicesList.length} services in services.service`)
+      } else if (actualData?.services) {
+        servicesList = actualData.services
+        logger.info(`✅ Found ${servicesList.length} services in top-level services`)
+      } else if (actualData?.service) {
+        servicesList = actualData.service
+        logger.info(`✅ Found ${servicesList.length} services in service array`)
+      }
+      
+      if (servicesList && servicesList.length > 0) {
+        setServices(servicesList)
+        
+        // Categorize services
+        const categorized = categorizeServices(servicesList)
+        setServicesByCategory(categorized)
+        
+        // Set active tab to first available category
+        const categories = Object.keys(categorized)
+        if (categories.length > 0 && !categories.includes(activeTab)) {
+          setActiveTab(categories[0])
+        }
+        
+        logger.info(`✅ Successfully processed ${servicesList.length} services into ${categories.length} categories`)
+      } else {
+        logger.warn('⚠️ No services found in response')
+        setServices([])
+        setServicesByCategory({})
+      }
+    }
+
+    // Fallback function for direct API calls (original logic)
+    const fallbackToApiCall = async () => {
+      try {
+        // Check backend cache first
+        const cacheResponse = await api.checkServiceListCache(flightPriceResponse)
+        
+        let servicesData = null
+        
+        if (cacheResponse.data?.cache_hit) {
+          logger.info("🎯 Backend service list cache hit")
+          servicesData = cacheResponse.data.data
+        } else {
+          logger.info("📞 Backend cache miss, making fresh API call")
+          const response = await api.getServiceList(flightPriceResponse)
+          servicesData = response.data
+        }
+
+        processServiceListData(servicesData)
+      } catch (apiError) {
+        logger.error("❌ Service API fallback failed:", apiError)
+        throw apiError
       }
     }
 
@@ -213,17 +326,25 @@ export function ServiceSelection({
   }
 
   const handleServiceToggle = (serviceObjectKey: string) => {
+    logger.info(`🛎️ Service ${serviceObjectKey} clicked`)
+    
+    const service = services.find(s => s.objectKey === serviceObjectKey)
     const isSelected = selectedServices.includes(serviceObjectKey)
+    
+    logger.info(`🛎️ Service ${serviceObjectKey} - Currently selected: ${isSelected}, Service exists: ${!!service}`)
     
     let updatedServices: string[]
     if (isSelected) {
       // Remove service
       updatedServices = selectedServices.filter(s => s !== serviceObjectKey)
+      logger.info(`✅ Deselected service ${serviceObjectKey}`)
     } else {
       // Add service
       updatedServices = [...selectedServices, serviceObjectKey]
+      logger.info(`✅ Selected service ${serviceObjectKey}`)
     }
     
+    logger.info(`🛎️ Service selection changed from [${selectedServices.join(', ')}] to [${updatedServices.join(', ')}]`)
     onServiceChange(updatedServices)
   }
 
@@ -369,7 +490,7 @@ export function ServiceSelection({
                       </span>
                     ) : (
                       <div className="text-lg font-bold text-purple-600">
-                        ₹{price.toLocaleString('en-IN')}
+                        {formatCurrency(price, currency)}
                       </div>
                     )}
                   </div>
@@ -402,7 +523,7 @@ export function ServiceSelection({
             <div className="text-right">
               <div className="text-sm text-green-600">Total Additional Services</div>
               <div className="font-bold text-xl text-green-800">
-                ₹{getTotalPrice().toLocaleString('en-IN')}
+                {formatCurrency(getTotalPrice(), getCurrency())}
               </div>
             </div>
           </div>

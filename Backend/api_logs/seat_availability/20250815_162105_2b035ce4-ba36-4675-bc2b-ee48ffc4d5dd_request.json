@@ -1,0 +1,170 @@
+{
+  "timestamp": "2025-08-15T16:21:05.938728",
+  "service": "SeatAvailability",
+  "request_id": "2b035ce4-ba36-4675-bc2b-ee48ffc4d5dd",
+  "endpoint": "/entrygate/rest/request:preSeatAvailability",
+  "headers": {
+    "Content-Type": "application/json",
+    "Accept": "*/*",
+    "Authorization": "Bearer ***099n6keA",
+    "OfficeId": "***3746",
+    "service": "SeatAvailability",
+    "User-Agent": "PostmanRuntime/7.41",
+    "Cache-Control": "no-cache",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "ThirdpartyId": "***"
+  },
+  "payload": {
+    "Travelers": {
+      "Traveler": [
+        {
+          "AnonymousTraveler": [
+            {
+              "ObjectKey": "PAX1",
+              "PTC": {
+                "value": "ADT"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Query": {
+      "OriginDestination": [
+        {
+          "FlightSegmentReference": [
+            {
+              "ref": "SEG8"
+            },
+            {
+              "ref": "SEG3"
+            }
+          ]
+        }
+      ],
+      "Offers": {
+        "Offer": [
+          {
+            "OfferID": {
+              "value": "1H0QRZ_1LR8QW3JJAA4BX2NFRX5BG0PARDD",
+              "Owner": "QR",
+              "Channel": "NDC"
+            },
+            "OfferItemIDs": {
+              "OfferItemID": [
+                {
+                  "value": "1H0QRZ_1LR8QW3JJAA4BX2NFRX5BG0PARDD-1-1"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "DataLists": {
+      "FlightSegmentList": {
+        "FlightSegment": [
+          {
+            "SegmentKey": "SEG8",
+            "Departure": {
+              "AirportCode": {
+                "value": "LHR"
+              },
+              "Date": "2025-08-22T08:05:00.000",
+              "Time": "08:05",
+              "Terminal": {
+                "Name": "4"
+              }
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "DOH"
+              },
+              "Date": "2025-08-22T16:55:00.000",
+              "Time": "16:55"
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "QR"
+              },
+              "Name": "Qatar Airways",
+              "FlightNumber": {
+                "value": "6"
+              }
+            },
+            "Equipment": {
+              "AircraftCode": {
+                "value": "388"
+              }
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT6H50M"
+              }
+            }
+          },
+          {
+            "SegmentKey": "SEG3",
+            "Departure": {
+              "AirportCode": {
+                "value": "DOH"
+              },
+              "Date": "2025-08-22T20:35:00.000",
+              "Time": "20:35"
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "BOM"
+              },
+              "Date": "2025-08-23T02:40:00.000",
+              "Time": "02:40",
+              "Terminal": {
+                "Name": "2"
+              }
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "QR"
+              },
+              "Name": "Qatar Airways",
+              "FlightNumber": {
+                "value": "556"
+              }
+            },
+            "Equipment": {
+              "AircraftCode": {
+                "value": "77W"
+              }
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT3H35M"
+              }
+            }
+          }
+        ]
+      },
+      "FareList": {
+        "FareGroup": [
+          {
+            "ListKey": "FG-73178919740411",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              }
+            },
+            "FareBasisCode": {
+              "Code": "OLGBP1RI"
+            }
+          }
+        ]
+      }
+    },
+    "ShoppingResponseID": {
+      "ResponseID": {
+        "value": "wqPJ-N4oxW6KUU58rX5wu8qCNA--ivfhLWVCwOlY0zM-QR"
+      }
+    }
+  }
+}

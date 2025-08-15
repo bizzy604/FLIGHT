@@ -1,0 +1,153 @@
+{
+  "timestamp": "2025-08-15T12:35:41.155978",
+  "service": "ServiceList",
+  "request_id": "c99783f7-f0f8-4f7f-84a3-a6e4691db6a6",
+  "endpoint": "/entrygate/rest/request:preServiceList",
+  "headers": {
+    "Content-Type": "application/json",
+    "Accept": "*/*",
+    "Authorization": "Bearer ***099n6keA",
+    "OfficeId": "***3746",
+    "service": "ServiceList",
+    "User-Agent": "PostmanRuntime/7.41",
+    "Cache-Control": "no-cache",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "ThirdpartyId": "***"
+  },
+  "payload": {
+    "Travelers": {
+      "Traveler": [
+        {
+          "AnonymousTraveler": [
+            {
+              "ObjectKey": "PAX1",
+              "PTC": {
+                "value": "ADT"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Query": {
+      "OriginDestination": [
+        {
+          "Flight": [
+            {
+              "SegmentKey": "SEG2",
+              "Departure": {
+                "AirportCode": {
+                  "value": "LAX"
+                },
+                "Date": "2025-08-28T16:20:00.000",
+                "Time": "16:20",
+                "AirportName": null,
+                "Terminal": {
+                  "Name": "B"
+                }
+              },
+              "Arrival": {
+                "AirportCode": {
+                  "value": "DOH"
+                },
+                "Date": "2025-08-29T17:50:00.000",
+                "Time": "17:50",
+                "AirportName": null,
+                "Terminal": {}
+              },
+              "MarketingCarrier": {
+                "AirlineID": {
+                  "value": "QR"
+                },
+                "Name": "Qatar Airways",
+                "FlightNumber": {
+                  "value": "740"
+                }
+              },
+              "Equipment": {
+                "AircraftCode": {
+                  "value": "351"
+                }
+              },
+              "FlightDetail": {
+                "FlightDuration": {
+                  "Value": "PT15H30M"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "Flight": [
+            {
+              "SegmentKey": "SEG3",
+              "Departure": {
+                "AirportCode": {
+                  "value": "DOH"
+                },
+                "Date": "2025-08-29T20:05:00.000",
+                "Time": "20:05",
+                "AirportName": null,
+                "Terminal": {}
+              },
+              "Arrival": {
+                "AirportCode": {
+                  "value": "BOM"
+                },
+                "Date": "2025-08-30T02:10:00.000",
+                "Time": "02:10",
+                "AirportName": null,
+                "Terminal": {
+                  "Name": "2"
+                }
+              },
+              "MarketingCarrier": {
+                "AirlineID": {
+                  "value": "QR"
+                },
+                "Name": "Qatar Airways",
+                "FlightNumber": {
+                  "value": "4770"
+                }
+              },
+              "Equipment": {
+                "AircraftCode": {
+                  "value": "320"
+                }
+              },
+              "FlightDetail": {
+                "FlightDuration": {
+                  "Value": "PT3H35M"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "Offers": {
+        "Offer": [
+          {
+            "OfferID": {
+              "value": "1H0QRZ_HA51UGFRMROKTI6MXG6ZDODPYMPM",
+              "Owner": "QR",
+              "Channel": "NDC"
+            },
+            "OfferItemIDs": {
+              "OfferItemID": [
+                {
+                  "value": "1H0QRZ_HA51UGFRMROKTI6MXG6ZDODPYMPM-1-1"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "ShoppingResponseID": {
+      "ResponseID": {
+        "value": "wcNlxOuuDuT0gUSKKSNf69dbU-ccR7wwue-4UpENmac-QR"
+      }
+    }
+  }
+}

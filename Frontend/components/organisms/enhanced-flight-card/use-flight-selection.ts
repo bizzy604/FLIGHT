@@ -3,6 +3,7 @@ import { logger } from "@/utils/logger"
 import { flightStorageManager } from "@/utils/flight-storage-manager"
 import { redisFlightStorage } from "@/utils/redis-flight-storage"
 import { api } from "@/utils/api-client"
+import { seatServiceCache } from "@/utils/seat-service-cache-manager"
 import type { FlightOffer } from "@/types/flight-api"
 
 interface UseFlightSelectionProps {
@@ -144,6 +145,23 @@ export function useFlightSelection({ flight, searchParams }: UseFlightSelectionP
               sessionStorage.setItem('flightPriceMetadata', JSON.stringify(cachedPricingData.metadata))
               logger.info('✅ Using cached flight pricing data')
             }
+
+            // 🚀 CRITICAL: Pre-load seat/service data even for cached flight price data
+            try {
+              logger.info('🔥 Starting background pre-load for cached flight price...')
+              
+              // Use cached pricing data for API calls
+              const flightPriceForApi = cachedPricingData
+              
+              // Start pre-loading in background (non-blocking)
+              seatServiceCache.preloadData(flightPriceForApi).catch(preloadError => {
+                logger.warn('⚠️ Background seat/service pre-loading failed for cached data (non-critical):', preloadError)
+              })
+              
+              logger.info('✅ Background seat/service pre-loading initiated for cached data')
+            } catch (preloadError) {
+              logger.warn('⚠️ Failed to initiate seat/service pre-loading for cached data (non-critical):', preloadError)
+            }
             
             // Skip API call, we have cached data
             return
@@ -267,6 +285,26 @@ export function useFlightSelection({ flight, searchParams }: UseFlightSelectionP
       if (response.data.data.raw_response) {
         sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(response.data.data.raw_response))
         logger.info('✅ Stored raw flight price response for order creation')
+      }
+
+      // 🚀 CRITICAL: Pre-load seat availability and service list data in background
+      // This ensures data is ready when user reaches seat/service selection
+      try {
+        logger.info('🔥 Starting background pre-load of seat availability and service list...')
+        
+        // Use the raw response for API calls, or fall back to priced offer
+        const flightPriceForApi = response.data.data.raw_response || firstPricedOffer
+        
+        // Start pre-loading in background (non-blocking)
+        seatServiceCache.preloadData(flightPriceForApi).catch(preloadError => {
+          logger.warn('⚠️ Background seat/service pre-loading failed (non-critical):', preloadError)
+          // Don't block user flow if pre-loading fails
+        })
+        
+        logger.info('✅ Background seat/service pre-loading initiated')
+      } catch (preloadError) {
+        logger.warn('⚠️ Failed to initiate seat/service pre-loading (non-critical):', preloadError)
+        // Don't block user flow if pre-loading fails
       }
 
       // Add a small delay to show the loading state

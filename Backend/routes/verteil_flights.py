@@ -914,17 +914,31 @@ async def flight_price():
             if cached_result['success']:
                 logger.info(f"🚀 Flight price cache hit! Returning cached data for key: {cache_key} - Request ID: {request_id}")
                 
+                # 🚀 ROBUST SOLUTION: Ensure cached data also has guaranteed cache key
+                cached_data = cached_result['data']
+                if not cached_data.get('metadata'):
+                    cached_data['metadata'] = {}
+                
+                # Ensure flight_price_cache_key is available in metadata
+                if not cached_data['metadata'].get('flight_price_cache_key'):
+                    cached_data['metadata']['flight_price_cache_key'] = cache_key
+                    logger.info(f"✅ Added cache key to cached flight price metadata: {cache_key}")
+                
                 # Return cached data with proper response structure
-                return jsonify({
+                cache_response = {
                     'status': 'success',
                     'source': 'cache',
-                    'data': cached_result['data'],
+                    'data': cached_data,
                     'cached_at': cached_result['stored_at'],
                     'expires_at': cached_result['expires_at'],
                     'request_id': request_id,
                     'cache_key': cache_key,
+                    'flight_price_cache_key': cached_data['metadata']['flight_price_cache_key'],  # 🔧 Top level guarantee
                     'message': 'Flight price data retrieved from cache'
-                })
+                }
+                
+                logger.info(f"🔑 GUARANTEED cached flight_price_cache_key transmission: metadata={cached_data['metadata']['flight_price_cache_key']}, top_level={cache_response['flight_price_cache_key']}")
+                return jsonify(cache_response)
         
         # Log the offer details for debugging
         logger.info(f"[DEBUG] Flight price request (cache miss) - Offer ID: {offer_id}, Type: {type(offer_id).__name__}")
@@ -938,6 +952,40 @@ async def flight_price():
             'raw_response_cache_key': raw_response_cache_key,  # For optimized backend caching
             'config': dict(current_app.config)  # Pass the app configuration
         }
+        
+        # Add request deduplication to prevent multiple concurrent API calls for same flight pricing
+        dedup_key = f"flight_price:{cache_key}"
+        if request_cache.is_duplicate(dedup_key):
+            logger.info(f"🔄 Duplicate flight price request detected for key: {cache_key}. Waiting for ongoing request... - Request ID: {request_id}")
+            
+            # Wait for the ongoing request to complete by polling cache
+            import asyncio
+            wait_time = 0
+            max_wait = 10  # Maximum 10 seconds wait
+            
+            while wait_time < max_wait:
+                await asyncio.sleep(0.5)  # Wait 500ms
+                wait_time += 0.5
+                
+                # Check if cache now has the result
+                cached_result = redis_flight_storage.get_flight_price(cache_key)
+                if cached_result['success']:
+                    logger.info(f"🎯 Duplicate request resolved via cache for key: {cache_key} - Request ID: {request_id}")
+                    return jsonify({
+                        'status': 'success',
+                        'source': 'cache_after_dedup',
+                        'data': cached_result['data'],
+                        'cached_at': cached_result['stored_at'],
+                        'expires_at': cached_result['expires_at'],
+                        'request_id': request_id,
+                        'cache_key': cache_key,
+                        'message': 'Flight price data retrieved after deduplication wait'
+                    })
+            
+            logger.warning(f"⏰ Deduplication wait timeout for key: {cache_key}. Proceeding with request - Request ID: {request_id}")
+        
+        # Mark this request as in progress to prevent duplicates
+        request_cache.add_request(dedup_key)
         
         try:
             # Process the flight price request
@@ -1010,10 +1058,26 @@ async def flight_price():
                         result['cache_key'] = cache_key
                         result['cached'] = True
                         
-                        # Add cache key to metadata for booking service access
-                        if result.get('data') and result['data'].get('metadata'):
+                        # 🚀 ROBUST SOLUTION: Ensure metadata always exists and contains flight_price_cache_key
+                        if not result.get('data'):
+                            result['data'] = {}
+                        if not result['data'].get('metadata'):
+                            result['data']['metadata'] = {}
+                        
+                        # Preserve raw cache key from pricing service if it exists, otherwise use processed cache key
+                        if not result['data']['metadata'].get('flight_price_cache_key'):
                             result['data']['metadata']['flight_price_cache_key'] = cache_key
-                            logger.info(f"Added flight_price_cache_key to metadata: {cache_key}")
+                            logger.info(f"✅ Added processed flight_price_cache_key to metadata: {cache_key}")
+                        else:
+                            logger.info(f"✅ Preserved raw flight_price_cache_key in metadata: {result['data']['metadata']['flight_price_cache_key']}")
+                        
+                        # Add processed cache key separately for reference
+                        result['data']['metadata']['processed_cache_key'] = cache_key
+                        
+                        # 🔧 CRITICAL: Ensure frontend receives cache key at top level too
+                        result['flight_price_cache_key'] = result['data']['metadata']['flight_price_cache_key']
+                        
+                        logger.info(f"🔑 GUARANTEED flight_price_cache_key transmission: metadata={result['data']['metadata']['flight_price_cache_key']}, top_level={result['flight_price_cache_key']}")
                     else:
                         logger.warning(f"Failed to cache flight price data: {cache_result.get('message')} - Request ID: {request_id}")
                         result['cached'] = False

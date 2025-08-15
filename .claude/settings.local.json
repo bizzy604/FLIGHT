@@ -17,6 +17,10 @@
       "Bash(python:*)",
       "Bash(curl:*)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": [
+      "C:\\c\\Users\\User\\Desktop\\FLIGHT"
+    ]
   }
 }

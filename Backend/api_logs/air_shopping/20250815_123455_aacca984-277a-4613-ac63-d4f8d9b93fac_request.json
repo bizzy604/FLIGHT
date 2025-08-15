@@ -1,0 +1,90 @@
+{
+  "timestamp": "2025-08-15T12:34:55.769292",
+  "service": "AirShopping",
+  "request_id": "aacca984-277a-4613-ac63-d4f8d9b93fac",
+  "endpoint": "/entrygate/rest/request:airShopping",
+  "headers": {
+    "Content-Type": "application/json",
+    "Accept": "*/*",
+    "Authorization": "Bearer ***099n6keA",
+    "OfficeId": "***3746",
+    "service": "AirShopping",
+    "User-Agent": "PostmanRuntime/7.41",
+    "Cache-Control": "no-cache",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive"
+  },
+  "payload": {
+    "Preference": {
+      "CabinPreferences": {
+        "CabinType": [
+          {
+            "Code": "Y",
+            "OriginDestinationReferences": [
+              "OD1"
+            ]
+          }
+        ]
+      },
+      "FarePreferences": {
+        "Types": {
+          "Type": [
+            {
+              "Code": "PUBL"
+            }
+          ]
+        }
+      }
+    },
+    "ResponseParameters": {
+      "SortOrder": [
+        {
+          "Order": "ASCENDING",
+          "Parameter": "PRICE"
+        },
+        {
+          "Order": "ASCENDING",
+          "Parameter": "STOP"
+        },
+        {
+          "Order": "ASCENDING",
+          "Parameter": "DEPARTURE_TIME"
+        }
+      ],
+      "ShopResultPreference": "FULL"
+    },
+    "Travelers": {
+      "Traveler": [
+        {
+          "AnonymousTraveler": [
+            {
+              "PTC": {
+                "value": "ADT"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "CoreQuery": {
+      "OriginDestinations": {
+        "OriginDestination": [
+          {
+            "OriginDestinationKey": "OD1",
+            "Departure": {
+              "AirportCode": {
+                "value": "LAX"
+              },
+              "Date": "2025-08-28"
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "BOM"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

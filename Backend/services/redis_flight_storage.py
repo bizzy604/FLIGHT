@@ -479,6 +479,240 @@ class RedisFlightStorage:
                 "error": str(e),
                 "message": "Failed to delete session data"
             }
+    
+    def store_seat_availability(
+        self,
+        seat_data: Dict[str, Any],
+        session_id: str,
+        ttl: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Store seat availability data in Redis.
+
+        Args:
+            seat_data: Seat availability response data
+            session_id: Session ID to associate data with
+            ttl: Time to live in seconds, uses default if not provided
+
+        Returns:
+            Dict with success status and any error messages
+        """
+        try:
+            if not ttl:
+                ttl = self.default_ttl
+
+            # If Redis is not available, return success but don't store
+            if not self.redis_available:
+                logger.warning("Redis not available, cannot store seat availability data")
+                return {
+                    "success": True,
+                    "session_id": session_id,
+                    "expires_at": (datetime.utcnow() + timedelta(seconds=ttl)).isoformat(),
+                    "message": "Seat availability data processed (Redis unavailable - data not cached)"
+                }
+
+            key = self._get_key(session_id, "seat_availability")
+
+            # Prepare data for storage
+            storage_data = {
+                "data": seat_data,
+                "stored_at": datetime.utcnow().isoformat(),
+                "expires_at": (datetime.utcnow() + timedelta(seconds=ttl)).isoformat(),
+                "data_type": "seat_availability"
+            }
+
+            # Compress and store data
+            compressed_data = self._compress_data(storage_data)
+            original_size = len(json.dumps(storage_data).encode())
+            compressed_size = len(compressed_data.encode())
+            compression_ratio = (compressed_size / original_size) * 100
+
+            self.redis_client.setex(key, ttl, compressed_data)
+
+            logger.info(f"Data compression: {original_size} -> {compressed_size} bytes ({compression_ratio:.1f}%)")
+            logger.info(f"Stored seat availability data with session_id: {session_id}")
+
+            return {
+                "success": True,
+                "session_id": session_id,
+                "expires_at": (datetime.utcnow() + timedelta(seconds=ttl)).isoformat(),
+                "message": "Seat availability data stored successfully"
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to store seat availability data: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "message": "Failed to store seat availability data"
+            }
+
+    def get_seat_availability(self, session_id: str) -> Dict[str, Any]:
+        """
+        Retrieve seat availability data from Redis.
+
+        Args:
+            session_id: Session ID to retrieve data for
+
+        Returns:
+            Dict with success status and retrieved data or error messages
+        """
+        try:
+            # If Redis is not available, return not found
+            if not self.redis_available:
+                logger.warning("Redis not available, cannot retrieve seat availability data")
+                return {
+                    "success": False,
+                    "error": "Redis cache unavailable",
+                    "message": "Seat availability data cannot be retrieved (Redis unavailable)"
+                }
+
+            key = self._get_key(session_id, "seat_availability")
+            stored_data = self.redis_client.get(key)
+
+            if not stored_data:
+                return {
+                    "success": False,
+                    "error": "Seat availability data not found or expired",
+                    "message": "No seat availability data found for this session"
+                }
+
+            decompressed_data = self._decompress_data(stored_data)
+            
+            logger.info(f"Retrieved compressed seat availability data for session_id: {session_id}")
+
+            return {
+                "success": True,
+                "data": decompressed_data["data"],
+                "stored_at": decompressed_data["stored_at"],
+                "expires_at": decompressed_data["expires_at"],
+                "message": "Seat availability data retrieved successfully"
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to retrieve seat availability data: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "message": "Failed to retrieve seat availability data"
+            }
+    
+    def store_service_list(
+        self,
+        service_data: Dict[str, Any],
+        session_id: str,
+        ttl: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Store service list data in Redis.
+
+        Args:
+            service_data: Service list response data
+            session_id: Session ID to associate data with
+            ttl: Time to live in seconds, uses default if not provided
+
+        Returns:
+            Dict with success status and any error messages
+        """
+        try:
+            if not ttl:
+                ttl = self.default_ttl
+
+            # If Redis is not available, return success but don't store
+            if not self.redis_available:
+                logger.warning("Redis not available, cannot store service list data")
+                return {
+                    "success": True,
+                    "session_id": session_id,
+                    "expires_at": (datetime.utcnow() + timedelta(seconds=ttl)).isoformat(),
+                    "message": "Service list data processed (Redis unavailable - data not cached)"
+                }
+
+            key = self._get_key(session_id, "service_list")
+
+            # Prepare data for storage
+            storage_data = {
+                "data": service_data,
+                "stored_at": datetime.utcnow().isoformat(),
+                "expires_at": (datetime.utcnow() + timedelta(seconds=ttl)).isoformat(),
+                "data_type": "service_list"
+            }
+
+            # Compress and store data
+            compressed_data = self._compress_data(storage_data)
+            original_size = len(json.dumps(storage_data).encode())
+            compressed_size = len(compressed_data.encode())
+            compression_ratio = (compressed_size / original_size) * 100
+
+            self.redis_client.setex(key, ttl, compressed_data)
+
+            logger.info(f"Data compression: {original_size} -> {compressed_size} bytes ({compression_ratio:.1f}%)")
+            logger.info(f"Stored service list data with session_id: {session_id}")
+
+            return {
+                "success": True,
+                "session_id": session_id,
+                "expires_at": (datetime.utcnow() + timedelta(seconds=ttl)).isoformat(),
+                "message": "Service list data stored successfully"
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to store service list data: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "message": "Failed to store service list data"
+            }
+
+    def get_service_list(self, session_id: str) -> Dict[str, Any]:
+        """
+        Retrieve service list data from Redis.
+
+        Args:
+            session_id: Session ID to retrieve data for
+
+        Returns:
+            Dict with success status and retrieved data or error messages
+        """
+        try:
+            # If Redis is not available, return not found
+            if not self.redis_available:
+                logger.warning("Redis not available, cannot retrieve service list data")
+                return {
+                    "success": False,
+                    "error": "Redis cache unavailable",
+                    "message": "Service list data cannot be retrieved (Redis unavailable)"
+                }
+
+            key = self._get_key(session_id, "service_list")
+            stored_data = self.redis_client.get(key)
+
+            if not stored_data:
+                return {
+                    "success": False,
+                    "error": "Service list data not found or expired",
+                    "message": "No service list data found for this session"
+                }
+
+            decompressed_data = self._decompress_data(stored_data)
+            
+            logger.info(f"Retrieved compressed service list data for session_id: {session_id}")
+
+            return {
+                "success": True,
+                "data": decompressed_data["data"],
+                "stored_at": decompressed_data["stored_at"],
+                "expires_at": decompressed_data["expires_at"],
+                "message": "Service list data retrieved successfully"
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to retrieve service list data: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "message": "Failed to retrieve service list data"
+            }
 
 # Create a singleton instance
 redis_flight_storage = RedisFlightStorage()

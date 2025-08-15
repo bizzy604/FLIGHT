@@ -225,6 +225,9 @@ def build_servicelist_request(
     elif 'data' in flight_price_response and 'raw_response' in flight_price_response['data']:
         actual_flight_price_response = flight_price_response['data']['raw_response']
         logger.info("Using data.raw_response structure")
+    elif 'data' in flight_price_response:
+        actual_flight_price_response = flight_price_response['data']
+        logger.info("Using data structure")
     elif 'raw_response' in flight_price_response:
         actual_flight_price_response = flight_price_response['raw_response']
         logger.info("Using raw_response structure")
@@ -240,15 +243,17 @@ def build_servicelist_request(
             actual_flight_price_response = _filter_airline_specific_data_for_servicelist(actual_flight_price_response, airline_code)
             logger.info(f"Filtered flight price response for airline {airline_code}")
 
-    # Extract PricedFlightOffers
+    # Extract PricedFlightOffers - for service list, we always use the first (and typically only) offer
     priced_flight_offers = actual_flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
     if not isinstance(priced_flight_offers, list):
         priced_flight_offers = [priced_flight_offers] if priced_flight_offers else []
 
-    if not priced_flight_offers or selected_offer_index >= len(priced_flight_offers):
-        raise ValueError(f"Invalid selected_offer_index {selected_offer_index} or no PricedFlightOffers found")
+    if not priced_flight_offers:
+        raise ValueError("No PricedFlightOffers found in flight price response")
 
-    selected_offer = priced_flight_offers[selected_offer_index]
+    # For service list, we use the first offer (flight price responses contain only one offer)
+    selected_offer = priced_flight_offers[0]
+    logger.info(f"Using first offer for service list (index 0 of {len(priced_flight_offers)} total offers)")
 
     # Extract OfferID details
     offer_id = selected_offer.get('OfferID', {})
