@@ -415,14 +415,14 @@ export function ServiceSelection({
   return (
     <div className={cn("space-y-6", className)}>
       {/* Services Header */}
-      <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
+      <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-1 h-6 bg-purple-600 rounded-full"></div>
-          <h2 className="text-xl font-bold text-gray-900">Add Services</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add Services</h2>
         </div>
         
         {/* Service Tabs */}
-        <div className="flex gap-2 mb-6 border-b-2 border-gray-200">
+        <div className="flex gap-2 mb-6 border-b-2 border-gray-200 dark:border-gray-600">
           {Object.keys(servicesByCategory).map((categoryKey) => (
             <button
               key={categoryKey}
@@ -430,7 +430,7 @@ export function ServiceSelection({
                 "px-5 py-3 font-semibold transition-all duration-300 relative",
                 activeTab === categoryKey
                   ? "text-purple-600 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-1 after:bg-purple-600 after:rounded-t-md"
-                  : "text-gray-600 hover:text-gray-900"
+                  : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
               )}
               onClick={() => setActiveTab(categoryKey)}
             >
@@ -453,8 +453,8 @@ export function ServiceSelection({
                 className={cn(
                   "border-2 rounded-xl p-4 cursor-pointer transition-all duration-300 relative overflow-hidden",
                   isSelected 
-                    ? "border-green-500 bg-gradient-to-r from-green-50 to-green-100" 
-                    : "border-gray-200 hover:border-purple-400 hover:shadow-md hover:-translate-y-1"
+                    ? "border-green-500 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/30" 
+                    : "border-gray-200 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-md hover:-translate-y-1"
                 )}
                 onClick={() => handleServiceToggle(service.objectKey)}
               >
@@ -468,16 +468,16 @@ export function ServiceSelection({
                 <div className="flex justify-between items-start">
                   <div className="flex-1 pr-10">
                     <div className="flex items-center gap-3 mb-2">
-                      <h4 className="font-semibold text-gray-900">{service.name?.value}</h4>
+                      <h4 className="font-semibold text-gray-900 dark:text-white">{service.name?.value}</h4>
                       {service.bookingInstructions?.ssrCode && (
-                        <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-600">
+                        <Badge variant="secondary" className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
                           {service.bookingInstructions.ssrCode[0]}
                         </Badge>
                       )}
                     </div>
                     
                     {service.descriptions?.description?.[0]?.text?.value && (
-                      <p className="text-sm text-gray-600 line-clamp-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
                         {service.descriptions.description[0].text.value}
                       </p>
                     )}
@@ -485,11 +485,11 @@ export function ServiceSelection({
 
                   <div className="text-right">
                     {isFree ? (
-                      <span className="inline-block px-3 py-1 bg-green-100 text-green-700 text-sm font-semibold rounded-lg">
+                      <span className="inline-block px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-semibold rounded-lg">
                         FREE
                       </span>
                     ) : (
-                      <div className="text-lg font-bold text-purple-600">
+                      <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
                         {formatCurrency(price, currency)}
                       </div>
                     )}

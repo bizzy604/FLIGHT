@@ -31,7 +31,6 @@ export function BookingSummary({
   selectedServices,
   seatPrices,
   servicePrices,
-  currency = 'INR',
   className,
   onContinue
 }: BookingSummaryProps) {
@@ -93,7 +92,7 @@ export function BookingSummary({
           {selectedServices.length === 0 ? (
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-700">No services selected</span>
-              <span className="text-sm font-medium text-gray-900">₹0</span>
+              <span className="text-sm font-medium text-gray-900">0</span>
             </div>
           ) : (
             <div className="space-y-1">

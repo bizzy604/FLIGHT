@@ -1,96 +1,560 @@
-INFO:config.redis_config:Connecting to Redis using URL: redis://default:********************************@redis-14657.c89.us-east-1-3.ec2.redns.redis-cloud.com:14657/0
-INFO:config.redis_config:Redis connection established successfully
-INFO:services.redis_flight_storage:Redis Flight Storage initialized successfully using: redis://localhost:6379/0
-INFO:services.redis_flight_storage:Data compression: 17934 -> 1840 bytes (10.3%)
-INFO:services.redis_flight_storage:Data compression: 17934 -> 1840 bytes (10.3%)
-INFO:services.redis_flight_storage:Stored service list data with session_id: service_list:85f196acae198579befea79691cdba10
-INFO:routes.clean_seat_service:💾 Cached transformed service list data for key: service_list:85f196acae198579befea79691cdba10 - Request ID: 5c438968-7742-4ef4-8ce7-68c9be4b4b7c
-[2025-08-15 12:23:48 +0300] [9368] [INFO] 127.0.0.1:62127 POST /api/verteil/service-list 1.1 200 16726 4125340
-CLEAN SEAT ENDPOINT HIT - Request ID: 1d4d3345-72e1-4521-91c1-33c36a0ba4e0
-INFO:routes.clean_seat_service:CLEAN SeatAvailability request received - Request ID: 1d4d3345-72e1-4521-91c1-33c36a0ba4e0
-INFO:routes.clean_seat_service:Attempting to retrieve RAW flight price response from cache with key: flight_price_raw_fbeb9b62-d7b9-4009-8dd0-45000d5f888b_1755249810
-INFO:routes.clean_seat_service:✅ Successfully retrieved RAW flight price response from cache key: flight_price_raw_fbeb9b62-d7b9-4009-8dd0-45000d5f888b_1755249810
-INFO:routes.clean_seat_service:Retrieved response type: <class 'dict'>, keys: ['ShoppingResponseID', 'PricedFlightOffers', 'DataLists']
-INFO:routes.clean_seat_service:✅ Validated raw NDC flight price response with keys: ['ShoppingResponseID', 'PricedFlightOffers', 'DataLists']
-Building seat availability request...
-Flight price response keys: ['ShoppingResponseID', 'PricedFlightOffers', 'DataLists']
-Flight price response type: <class 'dict'>
-INFO:scripts.build_seatavailability_rq:Building SeatAvailability request for offer index 0
-INFO:scripts.build_seatavailability_rq:Multi-airline SeatAvailability detected: False
-INFO:scripts.build_seatavailability_rq:Using first offer for seat availability (index 0 of 1 total offers)
-INFO:scripts.build_seatavailability_rq:Successfully built SeatAvailability request for airline EY
-Built request successfully
-Extracted airline code for SeatAvailability: EY
-Making SeatAvailability API call via shared service (airline: EY)...
-[2025-08-15 12:23:55,146] INFO in core: Making POST request to https://api.stage.verteil.com/entrygate/rest/request:preSeatAvailability for service SeatAvailability (ReqID: 1d4d3345-72e1-4521-91c1-33c36a0ba4e0).
-INFO:services.flight.core:Making POST request to https://api.stage.verteil.com/entrygate/rest/request:preSeatAvailability for service SeatAvailability (ReqID: 1d4d3345-72e1-4521-91c1-33c36a0ba4e0).
-INFO:utils.api_logger:API request logged: api_logs\seat_availability\20250815_122355_1d4d3345-72e1-4521-91c1-33c36a0ba4e0_request.json
-[2025-08-15 12:23:58,884] INFO in core: Successfully received API response for SeatAvailability (ReqID: 1d4d3345-72e1-4521-91c1-33c36a0ba4e0) with status 200
-INFO:services.flight.core:Successfully received API response for SeatAvailability (ReqID: 1d4d3345-72e1-4521-91c1-33c36a0ba4e0) with status 200
-INFO:utils.api_logger:API response logged: api_logs\seat_availability\20250815_122358_1d4d3345-72e1-4521-91c1-33c36a0ba4e0_response.json
-SeatAvailability API call successful via shared service
-INFO:routes.clean_seat_service:SeatAvailability request completed via shared service - Request ID: 1d4d3345-72e1-4521-91c1-33c36a0ba4e0
-Transforming SeatAvailability response for frontend...
-INFO:utils.seat_availability_transformer:Extracted 543 seats with complete aircraft layout (ALL seats included regardless of pricing)
-INFO:utils.seat_availability_transformer:✅ Lean frontend transformation complete: 543 seats
-INFO:routes.clean_seat_service:Successfully transformed SeatAvailability response - Request ID: 1d4d3345-72e1-4521-91c1-33c36a0ba4e0
-INFO:config.redis_config:Connecting to Redis using URL: redis://default:********************************@redis-14657.c89.us-east-1-3.ec2.redns.redis-cloud.com:14657/0
-INFO:config.redis_config:Redis connection established successfully
-INFO:services.redis_flight_storage:Redis Flight Storage initialized successfully using: redis://localhost:6379/0
-INFO:services.redis_flight_storage:Data compression: 149553 -> 5948 bytes (4.0%)
-INFO:services.redis_flight_storage:Data compression: 149553 -> 5948 bytes (4.0%)
-INFO:services.redis_flight_storage:Stored seat availability data with session_id: seat_availability:ca91f36f4bfeff31dce26f18b4c5a0d0
-INFO:routes.clean_seat_service:💾 Cached transformed seat availability data for key: seat_availability:ca91f36f4bfeff31dce26f18b4c5a0d0 - Request ID: 1d4d3345-72e1-4521-91c1-33c36a0ba4e0
-[2025-08-15 12:24:00 +0300] [9368] [INFO] 127.0.0.1:53677 POST /api/verteil/seat-availability 1.1 200 134853 5851286
-INFO:routes.verteil_flights:Flight price cache check request received - Request ID: 010dab91-8dd2-4b9c-829b-e360f8d60909
-INFO:services.redis_flight_storage:Retrieved flight price data for session_id: flight_price:f470232ce29c72f4d50f5821daa2763b
-INFO:routes.verteil_flights:Flight price cache hit for key: flight_price:f470232ce29c72f4d50f5821daa2763b - Request ID: 010dab91-8dd2-4b9c-829b-e360f8d60909
-[2025-08-15 12:24:10 +0300] [9368] [INFO] 127.0.0.1:49666 POST /api/verteil/flight-price/cache-check 1.1 200 2852 511848     
-INFO:routes.verteil_flights:Flight price cache check request received - Request ID: 8224b869-51f3-40a5-ad27-4faee0f7e735     
-INFO:services.redis_flight_storage:Retrieved flight price data for session_id: flight_price:f470232ce29c72f4d50f5821daa2763b
-INFO:routes.verteil_flights:Flight price cache hit for key: flight_price:f470232ce29c72f4d50f5821daa2763b - Request ID: 8224b869-51f3-40a5-ad27-4faee0f7e735
-[2025-08-15 12:24:10 +0300] [9368] [INFO] 127.0.0.1:54040 POST /api/verteil/flight-price/cache-check 1.1 200 2852 296952     
-INFO:routes.clean_seat_service:Seat availability cache check request received - Request ID: 5fd66e3c-825a-4641-a400-f97c06006e09
-INFO:config.redis_config:Connecting to Redis using URL: redis://default:********************************@redis-14657.c89.us-east-1-3.ec2.redns.redis-cloud.com:14657/0
-INFO:config.redis_config:Redis connection established successfully
-INFO:services.redis_flight_storage:Redis Flight Storage initialized successfully using: redis://localhost:6379/0
-INFO:routes.clean_seat_service:Seat availability cache miss for key: seat_availability:d82c803beba283c2ecfdcd242df60867 - Request ID: 5fd66e3c-825a-4641-a400-f97c06006e09
-[2025-08-15 12:24:51 +0300] [9368] [INFO] 127.0.0.1:64080 POST /api/verteil/seat-availability/cache-check 1.1 200 192 1480313
-INFO:routes.clean_seat_service:Seat availability cache check request received - Request ID: 1e9e4135-d15b-433d-83b7-9172f2c870b1
-INFO:config.redis_config:Connecting to Redis using URL: redis://default:********************************@redis-14657.c89.us-east-1-3.ec2.redns.redis-cloud.com:14657/0
-INFO:config.redis_config:Redis connection established successfully
-INFO:services.redis_flight_storage:Redis Flight Storage initialized successfully using: redis://localhost:6379/0
-INFO:routes.clean_seat_service:Seat availability cache miss for key: seat_availability:d82c803beba283c2ecfdcd242df60867 - Request ID: 1e9e4135-d15b-433d-83b7-9172f2c870b1
-[2025-08-15 12:24:52 +0300] [9368] [INFO] 127.0.0.1:64084 POST /api/verteil/seat-availability/cache-check 1.1 200 192 1355811
-INFO:routes.clean_seat_service:Seat availability cache check request received - Request ID: f550c24f-e42a-4c59-b7f2-2c57303fd435
-INFO:config.redis_config:Connecting to Redis using URL: redis://default:********************************@redis-14657.c89.us-east-1-3.ec2.redns.redis-cloud.com:14657/0
-INFO:config.redis_config:Redis connection established successfully
-INFO:services.redis_flight_storage:Redis Flight Storage initialized successfully using: redis://localhost:6379/0
-INFO:routes.clean_seat_service:Seat availability cache miss for key: seat_availability:b15c663b90ef962ad5d77d589b6ffc1a - Request ID: f550c24f-e42a-4c59-b7f2-2c57303fd435
-[2025-08-15 12:24:54 +0300] [9368] [INFO] 127.0.0.1:64085 POST /api/verteil/seat-availability/cache-check 1.1 200 192 2763007
-INFO:routes.clean_seat_service:Seat availability cache check request received - Request ID: 482185c1-1c47-44a7-a349-c752dd574080
-INFO:config.redis_config:Connecting to Redis using URL: redis://default:********************************@redis-14657.c89.us-east-1-3.ec2.redns.redis-cloud.com:14657/0
-INFO:config.redis_config:Redis connection established successfully
-INFO:services.redis_flight_storage:Redis Flight Storage initialized successfully using: redis://localhost:6379/0
-INFO:routes.clean_seat_service:Seat availability cache miss for key: seat_availability:b15c663b90ef962ad5d77d589b6ffc1a - Request ID: 482185c1-1c47-44a7-a349-c752dd574080
-[2025-08-15 12:24:55 +0300] [9368] [INFO] 127.0.0.1:64086 POST /api/verteil/seat-availability/cache-check 1.1 200 192 2792989
-CLEAN SEAT ENDPOINT HIT - Request ID: a2536dd4-d666-4488-9a8e-b7c980403570
-INFO:routes.clean_seat_service:CLEAN SeatAvailability request received - Request ID: a2536dd4-d666-4488-9a8e-b7c980403570    
-ERROR:routes.clean_seat_service:❌ Rejected transformed flight price response with keys: ['direction', 'fare_family', 'flight_segments', 'offer_id', 'original_offer_id', 'passengers', 'time_limits', 'total_price']
-ERROR:routes.clean_seat_service:Frontend sent transformed data instead of using flight_price_cache_key. This will cause API failures.
-[2025-08-15 12:24:55 +0300] [9368] [INFO] 127.0.0.1:64080 POST /api/verteil/seat-availability 1.1 200 214 37120
-CLEAN SEAT ENDPOINT HIT - Request ID: d50c3eea-07aa-449b-b48c-8cc1e77ec79b
-INFO:routes.clean_seat_service:CLEAN SeatAvailability request received - Request ID: d50c3eea-07aa-449b-b48c-8cc1e77ec79b    
-ERROR:routes.clean_seat_service:❌ Rejected transformed flight price response with keys: ['direction', 'fare_family', 'flight_segments', 'offer_id', 'original_offer_id', 'passengers', 'time_limits', 'total_price']
-ERROR:routes.clean_seat_service:Frontend sent transformed data instead of using flight_price_cache_key. This will cause API failures.
-[2025-08-15 12:24:55 +0300] [9368] [INFO] 127.0.0.1:64084 POST /api/verteil/seat-availability 1.1 200 214 80817
-CLEAN SEAT ENDPOINT HIT - Request ID: c7c64ced-bd33-4f45-a5e1-42c8297bb53d
-INFO:routes.clean_seat_service:CLEAN SeatAvailability request received - Request ID: c7c64ced-bd33-4f45-a5e1-42c8297bb53d    
-ERROR:routes.clean_seat_service:❌ Rejected transformed flight price response with keys: ['direction', 'fare_family', 'flight_segments', 'offer_id', 'original_offer_id', 'passengers', 'time_limits', 'total_price']
-ERROR:routes.clean_seat_service:Frontend sent transformed data instead of using flight_price_cache_key. This will cause API failures.
-[2025-08-15 12:24:55 +0300] [9368] [INFO] 127.0.0.1:64085 POST /api/verteil/seat-availability 1.1 200 214 84126
-CLEAN SEAT ENDPOINT HIT - Request ID: 31106e92-9439-43ff-81e2-ad4dfab73c8e
-INFO:routes.clean_seat_service:CLEAN SeatAvailability request received - Request ID: 31106e92-9439-43ff-81e2-ad4dfab73c8e
-ERROR:routes.clean_seat_service:❌ Rejected transformed flight price response with keys: ['direction', 'fare_family', 'flight_segments', 'offer_id', 'original_offer_id', 'passengers', 'time_limits', 'total_price']
-ERROR:routes.clean_seat_service:Frontend sent transformed data instead of using flight_price_cache_key. This will cause API failures.
-[2025-08-15 12:24:57 +0300] [9368] [INFO] 127.0.0.1:64080 POST /api/verteil/seat-availability 1.1 200 214 12817
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Search Form</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .search-container {
+            background: #1e3a5f;
+            border-radius: 16px;
+            padding: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 1200px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .trip-type-container {
+            margin-bottom: 8px;
+        }
+
+        .trip-type-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+
+        .trip-type-select:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .trip-type-select:focus {
+            outline: none;
+            border-color: #4a9eff;
+            box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.2);
+        }
+
+        .search-form {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 20px;
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .input-group:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .input-group.focused {
+            box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.3);
+        }
+
+        .input-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 4px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-field {
+            border: none;
+            outline: none;
+            font-size: 16px;
+            color: #1f2937;
+            width: 100%;
+            font-weight: 500;
+            background: transparent;
+        }
+
+        .input-field::placeholder {
+            color: #9ca3af;
+        }
+
+        .swap-button {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+            margin: 0 -20px;
+        }
+
+        .swap-button:hover {
+            background: #f3f4f6;
+            transform: rotate(180deg);
+            border-color: #4a9eff;
+        }
+
+        .swap-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .date-input {
+            cursor: pointer;
+        }
+
+        .search-button {
+            background: linear-gradient(135deg, #4a9eff 0%, #0066ff 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(74, 158, 255, 0.3);
+        }
+
+        .search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(74, 158, 255, 0.4);
+            background: linear-gradient(135deg, #5fa9ff 0%, #1976ff 100%);
+        }
+
+        .search-button:active {
+            transform: translateY(0);
+        }
+
+        .passengers-dropdown {
+            position: relative;
+        }
+
+        .passengers-summary {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .passengers-panel {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            padding: 20px;
+            min-width: 280px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .passengers-panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .passenger-type {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .passenger-type:last-child {
+            margin-bottom: 0;
+        }
+
+        .passenger-label {
+            font-size: 14px;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .passenger-counter {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .counter-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #e5e7eb;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            font-size: 18px;
+            color: #374151;
+        }
+
+        .counter-btn:hover:not(:disabled) {
+            background: #4a9eff;
+            color: white;
+            border-color: #4a9eff;
+            transform: scale(1.1);
+        }
+
+        .counter-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .counter-value {
+            min-width: 30px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .class-select {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .class-select select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .class-select select:hover {
+            border-color: #4a9eff;
+        }
+
+        .class-select select:focus {
+            outline: none;
+            border-color: #4a9eff;
+            box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .search-form {
+                flex-direction: column;
+            }
+
+            .swap-button {
+                margin: -10px 0;
+                transform: rotate(90deg);
+            }
+
+            .swap-button:hover {
+                transform: rotate(270deg);
+            }
+
+            .input-group {
+                width: 100%;
+            }
+
+            .search-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <div class="trip-type-container">
+            <select class="trip-type-select" id="tripType">
+                <option value="one-way">One way</option>
+                <option value="round-trip">Round trip</option>
+                <option value="multi-city">Multi-city</option>
+            </select>
+        </div>
+        
+        <div class="search-form">
+            <div class="input-group">
+                <div class="input-label">From</div>
+                <input type="text" class="input-field" id="fromInput" placeholder="City or Airport" value="Nairobi Wilson (WIL)">
+            </div>
+            
+            <button class="swap-button" onclick="swapLocations()">
+                <svg class="swap-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 16l-4-4m0 0l4-4m-4 4h18M17 8l4 4m0 0l-4 4m4-4H3"/>
+                </svg>
+            </button>
+            
+            <div class="input-group">
+                <div class="input-label">To</div>
+                <input type="text" class="input-field" id="toInput" placeholder="City or Airport" value="Lodwar (LOK)">
+            </div>
+            
+            <div class="input-group">
+                <div class="input-label">Depart</div>
+                <input type="date" class="input-field date-input" id="departDate" value="2025-08-16">
+            </div>
+            
+            <div class="input-group" id="returnDateGroup" style="display: none;">
+                <div class="input-label">Return</div>
+                <input type="date" class="input-field date-input" id="returnDate">
+            </div>
+            
+            <div class="input-group passengers-dropdown">
+                <div class="input-label">Travellers and cabin class</div>
+                <div class="input-field passengers-summary" onclick="togglePassengers()">
+                    <span id="passengersSummary">1 Adult, Economy</span>
+                </div>
+                
+                <div class="passengers-panel" id="passengersPanel">
+                    <div class="passenger-type">
+                        <span class="passenger-label">Adults</span>
+                        <div class="passenger-counter">
+                            <button class="counter-btn" onclick="updatePassengers('adults', -1)">−</button>
+                            <span class="counter-value" id="adultsCount">1</span>
+                            <button class="counter-btn" onclick="updatePassengers('adults', 1)">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="passenger-type">
+                        <span class="passenger-label">Children</span>
+                        <div class="passenger-counter">
+                            <button class="counter-btn" onclick="updatePassengers('children', -1)">−</button>
+                            <span class="counter-value" id="childrenCount">0</span>
+                            <button class="counter-btn" onclick="updatePassengers('children', 1)">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="passenger-type">
+                        <span class="passenger-label">Infants</span>
+                        <div class="passenger-counter">
+                            <button class="counter-btn" onclick="updatePassengers('infants', -1)">−</button>
+                            <span class="counter-value" id="infantsCount">0</span>
+                            <button class="counter-btn" onclick="updatePassengers('infants', 1)">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="class-select">
+                        <select id="cabinClass" onchange="updateSummary()">
+                            <option value="Economy">Economy</option>
+                            <option value="Premium Economy">Premium Economy</option>
+                            <option value="Business">Business</option>
+                            <option value="First">First</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="search-button" onclick="searchFlights()">Search</button>
+        </div>
+    </div>
+
+    <script>
+        let passengers = {
+            adults: 1,
+            children: 0,
+            infants: 0
+        };
+
+        // Set today's date as minimum for departure
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('departDate').min = today;
+        document.getElementById('returnDate').min = today;
+
+        // Handle trip type changes
+        document.getElementById('tripType').addEventListener('change', function() {
+            const returnDateGroup = document.getElementById('returnDateGroup');
+            if (this.value === 'round-trip') {
+                returnDateGroup.style.display = 'block';
+                // Set return date to one week after departure
+                const departDate = new Date(document.getElementById('departDate').value);
+                departDate.setDate(departDate.getDate() + 7);
+                document.getElementById('returnDate').value = departDate.toISOString().split('T')[0];
+            } else {
+                returnDateGroup.style.display = 'none';
+            }
+        });
+
+        // Update return date minimum when departure date changes
+        document.getElementById('departDate').addEventListener('change', function() {
+            document.getElementById('returnDate').min = this.value;
+            if (document.getElementById('returnDate').value < this.value) {
+                document.getElementById('returnDate').value = this.value;
+            }
+        });
+
+        function swapLocations() {
+            const fromInput = document.getElementById('fromInput');
+            const toInput = document.getElementById('toInput');
+            const temp = fromInput.value;
+            fromInput.value = toInput.value;
+            toInput.value = temp;
+        }
+
+        function togglePassengers() {
+            const panel = document.getElementById('passengersPanel');
+            panel.classList.toggle('active');
+        }
+
+        function updatePassengers(type, delta) {
+            passengers[type] = Math.max(0, Math.min(9, passengers[type] + delta));
+            
+            // Ensure at least one adult
+            if (type === 'adults' && passengers.adults === 0) {
+                passengers.adults = 1;
+            }
+            
+            // Update display
+            document.getElementById(type + 'Count').textContent = passengers[type];
+            
+            // Update buttons state
+            updateButtonStates();
+            updateSummary();
+        }
+
+        function updateButtonStates() {
+            // Disable minus button for adults if only 1
+            const adultsMinusBtn = document.querySelector('.passenger-type:first-child .counter-btn:first-child');
+            adultsMinusBtn.disabled = passengers.adults <= 1;
+            
+            // Disable minus buttons at 0
+            const childrenMinusBtn = document.querySelector('.passenger-type:nth-child(2) .counter-btn:first-child');
+            childrenMinusBtn.disabled = passengers.children <= 0;
+            
+            const infantsMinusBtn = document.querySelector('.passenger-type:nth-child(3) .counter-btn:first-child');
+            infantsMinusBtn.disabled = passengers.infants <= 0;
+            
+            // Disable plus buttons at 9
+            const allPlusBtns = document.querySelectorAll('.counter-btn:last-child');
+            allPlusBtns[0].disabled = passengers.adults >= 9;
+            allPlusBtns[1].disabled = passengers.children >= 9;
+            allPlusBtns[2].disabled = passengers.infants >= 9;
+        }
+
+        function updateSummary() {
+            const total = passengers.adults + passengers.children + passengers.infants;
+            const cabinClass = document.getElementById('cabinClass').value;
+            
+            let summary = '';
+            if (passengers.adults > 0) {
+                summary += `${passengers.adults} Adult${passengers.adults > 1 ? 's' : ''}`;
+            }
+            if (passengers.children > 0) {
+                summary += `, ${passengers.children} Child${passengers.children > 1 ? 'ren' : ''}`;
+            }
+            if (passengers.infants > 0) {
+                summary += `, ${passengers.infants} Infant${passengers.infants > 1 ? 's' : ''}`;
+            }
+            
+            summary += `, ${cabinClass}`;
+            document.getElementById('passengersSummary').textContent = summary;
+        }
+
+        function searchFlights() {
+            const from = document.getElementById('fromInput').value;
+            const to = document.getElementById('toInput').value;
+            const departDate = document.getElementById('departDate').value;
+            const tripType = document.getElementById('tripType').value;
+            const returnDate = tripType === 'round-trip' ? document.getElementById('returnDate').value : null;
+            
+            if (!from || !to || !departDate) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // Build search parameters
+            const searchParams = {
+                tripType,
+                from,
+                to,
+                departDate,
+                returnDate,
+                passengers,
+                cabinClass: document.getElementById('cabinClass').value
+            };
+            
+            console.log('Searching flights with:', searchParams);
+            alert(`Searching flights from ${from} to ${to} on ${departDate}`);
+        }
+
+        // Close passengers panel when clicking outside
+        document.addEventListener('click', function(event) {
+            const passengersDropdown = document.querySelector('.passengers-dropdown');
+            if (!passengersDropdown.contains(event.target)) {
+                document.getElementById('passengersPanel').classList.remove('active');
+            }
+        });
+
+        // Add focus effects to input groups
+        document.querySelectorAll('.input-field').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.closest('.input-group').classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.closest('.input-group').classList.remove('focused');
+            });
+        });
+
+        // Initialize button states
+        updateButtonStates();
+    </script>
+</body>
+</html> 

@@ -67,16 +67,27 @@ export function SeatServiceIntegration({
         
         setFlightPriceResponse(parsedResponse)
         
-        // 🚀 Dynamic Trip Type Detection
+        // 🚀 ROBUST Trip Type Detection
         const segments = parsedResponse?.flight_segments || []
         setFlightSegments(segments)
         
-        // Detect if round-trip based on explicit return flight data (not connecting segments)
-        // One-way flights can have multiple segments (connecting flights), so check for actual return flight
+        // 🎯 ENHANCED DETECTION: Check multiple indicators for return flights
+        const hasReturnFlight = !!(
+          parsedResponse?.returnFlight ||
+          parsedResponse?.return_segments ||
+          parsedResponse?.returnFlightSegments ||
+          parsedResponse?.outboundAndReturn ||
+          (Array.isArray(parsedResponse?.trip_type) && parsedResponse.trip_type.includes('return')) ||
+          (typeof parsedResponse?.trip_type === 'string' && parsedResponse.trip_type.toLowerCase().includes('round')) ||
+          // Check if there are explicitly tagged return segments
+          (Array.isArray(segments) && segments.some((seg: any) => 
+            seg?.direction === 'return' || 
+            seg?.type === 'return' || 
+            seg?.leg === 'return' ||
+            seg?.segment_type === 'return'
+          ))
+        )
         
-        // 🚨 TEMPORARY FIX: Force one-way until we debug the response structure
-        // TODO: Remove this once we identify the correct return flight detection logic
-        const hasReturnFlight = false // !!(parsedResponse?.returnFlight || parsedResponse?.return_segments)
         setIsRoundTrip(hasReturnFlight)
         
         // 🔍 Enhanced debugging for trip type detection
@@ -246,14 +257,14 @@ export function SeatServiceIntegration({
         {/* Main Content - Seat and Service Selection */}
         <div className="lg:col-span-2 space-y-6">
           {/* Flight Trip Type Header */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-4">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-              <h3 className="font-semibold text-blue-900">
+              <h3 className="font-semibold text-blue-900 dark:text-blue-100">
                 {isRoundTrip ? 'Round-trip Flight' : 'One-way Flight'} - Select Your Seats & Services
               </h3>
             </div>
-            <p className="text-sm text-blue-700 mt-1">
+            <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
               {isRoundTrip 
                 ? `Choose seats for both your outbound and return flights (${flightSegments.length} segments total)`
                 : 'Choose your preferred seat and add any additional services'
@@ -263,14 +274,14 @@ export function SeatServiceIntegration({
 
           {/* Booking State Validation Indicator */}
           {bookingState.errors.length > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-                <h4 className="font-semibold text-amber-800">Booking Validation</h4>
+                <h4 className="font-semibold text-amber-800 dark:text-amber-200">Booking Validation</h4>
               </div>
               <div className="space-y-1">
                 {bookingState.errors.map((error, index) => (
-                  <p key={index} className="text-sm text-amber-700 flex items-center gap-1">
+                  <p key={index} className="text-sm text-amber-700 dark:text-amber-300 flex items-center gap-1">
                     <span>⚠️</span> {error}
                   </p>
                 ))}

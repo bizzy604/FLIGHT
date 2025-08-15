@@ -38,10 +38,10 @@ export const DateRangeSelector = memo(function DateRangeSelector({
   return (
     <div className={cn("grid gap-4", showReturnDate ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1", className)}>
       <DateSelector
-        label="Departure Date"
+        label=""
         value={departDate}
         onChange={handleDepartDateChange}
-        placeholder="Select departure date"
+        placeholder="Depature Date"
         disabled={disabled}
         minDate={minDate}
         maxDate={maxDate}
@@ -49,10 +49,10 @@ export const DateRangeSelector = memo(function DateRangeSelector({
       
       {showReturnDate && (
         <DateSelector
-          label="Return Date"
+          label=""
           value={returnDate}
           onChange={onReturnDateChange}
-          placeholder="Select return date"
+          placeholder="Return Date"
           disabled={disabled || !departDate}
           minDate={getReturnMinDate()}
           maxDate={maxDate}

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 
 import { cn } from "@/utils/cn"
 import { LoadingSpinner } from "@/components/atoms"
@@ -306,6 +306,62 @@ export function SeatSelection({
   const [seatMap, setSeatMap] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  // 🎯 NEW: Seat filtering state
+  const [activeFilter, setActiveFilter] = useState<'standard' | 'premium' | 'preferred' | 'exit' | null>(null)
+  const [highlightedSeats, setHighlightedSeats] = useState<string[]>([])
+  const [filterCount, setFilterCount] = useState<number>(0)
+
+  // 🚀 PERFORMANCE: Pre-compute seat characteristics map (runs only when seats change)
+  const seatCharacteristicsMap = useMemo(() => {
+    if (!seats || seats.length === 0) return {}
+    
+    return seats.reduce((map, seat) => {
+      const row = seat.location.row.number.value
+      const column = seat.location.column
+      const seatId = `${row}${column}`
+      
+      map[seatId] = {
+        type: getSeatType(seat),
+        features: getSeatFeatures(seat),
+        codes: seat.location.characteristics?.characteristic?.map(c => c.code) || [],
+        available: seat.availability !== 'unavailable' && seat.availability !== 'occupied'
+      }
+      return map
+    }, {} as Record<string, { type: string; features: string[]; codes: string[]; available: boolean }>)
+  }, [seats])
+
+  // 🎯 FILTER LOGIC: Find seats matching the active filter
+  const applySeatFilter = useCallback((filterType: 'standard' | 'premium' | 'preferred' | 'exit' | null) => {
+    if (!filterType || Object.keys(seatCharacteristicsMap).length === 0) {
+      setActiveFilter(null)
+      setHighlightedSeats([])
+      setFilterCount(0)
+      return
+    }
+
+    const matchingSeats = Object.keys(seatCharacteristicsMap).filter(seatId => {
+      const seatChar = seatCharacteristicsMap[seatId]
+      return seatChar.type === filterType && seatChar.available
+    })
+
+    setActiveFilter(filterType)
+    setHighlightedSeats(matchingSeats)
+    setFilterCount(matchingSeats.length)
+    
+    logger.info(`🎯 Applied ${filterType} filter: ${matchingSeats.length} seats found`)
+  }, [seatCharacteristicsMap])
+
+  // 🔄 TOGGLE FILTER: Click same filter to clear, click different to switch
+  const toggleSeatFilter = useCallback((filterType: 'standard' | 'premium' | 'preferred' | 'exit' | null) => {
+    if (activeFilter === filterType) {
+      // Clear filter if clicking the same type
+      applySeatFilter(null)
+    } else {
+      // Apply new filter
+      applySeatFilter(filterType)
+    }
+  }, [activeFilter, applySeatFilter])
 
   // Load seat availability from backend with intelligent caching
   useEffect(() => {
@@ -446,13 +502,13 @@ export function SeatSelection({
       
       if (actualData?.dataLists?.seatList?.seats) {
         seatsArray = actualData.dataLists.seatList.seats
-        logger.info(`✅ Found ${seatsArray.length} seats in dataLists.seatList.seats`)
+        // logger.info(`✅ Found ${seatsArray.length} seats in dataLists.seatList.seats`)
       } else if (actualData?.dataLists?.seats) {
         seatsArray = actualData.dataLists.seats
-        logger.info(`✅ Found ${seatsArray.length} seats in dataLists.seats`)
+        // logger.info(`✅ Found ${seatsArray.length} seats in dataLists.seats`)
       } else if (actualData?.seats) {
         seatsArray = actualData.seats
-        logger.info(`✅ Found ${seatsArray.length} seats in top-level seats`)
+        // logger.info(`✅ Found ${seatsArray.length} seats in top-level seats`)
       }
       
       if (seatsArray && seatsArray.length > 0) {
@@ -473,7 +529,7 @@ export function SeatSelection({
         
         // 🚀 CRITICAL FIX: Update seat map rows based on actual seat data
         if (rows.length > 0) {
-          setSeatMap(prevMap => ({
+          setSeatMap((prevMap: any) => ({
             ...prevMap,
             rows: {
               first: minRow,
@@ -768,156 +824,271 @@ export function SeatSelection({
   return (
     <div className={cn("space-y-6", className)}>
       {/* Header */}
-      <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
+      <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-1 h-6 bg-purple-600 rounded-full"></div>
-          <h2 className="text-xl font-bold text-gray-900">Complete Seat Map - {flightType}</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Complete Seat Map - {flightType}</h2>
         </div>
-        <div className="text-sm text-gray-600 mb-4">
+        <div className="text-sm text-gray-600 dark:text-gray-300 mb-4">
           All seats are shown for your reference. Choose any available seat that fits your needs and budget.
         </div>
         {error && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 flex items-center gap-2 text-sm text-yellow-800">
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-3 mb-4 flex items-center gap-2 text-sm text-yellow-800 dark:text-yellow-200">
             ⚠️ {error}
           </div>
         )}
 
-        {/* Enhanced Seat Type Guide Banner with IATA Code Explanations */}
-        <div className="bg-gradient-to-r from-blue-50 via-yellow-50 to-green-50 border border-blue-200 rounded-xl p-6 mb-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">🪑 Seat Types Guide</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        {/* Compact Seat Types Guide with Hover Tooltips */}
+        <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-green-50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-green-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-4 mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">🪑 Seat Guide</h3>
+            <p className="text-xs text-gray-600 dark:text-gray-300">Hover over icons for details</p>
+          </div>
+          
+          {/* Compact Seat Types Row */}
+          <div className="flex items-center justify-center gap-6 mb-4">
             
             {/* Standard Seats */}
-            <div className="flex flex-col items-center gap-2 p-3 bg-white rounded-lg shadow-sm">
-              <div className="w-8 h-8 bg-white border-2 border-green-500 rounded-lg flex items-center justify-center text-sm font-bold text-green-600">A</div>
-              <div className="text-center">
-                <div className="font-semibold text-green-600">STANDARD</div>
-                <div className="text-xs text-gray-600">Free Economy</div>
-                <div className="text-xs text-gray-500 mt-1">Regular seats with basic comfort</div>
+            <div className="group relative">
+              <button
+                onClick={() => toggleSeatFilter('standard')}
+                className={cn(
+                  "w-10 h-10 border-2 border-green-500 rounded-lg flex items-center justify-center text-sm font-bold text-green-600 cursor-pointer hover:scale-110 transition-all duration-200",
+                  activeFilter === 'standard' 
+                    ? "bg-green-500 text-white shadow-lg ring-2 ring-green-300" 
+                    : "bg-white dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+                )}
+              >
+                A
+              </button>
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
+                <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
+                  <div className="font-semibold text-green-400">STANDARD</div>
+                  <div>Free Economy Seats</div>
+                  <div className="text-gray-300 dark:text-gray-600">Click to highlight on seat map</div>
+                </div>
               </div>
             </div>
 
             {/* Premium Seats */}
-            <div className="flex flex-col items-center gap-2 p-3 bg-white rounded-lg shadow-sm">
-              <div className="w-8 h-8 bg-white border-2 border-blue-500 rounded-lg flex items-center justify-center text-sm font-bold text-blue-600 relative">
+            <div className="group relative">
+              <button
+                onClick={() => toggleSeatFilter('premium')}
+                className={cn(
+                  "w-10 h-10 border-2 border-blue-500 rounded-lg flex items-center justify-center text-sm font-bold text-blue-600 cursor-pointer hover:scale-110 transition-all duration-200 relative",
+                  activeFilter === 'premium' 
+                    ? "bg-blue-500 text-white shadow-lg ring-2 ring-blue-300" 
+                    : "bg-white dark:bg-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                )}
+              >
                 B
-                <span className="absolute bottom-0 right-0 text-xs text-blue-500">+</span>
-              </div>
-              <div className="text-center">
-                <div className="font-semibold text-blue-600">PREMIUM</div>
-                <div className="text-xs text-gray-600">Extra Comfort</div>
-                <div className="text-xs text-gray-500 mt-1">
-                  Extra leg space (L), Power outlets (EC/US), Front cabin (FC)
+                <span className={cn(
+                  "absolute -top-1 -right-1 text-xs",
+                  activeFilter === 'premium' ? "text-blue-200" : "text-blue-500"
+                )}>+</span>
+              </button>
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
+                <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
+                  <div className="font-semibold text-blue-400">PREMIUM</div>
+                  <div>Extra Comfort Seats</div>
+                  <div className="text-gray-300 dark:text-gray-600">Click to highlight on seat map</div>
                 </div>
               </div>
             </div>
 
             {/* Preferred Seats */}
-            <div className="flex flex-col items-center gap-2 p-3 bg-white rounded-lg shadow-sm">
-              <div className="w-8 h-8 bg-white border-2 border-amber-500 rounded-lg flex items-center justify-center text-sm font-bold text-amber-600 relative">
+            <div className="group relative">
+              <button
+                onClick={() => toggleSeatFilter('preferred')}
+                className={cn(
+                  "w-10 h-10 border-2 border-amber-500 rounded-lg flex items-center justify-center text-sm font-bold text-amber-600 cursor-pointer hover:scale-110 transition-all duration-200 relative",
+                  activeFilter === 'preferred' 
+                    ? "bg-amber-500 text-white shadow-lg ring-2 ring-amber-300" 
+                    : "bg-white dark:bg-gray-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                )}
+              >
                 C
-                <span className="absolute top-0 right-0 text-xs text-amber-500">₹</span>
-              </div>
-              <div className="text-center">
-                <div className="font-semibold text-amber-600">PREFERRED</div>
-                <div className="text-xs text-gray-600">Chargeable</div>
-                <div className="text-xs text-gray-500 mt-1">
-                  Better location seats (CH code) - Airlines charge extra
+                <span className={cn(
+                  "absolute -top-1 -right-1 text-xs",
+                  activeFilter === 'preferred' ? "text-amber-200" : "text-amber-500"
+                )}>₹</span>
+              </button>
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
+                <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
+                  <div className="font-semibold text-amber-400">PREFERRED</div>
+                  <div>Chargeable Location</div>
+                  <div className="text-gray-300 dark:text-gray-600">Click to highlight on seat map</div>
                 </div>
               </div>
             </div>
 
             {/* Emergency Exit */}
-            <div className="flex flex-col items-center gap-2 p-3 bg-white rounded-lg shadow-sm">
-              <div className="w-8 h-8 bg-white border-2 border-red-500 rounded-lg flex items-center justify-center text-sm font-bold text-red-600 relative">
-                D
-                <span className="absolute top-0 left-0 text-xs text-red-500">⚠️</span>
-              </div>
-              <div className="text-center">
-                <div className="font-semibold text-red-600">EMERGENCY EXIT</div>
-                <div className="text-xs text-gray-600">Special Requirements</div>
-                <div className="text-xs text-gray-500 mt-1">
-                  Must assist in emergency (E code) - Age/fitness restrictions
+            <div className="group relative">
+              <button
+                onClick={() => toggleSeatFilter('exit')}
+                className={cn(
+                  "w-10 h-10 border-2 border-red-500 rounded-lg flex items-center justify-center text-sm font-bold text-red-600 cursor-pointer hover:scale-110 transition-all duration-200 relative",
+                  activeFilter === 'exit' 
+                    ? "bg-red-500 text-white shadow-lg ring-2 ring-red-300" 
+                    : "bg-white dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                )}
+              >
+                E
+                <span className={cn(
+                  "absolute -top-1 -left-1 text-xs",
+                  activeFilter === 'exit' ? "text-red-200" : "text-red-500"
+                )}>⚠️</span>
+              </button>
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
+                <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
+                  <div className="font-semibold text-red-400">EMERGENCY EXIT</div>
+                  <div>Special Requirements</div>
+                  <div className="text-gray-300 dark:text-gray-600">Click to highlight on seat map</div>
                 </div>
               </div>
             </div>
 
-            {/* Selected/Unavailable */}
-            <div className="flex flex-col items-center gap-2 p-3 bg-white rounded-lg shadow-sm">
+            {/* Status Indicators */}
+            <div className="group relative">
               <div className="flex gap-1">
-                <div className="w-6 h-6 bg-gradient-to-br from-green-400 to-green-600 border-2 border-green-500 rounded text-xs text-white flex items-center justify-center">✓</div>
-                <div className="w-6 h-6 bg-gray-300 border-2 border-gray-400 rounded text-xs text-gray-600 flex items-center justify-center opacity-60">✕</div>
+                <div className="w-5 h-5 bg-gradient-to-br from-green-400 to-green-600 border border-green-500 rounded text-xs text-white flex items-center justify-center">✓</div>
+                <div className="w-5 h-5 bg-gray-300 dark:bg-gray-600 border border-gray-400 dark:border-gray-500 rounded text-xs text-gray-600 flex items-center justify-center opacity-60">✕</div>
               </div>
-              <div className="text-center">
-                <div className="font-semibold text-gray-700">STATUS</div>
-                <div className="text-xs text-gray-600">Selected / Taken</div>
-                <div className="text-xs text-gray-500 mt-1">
-                  Your picks or unavailable seats
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
+                <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
+                  <div className="font-semibold">SEAT STATUS</div>
+                  <div>Green ✓ = Selected</div>
+                  <div className="text-gray-300 dark:text-gray-600">Gray ✕ = Unavailable/Taken</div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* IATA Code Explanation */}
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="text-xs text-gray-600 text-center">
-              <strong>How we categorize:</strong> Based on official IATA airline codes - 
-              <span className="text-blue-600">L/FC/EC = Premium</span>, 
-              <span className="text-amber-600">CH = Preferred</span>, 
-              <span className="text-red-600">E = Emergency Exit</span>, 
-              <span className="text-green-600">Others = Standard</span>
+          {/* Compact Features Row with Hover Tooltips */}
+          <div className="border-t border-gray-200 dark:border-gray-600 pt-3">
+            <div className="flex items-center justify-center gap-4 text-lg">
+              <span className="cursor-help hover:scale-125 transition-transform group relative" title="Window Seat">
+                🪟
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
+                  <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg px-2 py-1 whitespace-nowrap shadow-lg">
+                    Window Seat
+                  </div>
+                </div>
+              </span>
+              <span className="cursor-help hover:scale-125 transition-transform group relative" title="Power Outlet">
+                🔌
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
+                  <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg px-2 py-1 whitespace-nowrap shadow-lg">
+                    Power Outlet
+                  </div>
+                </div>
+              </span>
+              <span className="cursor-help hover:scale-125 transition-transform group relative" title="Entertainment">
+                📺
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
+                  <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg px-2 py-1 whitespace-nowrap shadow-lg">
+                    Entertainment
+                  </div>
+                </div>
+              </span>
+              <span className="cursor-help hover:scale-125 transition-transform group relative" title="Leg Rest">
+                🦵
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
+                  <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg px-2 py-1 whitespace-nowrap shadow-lg">
+                    Leg Rest
+                  </div>
+                </div>
+              </span>
+              <span className="cursor-help hover:scale-125 transition-transform group relative" title="Emergency Exit">
+                🚨
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
+                  <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg px-2 py-1 whitespace-nowrap shadow-lg">
+                    Emergency Exit
+                  </div>
+                </div>
+              </span>
+              <span className="cursor-help hover:scale-125 transition-transform group relative" title="Near Lavatory">
+                🚽
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
+                  <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg px-2 py-1 whitespace-nowrap shadow-lg">
+                    Near Lavatory
+                  </div>
+                </div>
+              </span>
+              <span className="cursor-help hover:scale-125 transition-transform group relative" title="Near Galley">
+                🍽️
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
+                  <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg px-2 py-1 whitespace-nowrap shadow-lg">
+                    Near Galley
+                  </div>
+                </div>
+              </span>
+              <span className="cursor-help hover:scale-125 transition-transform group relative" title="Pet Friendly">
+                🐕
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
+                  <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg px-2 py-1 whitespace-nowrap shadow-lg">
+                    Pet Friendly
+                  </div>
+                </div>
+              </span>
+              <span className="cursor-help hover:scale-125 transition-transform group relative" title="Accessible">
+                ♿
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
+                  <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg px-2 py-1 whitespace-nowrap shadow-lg">
+                    Accessible
+                  </div>
+                </div>
+              </span>
             </div>
           </div>
-        </div>
 
-        {/* Comprehensive Feature legend */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 text-xs bg-yellow-50 p-3 rounded-lg">
-          <div className="flex items-center gap-1">
-            <span>🚼</span> Bassinet
-          </div>
-          <div className="flex items-center gap-1">
-            <span>♿</span> Accessible
-          </div>
-          <div className="flex items-center gap-1">
-            <span>🚪</span> Emergency Exit
-          </div>
-          <div className="flex items-center gap-1">
-            <span>🪟</span> Window
-          </div>
-          <div className="flex items-center gap-1">
-            <span>🔌</span> Power Outlet
-          </div>
-          <div className="flex items-center gap-1">
-            <span>📺</span> Entertainment
-          </div>
-          <div className="flex items-center gap-1">
-            <span>🦶</span> Leg Rest
-          </div>
-          <div className="flex items-center gap-1">
-            <span>🚽</span> Near Lavatory
-          </div>
-          <div className="flex items-center gap-1">
-            <span>🍽️</span> Near Galley
-          </div>
-          <div className="flex items-center gap-1">
-            <span>✈️</span> Overwing
-          </div>
-          <div className="flex items-center gap-1">
-            <span>🐕</span> Pet Friendly
-          </div>
-          <div className="flex items-center gap-1">
-            <span>⚠️</span> Restrictions
+          {/* Quick Reference */}
+          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600 text-center">
+            <p className="text-xs text-gray-600 dark:text-gray-300">
+              <strong>Based on IATA codes:</strong> 
+              <span className="text-blue-600"> L/FC/EC = Premium</span> • 
+              <span className="text-amber-600"> CH = Preferred</span> • 
+              <span className="text-red-600"> E = Emergency</span> • 
+              <span className="text-green-600"> Others = Standard</span>
+            </p>
           </div>
         </div>
       </div>
 
+      {/* Filter Status Indicator */}
+      {activeFilter && (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+              <div>
+                <div className="font-semibold text-yellow-800 dark:text-yellow-200">
+                  Filtering by: {activeFilter === 'standard' ? 'Standard Seats' : 
+                                activeFilter === 'premium' ? 'Premium Seats' : 
+                                activeFilter === 'preferred' ? 'Preferred Seats' : 'Emergency Exit Seats'}
+                </div>
+                <div className="text-sm text-yellow-700 dark:text-yellow-300">
+                  {filterCount} matching seats highlighted • Others faded for clarity
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => toggleSeatFilter(null)}
+              className="px-4 py-2 bg-white dark:bg-gray-700 border border-yellow-300 dark:border-yellow-600 text-yellow-700 dark:text-yellow-300 rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/30 transition-colors duration-200 text-sm font-medium"
+            >
+              Clear Filter
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Aircraft Seat Map */}
-      <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
+      <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
         <div className="max-w-2xl mx-auto">
           {/* Aircraft container */}
-          <div className="bg-gradient-to-b from-gray-100 to-white rounded-t-full rounded-b-lg p-8 relative">
+          <div className="bg-gradient-to-b from-gray-100 to-white dark:from-gray-700 dark:to-gray-800 rounded-t-full rounded-b-lg p-8 relative">
             {/* Aircraft nose */}
-            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 w-20 h-16 bg-gradient-to-b from-gray-400 to-gray-100 rounded-t-full"></div>
+            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 w-20 h-16 bg-gradient-to-b from-gray-400 to-gray-100 dark:from-gray-500 dark:to-gray-700 rounded-t-full"></div>
             
             {/* Seat rows */}
             <div className="space-y-2 pt-6">
@@ -928,10 +1099,10 @@ export function SeatSelection({
                 return (
                   <div key={rowNum} className={cn(
                     "grid gap-1 items-center justify-center",
-                    isExitRow && "bg-blue-50 border-2 border-dashed border-blue-400 rounded-lg p-2 my-2"
+                    isExitRow && "bg-blue-50 dark:bg-blue-900/20 border-2 border-dashed border-blue-400 dark:border-blue-500 rounded-lg p-2 my-2"
                   )} style={{ gridTemplateColumns: '30px repeat(3, 40px) 60px repeat(3, 40px) 60px repeat(3, 40px) 30px' }}>
                     {/* Row number left */}
-                    <div className="text-center text-sm font-semibold text-gray-600">{rowNum}</div>
+                    <div className="text-center text-sm font-semibold text-gray-600 dark:text-gray-300">{rowNum}</div>
                     
                     {/* Seats with proper spacing */}
                     {['A', 'B', 'C', '', 'D', 'E', 'F', '', 'H', 'J', 'K'].map((col, colIndex) => {
@@ -949,23 +1120,37 @@ export function SeatSelection({
                       
                       let seatClasses = "w-10 h-10 rounded-lg border-2 cursor-pointer transition-all duration-300 relative flex items-center justify-center text-xs font-semibold hover:scale-110"
                       
+                      // 🎯 FILTERING LOGIC: Apply highlight/fade effects based on active filter
+                      if (activeFilter) {
+                        const seatCharacteristics = seatCharacteristicsMap[seatId]
+                        const matchesFilter = seatCharacteristics && highlightedSeats.includes(seatId)
+                        
+                        if (matchesFilter && isAvailable && seatInfo) {
+                          // Highlight matching seats with glow effect
+                          seatClasses += " ring-4 ring-yellow-400 ring-opacity-75 shadow-lg shadow-yellow-200 scale-105 z-10"
+                        } else if (isAvailable && seatInfo) {
+                          // Fade non-matching available seats
+                          seatClasses += " opacity-40"
+                        }
+                      }
+                      
                       if (!isAvailable || !seatInfo) {
-                        seatClasses += " bg-gray-300 border-gray-400 cursor-not-allowed opacity-60"
+                        seatClasses += " bg-gray-300 dark:bg-gray-600 border-gray-400 dark:border-gray-500 cursor-not-allowed opacity-60"
                       } else if (isSelected) {
                         seatClasses += " bg-gradient-to-br from-green-400 to-green-600 border-green-500 text-white shadow-lg scale-105"
                       } else {
                         switch (seatType) {
                           case 'premium':
-                            seatClasses += " bg-white border-blue-500 text-blue-600 hover:bg-blue-50"
+                            seatClasses += " bg-white dark:bg-gray-700 border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                             break
                           case 'preferred':
-                            seatClasses += " bg-white border-amber-500 text-amber-600 hover:bg-amber-50"
+                            seatClasses += " bg-white dark:bg-gray-700 border-amber-500 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
                             break
                           case 'exit':
-                            seatClasses += " bg-white border-red-500 text-red-600 hover:bg-red-50"
+                            seatClasses += " bg-white dark:bg-gray-700 border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                             break
                           default: // standard
-                            seatClasses += " bg-white border-green-500 text-green-600 hover:bg-green-50"
+                            seatClasses += " bg-white dark:bg-gray-700 border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
                         }
                       }
 

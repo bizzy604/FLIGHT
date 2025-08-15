@@ -41,11 +41,6 @@ export const CabinSelector = memo(function CabinSelector({
             <SelectItem key={cabin.value} value={cabin.value}>
               <div className="flex flex-col">
                 <span className="font-medium">{cabin.label}</span>
-                {cabin.description && (
-                  <span className="text-xs text-muted-foreground">
-                    {cabin.description}
-                  </span>
-                )}
               </div>
             </SelectItem>
           ))}

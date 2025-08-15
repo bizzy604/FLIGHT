@@ -15,6 +15,8 @@ export interface AirportSelectorProps {
   className?: string
   error?: string
   icon?: React.ReactNode
+  compact?: boolean
+  inline?: boolean
 }
 
 export const DEFAULT_AIRPORTS: Airport[] = [
