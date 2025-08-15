@@ -443,10 +443,15 @@ async def get_seat_availability():
                 "raw_response": result  # Include raw data for debugging
             }
         
-        # Cache the transformed result
+        # Cache the transformed result and get the ACTUAL storage key
+        actual_storage_key = None
         try:
             cache_key = _generate_seat_availability_cache_key(flight_price_response, data.get('segment_key'))
             redis_storage = RedisFlightStorage()
+            
+            # Get the actual Redis key that will be used for storage
+            actual_storage_key = redis_storage._get_key(cache_key, "seat_availability")
+            
             cache_result = redis_storage.store_seat_availability(
                 seat_data=final_data,  # Cache the transformed data
                 session_id=cache_key,
@@ -454,6 +459,7 @@ async def get_seat_availability():
             )
             if cache_result['success']:
                 logger.info(f"💾 Cached transformed seat availability data for key: {cache_key} - Request ID: {request_id}")
+                logger.info(f"🔑 Actual Redis storage key: {actual_storage_key} - Request ID: {request_id}")
             else:
                 logger.warning(f"Failed to cache seat availability data: {cache_result.get('message')} - Request ID: {request_id}")
         except Exception as cache_error:
@@ -463,7 +469,8 @@ async def get_seat_availability():
             'status': 'success',
             'data': final_data,
             'request_id': request_id,
-            'cache_key': cache_key,
+            'cache_key': cache_key,  # Original cache key for compatibility
+            'storage_key': actual_storage_key,  # 🚀 ACTUAL Redis storage key for frontend retrieval
             'message': 'SeatAvailability successfully transformed for frontend'
         })
                 
@@ -630,10 +637,15 @@ async def get_service_list():
                 "raw_response": result  # Include raw data for debugging
             }
         
-        # Cache the transformed result
+        # Cache the transformed result and get the ACTUAL storage key
+        actual_storage_key = None
         try:
             cache_key = _generate_service_list_cache_key(flight_price_response)
             redis_storage = RedisFlightStorage()
+            
+            # Get the actual Redis key that will be used for storage
+            actual_storage_key = redis_storage._get_key(cache_key, "service_list")
+            
             cache_result = redis_storage.store_service_list(
                 service_data=final_data,  # Cache the transformed data
                 session_id=cache_key,
@@ -641,6 +653,7 @@ async def get_service_list():
             )
             if cache_result['success']:
                 logger.info(f"💾 Cached transformed service list data for key: {cache_key} - Request ID: {request_id}")
+                logger.info(f"🔑 Actual Redis storage key: {actual_storage_key} - Request ID: {request_id}")
             else:
                 logger.warning(f"Failed to cache service list data: {cache_result.get('message')} - Request ID: {request_id}")
         except Exception as cache_error:
@@ -650,7 +663,8 @@ async def get_service_list():
             'status': 'success',
             'data': final_data,
             'request_id': request_id,
-            'cache_key': cache_key,
+            'cache_key': cache_key,  # Original cache key for compatibility  
+            'storage_key': actual_storage_key,  # 🚀 ACTUAL Redis storage key for frontend retrieval
             'message': 'ServiceList successfully transformed for frontend'
         })
                 

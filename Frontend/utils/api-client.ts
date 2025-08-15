@@ -282,9 +282,15 @@ export const api = {
             if (cacheKey) {
                 requestBody.flight_price_cache_key = cacheKey;
                 logger.info(`🔑 Using flight_price_cache_key for service list: ${cacheKey}`);
+                logger.info(`🔍 Full flight price response keys for debugging:`, Object.keys(flightPriceResponse || {}));
             } else {
-                logger.warn('⚠️ No flight_price_cache_key found for service list, falling back to full response');
-                requestBody.flight_price_response = flightPriceResponse;
+                logger.error('❌ CRITICAL: No flight_price_cache_key found in flight price response for service list!');
+                logger.error('🔍 Available keys in flightPriceResponse:', Object.keys(flightPriceResponse || {}));
+                logger.error('🔍 Metadata keys:', Object.keys(flightPriceResponse?.metadata || {}));
+                
+                // 🚨 DO NOT SEND TRANSFORMED DATA - This causes backend rejection
+                // Instead, throw an error to force proper cache key resolution
+                throw new Error('flight_price_cache_key is required for service list API calls. Cannot proceed without proper cache key.');
             }
 
             const response = await fetch('/api/verteil/service-list', {
@@ -326,8 +332,12 @@ export const api = {
                 requestBody.flight_price_cache_key = cacheKey;
                 logger.info(`🔑 Using flight_price_cache_key for service cache check: ${cacheKey}`);
             } else {
-                logger.warn('⚠️ No flight_price_cache_key found for service cache check, falling back to full response');
-                requestBody.flight_price_response = flightPriceResponse;
+                logger.error('❌ CRITICAL: No flight_price_cache_key found for service cache check!');
+                logger.error('🔍 Available keys in flightPriceResponse:', Object.keys(flightPriceResponse || {}));
+                logger.error('🔍 Metadata keys:', Object.keys(flightPriceResponse?.metadata || {}));
+                
+                // 🚨 DO NOT SEND TRANSFORMED DATA - This causes backend rejection
+                throw new Error('flight_price_cache_key is required for service cache check. Cannot proceed without proper cache key.');
             }
 
             const response = await fetch('/api/verteil/service-list/cache-check', {
@@ -381,9 +391,15 @@ export const api = {
             if (cacheKey) {
                 requestData.flight_price_cache_key = cacheKey;
                 logger.info(`🔑 Using flight_price_cache_key for seat availability: ${cacheKey}`);
+                logger.info(`🔍 Full flight price response keys for debugging:`, Object.keys(flightPriceResponse || {}));
             } else {
-                logger.warn('⚠️ No flight_price_cache_key found, falling back to full response');
-                requestData.flight_price_response = flightPriceResponse;
+                logger.error('❌ CRITICAL: No flight_price_cache_key found in flight price response!');
+                logger.error('🔍 Available keys in flightPriceResponse:', Object.keys(flightPriceResponse || {}));
+                logger.error('🔍 Metadata keys:', Object.keys(flightPriceResponse?.metadata || {}));
+                
+                // 🚨 DO NOT SEND TRANSFORMED DATA - This causes backend rejection
+                // Instead, throw an error to force proper cache key resolution
+                throw new Error('flight_price_cache_key is required for seat availability API calls. Cannot proceed without proper cache key.');
             }
             
             if (segmentKey) {
@@ -429,8 +445,12 @@ export const api = {
                 requestData.flight_price_cache_key = cacheKey;
                 logger.info(`🔑 Using flight_price_cache_key for seat cache check: ${cacheKey}`);
             } else {
-                logger.warn('⚠️ No flight_price_cache_key found for cache check, falling back to full response');
-                requestData.flight_price_response = flightPriceResponse;
+                logger.error('❌ CRITICAL: No flight_price_cache_key found for seat cache check!');
+                logger.error('🔍 Available keys in flightPriceResponse:', Object.keys(flightPriceResponse || {}));
+                logger.error('🔍 Metadata keys:', Object.keys(flightPriceResponse?.metadata || {}));
+                
+                // 🚨 DO NOT SEND TRANSFORMED DATA - This causes backend rejection
+                throw new Error('flight_price_cache_key is required for seat cache check. Cannot proceed without proper cache key.');
             }
             
             if (segmentKey) {

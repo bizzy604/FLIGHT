@@ -37,18 +37,16 @@ def transform_seat_availability_lean_frontend(api_response):
                 "message": "Invalid API response"
             }
 
-        # Extract seat display configuration (minimal)
-        seat_display = _extract_seat_display(api_response)
+        # Extract ALL cabin configurations (multi-cabin support)
+        cabin_sections = _extract_all_cabin_sections(api_response)
         
         # Extract complete seat list (ALL seats)
         seats = _extract_complete_seat_map(api_response)
         
-        # Create frontend-compatible structure
+        # Create frontend-compatible structure with multiple cabins
         frontend_data = {
             "flights": [{
-                "cabin": [{
-                    "seatDisplay": seat_display
-                }]
+                "cabin": cabin_sections
             }],
             "dataLists": {
                 "seatList": {
@@ -70,6 +68,177 @@ def transform_seat_availability_lean_frontend(api_response):
             "status": "error",
             "message": f"Transformation failed: {str(e)}"
         }
+
+def _detect_cabin_separation_type(cabin, cabin_index, all_cabins):
+    """
+    🧠 INTELLIGENT CABIN SEPARATION DETECTION
+    Analyzes cabin characteristics to determine logical separation type
+    """
+    try:
+        current_rows = cabin.get('SeatDisplay', {}).get('Rows', {})
+        current_first = int(current_rows.get('First', 1))
+        current_last = int(current_rows.get('Last', 30))
+        current_columns = cabin.get('SeatDisplay', {}).get('Columns', [])
+        current_col_count = len(current_columns)
+        is_upper_deck = current_rows.get('UpperDeckInd', False)
+        cabin_code = cabin.get('Code', 'Y')
+        
+        # First cabin is always continuous (aircraft nose)
+        if cabin_index == 0:
+            if is_upper_deck:
+                return "upper_deck_start"
+            return "aircraft_nose"
+        
+        # Get previous cabin for comparison
+        prev_cabin = all_cabins[cabin_index - 1] if cabin_index > 0 else None
+        prev_rows = prev_cabin.get('SeatDisplay', {}).get('Rows', {}) if prev_cabin else {}
+        prev_last = int(prev_rows.get('Last', 0)) if prev_cabin else 0
+        prev_col_count = len(prev_cabin.get('SeatDisplay', {}).get('Columns', [])) if prev_cabin else 0
+        prev_upper_deck = prev_rows.get('UpperDeckInd', False) if prev_cabin else False
+        prev_cabin_code = prev_cabin.get('Code', 'Y') if prev_cabin else 'Y'
+        
+        # Calculate row gap between cabin sections
+        row_gap = current_first - prev_last - 1
+        
+        # 🔼 UPPER DECK DETECTION
+        if is_upper_deck and not prev_upper_deck:
+            return "upper_deck_start"
+        elif not is_upper_deck and prev_upper_deck:
+            return "upper_deck_end"
+        elif is_upper_deck and prev_upper_deck:
+            return "upper_deck_continue"
+        
+        # 🏢 CLASS SEPARATION (Business, Premium Economy, Economy)
+        if cabin_code != prev_cabin_code:
+            class_map = {
+                'F': 'First Class',
+                'J': 'Business Class', 
+                'W': 'Premium Economy',
+                'Y': 'Economy Class'
+            }
+            prev_class = class_map.get(prev_cabin_code, 'Unknown')
+            current_class = class_map.get(cabin_code, 'Unknown')
+            return f"class_change_{prev_cabin_code}_to_{cabin_code}"
+        
+        # 🚪 LARGE ROW GAP (Usually indicates major aircraft section change)
+        if row_gap >= 10:
+            return "major_separation"  # Likely wing-to-tail or major structural break
+        elif row_gap >= 5:
+            return "significant_gap"  # Likely galley, lavatory, or exit area
+        elif row_gap >= 2:
+            return "minor_gap"  # Small galley or service area
+        
+        # 📐 COLUMN CONFIGURATION CHANGE (Different aircraft width)
+        if current_col_count != prev_col_count:
+            if current_col_count > prev_col_count:
+                return "wider_section"  # Aircraft gets wider (rare)
+            else:
+                return "narrower_section"  # Aircraft gets narrower (common near tail)
+        
+        # 🎯 EXIT ROW DETECTION (Check for emergency exit markers)
+        cabin_layout = cabin.get('CabinLayout', {})
+        has_exit_indicators = any([
+            'emergency' in str(cabin_layout).lower(),
+            'exit' in str(cabin_layout).lower(),
+            current_first in [30, 40, 50, 63, 75],  # Common exit row numbers
+        ])
+        
+        if has_exit_indicators:
+            return "exit_row_section"
+        
+        # 🌐 ROW NUMBER ANALYSIS (Detect logical sections by row numbering patterns)
+        if current_first <= 10:
+            return "front_section"  # Nose/Premium area
+        elif current_first <= 30:
+            return "forward_section"  # Forward cabin
+        elif current_first <= 50:
+            return "mid_section"  # Mid cabin
+        elif current_first <= 70:
+            return "rear_section"  # Rear cabin
+        else:
+            return "tail_section"  # Tail area
+            
+    except Exception as e:
+        logger.warning(f"Error in cabin separation detection: {e}")
+        return "unknown"
+
+def _extract_all_cabin_sections(api_response):
+    """Extract ALL cabin sections with their individual configurations and intelligent separation detection"""
+    try:
+        cabin_sections = []
+        
+        # Process all cabin sections from API response
+        flights = api_response.get('Flights', [])
+        if flights and len(flights) > 0:
+            cabins = flights[0].get('Cabin', [])
+            
+            for i, cabin in enumerate(cabins):
+                seat_display = cabin.get('SeatDisplay', {})
+                if seat_display:
+                    columns = seat_display.get('Columns', [])
+                    rows = seat_display.get('Rows', {})
+                    cabin_layout = cabin.get('CabinLayout', {})
+                    
+                    # 🧠 INTELLIGENT SEPARATION DETECTION
+                    separation_type = _detect_cabin_separation_type(cabin, i, cabins)
+                    
+                    cabin_section = {
+                        "seatDisplay": {
+                            "columns": [{"value": col.get('value', ''), "position": col.get('Position', '')} for col in columns],
+                            "rows": {
+                                "first": int(rows.get('First', 1)),
+                                "last": int(rows.get('Last', 30)),
+                                "upperDeckInd": rows.get('UpperDeckInd', False)
+                            },
+                            "component": seat_display.get('Component', [])
+                        },
+                        "code": cabin.get('Code', 'Y'),  # Cabin class code
+                        "cabinLayout": cabin_layout,  # Exit rows, wing positions, etc.
+                        "separationType": separation_type  # Intelligent separation detection
+                    }
+                    
+                    cabin_sections.append(cabin_section)
+                    logger.info(f"✅ Processed cabin section {i+1}: Rows {cabin_section['seatDisplay']['rows']['first']}-{cabin_section['seatDisplay']['rows']['last']}, {len(cabin_section['seatDisplay']['columns'])} columns, separation: {separation_type}")
+        
+        if not cabin_sections:
+            # Fallback: create single default cabin
+            logger.warn("⚠️ No cabin sections found, creating default cabin")
+            cabin_sections = [{
+                "seatDisplay": {
+                    "columns": [
+                        {"value": "A", "position": "W"},
+                        {"value": "B", "position": "C"}, 
+                        {"value": "C", "position": "A"},
+                        {"value": "D", "position": "A"},
+                        {"value": "E", "position": "C"},
+                        {"value": "F", "position": "W"}
+                    ],
+                    "rows": {
+                        "first": 16,
+                        "last": 30,
+                        "upperDeckInd": False
+                    },
+                    "component": []
+                },
+                "code": "Y",
+                "cabinLayout": {}
+            }]
+        
+        logger.info(f"🛫 Total cabin sections extracted: {len(cabin_sections)}")
+        return cabin_sections
+        
+    except Exception as e:
+        logger.error(f"❌ Error extracting cabin sections: {str(e)}")
+        # Return single fallback cabin
+        return [{
+            "seatDisplay": {
+                "columns": [{"value": "A", "position": "W"}, {"value": "F", "position": "W"}],
+                "rows": {"first": 1, "last": 30, "upperDeckInd": False},
+                "component": []
+            },
+            "code": "Y",
+            "cabinLayout": {}
+        }]
 
 def _extract_seat_display(api_response):
     """Extract minimal seat display configuration"""

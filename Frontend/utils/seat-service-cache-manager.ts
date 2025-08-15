@@ -105,6 +105,11 @@ interface CachedData {
   serviceList?: ServiceListData | null
   timestamp: number
   flightPriceResponseId: string
+  // 🚀 NEW: Store actual backend storage keys
+  storageKeys?: {
+    seatAvailability?: string
+    serviceList?: string
+  }
   error?: {
     seatAvailability?: string
     serviceList?: string
@@ -119,62 +124,76 @@ class SeatServiceCacheManager {
 
   /**
    * Generate cache key from flight price response
-   * 🚀 ROBUST CACHE KEY GENERATION - Uses flight_price_cache_key as primary source
+   * 🚀 FIXED: Use backend-compatible cache key format
    */
   private generateCacheKey(flightPriceResponse: any): string {
-    // 🎯 PRIMARY METHOD: Use flight_price_cache_key directly for seat/service cache keys
-    // This ensures consistency with backend cache keys and prevents multiple API calls
+    // 🎯 CRITICAL FIX: Extract the flight_price_cache_key hash only (without prefix)
+    // Backend stores with format: seat_availability:{hash} and service_list:{hash}
+    // We need just the {hash} part to be consistent
     
-    let primaryCacheKey = null
+    let cacheKeyHash = null
     
     // Method 1: From metadata.flight_price_cache_key (preferred)
     if (flightPriceResponse?.metadata?.flight_price_cache_key) {
-      primaryCacheKey = flightPriceResponse.metadata.flight_price_cache_key
+      const fullKey = flightPriceResponse.metadata.flight_price_cache_key
+      // Extract hash from flight_price:{hash} format
+      cacheKeyHash = fullKey.includes(':') ? fullKey.split(':')[1] : fullKey
     }
-    // Method 2: From top-level flight_price_cache_key (backend guarantee)
+    // Method 2: From top-level flight_price_cache_key
     else if (flightPriceResponse?.flight_price_cache_key) {
-      primaryCacheKey = flightPriceResponse.flight_price_cache_key
+      const fullKey = flightPriceResponse.flight_price_cache_key
+      cacheKeyHash = fullKey.includes(':') ? fullKey.split(':')[1] : fullKey
     }
-    // Method 3: From data.metadata.flight_price_cache_key (nested structure)
+    // Method 3: From data.metadata.flight_price_cache_key
     else if (flightPriceResponse?.data?.metadata?.flight_price_cache_key) {
-      primaryCacheKey = flightPriceResponse.data.metadata.flight_price_cache_key
+      const fullKey = flightPriceResponse.data.metadata.flight_price_cache_key
+      cacheKeyHash = fullKey.includes(':') ? fullKey.split(':')[1] : fullKey
     }
     
-    if (primaryCacheKey) {
-      // Use the flight_price_cache_key as base for seat/service cache keys
-      // This ensures perfect consistency with backend cache management
-      const seatServiceCacheKey = `seat_service_${primaryCacheKey}`
-      logger.info(`🔑 Generated cache key from flight_price_cache_key: ${seatServiceCacheKey}`)
-      return seatServiceCacheKey
+    if (cacheKeyHash) {
+      // Return just the hash part - this will be used to build seat_availability:{hash} and service_list:{hash}
+      logger.info(`🔑 Generated cache hash from flight_price_cache_key: ${cacheKeyHash}`)
+      return cacheKeyHash
     }
     
-    // 🚨 FALLBACK METHOD: Extract from available metadata (only if primary method fails)
-    const offerId = flightPriceResponse?.offer_id || 
-                    flightPriceResponse?.id || 
-                    flightPriceResponse?.original_offer_id ||
-                    'unknown'
+    // 🚨 FALLBACK: Generate hash from flight data (must match backend logic)
+    try {
+      const dataToHash = {
+        offer_id: flightPriceResponse?.offer_id || flightPriceResponse?.original_offer_id,
+        shopping_response_id: flightPriceResponse?.metadata?.shopping_response_id || 
+                             flightPriceResponse?.metadata?.request_id ||
+                             flightPriceResponse?.request_id,
+        timestamp: Math.floor((flightPriceResponse?.metadata?.timestamp || Date.now()) / 1000) // Round to seconds
+      }
+      
+      // Simple hash generation (this should match backend hash logic)
+      const hashString = JSON.stringify(dataToHash)
+      const hash = this.generateSimpleHash(hashString)
+      
+      logger.warn(`⚠️ Using fallback hash generation: ${hash}`)
+      logger.warn(`⚠️ Hash input data:`, dataToHash)
+      
+      return hash
+    } catch (error) {
+      logger.error(`❌ Failed to generate fallback hash:`, error)
+      return 'fallback_' + Date.now()
+    }
+  }
+
+  /**
+   * Simple hash function to match backend behavior
+   */
+  private generateSimpleHash(str: string): string {
+    let hash = 0
+    if (str.length === 0) return hash.toString()
     
-    let shoppingResponseId = 'unknown'
-    
-    // Try to extract shopping response ID from various sources
-    if (flightPriceResponse?.metadata?.shopping_response_id) {
-      shoppingResponseId = flightPriceResponse.metadata.shopping_response_id
-    } else if (flightPriceResponse?.metadata?.request_id) {
-      shoppingResponseId = flightPriceResponse.metadata.request_id
-    } else if (flightPriceResponse?.request_id) {
-      shoppingResponseId = flightPriceResponse.request_id
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // Convert to 32-bit integer
     }
     
-    const fallbackCacheKey = `${shoppingResponseId}_${offerId}`
-    
-    logger.warn(`⚠️ Using fallback cache key generation: ${fallbackCacheKey}`)
-    logger.warn(`⚠️ flight_price_cache_key not found in:`, {
-      metadata_keys: Object.keys(flightPriceResponse?.metadata || {}),
-      top_level_keys: Object.keys(flightPriceResponse || {}).filter(k => k.includes('cache')),
-      has_data: !!flightPriceResponse?.data
-    })
-    
-    return fallbackCacheKey
+    return Math.abs(hash).toString(16) // Return as hex string
   }
 
   /**
@@ -296,6 +315,25 @@ class SeatServiceCacheManager {
       } else {
         logger.info("🔄 Seat availability cache miss, fetching from API")
         const response = await api.getSeatAvailability(flightPriceResponse)
+        
+        // 🚀 STORE the backend storage key for future cache operations
+        if (response.data && response.storage_key) {
+          const cacheKey = this.generateCacheKey(flightPriceResponse)
+          const existingCache = this.cache.get(cacheKey) || {
+            timestamp: Date.now(),
+            flightPriceResponseId: cacheKey,
+            storageKeys: {}
+          }
+          
+          if (!existingCache.storageKeys) {
+            existingCache.storageKeys = {}
+          }
+          existingCache.storageKeys.seatAvailability = response.storage_key
+          this.cache.set(cacheKey, existingCache)
+          
+          logger.info(`🔑 Stored seat availability storage key: ${response.storage_key}`)
+        }
+        
         return response.data
       }
     } catch (error) {
@@ -318,6 +356,25 @@ class SeatServiceCacheManager {
       } else {
         logger.info("🔄 Service list cache miss, fetching from API")
         const response = await api.getServiceList(flightPriceResponse)
+        
+        // 🚀 STORE the backend storage key for future cache operations
+        if (response.data && response.storage_key) {
+          const cacheKey = this.generateCacheKey(flightPriceResponse)
+          const existingCache = this.cache.get(cacheKey) || {
+            timestamp: Date.now(),
+            flightPriceResponseId: cacheKey,
+            storageKeys: {}
+          }
+          
+          if (!existingCache.storageKeys) {
+            existingCache.storageKeys = {}
+          }
+          existingCache.storageKeys.serviceList = response.storage_key
+          this.cache.set(cacheKey, existingCache)
+          
+          logger.info(`🔑 Stored service list storage key: ${response.storage_key}`)
+        }
+        
         return response.data
       }
     } catch (error) {
@@ -412,7 +469,7 @@ class SeatServiceCacheManager {
 
   /**
    * Get cache status for debugging
-   * 🚀 ENHANCED: Include global loading state information
+   * 🚀 ENHANCED: Include global loading state information and storage keys
    */
   getCacheStatus(): {
     totalEntries: number
@@ -422,13 +479,20 @@ class SeatServiceCacheManager {
     cacheKeys: string[]
     loadingKeys: string[]
     globalLoadingKeys: string[]
+    storageKeys: { [key: string]: { seatAvailability?: string, serviceList?: string } }
   } {
     const now = Date.now()
     let expiredCount = 0
+    const storageKeys: { [key: string]: { seatAvailability?: string, serviceList?: string } } = {}
 
-    for (const cached of this.cache.values()) {
+    for (const [key, cached] of this.cache.entries()) {
       if ((now - cached.timestamp) >= this.CACHE_EXPIRY) {
         expiredCount++
+      }
+      
+      // Track storage keys for debugging
+      if (cached.storageKeys) {
+        storageKeys[key] = cached.storageKeys
       }
     }
 
@@ -439,7 +503,8 @@ class SeatServiceCacheManager {
       globalLoadingStates: this.globalLoadingState.size,
       cacheKeys: Array.from(this.cache.keys()),
       loadingKeys: Array.from(this.loadingPromises.keys()),
-      globalLoadingKeys: Array.from(this.globalLoadingState.keys())
+      globalLoadingKeys: Array.from(this.globalLoadingState.keys()),
+      storageKeys
     }
   }
 }

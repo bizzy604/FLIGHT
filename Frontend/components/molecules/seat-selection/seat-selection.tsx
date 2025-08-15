@@ -83,6 +83,67 @@ interface SeatAvailabilityResponse {
   }
 }
 
+interface CabinSection {
+  index: number
+  seatDisplay?: {
+    columns?: Array<{
+      value: string
+      position: string
+    }>
+    rows?: {
+      first: number
+      last: number
+      upperDeckInd: boolean
+    }
+    component?: Array<{
+      locations: {
+        location: Array<{
+          row: {
+            position: number
+          }
+          column: {
+            position: string
+          }
+        }>
+      }
+      type: {
+        code: string
+      }
+    }>
+  }
+  code?: string
+  cabinLayout?: any
+  separationType?: string
+}
+
+interface SeatMap {
+  cabinSections: CabinSection[]
+  columns?: Array<{
+    value: string
+    position: string
+  }>
+  rows?: {
+    first: number
+    last: number
+    upperDeckInd: boolean
+  }
+  component?: Array<{
+    locations: {
+      location: Array<{
+        row: {
+          position: number
+        }
+        column: {
+          position: string
+        }
+      }>
+    }
+    type: {
+      code: string
+    }
+  }>
+}
+
 // Comprehensive IATA Seat Characteristic Codes mapping (from IATA Codeset Directory v24.1)
 const seatCodes = {
   // Basic restrictions and features
@@ -293,6 +354,104 @@ interface SeatSelectionProps {
   className?: string
 }
 
+// 🧠 INTELLIGENT CABIN SEPARATION HELPERS
+const getSectionDisplayName = (cabin: any): string => {
+  const separationType = cabin.separationType
+  const isUpperDeck = cabin.seatDisplay?.rows?.upperDeckInd
+  const cabinIndex = cabin.index
+
+  // Priority-based naming logic
+  if (isUpperDeck) {
+    return separationType === 'upper_deck_start' ? '🔼 Upper Deck' : `🔼 Upper Deck ${cabinIndex}`
+  }
+
+  switch (separationType) {
+    case 'aircraft_nose':
+      return '✈️ Front Section'
+    case 'front_section':
+      return '🎭 Premium Section'
+    case 'forward_section':
+      return '⬆️ Forward Cabin'
+    case 'mid_section':
+      return '🎯 Mid Cabin'
+    case 'rear_section':
+      return '⬇️ Rear Cabin'
+    case 'tail_section':
+      return '🔚 Tail Section'
+    case 'exit_row_section':
+      return '🚪 Exit Row Area'
+    case 'major_separation':
+      return `🛫 Section ${cabinIndex}`
+    case 'significant_gap':
+      return `🏢 Cabin ${cabinIndex}`
+    case 'minor_gap':
+      return `📍 Area ${cabinIndex}`
+    case 'wider_section':
+      return `📐 Wide Section`
+    case 'narrower_section':
+      return `📐 Narrow Section`
+    default:
+      return `Cabin ${cabinIndex}`
+  }
+}
+
+const getCabinClassName = (code: string): string => {
+  const classMap: Record<string, string> = {
+    'F': 'First Class',
+    'J': 'Business Class',
+    'W': 'Premium Economy',
+    'Y': 'Economy Class',
+    'C': 'Business Class'
+  }
+  return classMap[code] || 'Economy Class'
+}
+
+const getSeparationDescription = (separationType: string): string => {
+  const descriptions: Record<string, string> = {
+    'aircraft_nose': 'Nose',
+    'upper_deck_start': 'Upper Deck',
+    'upper_deck_continue': 'Upper Deck',
+    'upper_deck_end': 'Main Deck',
+    'class_change_F_to_J': 'First → Business',
+    'class_change_J_to_W': 'Business → Premium Economy',
+    'class_change_W_to_Y': 'Premium Economy → Economy',
+    'class_change_J_to_Y': 'Business → Economy',
+    'major_separation': 'Major Gap',
+    'significant_gap': 'Service Area',
+    'minor_gap': 'Small Gap',
+    'exit_row_section': 'Emergency Exit',
+    'front_section': 'Front',
+    'forward_section': 'Forward',
+    'mid_section': 'Mid',
+    'rear_section': 'Rear',
+    'tail_section': 'Tail',
+    'wider_section': 'Wider Body',
+    'narrower_section': 'Narrower Body'
+  }
+  return descriptions[separationType] || 'Standard'
+}
+
+const getSeparationStyling = (separationType: string): string => {
+  // Color coding based on separation significance
+  if (separationType.includes('upper_deck')) {
+    return 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+  }
+  if (separationType.includes('class_change')) {
+    return 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
+  }
+  if (separationType === 'major_separation') {
+    return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+  }
+  if (separationType.includes('exit')) {
+    return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+  }
+  if (separationType === 'aircraft_nose') {
+    return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+  }
+  // Default styling for minor gaps and standard sections
+  return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+}
+
 export function SeatSelection({ 
   flightPriceResponse, 
   flightType, 
@@ -303,7 +462,7 @@ export function SeatSelection({
   className 
 }: SeatSelectionProps) {
   const [seats, setSeats] = useState<Seat[]>([])
-  const [seatMap, setSeatMap] = useState<any>(null)
+  const [seatMap, setSeatMap] = useState<SeatMap | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
@@ -311,6 +470,74 @@ export function SeatSelection({
   const [activeFilter, setActiveFilter] = useState<'standard' | 'premium' | 'preferred' | 'exit' | null>(null)
   const [highlightedSeats, setHighlightedSeats] = useState<string[]>([])
   const [filterCount, setFilterCount] = useState<number>(0)
+
+  // 🚀 HELPER FUNCTIONS: Moved before useMemo to fix hoisting issue
+  const getSeatInfo = (seatId: string): Seat | null => {
+    const seatInfo = seats.find(seat => {
+      const row = seat.location.row.number.value
+      const column = seat.location.column
+      return `${row}${column}` === seatId
+    }) || null
+    
+    // Debug logging for first few seat lookups
+    if (seats.length > 0 && Math.random() < 0.1) { // Log 10% of lookups to avoid spam
+      logger.info(`🔍 Seat lookup for ${seatId}: found=${!!seatInfo}, total_seats=${seats.length}`)
+    }
+    
+    return seatInfo
+  }
+
+  const getSeatType = (seat: Seat): 'standard' | 'premium' | 'exit' | 'preferred' => {
+    if (!seat.location.characteristics?.characteristic) return 'standard'
+    
+    const codes = seat.location.characteristics.characteristic.map(c => c.code)
+    
+    // Priority classification based on IATA codes (order matters for user experience)
+    
+    // 1. EMERGENCY EXIT (Highest priority - special safety requirements)
+    if (codes.includes('E')) return 'exit' 
+    
+    // 2. PREMIUM EXPERIENCE (Extra comfort, space, or amenities)
+    if (codes.includes('FC') ||    // Front of cabin
+        codes.includes('K') ||     // Bulkhead seat (extra space)
+        codes.includes('L') ||     // Extra leg space seat
+        codes.includes('LF') ||    // Lie flat seat
+        codes.includes('BS') ||    // Business Class Suite
+        codes.includes('FS') ||    // First Class Suite
+        codes.includes('ES') ||    // Suite
+        codes.includes('PE') ||    // Premium Economy Suite
+        codes.includes('EK') ||    // Economy comfort seat
+        codes.includes('2') ||     // Leg rest available
+        codes.includes('EC') ||    // AC Power Outlet
+        codes.includes('US')) {    // USB Power Port
+      return 'premium'
+    }
+    
+    // 3. PREFERRED LOCATION (Airline charges extra for better location)
+    if (codes.includes('CH') ||    // Chargeable seat
+        codes.includes('73') ||    // Conditional chargeable seat
+        codes.includes('O')) {     // Preferential seat
+      return 'preferred'
+    }
+    
+    // 4. STANDARD (Regular economy seats)
+    return 'standard'
+  }
+
+  const getSeatFeatures = (seat: Seat): string[] => {
+    if (!seat.location.characteristics?.characteristic) return []
+    
+    const codes = seat.location.characteristics.characteristic.map(c => c.code)
+    const features: string[] = []
+    
+    codes.forEach(code => {
+      if (seatCodes[code as keyof typeof seatCodes]) {
+        features.push(seatCodes[code as keyof typeof seatCodes])
+      }
+    })
+    
+    return features
+  }
 
   // 🚀 PERFORMANCE: Pre-compute seat characteristics map (runs only when seats change)
   const seatCharacteristicsMap = useMemo(() => {
@@ -418,9 +645,23 @@ export function SeatSelection({
         setError("Failed to load seat map. Using simplified layout.")
         // Use fallback data
         setSeatMap({
-          columns: ["A", "B", "C", "", "D", "E", "F"],
-          rows: { first: 1, last: 30 },
-          components: []
+          cabinSections: [{
+            index: 1,
+            seatDisplay: {
+              columns: [
+                {value: "A", position: "left"}, 
+                {value: "B", position: "center"}, 
+                {value: "C", position: "aisle"}, 
+                {value: "D", position: "aisle"}, 
+                {value: "E", position: "center"}, 
+                {value: "F", position: "right"}
+              ],
+              rows: { first: 1, last: 30, upperDeckInd: false },
+              component: []
+            },
+            code: 'Y',
+            cabinLayout: {}
+          }]
         })
         setSeats([])
       } finally {
@@ -474,26 +715,50 @@ export function SeatSelection({
         logger.info('✅ Extracted data from status wrapper')
       }
       
-      // Set seat display configuration
-      if (actualData?.flights?.[0]?.cabin?.[0]?.seatDisplay) {
-        const seatDisplay = actualData.flights[0].cabin[0].seatDisplay
-        const seatMapConfig = {
-          columns: seatDisplay.columns?.map((col: any) => col.value) || [],
-          rows: seatDisplay.rows || { first: 1, last: 30 },
-          components: seatDisplay.component || []
-        }
-        setSeatMap(seatMapConfig)
-        logger.info('✅ Set seat map configuration from response:', {
-          columns_count: seatMapConfig.columns.length,
-          row_range: seatMapConfig.rows,
-          total_expected_positions: (seatMapConfig.rows.last - seatMapConfig.rows.first + 1) * seatMapConfig.columns.length
+      // Set seat display configuration from all cabin sections
+      if (actualData?.flights?.[0]?.cabin) {
+        const cabinSections = actualData.flights[0].cabin
+        logger.info(`🛫 Processing ${cabinSections.length} cabin sections`)
+        
+        // Set combined configuration for all cabins
+        const allCabinSections = cabinSections.map((cabin: any, index: number) => ({
+          index: index + 1,
+          seatDisplay: cabin.seatDisplay,
+          code: cabin.code || 'Y',
+          cabinLayout: cabin.cabinLayout || {}
+        }))
+        
+        setSeatMap({ cabinSections: allCabinSections })
+        
+        logger.info('✅ Set multi-cabin seat map configuration from response:', {
+          cabin_count: allCabinSections.length,
+          cabin_details: allCabinSections.map((cabin: CabinSection) => ({
+            index: cabin.index,
+            columns_count: cabin.seatDisplay?.columns?.length || 0,
+            row_range: cabin.seatDisplay?.rows,
+            is_upper_deck: cabin.seatDisplay?.rows?.upperDeckInd || false
+          }))
         })
       } else {
-        logger.warn('⚠️ No seatDisplay found, using fallback configuration')
+        logger.warn('⚠️ No cabin sections found, using fallback configuration')
         setSeatMap({
-          columns: ["A", "B", "C", "", "D", "E", "F", "", "H", "J", "K"],
-          rows: { first: 1, last: 50 },
-          components: []
+          cabinSections: [{
+            index: 1,
+            seatDisplay: {
+              columns: [
+                {value: "A", position: "left"}, 
+                {value: "B", position: "center"}, 
+                {value: "C", position: "aisle"}, 
+                {value: "D", position: "aisle"}, 
+                {value: "E", position: "center"}, 
+                {value: "F", position: "right"}
+              ],
+              rows: { first: 1, last: 30, upperDeckInd: false },
+              component: []
+            },
+            code: 'Y',
+            cabinLayout: {}
+          }]
         })
       }
 
@@ -527,19 +792,13 @@ export function SeatSelection({
         const minRow = Math.min(...rows)
         const maxRow = Math.max(...rows)
         
-        // 🚀 CRITICAL FIX: Update seat map rows based on actual seat data
+        // 🚀 CRITICAL FIX: Validate seat map against actual seat data
         if (rows.length > 0) {
-          setSeatMap((prevMap: any) => ({
-            ...prevMap,
-            rows: {
-              first: minRow,
-              last: maxRow,
-              upperDeckInd: false
-            }
-          }))
-          logger.info('🔧 Updated seat map rows based on actual seat data:', {
-            previous_fallback: { first: 1, last: 30 },
-            updated_to: { first: minRow, last: maxRow }
+          logger.info('🔧 Validated multi-cabin seat map against actual seat data:', {
+            min_row: minRow,
+            max_row: maxRow,
+            total_rows_with_seats: rows.length,
+            total_seats: seatsArray.length
           })
         }
         
@@ -560,9 +819,23 @@ export function SeatSelection({
         // Create fallback data
         setSeats([])
         setSeatMap({
-          columns: ["A", "B", "C", "", "D", "E", "F"],
-          rows: { first: 1, last: 30 },
-          components: []
+          cabinSections: [{
+            index: 1,
+            seatDisplay: {
+              columns: [
+                {value: "A", position: "left"}, 
+                {value: "B", position: "center"}, 
+                {value: "C", position: "aisle"}, 
+                {value: "D", position: "aisle"}, 
+                {value: "E", position: "center"}, 
+                {value: "F", position: "right"}
+              ],
+              rows: { first: 1, last: 30, upperDeckInd: false },
+              component: []
+            },
+            code: 'Y',
+            cabinLayout: {}
+          }]
         })
       }
     }
@@ -594,72 +867,22 @@ export function SeatSelection({
     loadSeatAvailability()
   }, [flightPriceResponse, segmentKey])
 
-  const getSeatInfo = (seatId: string): Seat | null => {
-    const seatInfo = seats.find(seat => {
-      const row = seat.location.row.number.value
-      const column = seat.location.column
-      return `${row}${column}` === seatId
-    }) || null
-    
-    // Debug logging for first few seat lookups
-    if (seats.length > 0 && Math.random() < 0.1) { // Log 10% of lookups to avoid spam
-      logger.info(`🔍 Seat lookup for ${seatId}: found=${!!seatInfo}, total_seats=${seats.length}`)
+  // 🔍 DEBUG: Log dynamic layout information for all cabins
+  useEffect(() => {
+    if (seatMap?.cabinSections && seatMap.cabinSections.length > 0) {
+      logger.info('🚀 MULTI-CABIN SEAT LAYOUT:', {
+        total_cabins: seatMap.cabinSections.length,
+        cabin_details: seatMap.cabinSections.map((cabin: CabinSection) => ({
+          cabin_index: cabin.index,
+          cabin_code: cabin.code,
+          columns: cabin.seatDisplay?.columns?.map((col: any) => col.value) || [],
+          column_count: cabin.seatDisplay?.columns?.length || 0,
+          row_range: `${cabin.seatDisplay?.rows?.first}-${cabin.seatDisplay?.rows?.last}`,
+          is_upper_deck: cabin.seatDisplay?.rows?.upperDeckInd || false
+        }))
+      })
     }
-    
-    return seatInfo
-  }
-
-  const getSeatType = (seat: Seat): 'standard' | 'premium' | 'exit' | 'preferred' => {
-    if (!seat.location.characteristics?.characteristic) return 'standard'
-    
-    const codes = seat.location.characteristics.characteristic.map(c => c.code)
-    
-    // Priority classification based on IATA codes (order matters for user experience)
-    
-    // 1. EMERGENCY EXIT (Highest priority - special safety requirements)
-    if (codes.includes('E')) return 'exit' 
-    
-    // 2. PREMIUM EXPERIENCE (Extra comfort, space, or amenities)
-    if (codes.includes('FC') ||    // Front of cabin
-        codes.includes('K') ||     // Bulkhead seat (extra space)
-        codes.includes('L') ||     // Extra leg space seat
-        codes.includes('LF') ||    // Lie flat seat
-        codes.includes('BS') ||    // Business Class Suite
-        codes.includes('FS') ||    // First Class Suite
-        codes.includes('ES') ||    // Suite
-        codes.includes('PE') ||    // Premium Economy Suite
-        codes.includes('EK') ||    // Economy comfort seat
-        codes.includes('2') ||     // Leg rest available
-        codes.includes('EC') ||    // AC Power Outlet
-        codes.includes('US')) {    // USB Power Port
-      return 'premium'
-    }
-    
-    // 3. PREFERRED LOCATION (Airline charges extra for better location)
-    if (codes.includes('CH') ||    // Chargeable seat
-        codes.includes('73') ||    // Conditional chargeable seat
-        codes.includes('O')) {     // Preferential seat
-      return 'preferred'
-    }
-    
-    // 4. STANDARD (Regular economy seats)
-    return 'standard'
-  }
-
-  const getSeatFeatures = (seat: Seat): string[] => {
-    if (!seat.location.characteristics?.characteristic) return []
-    
-    const codes = seat.location.characteristics.characteristic.map(c => c.code)
-    const features: string[] = []
-    
-    codes.forEach(code => {
-      if (seatCodes[code as keyof typeof seatCodes]) {
-        features.push(seatCodes[code as keyof typeof seatCodes])
-      }
-    })
-    
-    return features
-  }
+  }, [seatMap?.cabinSections])
 
   const getSeatRestrictions = (seat: Seat): string[] => {
     if (!seat.location.characteristics?.characteristic) return []
@@ -815,11 +1038,75 @@ export function SeatSelection({
     )
   }
 
-  if (!seatMap) return null
+  if (!seatMap?.cabinSections) return null
 
-  const columns = seatMap.columns || []
-  const rowRange = seatMap.rows || { first: 1, last: 30 }
-  const totalRows = rowRange.last - rowRange.first + 1
+  const cabinSections = seatMap.cabinSections || []
+
+  // 🚀 DYNAMIC LAYOUT: Generate grid template and column layout for each cabin section
+  const generateDynamicLayoutForCabin = (cabinColumns: string[]) => {
+    if (!cabinColumns.length) {
+      // Fallback to standard 3-3-3 layout
+      return {
+        gridTemplate: '30px repeat(3, 40px) 60px repeat(3, 40px) 60px repeat(3, 40px) 30px',
+        columnLayout: ['A', 'B', 'C', '', 'D', 'E', 'F', '', 'H', 'J', 'K']
+      }
+    }
+
+    // Create dynamic column layout with aisles
+    const columnLayout = []
+    let gridTemplate = '30px ' // Row number column
+    
+    // 🚀 INTELLIGENT AISLE PLACEMENT: Detect aisle positions based on column letters
+    const getAislePositions = (cols: string[]) => {
+      const aisles = []
+      
+      // Look for natural break points in the alphabet sequence
+      for (let i = 1; i < cols.length; i++) {
+        const currentChar = cols[i].charCodeAt(0)
+        const prevChar = cols[i-1].charCodeAt(0)
+        
+        // If there's a gap in the alphabet (e.g., C to E, F to H), add an aisle
+        if (currentChar - prevChar > 1) {
+          aisles.push(i)
+        }
+      }
+      
+      // If no natural breaks found, use standard configurations
+      if (aisles.length === 0) {
+        const standardConfigs: Record<number, number[]> = {
+          6: [3],           // ABC DEF
+          7: [3],           // ABC DEFG  
+          8: [2, 6],        // AB CDEF GH
+          9: [3, 6],        // ABC DEF GHI
+          10: [3, 7],       // ABC DEFG HIJ
+          11: [3, 8],       // ABC DEFGH IJK
+          12: [3, 9]        // ABC DEFGHI JKL
+        }
+        return standardConfigs[cols.length] || []
+      }
+      
+      return aisles
+    }
+
+    const aislePositions = getAislePositions(cabinColumns)
+    
+    for (let i = 0; i < cabinColumns.length; i++) {
+      const column = cabinColumns[i]
+      
+      // Add aisle space before this column if it's an aisle position
+      if (aislePositions.includes(i)) {
+        columnLayout.push('')
+        gridTemplate += '60px ' // Aisle space
+      }
+      
+      columnLayout.push(column)
+      gridTemplate += '40px ' // Seat column
+    }
+    
+    gridTemplate += '30px' // Row number column (right side)
+    
+    return { gridTemplate, columnLayout }
+  }
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -831,6 +1118,19 @@ export function SeatSelection({
         </div>
         <div className="text-sm text-gray-600 dark:text-gray-300 mb-4">
           All seats are shown for your reference. Choose any available seat that fits your needs and budget.
+          {cabinSections.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {cabinSections.map((cabin: CabinSection, index: number) => {
+                const columns = cabin.seatDisplay?.columns?.map((col: any) => col.value) || []
+                const isUpperDeck = cabin.seatDisplay?.rows?.upperDeckInd || false
+                return (
+                  <span key={index} className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-md text-xs font-medium">
+                    {isUpperDeck ? '🔼 Upper Deck' : `Cabin ${cabin.index}`}: {columns.length}-col ({columns.join('')})
+                  </span>
+                )
+              })}
+            </div>
+          )}
         </div>
         {error && (
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-3 mb-4 flex items-center gap-2 text-sm text-yellow-800 dark:text-yellow-200">
@@ -1082,138 +1382,180 @@ export function SeatSelection({
         </div>
       )}
 
-      {/* Aircraft Seat Map */}
+      {/* Multi-Cabin Aircraft Seat Map */}
       <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
-        <div className="max-w-2xl mx-auto">
-          {/* Aircraft container */}
-          <div className="bg-gradient-to-b from-gray-100 to-white dark:from-gray-700 dark:to-gray-800 rounded-t-full rounded-b-lg p-8 relative">
-            {/* Aircraft nose */}
-            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 w-20 h-16 bg-gradient-to-b from-gray-400 to-gray-100 dark:from-gray-500 dark:to-gray-700 rounded-t-full"></div>
+        <div className="max-w-4xl mx-auto space-y-8">
+          {cabinSections.map((cabin: CabinSection, cabinIndex: number) => {
+            const columns = cabin.seatDisplay?.columns?.map((col: any) => col.value) || []
+            const rowRange = cabin.seatDisplay?.rows || { first: 1, last: 30, upperDeckInd: false }
+            const totalRows = rowRange.last - rowRange.first + 1
+            const isUpperDeck = rowRange.upperDeckInd
+            const { gridTemplate, columnLayout } = generateDynamicLayoutForCabin(columns)
             
-            {/* Seat rows */}
-            <div className="space-y-2 pt-6">
-              {Array.from({ length: totalRows }).map((_, rowIndex) => {
-                const rowNum = rowRange.first + rowIndex
-                const isExitRow = rowNum === 30 // Assuming row 30 is exit row
-                
-                return (
-                  <div key={rowNum} className={cn(
-                    "grid gap-1 items-center justify-center",
-                    isExitRow && "bg-blue-50 dark:bg-blue-900/20 border-2 border-dashed border-blue-400 dark:border-blue-500 rounded-lg p-2 my-2"
-                  )} style={{ gridTemplateColumns: '30px repeat(3, 40px) 60px repeat(3, 40px) 60px repeat(3, 40px) 30px' }}>
-                    {/* Row number left */}
-                    <div className="text-center text-sm font-semibold text-gray-600 dark:text-gray-300">{rowNum}</div>
-                    
-                    {/* Seats with proper spacing */}
-                    {['A', 'B', 'C', '', 'D', 'E', 'F', '', 'H', 'J', 'K'].map((col, colIndex) => {
-                      if (col === '') return <div key={`aisle-${colIndex}`} className="w-15"></div>
-                      
-                      const seatId = `${rowNum}${col}`
-                      const seatInfo = getSeatInfo(seatId)
-                      const isAvailable = isSeatAvailable(seatId)
-                      const seatType = seatInfo ? getSeatType(seatInfo) : 'standard'
-                      const isSelected = selectedSeats.includes(seatId)
-                      const price = getSeatPrice(seatId)
-                      const features = seatInfo ? getSeatFeatures(seatInfo) : []
-                      const restrictions = seatInfo ? getSeatRestrictions(seatInfo) : []
-                      const icons = seatInfo ? getSeatIcons(seatInfo) : []
-                      
-                      let seatClasses = "w-10 h-10 rounded-lg border-2 cursor-pointer transition-all duration-300 relative flex items-center justify-center text-xs font-semibold hover:scale-110"
-                      
-                      // 🎯 FILTERING LOGIC: Apply highlight/fade effects based on active filter
-                      if (activeFilter) {
-                        const seatCharacteristics = seatCharacteristicsMap[seatId]
-                        const matchesFilter = seatCharacteristics && highlightedSeats.includes(seatId)
-                        
-                        if (matchesFilter && isAvailable && seatInfo) {
-                          // Highlight matching seats with glow effect
-                          seatClasses += " ring-4 ring-yellow-400 ring-opacity-75 shadow-lg shadow-yellow-200 scale-105 z-10"
-                        } else if (isAvailable && seatInfo) {
-                          // Fade non-matching available seats
-                          seatClasses += " opacity-40"
-                        }
-                      }
-                      
-                      if (!isAvailable || !seatInfo) {
-                        seatClasses += " bg-gray-300 dark:bg-gray-600 border-gray-400 dark:border-gray-500 cursor-not-allowed opacity-60"
-                      } else if (isSelected) {
-                        seatClasses += " bg-gradient-to-br from-green-400 to-green-600 border-green-500 text-white shadow-lg scale-105"
-                      } else {
-                        switch (seatType) {
-                          case 'premium':
-                            seatClasses += " bg-white dark:bg-gray-700 border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                            break
-                          case 'preferred':
-                            seatClasses += " bg-white dark:bg-gray-700 border-amber-500 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-                            break
-                          case 'exit':
-                            seatClasses += " bg-white dark:bg-gray-700 border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            break
-                          default: // standard
-                            seatClasses += " bg-white dark:bg-gray-700 border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
-                        }
-                      }
+            return (
+              <div key={`cabin-${cabinIndex}`} className="relative">
+                {/* Intelligent Cabin Section Header */}
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={cn(
+                    "px-3 py-1 rounded-full text-sm font-semibold",
+                    isUpperDeck 
+                      ? "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200" 
+                      : "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200"
+                  )}>
+                    {getSectionDisplayName(cabin)} 
+                    {cabin.code && cabin.code !== 'Y' && ` (${getCabinClassName(cabin.code)})`}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">
+                    Rows {rowRange.first}-{rowRange.last} • {columns.length} columns ({columns.join('')})
+                  </div>
+                  {/* Separation Type Indicator */}
+                  {cabin.separationType && (
+                    <div className={cn(
+                      "px-2 py-1 rounded text-xs font-medium",
+                      getSeparationStyling(cabin.separationType)
+                    )}>
+                      {getSeparationDescription(cabin.separationType)}
+                    </div>
+                  )}
+                </div>
 
+                {/* Aircraft container for this cabin */}
+                <div className={cn(
+                  "bg-gradient-to-b from-gray-100 to-white dark:from-gray-700 dark:to-gray-800 rounded-lg p-6 relative",
+                  isUpperDeck && "bg-gradient-to-b from-purple-100 to-purple-50 dark:from-purple-900/20 dark:to-purple-800/10 border-2 border-purple-200 dark:border-purple-700"
+                )}>
+                  {/* Aircraft nose (only for first cabin) */}
+                  {cabinIndex === 0 && (
+                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 w-20 h-16 bg-gradient-to-b from-gray-400 to-gray-100 dark:from-gray-500 dark:to-gray-700 rounded-t-full"></div>
+                  )}
+                  
+                  {/* Seat rows for this cabin */}
+                  <div className="space-y-2 pt-2">
+                    {Array.from({ length: totalRows }).map((_, rowIndex) => {
+                      const rowNum = rowRange.first + rowIndex
+                      const isExitRow = rowNum === 30 || rowNum === 40 || rowNum === 63 || rowNum === 75 // Common exit rows
+                      
                       return (
-                        <div key={seatId} className="relative">
-                          <button
-                            className={cn(seatClasses, "group")}
-                            onClick={() => handleSeatSelect(seatId)}
-                            disabled={!isAvailable || !seatInfo}
-                          >
-                            {col}
-                            {/* Price indicator */}
-                            {seatType === 'preferred' && !isSelected && (
-                              <span className="absolute top-0 right-0 text-xs text-amber-500">{getCurrencyIndicator(getSeatCurrency())}</span>
-                            )}
-                            {seatType === 'premium' && !isSelected && (
-                              <span className="absolute bottom-0 right-0 text-xs text-blue-500">+</span>
-                            )}
-                            {seatType === 'exit' && !isSelected && (
-                              <span className="absolute top-0 left-0 text-xs text-red-500">⚠️</span>
-                            )}
-                            {/* Icons */}
-                            {icons.length > 0 && (
-                              <div className="absolute -top-1 -right-1 flex gap-1">
-                                {icons.slice(0, 2).map((icon, i) => (
-                                  <span key={i} className="text-xs">{icon}</span>
-                                ))}
-                              </div>
-                            )}
+                        <div key={`${cabin.index}-${rowNum}`} className={cn(
+                          "grid gap-1 items-center justify-center",
+                          isExitRow && "bg-blue-50 dark:bg-blue-900/20 border-2 border-dashed border-blue-400 dark:border-blue-500 rounded-lg p-2 my-2"
+                        )} style={{ gridTemplateColumns: gridTemplate }}>
+                          {/* Row number left */}
+                          <div className="text-center text-sm font-semibold text-gray-600 dark:text-gray-300">{rowNum}</div>
+                          
+                          {/* Dynamic seats with proper spacing for this cabin */}
+                          {columnLayout.map((col, colIndex) => {
+                            if (col === '') return <div key={`cabin-${cabin.index}-aisle-${colIndex}`} className="w-15"></div>
                             
-                            {/* Tooltip - Now attached directly to button with group-hover */}
-                            {(isAvailable && seatInfo) && (
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
-                                <div className="bg-gray-900 text-white text-xs rounded-lg p-3 whitespace-nowrap min-w-36 shadow-lg">
-                                  <div className="font-bold mb-1 pb-1 border-b border-gray-600">
-                                    Seat {seatId} - {formatCurrencyForDisplay(price, getSeatCurrency())}
-                                  </div>
-                                  <div className="space-y-1">
-                                    {features.slice(0, 3).map((feature, i) => (
-                                      <div key={i}>• {feature}</div>
-                                    ))}
-                                  </div>
-                                  {restrictions.length > 0 && (
-                                    <div className="mt-2 pt-2 border-t border-gray-600 text-yellow-400">
-                                      ⚠️ {restrictions.join(', ')}
+                            const seatId = `${rowNum}${col}`
+                            const seatInfo = getSeatInfo(seatId)
+                            const isAvailable = isSeatAvailable(seatId)
+                            const seatType = seatInfo ? getSeatType(seatInfo) : 'standard'
+                            const isSelected = selectedSeats.includes(seatId)
+                            const price = getSeatPrice(seatId)
+                            const features = seatInfo ? getSeatFeatures(seatInfo) : []
+                            const restrictions = seatInfo ? getSeatRestrictions(seatInfo) : []
+                            const icons = seatInfo ? getSeatIcons(seatInfo) : []
+                            
+                            let seatClasses = "w-10 h-10 rounded-lg border-2 cursor-pointer transition-all duration-300 relative flex items-center justify-center text-xs font-semibold hover:scale-110"
+                            
+                            // 🎯 FILTERING LOGIC: Apply highlight/fade effects based on active filter
+                            if (activeFilter) {
+                              const seatCharacteristics = seatCharacteristicsMap[seatId]
+                              const matchesFilter = seatCharacteristics && highlightedSeats.includes(seatId)
+                              
+                              if (matchesFilter && isAvailable && seatInfo) {
+                                // Highlight matching seats with glow effect
+                                seatClasses += " ring-4 ring-yellow-400 ring-opacity-75 shadow-lg shadow-yellow-200 scale-105 z-10"
+                              } else if (isAvailable && seatInfo) {
+                                // Fade non-matching available seats
+                                seatClasses += " opacity-40"
+                              }
+                            }
+                            
+                            if (!isAvailable || !seatInfo) {
+                              seatClasses += " bg-gray-300 dark:bg-gray-600 border-gray-400 dark:border-gray-500 cursor-not-allowed opacity-60"
+                            } else if (isSelected) {
+                              seatClasses += " bg-gradient-to-br from-green-400 to-green-600 border-green-500 text-white shadow-lg scale-105"
+                            } else {
+                              switch (seatType) {
+                                case 'premium':
+                                  seatClasses += " bg-white dark:bg-gray-700 border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                  break
+                                case 'preferred':
+                                  seatClasses += " bg-white dark:bg-gray-700 border-amber-500 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                                  break
+                                case 'exit':
+                                  seatClasses += " bg-white dark:bg-gray-700 border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                  break
+                                default: // standard
+                                  seatClasses += " bg-white dark:bg-gray-700 border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
+                              }
+                            }
+
+                            return (
+                              <div key={`${cabin.index}-${seatId}`} className="relative">
+                                <button
+                                  className={cn(seatClasses, "group")}
+                                  onClick={() => handleSeatSelect(seatId)}
+                                  disabled={!isAvailable || !seatInfo}
+                                >
+                                  {col}
+                                  {/* Price indicator */}
+                                  {seatType === 'preferred' && !isSelected && (
+                                    <span className="absolute top-0 right-0 text-xs text-amber-500">{getCurrencyIndicator(getSeatCurrency())}</span>
+                                  )}
+                                  {seatType === 'premium' && !isSelected && (
+                                    <span className="absolute bottom-0 right-0 text-xs text-blue-500">+</span>
+                                  )}
+                                  {seatType === 'exit' && !isSelected && (
+                                    <span className="absolute top-0 left-0 text-xs text-red-500">⚠️</span>
+                                  )}
+                                  {/* Icons */}
+                                  {icons.length > 0 && (
+                                    <div className="absolute -top-1 -right-1 flex gap-1">
+                                      {icons.slice(0, 2).map((icon, i) => (
+                                        <span key={i} className="text-xs">{icon}</span>
+                                      ))}
                                     </div>
                                   )}
-                                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-6 border-transparent border-t-gray-900"></div>
-                                </div>
+                                  
+                                  {/* Tooltip - Now attached directly to button with group-hover */}
+                                  {(isAvailable && seatInfo) && (
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
+                                      <div className="bg-gray-900 text-white text-xs rounded-lg p-3 whitespace-nowrap min-w-36 shadow-lg">
+                                        <div className="font-bold mb-1 pb-1 border-b border-gray-600">
+                                          Seat {seatId} - {formatCurrencyForDisplay(price, getSeatCurrency())}
+                                        </div>
+                                        <div className="space-y-1">
+                                          {features.slice(0, 3).map((feature, i) => (
+                                            <div key={i}>• {feature}</div>
+                                          ))}
+                                        </div>
+                                        {restrictions.length > 0 && (
+                                          <div className="mt-2 pt-2 border-t border-gray-600 text-yellow-400">
+                                            {restrictions.join(', ')}
+                                          </div>
+                                        )}
+                                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-6 border-transparent border-t-gray-900"></div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </button>
                               </div>
-                            )}
-                          </button>
+                            )
+                          })}
+                          
+                          {/* Row number right */}
+                          <div className="text-center text-sm font-semibold text-gray-600 dark:text-gray-300">{rowNum}</div>
                         </div>
                       )
                     })}
-                    
-                    {/* Row number right */}
-                    <div className="text-center text-sm font-semibold text-gray-600">{rowNum}</div>
                   </div>
-                )
-              })}
-            </div>
-          </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
 
@@ -1267,10 +1609,10 @@ export function SeatSelection({
             {/* Selection Status */}
             <div className="flex items-center justify-center pt-2">
               {selectedSeats.length === passengers.length ? (
-                <div className="text-green-600 text-sm font-medium">✅ All passengers have seats</div>
+                <div className="text-green-600 text-sm font-medium">All passengers have seats</div>
               ) : (
                 <div className="text-amber-600 text-sm font-medium">
-                  ⚠️ {passengers.length - selectedSeats.length} passenger(s) need seats
+                  {passengers.length - selectedSeats.length} passenger(s) need seats
                 </div>
               )}
             </div>

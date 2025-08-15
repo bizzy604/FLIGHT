@@ -105,10 +105,17 @@ export function SeatServiceIntegration({
           has_metadata: !!parsedResponse?.metadata,
           metadata_keys: Object.keys(parsedResponse?.metadata || {}),
           flight_price_cache_key: parsedResponse?.metadata?.flight_price_cache_key,
+          top_level_cache_key: parsedResponse?.flight_price_cache_key,
           offer_id: parsedResponse?.offer_id,
           original_offer_id: parsedResponse?.original_offer_id,
           shopping_response_id: parsedResponse?.shopping_response_id
         })
+
+        // 🚀 CRITICAL FIX: Ensure flight_price_cache_key is available at top level
+        if (parsedResponse?.metadata?.flight_price_cache_key && !parsedResponse?.flight_price_cache_key) {
+          parsedResponse.flight_price_cache_key = parsedResponse.metadata.flight_price_cache_key
+          logger.info(`✅ Promoted flight_price_cache_key to top level: ${parsedResponse.flight_price_cache_key}`)
+        }
         
         // 🚀 Initialize booking state
         validateBookingState()
@@ -227,6 +234,13 @@ export function SeatServiceIntegration({
           )}
           {cacheStatus.globalLoadingKeys.length > 0 && (
             <div className="text-blue-600">Global Loading: {cacheStatus.globalLoadingKeys.join(', ')}</div>
+          )}
+          {Object.keys(cacheStatus.storageKeys).length > 0 && (
+            <div className="text-green-600">
+              🔑 Storage Keys: {Object.entries(cacheStatus.storageKeys).map(([key, storage]) => 
+                `${key}[seat:${storage.seatAvailability?.slice(-8) || 'none'}, service:${storage.serviceList?.slice(-8) || 'none'}]`
+              ).join(', ')}
+            </div>
           )}
           {seatCache.error && <div className="text-red-600">Seat Error: {seatCache.error}</div>}
           {serviceCache.error && <div className="text-red-600">Service Error: {serviceCache.error}</div>}

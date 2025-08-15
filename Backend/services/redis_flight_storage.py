@@ -28,7 +28,9 @@ class RedisFlightStorage:
             self.redis_client = get_redis_connection()
             self.redis_available = True
             
-            redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+            # Get the actual Redis URL for logging (from centralized config)
+            from config.redis_config import get_redis_url
+            redis_url = get_redis_url()
             logger.info(f"Redis Flight Storage initialized successfully using: {_mask_password(redis_url)}")
 
         except Exception as e:

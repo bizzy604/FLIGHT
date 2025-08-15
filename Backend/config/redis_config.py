@@ -70,6 +70,10 @@ def get_redis_connection():
         logger.error(f"Failed to connect to Redis: {str(e)}")
         raise
 
+def get_redis_url() -> str:
+    """Get the Redis URL for logging purposes"""
+    return RedisConfig.REDIS_URL
+
 def _mask_password(redis_url: str) -> str:
     """Mask the password in Redis URL for logging"""
     try:
