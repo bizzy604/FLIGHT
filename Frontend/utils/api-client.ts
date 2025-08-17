@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { debounce } from 'lodash';
 import { logger } from './logger';
+import { unifiedApiManager } from './unified-api-manager';
 import type { FlightSearchResponse } from '@/types/flight-api';
 
 // Get backend URL from environment
@@ -184,80 +185,90 @@ export const api = {
         });
     },
 
-    // Flight Pricing
+    // Flight Pricing - Using unified manager to eliminate duplicates
     getFlightPrice: async (flightIndex: number, shoppingResponseId: string, airShoppingResponse: any) => {
         try {
-            logger.info('Sending flight price request', {
+            logger.info('🚀 Using unified API manager for flight price request', {
                 flightIndex,
                 shoppingResponseId,
-                hasAirShoppingResponse: !!airShoppingResponse,
-                airShoppingResponseType: airShoppingResponse ? typeof airShoppingResponse : 'undefined'
+                hasAirShoppingResponse: !!airShoppingResponse
             });
 
-            const response = await apiClient.post('/api/verteil/flight-price', {
-                offer_id: flightIndex.toString(), // Send index as string to backend
-                shopping_response_id: shoppingResponseId,
-                air_shopping_response: airShoppingResponse
+            const response = await unifiedApiManager.getFlightPrice(
+                flightIndex, 
+                shoppingResponseId, 
+                airShoppingResponse
+            );
+            
+            logger.info('✅ Flight price response received via unified manager', {
+                success: response.success,
+                cacheHit: response.cache_hit,
+                hasData: !!response.data
             });
             
-            logger.info('Flight price response received', {
+            // Response received from unified manager
+            logger.info('✅ Unified manager response processed', {
+                success: response.success,
                 status: response.status,
-                data: response.data ? 'Received' : 'No data'
+                hasData: !!response.data
             });
             
-            return response;
+            // Convert to expected format for backward compatibility
+            // The existing code expects: response.data.status and response.data.data
+            
+            // Handle backend response format: { status: 'success'|'error', data: {...} }
+            const isSuccess = response.success === true || response.status === 'success';
+            
+            const formattedResponse = { 
+                data: {
+                    status: isSuccess ? 'success' : 'error',
+                    data: response.data,
+                    error: isSuccess ? undefined : (response.error || 'Flight pricing failed')
+                }, 
+                status: 200 
+            };
+            
+            // Response formatted for backward compatibility
+            logger.info('✅ Response formatted for existing code', {
+                dataStatus: formattedResponse.data.status,
+                hasData: !!formattedResponse.data.data
+            });
+            
+            return formattedResponse;
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            const errorResponse = error && typeof error === 'object' && 'response' in error 
-                ? (error as any).response?.data 
-                : undefined;
-                
-            logger.error('Error in getFlightPrice', {
+            logger.error('❌ Error in unified getFlightPrice', {
                 flightIndex,
-                error: errorMessage,
-                response: errorResponse
+                error: errorMessage
             });
-            
-            throw new Error(errorResponse?.message || errorMessage);
+            throw error;
         }
     },
 
-    // Booking - Use fetch directly to call Next.js API route
-    createBooking: async (flightOffer: any, passengers: any[], payment: any, contactInfo: any) => {
-        // Get session ID from localStorage for backend to retrieve flight price data from Redis
-        const sessionId = localStorage.getItem('flight_session_id');
-
-        console.log('🔍 API Client - Creating booking with:');
-        console.log('- Session ID:', sessionId);
-        console.log('- Flight offer keys:', flightOffer ? Object.keys(flightOffer) : 'none');
-        console.log('- Has raw_flight_price_response:', !!(flightOffer?.raw_flight_price_response));
-
-        const requestBody = {
-            flight_offer: flightOffer,
-            passengers,
-            payment,
-            contact_info: contactInfo,
-            session_id: sessionId
-        };
-
-        const response = await fetch('/api/verteil/order-create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody)
-        });
-        
-        const data = await response.json();
-        
-        // Log for debugging
-        logger.info('API Response', { status: response.status, url: '/api/verteil/order-create' });
-        
-        if (!response.ok) {
-            throw new Error(data.message || 'Booking failed');
+    // Booking - Using unified manager for consistent session handling
+    createBooking: async (flightOffer: any, passengers: any[], payment: any, contactInfo: any, extras?: any) => {
+        try {
+            logger.info('🚀 Using unified API manager for booking creation');
+            
+            const response = await unifiedApiManager.createBooking(
+                flightOffer,
+                passengers,
+                payment,
+                contactInfo,
+                extras
+            );
+            
+            logger.info('✅ Booking created via unified manager', {
+                success: response.success,
+                hasData: !!response.data
+            });
+            
+            return { data: response.data };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            logger.error('❌ Error in unified createBooking', { error: errorMessage });
+            throw error;
         }
-        
-        return { data };
     },
 
     // Airport Suggestions
@@ -268,217 +279,71 @@ export const api = {
         return apiClient.get(`/api/airports/autocomplete?query=${encodeURIComponent(query)}`);
     },
 
-    // ServiceList API
+    // ServiceList API - Using unified manager with proactive caching
     getServiceList: async (flightPriceResponse: any): Promise<{ data: any }> => {
         try {
-            // 🚀 ROBUST CACHE KEY EXTRACTION - Multiple fallback methods
-            const requestBody: any = {};
+            logger.info('🚀 Using unified API manager for service list (proactive cache first)');
             
-            let cacheKey = flightPriceResponse?.metadata?.flight_price_cache_key ||
-                          flightPriceResponse?.flight_price_cache_key ||
-                          flightPriceResponse?.data?.metadata?.flight_price_cache_key ||
-                          flightPriceResponse?.cache_key;
+            const response = await unifiedApiManager.getServiceList(flightPriceResponse);
             
-            if (cacheKey) {
-                requestBody.flight_price_cache_key = cacheKey;
-                logger.info(`🔑 Using flight_price_cache_key for service list: ${cacheKey}`);
-                logger.info(`🔍 Full flight price response keys for debugging:`, Object.keys(flightPriceResponse || {}));
-            } else {
-                logger.error('❌ CRITICAL: No flight_price_cache_key found in flight price response for service list!');
-                logger.error('🔍 Available keys in flightPriceResponse:', Object.keys(flightPriceResponse || {}));
-                logger.error('🔍 Metadata keys:', Object.keys(flightPriceResponse?.metadata || {}));
-                
-                // 🚨 DO NOT SEND TRANSFORMED DATA - This causes backend rejection
-                // Instead, throw an error to force proper cache key resolution
-                throw new Error('flight_price_cache_key is required for service list API calls. Cannot proceed without proper cache key.');
-            }
-
-            const response = await fetch('/api/verteil/service-list', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify(requestBody)
+            logger.info('✅ Service list received via unified manager', {
+                hasData: !!response.data,
+                source: response.cache_hit ? 'proactive_cache' : 'api_call'
             });
             
-            const data = await response.json();
-            
-            logger.info('ServiceList API Response', { status: response.status, url: '/api/verteil/service-list' });
-            
-            if (!response.ok) {
-                throw new Error(data.message || 'ServiceList request failed');
-            }
-            
-            return { data };
+            return { data: response.data };
         } catch (error) {
-            logger.error('ServiceList API Error:', error);
+            logger.error('❌ Error in unified getServiceList:', error);
             throw error;
         }
     },
 
-    // ServiceList Cache Check
+    // ServiceList Cache Check - DISABLED: Using proactive loading instead
     checkServiceListCache: async (flightPriceResponse: any): Promise<{ data: any }> => {
-        try {
-            // 🚀 ROBUST CACHE KEY EXTRACTION - Multiple fallback methods
-            const requestBody: any = {};
-            
-            let cacheKey = flightPriceResponse?.metadata?.flight_price_cache_key ||
-                          flightPriceResponse?.flight_price_cache_key ||
-                          flightPriceResponse?.data?.metadata?.flight_price_cache_key ||
-                          flightPriceResponse?.cache_key;
-            
-            if (cacheKey) {
-                requestBody.flight_price_cache_key = cacheKey;
-                logger.info(`🔑 Using flight_price_cache_key for service cache check: ${cacheKey}`);
-            } else {
-                logger.error('❌ CRITICAL: No flight_price_cache_key found for service cache check!');
-                logger.error('🔍 Available keys in flightPriceResponse:', Object.keys(flightPriceResponse || {}));
-                logger.error('🔍 Metadata keys:', Object.keys(flightPriceResponse?.metadata || {}));
-                
-                // 🚨 DO NOT SEND TRANSFORMED DATA - This causes backend rejection
-                throw new Error('flight_price_cache_key is required for service cache check. Cannot proceed without proper cache key.');
-            }
-
-            const response = await fetch('/api/verteil/service-list/cache-check', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify(requestBody)
-            });
-            
-            const data = await response.json();
-            
-            logger.info('ServiceList Cache Check Response', { status: response.status, url: '/api/verteil/service-list/cache-check' });
-            
-            if (!response.ok) {
-                throw new Error(data.message || 'ServiceList cache check failed');
-            }
-            
-            return { data };
-        } catch (error) {
-            logger.error('ServiceList Cache Check Error:', error);
-            throw error;
-        }
+        logger.info('🚀 Cache check bypassed - using proactive loading');
+        // Return cache miss to trigger direct API call (which will use proactive cache)
+        return { 
+            data: { 
+                cache_hit: false, 
+                status: 'cache_miss', 
+                message: 'Proactive loading enabled - use direct API call' 
+            } 
+        };
     },
 
-    // SeatAvailability API
+    // SeatAvailability API - Using unified manager with proactive caching
     getSeatAvailability: async (flightPriceResponse: any, segmentKey?: string): Promise<{ data: any }> => {
         try {
-            // 🚀 ROBUST CACHE KEY EXTRACTION - Multiple fallback methods
-            const requestData: any = {};
+            logger.info('🚀 Using unified API manager for seat availability (proactive cache first)');
             
-            // Method 1: From metadata (preferred)
-            let cacheKey = flightPriceResponse?.metadata?.flight_price_cache_key;
+            const response = await unifiedApiManager.getSeatAvailability(
+                flightPriceResponse,
+                segmentKey
+            );
             
-            // Method 2: From top level (backend guarantee)
-            if (!cacheKey) {
-                cacheKey = flightPriceResponse?.flight_price_cache_key;
-            }
-            
-            // Method 3: From data.metadata (nested structure)
-            if (!cacheKey) {
-                cacheKey = flightPriceResponse?.data?.metadata?.flight_price_cache_key;
-            }
-            
-            // Method 4: Extract from any cache_key field
-            if (!cacheKey) {
-                cacheKey = flightPriceResponse?.cache_key;
-            }
-            
-            if (cacheKey) {
-                requestData.flight_price_cache_key = cacheKey;
-                logger.info(`🔑 Using flight_price_cache_key for seat availability: ${cacheKey}`);
-                logger.info(`🔍 Full flight price response keys for debugging:`, Object.keys(flightPriceResponse || {}));
-            } else {
-                logger.error('❌ CRITICAL: No flight_price_cache_key found in flight price response!');
-                logger.error('🔍 Available keys in flightPriceResponse:', Object.keys(flightPriceResponse || {}));
-                logger.error('🔍 Metadata keys:', Object.keys(flightPriceResponse?.metadata || {}));
-                
-                // 🚨 DO NOT SEND TRANSFORMED DATA - This causes backend rejection
-                // Instead, throw an error to force proper cache key resolution
-                throw new Error('flight_price_cache_key is required for seat availability API calls. Cannot proceed without proper cache key.');
-            }
-            
-            if (segmentKey) {
-                requestData.segment_key = segmentKey;
-            }
-            
-            const response = await fetch('/api/verteil/seat-availability', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify(requestData)
+            logger.info('✅ Seat availability received via unified manager', {
+                hasData: !!response.data,
+                source: response.cache_hit ? 'proactive_cache' : 'api_call'
             });
             
-            const data = await response.json();
-            
-            logger.info('SeatAvailability API Response', { status: response.status, url: '/api/verteil/seat-availability' });
-            
-            if (!response.ok) {
-                throw new Error(data.message || 'SeatAvailability request failed');
-            }
-            
-            return { data };
+            return { data: response.data };
         } catch (error) {
-            logger.error('SeatAvailability API Error:', error);
+            logger.error('❌ Error in unified getSeatAvailability:', error);
             throw error;
         }
     },
 
-    // SeatAvailability Cache Check
+    // SeatAvailability Cache Check - DISABLED: Using proactive loading instead
     checkSeatAvailabilityCache: async (flightPriceResponse: any, segmentKey?: string): Promise<{ data: any }> => {
-        try {
-            // 🚀 ROBUST CACHE KEY EXTRACTION - Multiple fallback methods
-            const requestData: any = {};
-            
-            let cacheKey = flightPriceResponse?.metadata?.flight_price_cache_key ||
-                          flightPriceResponse?.flight_price_cache_key ||
-                          flightPriceResponse?.data?.metadata?.flight_price_cache_key ||
-                          flightPriceResponse?.cache_key;
-            
-            if (cacheKey) {
-                requestData.flight_price_cache_key = cacheKey;
-                logger.info(`🔑 Using flight_price_cache_key for seat cache check: ${cacheKey}`);
-            } else {
-                logger.error('❌ CRITICAL: No flight_price_cache_key found for seat cache check!');
-                logger.error('🔍 Available keys in flightPriceResponse:', Object.keys(flightPriceResponse || {}));
-                logger.error('🔍 Metadata keys:', Object.keys(flightPriceResponse?.metadata || {}));
-                
-                // 🚨 DO NOT SEND TRANSFORMED DATA - This causes backend rejection
-                throw new Error('flight_price_cache_key is required for seat cache check. Cannot proceed without proper cache key.');
-            }
-            
-            if (segmentKey) {
-                requestData.segment_key = segmentKey;
-            }
-            
-            const response = await fetch('/api/verteil/seat-availability/cache-check', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify(requestData)
-            });
-            
-            const data = await response.json();
-            
-            logger.info('SeatAvailability Cache Check Response', { status: response.status, url: '/api/verteil/seat-availability/cache-check' });
-            
-            if (!response.ok) {
-                throw new Error(data.message || 'SeatAvailability cache check failed');
-            }
-            
-            return { data };
-        } catch (error) {
-            logger.error('SeatAvailability Cache Check Error:', error);
-            throw error;
-        }
+        logger.info('🚀 Cache check bypassed - using proactive loading');
+        // Return cache miss to trigger direct API call (which will use proactive cache)
+        return { 
+            data: { 
+                cache_hit: false, 
+                status: 'cache_miss', 
+                message: 'Proactive loading enabled - use direct API call' 
+            } 
+        };
     },
 
     // Health Check

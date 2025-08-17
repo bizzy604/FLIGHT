@@ -772,6 +772,7 @@ class FlightBookingService(FlightService):
                                 if 'OfferPrice' in first_offer:
                                     logger.info(f"[DEBUG] Raw response has proper PricedFlightOffers with OfferPrice entries - using raw response (ReqID: {request_id})")
                                     flight_price_response = raw_flight_price_response
+                                    enhanced_flight_price_response = raw_flight_price_response.copy()
                                 else:
                                     logger.info(f"[DEBUG] Raw response PricedFlightOffers missing OfferPrice entries - will enhance frontend data (ReqID: {request_id})")
                             else:
@@ -1161,6 +1162,116 @@ class FlightBookingService(FlightService):
             logger.info(f"[DEBUG] Enhanced flight_price_response has {len(enhanced_flight_price_response)} top-level keys")
             logger.info(f"[DEBUG] Transformed passengers count: {len(transformed_passengers)}")
             logger.info(f"[DEBUG] Transformed payment keys: {list(transformed_payment.keys()) if isinstance(transformed_payment, dict) else 'Not a dict'}")
+
+            # 🚀 RETRIEVE SEAT/SERVICE RESPONSES FROM CACHE FOR ORDERCREATE
+            logger.info(f"[DEBUG] Retrieving seat/service responses from cache (ReqID: {request_id})")
+            
+            # If seat/service responses were not provided by frontend, try to get them from cache
+            if not servicelist_response or not seatavailability_response:
+                logger.info(f"[DEBUG] Missing seat/service responses - attempting cache retrieval (ReqID: {request_id})")
+                
+                # Use the same cache key logic as seat-service-integration
+                cache_key_hash = None
+                
+                # Try to get cache key from metadata (same logic as frontend)
+                if isinstance(enhanced_flight_price_response, dict):
+                    metadata = enhanced_flight_price_response.get('metadata')
+                    if metadata and metadata.get('flight_price_cache_key'):
+                        flight_price_cache_key = metadata['flight_price_cache_key']
+                        logger.info(f"[DEBUG] Found flight_price_cache_key in metadata: {flight_price_cache_key} (ReqID: {request_id})")
+                        
+                        # Extract hash from flight_price_raw_* format
+                        if 'flight_price_raw_' in flight_price_cache_key:
+                            cache_key_hash = flight_price_cache_key.replace('flight_price_raw_', '').replace('flight_price:', '')
+                        elif ':' in flight_price_cache_key:
+                            cache_key_hash = flight_price_cache_key.split(':')[1]
+                        else:
+                            cache_key_hash = flight_price_cache_key
+                
+                if cache_key_hash:
+                    logger.info(f"[DEBUG] Using cache_key_hash: {cache_key_hash} for seat/service retrieval (ReqID: {request_id})")
+                    
+                    # Try to retrieve seat availability response
+                    if not seatavailability_response:
+                        seat_cache_key = f"seat_availability:{cache_key_hash}"
+                        try:
+                            cached_seat_result = redis_flight_storage.get_seat_availability(cache_key_hash)
+                            if cached_seat_result.get('success') and cached_seat_result.get('data'):
+                                seatavailability_response = cached_seat_result['data']
+                                logger.info(f"[DEBUG] ✅ Retrieved seat availability from cache using key: {seat_cache_key} (ReqID: {request_id})")
+                            else:
+                                logger.info(f"[DEBUG] ❌ No seat availability found in cache for key: {seat_cache_key} (ReqID: {request_id})")
+                        except Exception as e:
+                            logger.warning(f"[DEBUG] Error retrieving seat availability from cache: {e} (ReqID: {request_id})")
+                    
+                    # Try to retrieve service list response  
+                    if not servicelist_response:
+                        service_cache_key = f"service_list:{cache_key_hash}"
+                        try:
+                            cached_service_result = redis_flight_storage.get_service_list(cache_key_hash)
+                            if cached_service_result.get('success') and cached_service_result.get('data'):
+                                servicelist_response = cached_service_result['data']
+                                logger.info(f"[DEBUG] ✅ Retrieved service list from cache using key: {service_cache_key} (ReqID: {request_id})")
+                            else:
+                                logger.info(f"[DEBUG] ❌ No service list found in cache for key: {service_cache_key} (ReqID: {request_id})")
+                        except Exception as e:
+                            logger.warning(f"[DEBUG] Error retrieving service list from cache: {e} (ReqID: {request_id})")
+                else:
+                    logger.warning(f"[DEBUG] Could not determine cache key for seat/service retrieval (ReqID: {request_id})")
+            
+            # 🚀 CRITICAL FIX: Convert seat positions to pricing ObjectKeys
+            # Frontend sends seat positions like ["47A", "47C"] but OrderCreate needs pricing ObjectKeys like ["PRICE3-SEG2"]
+            if selected_seats and seatavailability_response:
+                logger.info(f"[DEBUG] Converting seat positions to pricing ObjectKeys (ReqID: {request_id})")
+                logger.info(f"[DEBUG] Original seat positions: {selected_seats}")
+                
+                # Create mapping from seat positions to pricing ObjectKeys
+                seat_position_to_pricing_refs = {}
+                
+                # Get seat data from response
+                data_lists = seatavailability_response.get('DataLists', {})
+                seat_list = data_lists.get('SeatList', {}).get('Seat', [])
+                if not isinstance(seat_list, list):
+                    seat_list = [seat_list] if seat_list else []
+                
+                for seat in seat_list:
+                    try:
+                        # Extract seat position
+                        location = seat.get('Location', {})
+                        row = location.get('Row', {}).get('Number', {}).get('value', '')
+                        column = location.get('Column', '')
+                        seat_position = f"{row}{column}"  # e.g., "47A"
+                        
+                        # Extract pricing refs
+                        refs = seat.get('refs', [])
+                        if refs and seat_position:
+                            seat_position_to_pricing_refs[seat_position] = refs
+                            logger.info(f"[DEBUG] Mapped {seat_position} → {refs}")
+                    except Exception as e:
+                        logger.warning(f"[DEBUG] Error processing seat mapping: {e}")
+                
+                # Convert selected seat positions to pricing ObjectKeys
+                pricing_object_keys = []
+                for seat_position in selected_seats:
+                    if seat_position in seat_position_to_pricing_refs:
+                        refs = seat_position_to_pricing_refs[seat_position]
+                        pricing_object_keys.extend(refs)
+                        logger.info(f"[DEBUG] ✅ Converted {seat_position} → {refs}")
+                    else:
+                        logger.warning(f"[DEBUG] ❌ No pricing refs found for seat position: {seat_position}")
+                
+                # Remove duplicates and update selected_seats
+                pricing_object_keys = list(set(pricing_object_keys))
+                selected_seats = pricing_object_keys
+                
+                logger.info(f"[DEBUG] ✅ Final pricing ObjectKeys: {selected_seats}")
+            
+            # Log final status of seat/service data
+            logger.info(f"[DEBUG] Final seat/service status (ReqID: {request_id}):")
+            logger.info(f"[DEBUG] - seatavailability_response available: {bool(seatavailability_response)}")
+            logger.info(f"[DEBUG] - servicelist_response available: {bool(servicelist_response)}")
+            logger.info(f"[DEBUG] - selected_services: {selected_services}")
+            logger.info(f"[DEBUG] - selected_seats (converted to pricing ObjectKeys): {selected_seats}")
 
             logger.info(f"[DEBUG] ===== CALLING generate_order_create_rq FUNCTION =====")
             logger.info(f"[DEBUG] Final transformed_payment structure (ReqID: {request_id}): {transformed_payment}")

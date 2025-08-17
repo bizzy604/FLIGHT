@@ -43,6 +43,7 @@ interface Seat {
   }
   availability?: 'available' | 'occupied' | 'unavailable'
   type?: 'standard' | 'premium' | 'exit' | 'preferred'
+  pricingRefs?: string[]  // 🚀 NEW: Pricing ObjectKeys for OrderCreate mapping
 }
 
 interface SeatAvailabilityResponse {
@@ -345,7 +346,7 @@ interface SeatSelectionProps {
   flightType: 'outbound' | 'return'
   segmentKey?: string
   selectedSeats: string[]
-  onSeatChange: (flightType: 'outbound' | 'return', updatedSeats: string[]) => void
+  onSeatChange: (flightType: 'outbound' | 'return', updatedSeats: string[], pricingRefs: string[]) => void
   passengers: Array<{
     objectKey: string
     name: string
@@ -485,6 +486,25 @@ export function SeatSelection({
     }
     
     return seatInfo
+  }
+
+  // 🚀 NEW: Get pricing ObjectKeys for a seat position (for OrderCreate)
+  const getSeatPricingRefs = (seatId: string): string[] => {
+    const seatInfo = getSeatInfo(seatId)
+    return seatInfo?.pricingRefs || []
+  }
+
+  // 🚀 NEW: Convert seat position to pricing ObjectKeys for backend
+  const convertSeatPositionsToPricingRefs = (seatPositions: string[]): string[] => {
+    const pricingRefs: string[] = []
+    
+    seatPositions.forEach(seatId => {
+      const refs = getSeatPricingRefs(seatId)
+      pricingRefs.push(...refs)
+    })
+    
+    // Remove duplicates and return
+    return Array.from(new Set(pricingRefs))
   }
 
   const getSeatType = (seat: Seat): 'standard' | 'premium' | 'exit' | 'preferred' => {
@@ -840,24 +860,12 @@ export function SeatSelection({
       }
     }
 
-    // Fallback function for direct API calls (original logic)
+    // Fallback function for direct API calls (simplified to use unified API manager)
     const fallbackToApiCall = async () => {
       try {
-        // Check backend cache first
-        const cacheResponse = await api.checkSeatAvailabilityCache(flightPriceResponse, segmentKey)
-        
-        let seatData = null
-        
-        if (cacheResponse.data?.cache_hit) {
-          logger.info("🎯 Backend seat availability cache hit")
-          seatData = cacheResponse.data.data
-        } else {
-          logger.info("📞 Backend cache miss, making fresh API call")
-          const response = await api.getSeatAvailability(flightPriceResponse, segmentKey)
-          seatData = response.data
-        }
-
-        processSeatAvailabilityData(seatData)
+        logger.info("Using unified API manager (should hit proactive cache)")
+        const response = await api.getSeatAvailability(flightPriceResponse, segmentKey)
+        processSeatAvailabilityData(response.data)
       } catch (apiError) {
         logger.error("❌ API fallback failed:", apiError)
         throw apiError
@@ -865,7 +873,7 @@ export function SeatSelection({
     }
 
     loadSeatAvailability()
-  }, [flightPriceResponse, segmentKey])
+  }, [flightPriceResponse]) // One-way flights only - no segment key needed
 
   // 🔍 DEBUG: Log dynamic layout information for all cabins
   useEffect(() => {
@@ -991,8 +999,14 @@ export function SeatSelection({
       }
     }
     
+    // 🚀 CRITICAL FIX: Convert seat positions to pricing ObjectKeys for OrderCreate
+    const pricingRefs = convertSeatPositionsToPricingRefs(newSelectedSeats)
+    
     logger.info(`🪑 Seat selection changed from [${selectedSeats.join(', ')}] to [${newSelectedSeats.join(', ')}]`)
-    onSeatChange(flightType, newSelectedSeats)
+    logger.info(`🎯 Pricing ObjectKeys for OrderCreate: [${pricingRefs.join(', ')}]`)
+    
+    // Pass both seat positions (for display) and pricing refs (for booking)
+    onSeatChange(flightType, newSelectedSeats, pricingRefs)
   }
 
   const getTotalPrice = (): number => {

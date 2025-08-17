@@ -1,0 +1,610 @@
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+clerk.browser.js:16 Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview
+warnOnce @ clerk.browser.js:16Understand this warning
+clerk.browser.js:16 Clerk: The prop "afterSignInUrl" is deprecated and should be replaced with the new "fallbackRedirectUrl" or "forceRedirectUrl" props instead. Learn more: https://clerk.com/docs/guides/custom-redirects#redirect-url-props
+warnOnce @ clerk.browser.js:16Understand this warning
+hot-reloader-client.js:187 [Fast Refresh] rebuilding
+hot-reloader-client.js:44 [Fast Refresh] done in 2965ms
+logger.ts:43 {"timestamp":"2025-08-17T07:53:57.223Z","level":"info","message":"[NavigationCache] Updated state: undefined → search","data":{"sessionId":"session_1755415070636_cx7cz8r6t"}}
+page.tsx:291 [FlightSearch] 🔍 Checking Redis cache via backend API...
+logger.ts:43 {"timestamp":"2025-08-17T07:53:57.229Z","level":"info","message":"[NavigationCache] Updated state: search → search","data":{"sessionId":"session_1755415070636_cx7cz8r6t"}}
+page.tsx:291 [FlightSearch] 🔍 Checking Redis cache via backend API...
+2logger.ts:43 {"timestamp":"2025-08-17T07:53:57.271Z","level":"info","message":"API Request","data":{"url":"/api/verteil/air-shopping/cache-check","method":"post","data":{"tripType":"ONE_WAY","odSegments":[{"origin":"LHR","destination":"CDG","departureDate":"2025-08-29"}],"numAdults":1,"numChildren":0,"numInfants":0,"cabinPreference":"ECONOMY","enableRoundtrip":false,"directOnly":false}}}
+contents.04ff201a.js:1 urlUpdated Updated
+logger.ts:43 {"timestamp":"2025-08-17T07:53:57.997Z","level":"info","message":"API Response","data":{"status":200,"url":"/api/verteil/air-shopping/cache-check"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:53:57.997Z","level":"info","message":"Flight search cache check response:","data":{"cache_key":"flight_search:ec5ed0d924c88c528ed4d79ee996a5c9","message":"No valid cached data found","request_id":"3b8d6b6c-f679-4f9f-a211-c8ead3505b34","status":"cache_miss"}}
+page.tsx:360 [FlightSearch] 💫 Cache miss, fetching fresh data from API...
+logger.ts:43 {"timestamp":"2025-08-17T07:53:58.204Z","level":"info","message":"API Response","data":{"status":200,"url":"/api/verteil/air-shopping/cache-check"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:53:58.205Z","level":"info","message":"Flight search cache check response:","data":{"cache_key":"flight_search:ec5ed0d924c88c528ed4d79ee996a5c9","message":"No valid cached data found","request_id":"1b12ca65-69ff-4bc3-8ea0-84f4c24bd4cf","status":"cache_miss"}}
+page.tsx:360 [FlightSearch] 💫 Cache miss, fetching fresh data from API...
+api-client.ts:123 [PASSENGER DEBUG] Frontend API Client - Sending air shopping request:
+api-client.ts:124 [PASSENGER DEBUG] Passenger counts: Object
+api-client.ts:130 [PASSENGER DEBUG] Full request payload: {
+  "tripType": "ONE_WAY",
+  "odSegments": [
+    {
+      "origin": "LHR",
+      "destination": "CDG",
+      "departureDate": "2025-08-29"
+    }
+  ],
+  "numAdults": 1,
+  "numChildren": 0,
+  "numInfants": 0,
+  "cabinPreference": "ECONOMY",
+  "enableRoundtrip": false,
+  "directOnly": false
+}
+logger.ts:43 {"timestamp":"2025-08-17T07:53:59.208Z","level":"info","message":"API Request","data":{"url":"/api/verteil/air-shopping","method":"post","data":{"tripType":"ONE_WAY","odSegments":[{"origin":"LHR","destination":"CDG","departureDate":"2025-08-29"}],"numAdults":1,"numChildren":0,"numInfants":0,"cabinPreference":"ECONOMY","enableRoundtrip":false,"directOnly":false}}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:12.250Z","level":"info","message":"API Response","data":{"status":200,"url":"/api/verteil/air-shopping"}}
+flight-storage-manager.ts:227 [FlightStorage] Storing selected flight data...
+flight-storage-manager.ts:243 [FlightStorage] ✅ Selected flight data stored successfully
+logger.ts:43 {"timestamp":"2025-08-17T07:54:17.272Z","level":"info","message":"✅ Selected flight data stored successfully"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:17.272Z","level":"info","message":"🔍 Checking flight pricing cache..."}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:17.272Z","level":"info","message":"API Request","data":{"url":"/api/verteil/flight-price/cache-check","method":"post","data":{"offer_id":"0","shopping_response_id":"BACKEND_WILL_EXTRACT"}}}
+hot-reloader-client.js:187 [Fast Refresh] rebuilding
+logger.ts:43 {"timestamp":"2025-08-17T07:54:17.807Z","level":"info","message":"API Response","data":{"status":200,"url":"/api/verteil/flight-price/cache-check"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:17.807Z","level":"info","message":"Flight price cache check response:","data":{"cache_key":"flight_price:f470232ce29c72f4d50f5821daa2763b","message":"No valid cached price data found","request_id":"cb90e881-44b6-4f5c-bb78-5c9a9c398128","status":"cache_miss"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:17.807Z","level":"info","message":"🔄 Cache miss - calling flight pricing API for selected flight..."}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:17.808Z","level":"info","message":"API Request","data":{"url":"/api/verteil/air-shopping/cache-check","method":"post","data":{"tripType":"ONE_WAY","odSegments":[{"origin":"LHR","destination":"CDG","departureDate":"2025-08-29"}],"numAdults":1,"numChildren":0,"numInfants":0,"cabinPreference":"ECONOMY","directOnly":false}}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:18.263Z","level":"info","message":"API Response","data":{"status":200,"url":"/api/verteil/air-shopping/cache-check"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:18.264Z","level":"info","message":"Flight search cache check response:","data":{"cache_key":"flight_search:ec5ed0d924c88c528ed4d79ee996a5c9","cached_at":"2025-08-17T07:54:11.809012","data":{"metadata":{"airline_count":6,"airline_filtering_enabled":false,"enhanced_cards_count":204,"filtered_airlines":[],"is_multi_airline":true,"performance":{"card_generation_time":0.015513,"search_time":12.219038,"total_time":12.262771,"transform_time":0.023346},"raw_response_cache_key":"air_shopping_raw_d650eccc-0bff-4f3d-a3e8-ba42a1c8eadf","request_id":"d650eccc-0bff-4f3d-a3e8-ba42a1c8eadf","service_version":"2.4-optimized","shopping_response_ids":{"AF":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-AF","BA":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-BA","EY":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-EY","KQ":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-KQ","LHG":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-LHG","QR":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-QR"},"supported_airlines":["AF","BA","EY","KQ","LHG","QR"],"total_offers":204,"transformation_timestamp":"2025-08-17T10:54:11.673286"},"offers":[{"airline":{"code":"AF","flightNumber":"AF1781","logo":"/airlines/AF.svg","name":"Air France"},"airline_context":{"shopping_response_id":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-AF","third_party_id":"AF"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"17:40"},"currency":"INR","departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"15:20"},"duration":"0h 0m","id":"0","offer_index":0,"original_offer_id":"a693ef79-365a-4484-93ef-79365a340001","price":10575,"segments":[{"aircraft":"223","airline":{"code":"AF","flightNumber":"AF1781","name":"Air France"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"17:40"},"departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"15:20"},"duration":"Unknown"}],"stopDetails":[],"stops":0},{"airline":{"code":"AF","flightNumber":"AF1681","logo":"/airlines/AF.svg","name":"Air France"},"airline_context":{"shopping_response_id":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-AF","third_party_id":"AF"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"11:20"},"currency":"INR","departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"09:00"},"duration":"0h 0m","id":"1","offer_index":1,"original_offer_id":"a693ef79-365a-4484-93ef-79365a340007","price":13477,"segments":[{"aircraft":"223","airline":{"code":"AF","flightNumber":"AF1681","name":"Air France"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"11:20"},"departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"09:00"},"duration":"Unknown"}],"stopDetails":[],"stops":0},{"airline":{"code":"AF","flightNumber":"AF1181","logo":"/airlines/AF.svg","name":"Air France"},"airline_context":{"shopping_response_id":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-AF","third_party_id":"AF"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"22:00"},"currency":"INR","departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"19:45"},"duration":"0h 0m","id":"2","offer_index":2,"original_offer_id":"a693ef79-365a-4484-93ef-79365a340004","price":13477,"segments":[{"aircraft":"223","airline":{"code":"AF","flightNumber":"AF1181","name":"Air France"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"22:00"},"departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"19:45"},"duration":"Unknown"}],"stopDetails":[],"stops":0},{"airline":{"code":"BA","flightNumber":"BA304","logo":"/airlines/BA.svg","name":"British Airways"},"airline_context":{"shopping_response_id":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-BA","third_party_id":"BA"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2C","time":"09:40"},"currency":"INR","departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"5","time":"07:20"},"duration":"0h 0m","id":"3","offer_index":3,"original_offer_id":"OF-8eff36db-78fb-458b-9ca6-34b2f2f5b01d","price":13705,"segments":[{"aircraft":"32N","airline":{"code":"BA","flightNumber":"BA304","name":"British Airways"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2C","time":"09:40"},"departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"5","time":"07:20"},"duration":"Unknown"}],"stopDetails":[],"stops":0},{"airline":{"code":"BA","flightNum
+logger.ts:43 {"timestamp":"2025-08-17T07:54:18.267Z","level":"info","message":"✅ Found flight search data in new cache system"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:18.267Z","level":"info","message":"✅ Using metadata from new cache system"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:18.268Z","level":"info","message":"🚀 Using unified API manager for flight price request","data":{"flightIndex":0,"shoppingResponseId":"BACKEND_WILL_EXTRACT","hasAirShoppingResponse":true}}
+hot-reloader-client.js:44 [Fast Refresh] done in 1366ms
+logger.ts:43 {"timestamp":"2025-08-17T07:54:20.816Z","level":"info","message":"[NavigationCache] Updated state: search → details","data":{"flightId":"0","sessionId":"session_1755415070636_cx7cz8r6t"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:20.816Z","level":"info","message":"🔍 Checking flight price cache for flight ID: 0"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:20.817Z","level":"info","message":"[NavigationCache] Updated state: details → details","data":{"flightId":"0","sessionId":"session_1755415070636_cx7cz8r6t"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:20.817Z","level":"info","message":"🔍 Checking flight price cache for flight ID: 0"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:20.819Z","level":"info","message":"API Request","data":{"url":"/api/verteil/flight-price/cache-check","method":"post","data":{"offer_id":"0","shopping_response_id":"BACKEND_WILL_EXTRACT"}}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:20.820Z","level":"info","message":"API Request","data":{"url":"/api/verteil/flight-price/cache-check","method":"post","data":{"offer_id":"0","shopping_response_id":"BACKEND_WILL_EXTRACT"}}}
+warn-once.js:16 Image with src "/logo1.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+warnOnce @ warn-once.js:16Understand this warning
+contents.04ff201a.js:1 urlUpdated Updated
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.046Z","level":"info","message":"API Response","data":{"status":200,"url":"/api/verteil/flight-price/cache-check"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.046Z","level":"info","message":"Flight price cache check response:","data":{"cache_key":"flight_price:f470232ce29c72f4d50f5821daa2763b","message":"No valid cached price data found","request_id":"727ebfd9-4cc6-4c4e-b753-740d40b74961","status":"cache_miss"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.046Z","level":"info","message":"💫 Cache miss for flight ID: 0 - calling pricing API"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.047Z","level":"info","message":"API Request","data":{"url":"/api/verteil/air-shopping/cache-check","method":"post","data":{"tripType":"ONE_WAY","odSegments":[{"origin":"LHR","destination":"CDG","departureDate":"2025-08-29"}],"numAdults":1,"numChildren":0,"numInfants":0,"cabinPreference":"ECONOMY","directOnly":false}}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.266Z","level":"info","message":"API Response","data":{"status":200,"url":"/api/verteil/flight-price/cache-check"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.267Z","level":"info","message":"Flight price cache check response:","data":{"cache_key":"flight_price:f470232ce29c72f4d50f5821daa2763b","message":"No valid cached price data found","request_id":"18c894df-435a-4598-94b2-570aa22492d1","status":"cache_miss"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.267Z","level":"info","message":"💫 Cache miss for flight ID: 0 - calling pricing API"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.267Z","level":"info","message":"API Request","data":{"url":"/api/verteil/air-shopping/cache-check","method":"post","data":{"tripType":"ONE_WAY","odSegments":[{"origin":"LHR","destination":"CDG","departureDate":"2025-08-29"}],"numAdults":1,"numChildren":0,"numInfants":0,"cabinPreference":"ECONOMY","directOnly":false}}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.695Z","level":"info","message":"API Response","data":{"status":200,"url":"/api/verteil/air-shopping/cache-check"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.695Z","level":"info","message":"Flight search cache check response:","data":{"cache_key":"flight_search:ec5ed0d924c88c528ed4d79ee996a5c9","cached_at":"2025-08-17T07:54:11.809012","data":{"metadata":{"airline_count":6,"airline_filtering_enabled":false,"enhanced_cards_count":204,"filtered_airlines":[],"is_multi_airline":true,"performance":{"card_generation_time":0.015513,"search_time":12.219038,"total_time":12.262771,"transform_time":0.023346},"raw_response_cache_key":"air_shopping_raw_d650eccc-0bff-4f3d-a3e8-ba42a1c8eadf","request_id":"d650eccc-0bff-4f3d-a3e8-ba42a1c8eadf","service_version":"2.4-optimized","shopping_response_ids":{"AF":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-AF","BA":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-BA","EY":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-EY","KQ":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-KQ","LHG":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-LHG","QR":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-QR"},"supported_airlines":["AF","BA","EY","KQ","LHG","QR"],"total_offers":204,"transformation_timestamp":"2025-08-17T10:54:11.673286"},"offers":[{"airline":{"code":"AF","flightNumber":"AF1781","logo":"/airlines/AF.svg","name":"Air France"},"airline_context":{"shopping_response_id":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-AF","third_party_id":"AF"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"17:40"},"currency":"INR","departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"15:20"},"duration":"0h 0m","id":"0","offer_index":0,"original_offer_id":"a693ef79-365a-4484-93ef-79365a340001","price":10575,"segments":[{"aircraft":"223","airline":{"code":"AF","flightNumber":"AF1781","name":"Air France"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"17:40"},"departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"15:20"},"duration":"Unknown"}],"stopDetails":[],"stops":0},{"airline":{"code":"AF","flightNumber":"AF1681","logo":"/airlines/AF.svg","name":"Air France"},"airline_context":{"shopping_response_id":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-AF","third_party_id":"AF"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"11:20"},"currency":"INR","departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"09:00"},"duration":"0h 0m","id":"1","offer_index":1,"original_offer_id":"a693ef79-365a-4484-93ef-79365a340007","price":13477,"segments":[{"aircraft":"223","airline":{"code":"AF","flightNumber":"AF1681","name":"Air France"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"11:20"},"departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"09:00"},"duration":"Unknown"}],"stopDetails":[],"stops":0},{"airline":{"code":"AF","flightNumber":"AF1181","logo":"/airlines/AF.svg","name":"Air France"},"airline_context":{"shopping_response_id":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-AF","third_party_id":"AF"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"22:00"},"currency":"INR","departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"19:45"},"duration":"0h 0m","id":"2","offer_index":2,"original_offer_id":"a693ef79-365a-4484-93ef-79365a340004","price":13477,"segments":[{"aircraft":"223","airline":{"code":"AF","flightNumber":"AF1181","name":"Air France"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"22:00"},"departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"19:45"},"duration":"Unknown"}],"stopDetails":[],"stops":0},{"airline":{"code":"BA","flightNumber":"BA304","logo":"/airlines/BA.svg","name":"British Airways"},"airline_context":{"shopping_response_id":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-BA","third_party_id":"BA"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2C","time":"09:40"},"currency":"INR","departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"5","time":"07:20"},"duration":"0h 0m","id":"3","offer_index":3,"original_offer_id":"OF-8eff36db-78fb-458b-9ca6-34b2f2f5b01d","price":13705,"segments":[{"aircraft":"32N","airline":{"code":"BA","flightNumber":"BA304","name":"British Airways"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2C","time":"09:40"},"departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"5","time":"07:20"},"duration":"Unknown"}],"stopDetails":[],"stops":0},{"airline":{"code":"BA","flightNum
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.698Z","level":"info","message":"✅ Found flight search data in new cache system for pricing API"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.698Z","level":"info","message":"✅ Using metadata from new cache system for pricing API"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.698Z","level":"info","message":"🚀 Using unified API manager for flight price request","data":{"flightIndex":0,"shoppingResponseId":"BACKEND_WILL_EXTRACT","hasAirShoppingResponse":true}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.698Z","level":"info","message":"🔄 Deduplicating request: flight_price_0_BACKEND_WILL_EXTRACT"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.929Z","level":"info","message":"API Response","data":{"status":200,"url":"/api/verteil/air-shopping/cache-check"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.930Z","level":"info","message":"Flight search cache check response:","data":{"cache_key":"flight_search:ec5ed0d924c88c528ed4d79ee996a5c9","cached_at":"2025-08-17T07:54:11.809012","data":{"metadata":{"airline_count":6,"airline_filtering_enabled":false,"enhanced_cards_count":204,"filtered_airlines":[],"is_multi_airline":true,"performance":{"card_generation_time":0.015513,"search_time":12.219038,"total_time":12.262771,"transform_time":0.023346},"raw_response_cache_key":"air_shopping_raw_d650eccc-0bff-4f3d-a3e8-ba42a1c8eadf","request_id":"d650eccc-0bff-4f3d-a3e8-ba42a1c8eadf","service_version":"2.4-optimized","shopping_response_ids":{"AF":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-AF","BA":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-BA","EY":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-EY","KQ":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-KQ","LHG":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-LHG","QR":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-QR"},"supported_airlines":["AF","BA","EY","KQ","LHG","QR"],"total_offers":204,"transformation_timestamp":"2025-08-17T10:54:11.673286"},"offers":[{"airline":{"code":"AF","flightNumber":"AF1781","logo":"/airlines/AF.svg","name":"Air France"},"airline_context":{"shopping_response_id":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-AF","third_party_id":"AF"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"17:40"},"currency":"INR","departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"15:20"},"duration":"0h 0m","id":"0","offer_index":0,"original_offer_id":"a693ef79-365a-4484-93ef-79365a340001","price":10575,"segments":[{"aircraft":"223","airline":{"code":"AF","flightNumber":"AF1781","name":"Air France"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"17:40"},"departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"15:20"},"duration":"Unknown"}],"stopDetails":[],"stops":0},{"airline":{"code":"AF","flightNumber":"AF1681","logo":"/airlines/AF.svg","name":"Air France"},"airline_context":{"shopping_response_id":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-AF","third_party_id":"AF"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"11:20"},"currency":"INR","departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"09:00"},"duration":"0h 0m","id":"1","offer_index":1,"original_offer_id":"a693ef79-365a-4484-93ef-79365a340007","price":13477,"segments":[{"aircraft":"223","airline":{"code":"AF","flightNumber":"AF1681","name":"Air France"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"11:20"},"departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"09:00"},"duration":"Unknown"}],"stopDetails":[],"stops":0},{"airline":{"code":"AF","flightNumber":"AF1181","logo":"/airlines/AF.svg","name":"Air France"},"airline_context":{"shopping_response_id":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-AF","third_party_id":"AF"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"22:00"},"currency":"INR","departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"19:45"},"duration":"0h 0m","id":"2","offer_index":2,"original_offer_id":"a693ef79-365a-4484-93ef-79365a340004","price":13477,"segments":[{"aircraft":"223","airline":{"code":"AF","flightNumber":"AF1181","name":"Air France"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2E","time":"22:00"},"departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"4","time":"19:45"},"duration":"Unknown"}],"stopDetails":[],"stops":0},{"airline":{"code":"BA","flightNumber":"BA304","logo":"/airlines/BA.svg","name":"British Airways"},"airline_context":{"shopping_response_id":"2hUnHUr984LKRKBF-MPYmnVYa-IwoGqKLPZwmu9wbPw-BA","third_party_id":"BA"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2C","time":"09:40"},"currency":"INR","departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"5","time":"07:20"},"duration":"0h 0m","id":"3","offer_index":3,"original_offer_id":"OF-8eff36db-78fb-458b-9ca6-34b2f2f5b01d","price":13705,"segments":[{"aircraft":"32N","airline":{"code":"BA","flightNumber":"BA304","name":"British Airways"},"arrival":{"airport":"CDG","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"2C","time":"09:40"},"departure":{"airport":"LHR","airportName":null,"datetime":"2025-08-29T00:00:00.000","terminal":"5","time":"07:20"},"duration":"Unknown"}],"stopDetails":[],"stops":0},{"airline":{"code":"BA","flightNum
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.932Z","level":"info","message":"✅ Found flight search data in new cache system for pricing API"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.932Z","level":"info","message":"✅ Using metadata from new cache system for pricing API"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.932Z","level":"info","message":"🚀 Using unified API manager for flight price request","data":{"flightIndex":0,"shoppingResponseId":"BACKEND_WILL_EXTRACT","hasAirShoppingResponse":true}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:21.932Z","level":"info","message":"🔄 Deduplicating request: flight_price_0_BACKEND_WILL_EXTRACT"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.921Z","level":"info","message":"API POST /api/verteil/flight-price","data":{"status":200}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.922Z","level":"info","message":"✅ POST /api/verteil/flight-price completed","data":{"status":200}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.922Z","level":"info","message":"✅ Flight price request completed","data":{"success":true,"status":"success","hasData":true}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.922Z","level":"info","message":"🚀 Starting proactive seat/service loading..."}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.923Z","level":"info","message":"✅ Flight price response received via unified manager","data":{"success":true,"hasData":true}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.923Z","level":"info","message":"✅ Unified manager response processed","data":{"success":true,"status":"success","hasData":true}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.923Z","level":"info","message":"✅ Response formatted for existing code","data":{"dataStatus":"success","hasData":true}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.923Z","level":"info","message":"✅ Flight price response received via unified manager","data":{"success":true,"hasData":true}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.923Z","level":"info","message":"✅ Unified manager response processed","data":{"success":true,"status":"success","hasData":true}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.923Z","level":"info","message":"✅ Response formatted for existing code","data":{"dataStatus":"success","hasData":true}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.923Z","level":"info","message":"✅ Flight price response received via unified manager","data":{"success":true,"hasData":true}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.923Z","level":"info","message":"✅ Unified manager response processed","data":{"success":true,"status":"success","hasData":true}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.923Z","level":"info","message":"✅ Response formatted for existing code","data":{"dataStatus":"success","hasData":true}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.923Z","level":"info","message":"✅ Flight pricing API call successful"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.923Z","level":"info","message":"✅ Flight pricing data will be automatically cached by backend"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.923Z","level":"info","message":"✅ Stored flight price metadata for order creation"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.923Z","level":"info","message":"🔥 Starting background pre-load of seat availability and service list..."}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.924Z","level":"info","message":"🔑 Generated local cache key: 0_1755417272"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.924Z","level":"info","message":"🚀 Preload requested for 0_1755417272 - Unified API manager handles this automatically"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.924Z","level":"info","message":"✅ Preload completed (handled by unified API manager)"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.924Z","level":"info","message":"✅ Background seat/service pre-loading initiated"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.924Z","level":"info","message":"💾 Stored flight_price_cache_key: flight_price_raw_003076a2-ac1a-46e0-b88e-3f686cc75f99_1755417272"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:32.925Z","level":"info","message":"💾 Stored flight_price_cache_key: flight_price_raw_003076a2-ac1a-46e0-b88e-3f686cc75f99_1755417272"}
+app-index.js:33 Warning: Each child in a list should have a unique "key" prop.
+
+Check the render method of `FareRulesTable`. See https://reactjs.org/link/warning-keys for more information.
+    at FareRulesTable (webpack-internal:///(app-pages-browser)/./components/molecules/fare-rules-table/fare-rules-table.tsx:10:11)
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at FlightDetailsPageContent (webpack-internal:///(app-pages-browser)/./app/flights/[id]/page.tsx:137:78)
+    at Suspense
+    at FlightDetailsPage
+    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)
+    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)
+    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)
+    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)
+    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)
+    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)
+    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)
+    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)
+    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)
+    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)
+    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)
+    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)
+    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)
+    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)
+    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)
+    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)
+    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)
+    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)
+    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)
+    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)
+    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)
+    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)
+    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)
+    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)
+    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)
+    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)
+    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)
+    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)
+    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)
+    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)
+    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)
+    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)
+    at LoadingProvider (webpack-internal:///(app-pages-browser)/./utils/loading-state.ts:11:11)
+    at V (webpack-internal:///(app-pages-browser)/./node_modules/next-themes/dist/index.mjs:54:24)
+    at J (webpack-internal:///(app-pages-browser)/./node_modules/next-themes/dist/index.mjs:47:47)
+    at SWRConfig (webpack-internal:///(app-pages-browser)/./node_modules/swr/dist/_internal/config-context-client-v7VOFo66.mjs:549:13)
+    at OrganizationProvider (webpack-internal:///(app-pages-browser)/./node_modules/@clerk/shared/dist/react/index.mjs:114:3)
+    at ClerkContextProvider (webpack-internal:///(app-pages-browser)/./node_modules/@clerk/clerk-react/dist/index.mjs:2269:11)
+    at ClerkProviderBase (webpack-internal:///(app-pages-browser)/./node_modules/@clerk/clerk-react/dist/index.mjs:2355:11)
+    at Hoc (webpack-internal:///(app-pages-browser)/./node_modules/@clerk/clerk-react/dist/index.mjs:119:5)
+    at ClerkNextOptionsProvider (webpack-internal:///(app-pages-browser)/./node_modules/@clerk/nextjs/dist/esm/client-boundary/NextOptionsContext.js:17:11)
+    at NextClientClerkProvider (webpack-internal:///(app-pages-browser)/./node_modules/@clerk/nextjs/dist/esm/app-router/client/ClerkProvider.js:60:13)
+    at ClientClerkProvider (webpack-internal:///(app-pages-browser)/./node_modules/@clerk/nextjs/dist/esm/app-router/client/ClerkProvider.js:127:13)
+    at ClerkProvider (webpack-internal:///(app-pages-browser)/./node_modules/@clerk/nextjs/dist/esm/client-boundary/ClerkProvider.js:19:81)
+    at Providers (webpack-internal:///(app-pages-browser)/./components/atoms/providers/providers.tsx:14:11)
+    at body
+    at html
+    at RootLayout (Server)
+    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)
+    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)
+    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)
+    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)
+    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)
+    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)
+    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)
+    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)
+    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)
+    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)
+    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)
+    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)
+    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)
+window.console.error @ app-index.js:33Understand this error
+logger.ts:43 {"timestamp":"2025-08-17T07:54:43.035Z","level":"info","message":"API POST /api/verteil/service-list","data":{"status":200}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:43.036Z","level":"info","message":"✅ POST /api/verteil/service-list completed","data":{"status":200}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:43.036Z","level":"info","message":"✅ Proactive service list loaded and cached"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:44.328Z","level":"info","message":"API POST /api/verteil/seat-availability","data":{"status":200}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:44.328Z","level":"info","message":"✅ POST /api/verteil/seat-availability completed","data":{"status":200}}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:44.328Z","level":"info","message":"✅ Proactive seat availability loaded and cached"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:44.328Z","level":"info","message":"✅ Proactive seat availability loading completed"}
+logger.ts:43 {"timestamp":"2025-08-17T07:54:44.328Z","level":"info","message":"✅ Proactive service list loading completed"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.303Z","level":"info","message":"🪑 Loading seat availability data..."}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.303Z","level":"info","message":"🔍 SEAT SELECTION - Flight Price Response Debug:","data":{"response_type":"object","response_keys":["direction","fare_family","flight_segments","offer_id","original_offer_id","passengers","time_limits","total_price","metadata"],"has_metadata":true,"metadata_keys":["cache_key","cached","flight_price_cache_key","processed_cache_key","request_id"],"flight_price_cache_key":"flight_price_raw_003076a2-ac1a-46e0-b88e-3f686cc75f99_1755417272","offer_id":"0","original_offer_id":"a693ef79-365a-4484-93ef-79365a340001"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.304Z","level":"info","message":"🔑 Generated local cache key: 0_1755417316"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.304Z","level":"info","message":"💻 No pre-loaded data available, using direct API call"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.304Z","level":"info","message":"🚀 Cache check bypassed - using proactive loading"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.305Z","level":"info","message":"🪑 Loading seat availability data..."}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.305Z","level":"info","message":"🔍 SEAT SELECTION - Flight Price Response Debug:","data":{"response_type":"object","response_keys":["direction","fare_family","flight_segments","offer_id","original_offer_id","passengers","time_limits","total_price","metadata"],"has_metadata":true,"metadata_keys":["cache_key","cached","flight_price_cache_key","processed_cache_key","request_id"],"flight_price_cache_key":"flight_price_raw_003076a2-ac1a-46e0-b88e-3f686cc75f99_1755417272","offer_id":"0","original_offer_id":"a693ef79-365a-4484-93ef-79365a340001"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.305Z","level":"info","message":"🔑 Generated local cache key: 0_1755417316"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.305Z","level":"info","message":"💻 No pre-loaded data available, using direct API call"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.305Z","level":"info","message":"🚀 Cache check bypassed - using proactive loading"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.305Z","level":"info","message":"🪑 Loading seat availability data..."}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.305Z","level":"info","message":"🔍 SEAT SELECTION - Flight Price Response Debug:","data":{"response_type":"object","response_keys":["direction","fare_family","flight_segments","offer_id","original_offer_id","passengers","time_limits","total_price","metadata"],"has_metadata":true,"metadata_keys":["cache_key","cached","flight_price_cache_key","processed_cache_key","request_id"],"flight_price_cache_key":"flight_price_raw_003076a2-ac1a-46e0-b88e-3f686cc75f99_1755417272","offer_id":"0","original_offer_id":"a693ef79-365a-4484-93ef-79365a340001"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.305Z","level":"info","message":"🔑 Generated local cache key: 0_1755417316"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.306Z","level":"info","message":"💻 No pre-loaded data available, using direct API call"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.306Z","level":"info","message":"🚀 Cache check bypassed - using proactive loading"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.306Z","level":"info","message":"🪑 Loading seat availability data..."}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.306Z","level":"info","message":"🔍 SEAT SELECTION - Flight Price Response Debug:","data":{"response_type":"object","response_keys":["direction","fare_family","flight_segments","offer_id","original_offer_id","passengers","time_limits","total_price","metadata"],"has_metadata":true,"metadata_keys":["cache_key","cached","flight_price_cache_key","processed_cache_key","request_id"],"flight_price_cache_key":"flight_price_raw_003076a2-ac1a-46e0-b88e-3f686cc75f99_1755417272","offer_id":"0","original_offer_id":"a693ef79-365a-4484-93ef-79365a340001"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.306Z","level":"info","message":"🔑 Generated local cache key: 0_1755417316"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.306Z","level":"info","message":"💻 No pre-loaded data available, using direct API call"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.306Z","level":"info","message":"🚀 Cache check bypassed - using proactive loading"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.308Z","level":"info","message":"📞 Backend cache miss, making fresh API call"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.308Z","level":"info","message":"🚀 Using unified API manager for seat availability (proactive cache first)"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.309Z","level":"info","message":"🚀 Fetching seat availability directly (no cache check)"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.310Z","level":"info","message":"📞 Backend cache miss, making fresh API call"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.310Z","level":"info","message":"🚀 Using unified API manager for seat availability (proactive cache first)"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.310Z","level":"info","message":"🚀 Fetching seat availability directly (no cache check)"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.311Z","level":"info","message":"📞 Backend cache miss, making fresh API call"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.311Z","level":"info","message":"🚀 Using unified API manager for seat availability (proactive cache first)"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.311Z","level":"info","message":"🔄 Deduplicating request: seat_availability_flight_price_raw_003076a2-ac1a-46e0-b88e-3f686cc75f99_1755417272_SEG1"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.311Z","level":"info","message":"📞 Backend cache miss, making fresh API call"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.311Z","level":"info","message":"🚀 Using unified API manager for seat availability (proactive cache first)"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:16.312Z","level":"info","message":"🔄 Deduplicating request: seat_availability_flight_price_raw_003076a2-ac1a-46e0-b88e-3f686cc75f99_1755417272_SEG2"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.952Z","level":"info","message":"API POST /api/verteil/seat-availability","data":{"status":200}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.952Z","level":"info","message":"✅ POST /api/verteil/seat-availability completed","data":{"status":200}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.952Z","level":"info","message":"✅ Seat availability received via unified manager","data":{"hasData":true,"source":"api_call"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.953Z","level":"info","message":"✅ Seat availability received via unified manager","data":{"hasData":true,"source":"api_call"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.953Z","level":"info","message":"🔍 Processing seat availability data structure:","data":["dataLists","flights"]}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.953Z","level":"info","message":"🛫 Processing 1 cabin sections"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.954Z","level":"info","message":"✅ Set multi-cabin seat map configuration from response:","data":{"cabin_count":1,"cabin_details":[{"index":1,"columns_count":5,"row_range":{"first":10,"last":31,"upperDeckInd":false},"is_upper_deck":false}]}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.954Z","level":"info","message":"🔧 Validated multi-cabin seat map against actual seat data:","data":{"min_row":10,"max_row":31,"total_rows_with_seats":21,"total_seats":91}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.954Z","level":"info","message":"✅ Successfully loaded 91 seats for selection","data":{"seat_count":91,"rows_with_seats":21,"min_row":10,"max_row":31,"first_5_rows":[10,11,12,14,15],"last_5_rows":[27,28,29,30,31],"sample_seat_locations":[{"row":"10","column":"A"},{"row":"10","column":"C"},{"row":"10","column":"D"}]}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.954Z","level":"info","message":"🔍 Processing seat availability data structure:","data":["dataLists","flights"]}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.954Z","level":"info","message":"🛫 Processing 1 cabin sections"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.955Z","level":"info","message":"✅ Set multi-cabin seat map configuration from response:","data":{"cabin_count":1,"cabin_details":[{"index":1,"columns_count":5,"row_range":{"first":10,"last":31,"upperDeckInd":false},"is_upper_deck":false}]}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.955Z","level":"info","message":"🔧 Validated multi-cabin seat map against actual seat data:","data":{"min_row":10,"max_row":31,"total_rows_with_seats":21,"total_seats":91}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.955Z","level":"info","message":"✅ Successfully loaded 91 seats for selection","data":{"seat_count":91,"rows_with_seats":21,"min_row":10,"max_row":31,"first_5_rows":[10,11,12,14,15],"last_5_rows":[27,28,29,30,31],"sample_seat_locations":[{"row":"10","column":"A"},{"row":"10","column":"C"},{"row":"10","column":"D"}]}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.966Z","level":"info","message":"🔍 Seat lookup for 10F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.967Z","level":"info","message":"🔍 Seat lookup for 11C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.967Z","level":"info","message":"🔍 Seat lookup for 11E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.967Z","level":"info","message":"🔍 Seat lookup for 12D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.968Z","level":"info","message":"🔍 Seat lookup for 12E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.968Z","level":"info","message":"🔍 Seat lookup for 13A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.968Z","level":"info","message":"🔍 Seat lookup for 13C: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.968Z","level":"info","message":"🔍 Seat lookup for 14C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.969Z","level":"info","message":"🔍 Seat lookup for 14F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.970Z","level":"info","message":"🔍 Seat lookup for 16D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.971Z","level":"info","message":"🔍 Seat lookup for 19A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.972Z","level":"info","message":"🔍 Seat lookup for 20D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.972Z","level":"info","message":"🔍 Seat lookup for 21A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.972Z","level":"info","message":"🔍 Seat lookup for 22A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.973Z","level":"info","message":"🔍 Seat lookup for 22C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.973Z","level":"info","message":"🔍 Seat lookup for 22F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.973Z","level":"info","message":"🔍 Seat lookup for 23C: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.974Z","level":"info","message":"🔍 Seat lookup for 25A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.974Z","level":"info","message":"🔍 Seat lookup for 25F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.974Z","level":"info","message":"🔍 Seat lookup for 26C: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.975Z","level":"info","message":"🔍 Seat lookup for 26F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.975Z","level":"info","message":"🔍 Seat lookup for 28A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.975Z","level":"info","message":"🔍 Seat lookup for 28C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.976Z","level":"info","message":"🔍 Seat lookup for 28D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.978Z","level":"info","message":"🔍 Seat lookup for 29D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.979Z","level":"info","message":"🔍 Seat lookup for 30C: found=true, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:55:25.979Z","level":"info","message":"🔍 Seat lookup for 30E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.979Z","level":"info","message":"🔍 Seat lookup for 30F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.979Z","level":"info","message":"🔍 Seat lookup for 31C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.979Z","level":"info","message":"🔍 Seat lookup for 31D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.980Z","level":"info","message":"🔍 Seat lookup for 31F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.980Z","level":"info","message":"🔍 Seat lookup for 10A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.981Z","level":"info","message":"🔍 Seat lookup for 11A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.982Z","level":"info","message":"🔍 Seat lookup for 12F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.982Z","level":"info","message":"🔍 Seat lookup for 13E: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.982Z","level":"info","message":"🔍 Seat lookup for 14A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.982Z","level":"info","message":"🔍 Seat lookup for 14C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.983Z","level":"info","message":"🔍 Seat lookup for 15A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.983Z","level":"info","message":"🔍 Seat lookup for 15D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.983Z","level":"info","message":"🔍 Seat lookup for 15E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.983Z","level":"info","message":"🔍 Seat lookup for 16A: found=true, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:55:25.984Z","level":"info","message":"🔍 Seat lookup for 17A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.984Z","level":"info","message":"🔍 Seat lookup for 17C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.984Z","level":"info","message":"🔍 Seat lookup for 17D: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.984Z","level":"info","message":"🔍 Seat lookup for 17E: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.984Z","level":"info","message":"🔍 Seat lookup for 18A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.985Z","level":"info","message":"🔍 Seat lookup for 18E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.985Z","level":"info","message":"🔍 Seat lookup for 19A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.985Z","level":"info","message":"🔍 Seat lookup for 19D: found=true, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:55:25.985Z","level":"info","message":"🔍 Seat lookup for 19E: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.985Z","level":"info","message":"🔍 Seat lookup for 19F: found=true, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:55:25.986Z","level":"info","message":"🔍 Seat lookup for 20A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.986Z","level":"info","message":"🔍 Seat lookup for 20E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.987Z","level":"info","message":"🔍 Seat lookup for 21F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.992Z","level":"info","message":"🔍 Seat lookup for 23E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.993Z","level":"info","message":"🔍 Seat lookup for 24C: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.994Z","level":"info","message":"🔍 Seat lookup for 26A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.994Z","level":"info","message":"🔍 Seat lookup for 26D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.994Z","level":"info","message":"🔍 Seat lookup for 27D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.994Z","level":"info","message":"🔍 Seat lookup for 27E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.995Z","level":"info","message":"🔍 Seat lookup for 27F: found=true, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:55:25.996Z","level":"info","message":"🔍 Seat lookup for 29C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:25.997Z","level":"info","message":"🔍 Seat lookup for 31D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:26.092Z","level":"info","message":"🚀 MULTI-CABIN SEAT LAYOUT:","data":{"total_cabins":1,"cabin_details":[{"cabin_index":1,"cabin_code":"Y","columns":["A","C","D","E","F"],"column_count":5,"row_range":"10-31","is_upper_deck":false}]}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.889Z","level":"info","message":"API POST /api/verteil/seat-availability","data":{"status":200}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.890Z","level":"info","message":"✅ POST /api/verteil/seat-availability completed","data":{"status":200}}
+2logger.ts:43 {"timestamp":"2025-08-17T07:55:27.890Z","level":"info","message":"✅ Seat availability received via unified manager","data":{"hasData":true,"source":"api_call"}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.890Z","level":"info","message":"🔍 Processing seat availability data structure:","data":["dataLists","flights"]}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.890Z","level":"info","message":"🛫 Processing 1 cabin sections"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.890Z","level":"info","message":"✅ Set multi-cabin seat map configuration from response:","data":{"cabin_count":1,"cabin_details":[{"index":1,"columns_count":5,"row_range":{"first":10,"last":31,"upperDeckInd":false},"is_upper_deck":false}]}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.890Z","level":"info","message":"🔧 Validated multi-cabin seat map against actual seat data:","data":{"min_row":10,"max_row":31,"total_rows_with_seats":21,"total_seats":91}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.890Z","level":"info","message":"✅ Successfully loaded 91 seats for selection","data":{"seat_count":91,"rows_with_seats":21,"min_row":10,"max_row":31,"first_5_rows":[10,11,12,14,15],"last_5_rows":[27,28,29,30,31],"sample_seat_locations":[{"row":"10","column":"A"},{"row":"10","column":"C"},{"row":"10","column":"D"}]}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.890Z","level":"info","message":"🔍 Processing seat availability data structure:","data":["dataLists","flights"]}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.890Z","level":"info","message":"🛫 Processing 1 cabin sections"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.890Z","level":"info","message":"✅ Set multi-cabin seat map configuration from response:","data":{"cabin_count":1,"cabin_details":[{"index":1,"columns_count":5,"row_range":{"first":10,"last":31,"upperDeckInd":false},"is_upper_deck":false}]}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.890Z","level":"info","message":"🔧 Validated multi-cabin seat map against actual seat data:","data":{"min_row":10,"max_row":31,"total_rows_with_seats":21,"total_seats":91}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.890Z","level":"info","message":"✅ Successfully loaded 91 seats for selection","data":{"seat_count":91,"rows_with_seats":21,"min_row":10,"max_row":31,"first_5_rows":[10,11,12,14,15],"last_5_rows":[27,28,29,30,31],"sample_seat_locations":[{"row":"10","column":"A"},{"row":"10","column":"C"},{"row":"10","column":"D"}]}}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.892Z","level":"info","message":"🔍 Seat lookup for 10C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.893Z","level":"info","message":"🔍 Seat lookup for 10F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.893Z","level":"info","message":"🔍 Seat lookup for 11A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.893Z","level":"info","message":"🔍 Seat lookup for 11E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.893Z","level":"info","message":"🔍 Seat lookup for 11F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.893Z","level":"info","message":"🔍 Seat lookup for 12D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.894Z","level":"info","message":"🔍 Seat lookup for 12F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.894Z","level":"info","message":"🔍 Seat lookup for 14E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.895Z","level":"info","message":"🔍 Seat lookup for 15E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.895Z","level":"info","message":"🔍 Seat lookup for 17C: found=true, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:55:27.896Z","level":"info","message":"🔍 Seat lookup for 18C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.896Z","level":"info","message":"🔍 Seat lookup for 18F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.896Z","level":"info","message":"🔍 Seat lookup for 19C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.896Z","level":"info","message":"🔍 Seat lookup for 19F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.896Z","level":"info","message":"🔍 Seat lookup for 20C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.897Z","level":"info","message":"🔍 Seat lookup for 20F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.897Z","level":"info","message":"🔍 Seat lookup for 21C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.897Z","level":"info","message":"🔍 Seat lookup for 22C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.898Z","level":"info","message":"🔍 Seat lookup for 24A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.898Z","level":"info","message":"🔍 Seat lookup for 24E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.898Z","level":"info","message":"🔍 Seat lookup for 25A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.899Z","level":"info","message":"🔍 Seat lookup for 27C: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.899Z","level":"info","message":"🔍 Seat lookup for 27F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.899Z","level":"info","message":"🔍 Seat lookup for 28E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.900Z","level":"info","message":"🔍 Seat lookup for 29C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.900Z","level":"info","message":"🔍 Seat lookup for 30E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.900Z","level":"info","message":"🔍 Seat lookup for 31A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.900Z","level":"info","message":"🔍 Seat lookup for 31C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.901Z","level":"info","message":"🔍 Seat lookup for 10A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.901Z","level":"info","message":"🔍 Seat lookup for 10D: found=true, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:55:27.902Z","level":"info","message":"🔍 Seat lookup for 11C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.902Z","level":"info","message":"🔍 Seat lookup for 11F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.902Z","level":"info","message":"🔍 Seat lookup for 13D: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.903Z","level":"info","message":"🔍 Seat lookup for 15A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.903Z","level":"info","message":"🔍 Seat lookup for 15D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.903Z","level":"info","message":"🔍 Seat lookup for 16C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.904Z","level":"info","message":"🔍 Seat lookup for 17C: found=true, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:55:27.904Z","level":"info","message":"🔍 Seat lookup for 17D: found=false, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:55:27.904Z","level":"info","message":"🔍 Seat lookup for 18D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.905Z","level":"info","message":"🔍 Seat lookup for 18F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.905Z","level":"info","message":"🔍 Seat lookup for 19D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.905Z","level":"info","message":"🔍 Seat lookup for 19E: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.905Z","level":"info","message":"🔍 Seat lookup for 20A: found=true, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:55:27.906Z","level":"info","message":"🔍 Seat lookup for 21A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.906Z","level":"info","message":"🔍 Seat lookup for 22A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.906Z","level":"info","message":"🔍 Seat lookup for 22C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.906Z","level":"info","message":"🔍 Seat lookup for 22D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.906Z","level":"info","message":"🔍 Seat lookup for 23A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.907Z","level":"info","message":"🔍 Seat lookup for 23A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.907Z","level":"info","message":"🔍 Seat lookup for 23F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.907Z","level":"info","message":"🔍 Seat lookup for 24F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.907Z","level":"info","message":"🔍 Seat lookup for 25D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.908Z","level":"info","message":"🔍 Seat lookup for 26C: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.908Z","level":"info","message":"🔍 Seat lookup for 27C: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.908Z","level":"info","message":"🔍 Seat lookup for 27E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.909Z","level":"info","message":"🔍 Seat lookup for 27F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.909Z","level":"info","message":"🔍 Seat lookup for 29A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.910Z","level":"info","message":"🔍 Seat lookup for 29F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.910Z","level":"info","message":"🔍 Seat lookup for 30F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.911Z","level":"info","message":"🔍 Seat lookup for 31C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.911Z","level":"info","message":"🔍 Seat lookup for 31D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:27.911Z","level":"info","message":"🔍 Seat lookup for 31E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:55:28.011Z","level":"info","message":"🚀 MULTI-CABIN SEAT LAYOUT:","data":{"total_cabins":1,"cabin_details":[{"cabin_index":1,"cabin_code":"Y","columns":["A","C","D","E","F"],"column_count":5,"row_range":"10-31","is_upper_deck":false}]}}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.025Z","level":"info","message":"🔍 Seat lookup for 10D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.026Z","level":"info","message":"🔍 Seat lookup for 10E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.027Z","level":"info","message":"🔍 Seat lookup for 11D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.028Z","level":"info","message":"🔍 Seat lookup for 12C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.029Z","level":"info","message":"🔍 Seat lookup for 12E: found=true, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:56:05.031Z","level":"info","message":"🔍 Seat lookup for 13C: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.031Z","level":"info","message":"🔍 Seat lookup for 14A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.033Z","level":"info","message":"🔍 Seat lookup for 14D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.036Z","level":"info","message":"🔍 Seat lookup for 14E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.041Z","level":"info","message":"🔍 Seat lookup for 18C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.043Z","level":"info","message":"🔍 Seat lookup for 19D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.044Z","level":"info","message":"🔍 Seat lookup for 19E: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.045Z","level":"info","message":"🔍 Seat lookup for 20D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.046Z","level":"info","message":"🔍 Seat lookup for 21C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.047Z","level":"info","message":"🔍 Seat lookup for 21E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.047Z","level":"info","message":"🔍 Seat lookup for 22A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.048Z","level":"info","message":"🔍 Seat lookup for 22E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.055Z","level":"info","message":"🔍 Seat lookup for 23F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.056Z","level":"info","message":"🔍 Seat lookup for 24F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.057Z","level":"info","message":"🔍 Seat lookup for 25A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.058Z","level":"info","message":"🔍 Seat lookup for 26A: found=false, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:56:05.058Z","level":"info","message":"🔍 Seat lookup for 26D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.058Z","level":"info","message":"🔍 Seat lookup for 26F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.059Z","level":"info","message":"🔍 Seat lookup for 27A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.059Z","level":"info","message":"🔍 Seat lookup for 27D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.059Z","level":"info","message":"🔍 Seat lookup for 27E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.061Z","level":"info","message":"🔍 Seat lookup for 28C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.061Z","level":"info","message":"🔍 Seat lookup for 28E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.062Z","level":"info","message":"🔍 Seat lookup for 28F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.063Z","level":"info","message":"🔍 Seat lookup for 29C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.064Z","level":"info","message":"🔍 Seat lookup for 30A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.064Z","level":"info","message":"🔍 Seat lookup for 30C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.064Z","level":"info","message":"🔍 Seat lookup for 30E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.065Z","level":"info","message":"🔍 Seat lookup for 31F: found=true, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:56:05.067Z","level":"info","message":"🔍 Seat lookup for 10D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.068Z","level":"info","message":"🔍 Seat lookup for 11C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.069Z","level":"info","message":"🔍 Seat lookup for 12D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.070Z","level":"info","message":"🔍 Seat lookup for 12E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.071Z","level":"info","message":"🔍 Seat lookup for 14C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.073Z","level":"info","message":"🔍 Seat lookup for 15E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.074Z","level":"info","message":"🔍 Seat lookup for 16F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.075Z","level":"info","message":"🔍 Seat lookup for 18A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.076Z","level":"info","message":"🔍 Seat lookup for 18C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.076Z","level":"info","message":"🔍 Seat lookup for 18E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.077Z","level":"info","message":"🔍 Seat lookup for 19E: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.078Z","level":"info","message":"🔍 Seat lookup for 20C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.079Z","level":"info","message":"🔍 Seat lookup for 21C: found=true, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:56:05.080Z","level":"info","message":"🔍 Seat lookup for 22D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.083Z","level":"info","message":"🔍 Seat lookup for 23D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.086Z","level":"info","message":"🔍 Seat lookup for 26A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.086Z","level":"info","message":"🔍 Seat lookup for 26D: found=true, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:56:05.087Z","level":"info","message":"🔍 Seat lookup for 26E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.087Z","level":"info","message":"🔍 Seat lookup for 27D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.088Z","level":"info","message":"🔍 Seat lookup for 27E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.089Z","level":"info","message":"🔍 Seat lookup for 29C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.089Z","level":"info","message":"🔍 Seat lookup for 29E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.090Z","level":"info","message":"🔍 Seat lookup for 29F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.090Z","level":"info","message":"🔍 Seat lookup for 30E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.091Z","level":"info","message":"🔍 Seat lookup for 31A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.092Z","level":"info","message":"🔍 Seat lookup for 31F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.108Z","level":"info","message":"🔍 Seat lookup for 10E: found=true, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:56:05.109Z","level":"info","message":"🔍 Seat lookup for 11C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.109Z","level":"info","message":"🔍 Seat lookup for 12A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.110Z","level":"info","message":"🔍 Seat lookup for 12F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.110Z","level":"info","message":"🔍 Seat lookup for 13D: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.111Z","level":"info","message":"🔍 Seat lookup for 14E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.112Z","level":"info","message":"🔍 Seat lookup for 14F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.112Z","level":"info","message":"🔍 Seat lookup for 15C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.112Z","level":"info","message":"🔍 Seat lookup for 15D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.113Z","level":"info","message":"🔍 Seat lookup for 15E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.113Z","level":"info","message":"🔍 Seat lookup for 16A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.113Z","level":"info","message":"🔍 Seat lookup for 16C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.113Z","level":"info","message":"🔍 Seat lookup for 16D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.114Z","level":"info","message":"🔍 Seat lookup for 16D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.115Z","level":"info","message":"🔍 Seat lookup for 17C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.116Z","level":"info","message":"🔍 Seat lookup for 18F: found=true, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:56:05.117Z","level":"info","message":"🔍 Seat lookup for 19F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.117Z","level":"info","message":"🔍 Seat lookup for 20D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.117Z","level":"info","message":"🔍 Seat lookup for 20E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.118Z","level":"info","message":"🔍 Seat lookup for 20E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.118Z","level":"info","message":"🔍 Seat lookup for 20F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.118Z","level":"info","message":"🔍 Seat lookup for 21E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.119Z","level":"info","message":"🔍 Seat lookup for 22D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.120Z","level":"info","message":"🔍 Seat lookup for 22F: found=true, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:56:05.120Z","level":"info","message":"🔍 Seat lookup for 23C: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.121Z","level":"info","message":"🔍 Seat lookup for 24D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.121Z","level":"info","message":"🔍 Seat lookup for 24F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.122Z","level":"info","message":"🔍 Seat lookup for 25E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.122Z","level":"info","message":"🔍 Seat lookup for 26C: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.128Z","level":"info","message":"🔍 Seat lookup for 26F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.128Z","level":"info","message":"🔍 Seat lookup for 27A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.129Z","level":"info","message":"🔍 Seat lookup for 27E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.129Z","level":"info","message":"🔍 Seat lookup for 28A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.129Z","level":"info","message":"🔍 Seat lookup for 28C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.130Z","level":"info","message":"🔍 Seat lookup for 28E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.130Z","level":"info","message":"🔍 Seat lookup for 29A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.131Z","level":"info","message":"🔍 Seat lookup for 29C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.131Z","level":"info","message":"🔍 Seat lookup for 29E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.132Z","level":"info","message":"🔍 Seat lookup for 30A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.133Z","level":"info","message":"🔍 Seat lookup for 30E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.136Z","level":"info","message":"🔍 Seat lookup for 11F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.136Z","level":"info","message":"🔍 Seat lookup for 12C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.137Z","level":"info","message":"🔍 Seat lookup for 12D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.138Z","level":"info","message":"🔍 Seat lookup for 14F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.138Z","level":"info","message":"🔍 Seat lookup for 15E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.139Z","level":"info","message":"🔍 Seat lookup for 15F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.139Z","level":"info","message":"🔍 Seat lookup for 16A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.139Z","level":"info","message":"🔍 Seat lookup for 16E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.140Z","level":"info","message":"🔍 Seat lookup for 17A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.140Z","level":"info","message":"🔍 Seat lookup for 18F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.141Z","level":"info","message":"🔍 Seat lookup for 19A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.143Z","level":"info","message":"🔍 Seat lookup for 23D: found=true, total_seats=91"}
+2logger.ts:43 {"timestamp":"2025-08-17T07:56:05.146Z","level":"info","message":"🔍 Seat lookup for 28C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.146Z","level":"info","message":"🔍 Seat lookup for 29C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.147Z","level":"info","message":"🔍 Seat lookup for 29E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:05.148Z","level":"info","message":"🔍 Seat lookup for 31D: found=true, total_seats=91"}
+hot-reloader-client.js:187 [Fast Refresh] rebuilding
+hot-reloader-client.js:44 [Fast Refresh] done in 197ms
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.955Z","level":"info","message":"🔍 Seat lookup for 10E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.955Z","level":"info","message":"🔍 Seat lookup for 11C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.956Z","level":"info","message":"🔍 Seat lookup for 11E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.956Z","level":"info","message":"🔍 Seat lookup for 12F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.957Z","level":"info","message":"🔍 Seat lookup for 13A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.957Z","level":"info","message":"🔍 Seat lookup for 13E: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.958Z","level":"info","message":"🔍 Seat lookup for 14A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.958Z","level":"info","message":"🔍 Seat lookup for 14C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.958Z","level":"info","message":"🔍 Seat lookup for 15E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.959Z","level":"info","message":"🔍 Seat lookup for 16D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.959Z","level":"info","message":"🔍 Seat lookup for 16E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.960Z","level":"info","message":"🔍 Seat lookup for 18C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.960Z","level":"info","message":"🔍 Seat lookup for 19D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.960Z","level":"info","message":"🔍 Seat lookup for 19F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.961Z","level":"info","message":"🔍 Seat lookup for 20F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.961Z","level":"info","message":"🔍 Seat lookup for 21A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.962Z","level":"info","message":"🔍 Seat lookup for 21D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.962Z","level":"info","message":"🔍 Seat lookup for 21D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.963Z","level":"info","message":"🔍 Seat lookup for 22C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.963Z","level":"info","message":"🔍 Seat lookup for 23A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.963Z","level":"info","message":"🔍 Seat lookup for 23F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.964Z","level":"info","message":"🔍 Seat lookup for 24C: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.964Z","level":"info","message":"🔍 Seat lookup for 24D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.964Z","level":"info","message":"🔍 Seat lookup for 24F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.966Z","level":"info","message":"🔍 Seat lookup for 26D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.966Z","level":"info","message":"🔍 Seat lookup for 27A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.966Z","level":"info","message":"🔍 Seat lookup for 27A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.967Z","level":"info","message":"🔍 Seat lookup for 27F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.967Z","level":"info","message":"🔍 Seat lookup for 28E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.967Z","level":"info","message":"🔍 Seat lookup for 29D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.967Z","level":"info","message":"🔍 Seat lookup for 29E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.968Z","level":"info","message":"🔍 Seat lookup for 30F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.968Z","level":"info","message":"🔍 Seat lookup for 31C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.969Z","level":"info","message":"🔍 Seat lookup for 13A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.969Z","level":"info","message":"🔍 Seat lookup for 13E: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.969Z","level":"info","message":"🔍 Seat lookup for 14A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.970Z","level":"info","message":"🔍 Seat lookup for 15C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.972Z","level":"info","message":"🔍 Seat lookup for 16D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.972Z","level":"info","message":"🔍 Seat lookup for 16E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.974Z","level":"info","message":"🔍 Seat lookup for 19C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.977Z","level":"info","message":"🔍 Seat lookup for 21C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.977Z","level":"info","message":"🔍 Seat lookup for 22A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.977Z","level":"info","message":"🔍 Seat lookup for 22F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.978Z","level":"info","message":"🔍 Seat lookup for 24A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.978Z","level":"info","message":"🔍 Seat lookup for 28A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.978Z","level":"info","message":"🔍 Seat lookup for 28C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.979Z","level":"info","message":"🔍 Seat lookup for 28D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.979Z","level":"info","message":"🔍 Seat lookup for 28F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.979Z","level":"info","message":"🔍 Seat lookup for 29A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.979Z","level":"info","message":"🔍 Seat lookup for 29F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.979Z","level":"info","message":"🔍 Seat lookup for 30C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.979Z","level":"info","message":"🔍 Seat lookup for 30E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.980Z","level":"info","message":"🔍 Seat lookup for 31F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.980Z","level":"info","message":"🔍 Seat lookup for 31F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.983Z","level":"info","message":"🔍 Seat lookup for 10E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.983Z","level":"info","message":"🔍 Seat lookup for 11D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.984Z","level":"info","message":"🔍 Seat lookup for 12C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.984Z","level":"info","message":"🔍 Seat lookup for 12C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.984Z","level":"info","message":"🔍 Seat lookup for 12F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.984Z","level":"info","message":"🔍 Seat lookup for 13A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.985Z","level":"info","message":"🔍 Seat lookup for 13F: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.985Z","level":"info","message":"🔍 Seat lookup for 14C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.986Z","level":"info","message":"🔍 Seat lookup for 17D: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.986Z","level":"info","message":"🔍 Seat lookup for 17E: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.986Z","level":"info","message":"🔍 Seat lookup for 18D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.986Z","level":"info","message":"🔍 Seat lookup for 18E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.986Z","level":"info","message":"🔍 Seat lookup for 18F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.987Z","level":"info","message":"🔍 Seat lookup for 19C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.987Z","level":"info","message":"🔍 Seat lookup for 19F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.987Z","level":"info","message":"🔍 Seat lookup for 21E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.988Z","level":"info","message":"🔍 Seat lookup for 23E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.988Z","level":"info","message":"🔍 Seat lookup for 24A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.988Z","level":"info","message":"🔍 Seat lookup for 24A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.989Z","level":"info","message":"🔍 Seat lookup for 24F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.989Z","level":"info","message":"🔍 Seat lookup for 25C: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.989Z","level":"info","message":"🔍 Seat lookup for 25F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.990Z","level":"info","message":"🔍 Seat lookup for 26C: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.990Z","level":"info","message":"🔍 Seat lookup for 26F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.990Z","level":"info","message":"🔍 Seat lookup for 27C: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.990Z","level":"info","message":"🔍 Seat lookup for 27E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.990Z","level":"info","message":"🔍 Seat lookup for 27F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.990Z","level":"info","message":"🔍 Seat lookup for 28C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.991Z","level":"info","message":"🔍 Seat lookup for 30A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.991Z","level":"info","message":"🔍 Seat lookup for 31C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.992Z","level":"info","message":"🔍 Seat lookup for 10A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.992Z","level":"info","message":"🔍 Seat lookup for 10F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.993Z","level":"info","message":"🔍 Seat lookup for 11D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.993Z","level":"info","message":"🔍 Seat lookup for 11E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.993Z","level":"info","message":"🔍 Seat lookup for 13A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.993Z","level":"info","message":"🔍 Seat lookup for 14A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.994Z","level":"info","message":"🔍 Seat lookup for 15E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.994Z","level":"info","message":"🔍 Seat lookup for 16F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.994Z","level":"info","message":"🔍 Seat lookup for 17D: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.995Z","level":"info","message":"🔍 Seat lookup for 17F: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.995Z","level":"info","message":"🔍 Seat lookup for 18D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.996Z","level":"info","message":"🔍 Seat lookup for 19F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.997Z","level":"info","message":"🔍 Seat lookup for 20C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.997Z","level":"info","message":"🔍 Seat lookup for 20E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.997Z","level":"info","message":"🔍 Seat lookup for 21F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.997Z","level":"info","message":"🔍 Seat lookup for 22A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.997Z","level":"info","message":"🔍 Seat lookup for 22C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.998Z","level":"info","message":"🔍 Seat lookup for 23C: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.998Z","level":"info","message":"🔍 Seat lookup for 23F: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.998Z","level":"info","message":"🔍 Seat lookup for 25C: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.998Z","level":"info","message":"🔍 Seat lookup for 25E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.999Z","level":"info","message":"🔍 Seat lookup for 26A: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.999Z","level":"info","message":"🔍 Seat lookup for 26E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.999Z","level":"info","message":"🔍 Seat lookup for 27C: found=false, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:51.999Z","level":"info","message":"🔍 Seat lookup for 27D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:52.000Z","level":"info","message":"🔍 Seat lookup for 28E: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:52.000Z","level":"info","message":"🔍 Seat lookup for 29A: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:52.000Z","level":"info","message":"🔍 Seat lookup for 29C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:52.000Z","level":"info","message":"🔍 Seat lookup for 29D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:52.000Z","level":"info","message":"🔍 Seat lookup for 29D: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:52.001Z","level":"info","message":"🔍 Seat lookup for 30C: found=true, total_seats=91"}
+logger.ts:43 {"timestamp":"2025-08-17T07:56:52.001Z","level":"info","message":"🔍 Seat lookup for 31F: found=true, total_seats=91"}

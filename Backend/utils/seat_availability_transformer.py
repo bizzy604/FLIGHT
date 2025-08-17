@@ -423,6 +423,11 @@ def _extract_complete_seat_map(api_response):
                             }
                         }
                     
+                    # 🚀 CRITICAL FIX: Add pricing refs for OrderCreate mapping
+                    # Frontend needs these to map seat positions to pricing ObjectKeys
+                    if refs:
+                        seat_obj["pricingRefs"] = refs
+                    
                     # Add ALL characteristics if they exist
                     if all_characteristics:
                         seat_obj["location"]["characteristics"] = {

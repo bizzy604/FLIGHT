@@ -4,6 +4,7 @@ import * as React from "react"
 import { useState, useEffect } from "react"
 import { logger } from "@/utils/logger"
 import { seatServiceCache } from "@/utils/seat-service-cache-manager"
+import { unifiedApiManager } from "@/utils/unified-api-manager"
 import { SeatSelection } from "@/components/molecules/seat-selection"
 import { ServiceSelection } from "@/components/molecules/service-selection" 
 import { OrderSummary } from "@/components/molecules/order-summary"
@@ -36,7 +37,12 @@ export function SeatServiceIntegration({
   const [bookingState, setBookingState] = useState({
     step: 'seat-selection', // seat-selection, service-selection, review, complete
     isValid: false,
-    errors: [] as string[]
+    errors: [] as string[],
+    // 🚀 NEW: Store pricing ObjectKeys for OrderCreate mapping
+    seatPricingRefs: {
+      outbound: [] as string[],
+      return: [] as string[]
+    }
   })
 
   // Load flight price response from session storage and detect trip type
@@ -46,90 +52,64 @@ export function SeatServiceIntegration({
       if (storedResponse) {
         const parsedResponse = JSON.parse(storedResponse)
         
-        // 🚀 CRITICAL FIX: Merge metadata from separate session storage
+        // 🚀 SIMPLIFIED: Let unified API manager handle cache key extraction
+        // Just ensure session ID is available
+        if (!localStorage.getItem('flight_session_id')) {
+          const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+          localStorage.setItem('flight_session_id', sessionId)
+          logger.info('✅ Generated new flight session ID:', sessionId)
+        }
+        
+        // Merge metadata if available
         const storedMetadata = sessionStorage.getItem('flightPriceMetadata')
         if (storedMetadata) {
           try {
             const parsedMetadata = JSON.parse(storedMetadata)
-            // Ensure metadata structure exists
             if (!parsedResponse.metadata) {
               parsedResponse.metadata = {}
             }
-            // Merge the stored metadata
             Object.assign(parsedResponse.metadata, parsedMetadata)
-            logger.info('✅ Successfully merged flight price metadata with response data')
+            logger.info('✅ Successfully merged flight price metadata')
           } catch (metadataError) {
             logger.warn('⚠️ Failed to parse stored metadata:', metadataError)
           }
-        } else {
-          logger.warn('⚠️ No flight price metadata found in session storage')
         }
         
         setFlightPriceResponse(parsedResponse)
         
-        // 🚀 ROBUST Trip Type Detection
+        // Trip type detection (simplified)
         const segments = parsedResponse?.flight_segments || []
         setFlightSegments(segments)
         
-        // 🎯 ENHANCED DETECTION: Check multiple indicators for return flights
         const hasReturnFlight = !!(
           parsedResponse?.returnFlight ||
           parsedResponse?.return_segments ||
-          parsedResponse?.returnFlightSegments ||
-          parsedResponse?.outboundAndReturn ||
-          (Array.isArray(parsedResponse?.trip_type) && parsedResponse.trip_type.includes('return')) ||
-          (typeof parsedResponse?.trip_type === 'string' && parsedResponse.trip_type.toLowerCase().includes('round')) ||
-          // Check if there are explicitly tagged return segments
           (Array.isArray(segments) && segments.some((seg: any) => 
-            seg?.direction === 'return' || 
-            seg?.type === 'return' || 
-            seg?.leg === 'return' ||
-            seg?.segment_type === 'return'
+            seg?.direction === 'return' || seg?.type === 'return'
           ))
         )
         
         setIsRoundTrip(hasReturnFlight)
         
-        // 🔍 Enhanced debugging for trip type detection
-        logger.info('🔍 TRIP TYPE DEBUG:', {
-          hasReturnFlight,
-          returnFlight: !!parsedResponse?.returnFlight,
-          return_segments: !!parsedResponse?.return_segments,
-          segments_length: segments.length,
-          parsedResponse_keys: Object.keys(parsedResponse || {}),
-          first_few_keys: Object.keys(parsedResponse || {}).slice(0, 10)
+        logger.info('🔍 Flight data loaded:', {
+          tripType: hasReturnFlight ? 'Round-trip' : 'One-way',
+          segments: segments.length,
+          hasMetadata: !!parsedResponse?.metadata
         })
         
-        // 🔍 Enhanced debugging for flight price cache key
-        logger.info('🔍 FLIGHT PRICE CACHE KEY DEBUG:', {
-          has_metadata: !!parsedResponse?.metadata,
-          metadata_keys: Object.keys(parsedResponse?.metadata || {}),
-          flight_price_cache_key: parsedResponse?.metadata?.flight_price_cache_key,
-          top_level_cache_key: parsedResponse?.flight_price_cache_key,
-          offer_id: parsedResponse?.offer_id,
-          original_offer_id: parsedResponse?.original_offer_id,
-          shopping_response_id: parsedResponse?.shopping_response_id
-        })
-
-        // 🚀 CRITICAL FIX: Ensure flight_price_cache_key is available at top level
-        if (parsedResponse?.metadata?.flight_price_cache_key && !parsedResponse?.flight_price_cache_key) {
-          parsedResponse.flight_price_cache_key = parsedResponse.metadata.flight_price_cache_key
-          logger.info(`✅ Promoted flight_price_cache_key to top level: ${parsedResponse.flight_price_cache_key}`)
-        }
-        
-        // 🚀 Initialize booking state
+        // Initialize booking state
         validateBookingState()
         
-        // 🚀 Pre-load seat and service data to prevent redundant API calls (async)
+        // Pre-load seat and service data via unified manager
         seatServiceCache.preloadData(parsedResponse)
           .then(() => {
-            logger.info(`✅ Successfully pre-loaded seat/service data for flight`)
+            logger.info('✅ Successfully pre-loaded seat/service data via unified manager')
           })
           .catch((preloadError) => {
-            logger.warn(`⚠️ Failed to pre-load seat/service data:`, preloadError)
+            logger.warn('⚠️ Failed to pre-load seat/service data:', preloadError)
           })
         
-        logger.info(`✅ Loaded flight data - Trip Type: ${hasReturnFlight ? 'Round-trip' : 'One-way'}, Segments: ${segments.length}`)
+        logger.info(`✅ Flight data loaded - ${hasReturnFlight ? 'Round-trip' : 'One-way'}, ${segments.length} segments`)
       } else {
         logger.warn('⚠️ No flight price response found in session storage')
         setBookingState(prev => ({ 
@@ -174,11 +154,26 @@ export function SeatServiceIntegration({
   }
 
   // Handle seat selection changes with validation
-  const handleSeatChange = (flightType: 'outbound' | 'return', updatedSeats: string[]) => {
+  const handleSeatChange = (flightType: 'outbound' | 'return', updatedSeats: string[], pricingRefs?: string[]) => {
     setSelectedSeats(prev => ({
       ...prev,
       [flightType]: updatedSeats
     }))
+    
+    // 🚀 CRITICAL FIX: Store pricing ObjectKeys for OrderCreate
+    // These are the actual ObjectKeys the backend needs for seat pricing
+    if (pricingRefs) {
+      logger.info(`🎯 Storing pricing ObjectKeys for ${flightType}: [${pricingRefs.join(', ')}]`)
+      
+      // Store pricing refs in booking state for OrderCreate
+      setBookingState(prev => ({
+        ...prev,
+        seatPricingRefs: {
+          ...prev.seatPricingRefs,
+          [flightType]: pricingRefs
+        }
+      }))
+    }
     
     // Calculate seat prices (this would come from actual seat data)
     // For now, using mock calculation
@@ -214,34 +209,25 @@ export function SeatServiceIntegration({
     logger.info(`🛎️ Updated services:`, updatedServices)
   }
 
-  // Debug: Show cache status
+  // Debug: Show cache status (simplified)
   const debugCacheStatus = () => {
     if (!flightPriceResponse) return null
     
     const seatCache = seatServiceCache.getCachedSeatAvailability(flightPriceResponse)
     const serviceCache = seatServiceCache.getCachedServiceList(flightPriceResponse)
     const cacheStatus = seatServiceCache.getCacheStatus()
+    const unifiedDebug = unifiedApiManager.getDebugInfo()
     
     return (
       <div className="bg-gray-50 border rounded-lg p-4 mb-4 text-xs">
-        <h4 className="font-semibold mb-2">🔍 Enhanced Cache Debug Status</h4>
+        <h4 className="font-semibold mb-2">🔍 Unified API Manager Debug Status</h4>
         <div className="space-y-1">
           <div>Seat Data: {seatCache.data ? '✅ Cached' : seatCache.isLoading ? '🔄 Loading' : '❌ Not Available'}</div>
           <div>Service Data: {serviceCache.data ? '✅ Cached' : serviceCache.isLoading ? '🔄 Loading' : '❌ Not Available'}</div>
-          <div>Cache Entries: {cacheStatus.totalEntries}, Loading: {cacheStatus.loadingEntries}, Global Loading: {cacheStatus.globalLoadingStates}</div>
-          {cacheStatus.cacheKeys.length > 0 && (
-            <div>Cache Keys: {cacheStatus.cacheKeys.join(', ')}</div>
-          )}
-          {cacheStatus.globalLoadingKeys.length > 0 && (
-            <div className="text-blue-600">Global Loading: {cacheStatus.globalLoadingKeys.join(', ')}</div>
-          )}
-          {Object.keys(cacheStatus.storageKeys).length > 0 && (
-            <div className="text-green-600">
-              🔑 Storage Keys: {Object.entries(cacheStatus.storageKeys).map(([key, storage]) => 
-                `${key}[seat:${storage.seatAvailability?.slice(-8) || 'none'}, service:${storage.serviceList?.slice(-8) || 'none'}]`
-              ).join(', ')}
-            </div>
-          )}
+          <div>Local Cache: {cacheStatus.totalEntries} entries, {cacheStatus.loadingEntries} loading</div>
+          <div>Unified Cache: {unifiedDebug.cacheEntries.length} entries, {unifiedDebug.pendingRequests.length} pending</div>
+          <div>Session ID: {unifiedDebug.sessionData.sessionId?.slice(-8) || 'Missing'}</div>
+          <div>Flight Price Cache Key: {unifiedDebug.sessionData.flightPriceCacheKey?.slice(-12) || 'Missing'}</div>
           {seatCache.error && <div className="text-red-600">Seat Error: {seatCache.error}</div>}
           {serviceCache.error && <div className="text-red-600">Service Error: {serviceCache.error}</div>}
         </div>

@@ -1,4 +1,5 @@
 import { api } from "@/utils/api-client"
+import { unifiedApiManager } from "@/utils/unified-api-manager"
 import { logger } from "@/utils/logger"
 
 interface SeatAvailabilityData {
@@ -123,61 +124,18 @@ class SeatServiceCacheManager {
   private globalLoadingState: Map<string, boolean> = new Map() // Track global loading to prevent concurrent calls
 
   /**
-   * Generate cache key from flight price response
-   * 🚀 FIXED: Use backend-compatible cache key format
+   * Generate cache key from flight price response (SIMPLIFIED)
+   * Unified API manager handles complex extraction internally
    */
   private generateCacheKey(flightPriceResponse: any): string {
-    // 🎯 CRITICAL FIX: Extract the flight_price_cache_key hash only (without prefix)
-    // Backend stores with format: seat_availability:{hash} and service_list:{hash}
-    // We need just the {hash} part to be consistent
+    // Use offer_id + timestamp for local cache key
+    const offerId = flightPriceResponse?.offer_id || flightPriceResponse?.original_offer_id || 'unknown'
+    const timestamp = flightPriceResponse?.metadata?.timestamp || Date.now()
     
-    let cacheKeyHash = null
+    const localCacheKey = `${offerId}_${Math.floor(timestamp / 1000)}`
+    logger.info(`🔑 Generated local cache key: ${localCacheKey}`)
     
-    // Method 1: From metadata.flight_price_cache_key (preferred)
-    if (flightPriceResponse?.metadata?.flight_price_cache_key) {
-      const fullKey = flightPriceResponse.metadata.flight_price_cache_key
-      // Extract hash from flight_price:{hash} format
-      cacheKeyHash = fullKey.includes(':') ? fullKey.split(':')[1] : fullKey
-    }
-    // Method 2: From top-level flight_price_cache_key
-    else if (flightPriceResponse?.flight_price_cache_key) {
-      const fullKey = flightPriceResponse.flight_price_cache_key
-      cacheKeyHash = fullKey.includes(':') ? fullKey.split(':')[1] : fullKey
-    }
-    // Method 3: From data.metadata.flight_price_cache_key
-    else if (flightPriceResponse?.data?.metadata?.flight_price_cache_key) {
-      const fullKey = flightPriceResponse.data.metadata.flight_price_cache_key
-      cacheKeyHash = fullKey.includes(':') ? fullKey.split(':')[1] : fullKey
-    }
-    
-    if (cacheKeyHash) {
-      // Return just the hash part - this will be used to build seat_availability:{hash} and service_list:{hash}
-      logger.info(`🔑 Generated cache hash from flight_price_cache_key: ${cacheKeyHash}`)
-      return cacheKeyHash
-    }
-    
-    // 🚨 FALLBACK: Generate hash from flight data (must match backend logic)
-    try {
-      const dataToHash = {
-        offer_id: flightPriceResponse?.offer_id || flightPriceResponse?.original_offer_id,
-        shopping_response_id: flightPriceResponse?.metadata?.shopping_response_id || 
-                             flightPriceResponse?.metadata?.request_id ||
-                             flightPriceResponse?.request_id,
-        timestamp: Math.floor((flightPriceResponse?.metadata?.timestamp || Date.now()) / 1000) // Round to seconds
-      }
-      
-      // Simple hash generation (this should match backend hash logic)
-      const hashString = JSON.stringify(dataToHash)
-      const hash = this.generateSimpleHash(hashString)
-      
-      logger.warn(`⚠️ Using fallback hash generation: ${hash}`)
-      logger.warn(`⚠️ Hash input data:`, dataToHash)
-      
-      return hash
-    } catch (error) {
-      logger.error(`❌ Failed to generate fallback hash:`, error)
-      return 'fallback_' + Date.now()
-    }
+    return localCacheKey
   }
 
   /**
@@ -204,60 +162,18 @@ class SeatServiceCacheManager {
   }
 
   /**
-   * Pre-load seat availability and service list data after flight price response
-   * 🚀 ENHANCED: Prevents concurrent API calls from multiple component instances
+   * Pre-load seat availability and service list data (DISABLED)
+   * Unified API manager now handles proactive loading automatically after flight pricing
    */
   async preloadData(flightPriceResponse: any): Promise<void> {
     const cacheKey = this.generateCacheKey(flightPriceResponse)
     
-    // 🛡️ GLOBAL LOADING GUARD: Prevent multiple component instances from making concurrent calls
-    if (this.globalLoadingState.get(cacheKey)) {
-      logger.info(`🛡️ Global loading guard: ${cacheKey} already being loaded by another component instance`)
-      
-      // Wait for existing loading promise if available
-      if (this.loadingPromises.has(cacheKey)) {
-        logger.info(`🔄 Waiting for existing loading promise for ${cacheKey}`)
-        return this.loadingPromises.get(cacheKey)!
-      }
-      
-      // If no promise but global loading state is true, wait briefly and check cache
-      await new Promise(resolve => setTimeout(resolve, 500))
-      return
-    }
+    logger.info(`🚀 Preload requested for ${cacheKey} - Unified API manager handles this automatically`)
     
-    // Check if we already have valid cached data
-    const existingCache = this.cache.get(cacheKey)
-    if (existingCache && this.isValidCache(existingCache)) {
-      logger.info(`✅ Using existing valid cache for ${cacheKey}`)
-      return
-    }
-
-    // Check if we're already loading this data (additional safety check)
-    if (this.loadingPromises.has(cacheKey)) {
-      logger.info(`🔄 Already loading seat/service data for ${cacheKey}, waiting...`)
-      return this.loadingPromises.get(cacheKey)!
-    }
-
-    logger.info(`🚀 Pre-loading seat availability and service list for flight... (Cache key: ${cacheKey})`)
-
-    // 🔒 SET GLOBAL LOADING STATE
-    this.globalLoadingState.set(cacheKey, true)
-
-    // Create loading promise
-    const loadingPromise = this.performDataLoad(cacheKey, flightPriceResponse)
-    this.loadingPromises.set(cacheKey, loadingPromise)
-
-    try {
-      await loadingPromise
-      logger.info(`✅ Successfully completed preload for ${cacheKey}`)
-    } catch (error) {
-      logger.error(`❌ Failed to preload data for ${cacheKey}:`, error)
-      throw error
-    } finally {
-      // 🔓 CLEAR GLOBAL LOADING STATE
-      this.globalLoadingState.delete(cacheKey)
-      this.loadingPromises.delete(cacheKey)
-    }
+    // No-op: Unified API manager now handles proactive loading
+    // This method is kept for backward compatibility but does nothing
+    
+    logger.info(`✅ Preload completed (handled by unified API manager)`);
   }
 
   /**
@@ -302,83 +218,45 @@ class SeatServiceCacheManager {
   }
 
   /**
-   * Load seat availability data
+   * Load seat availability data using unified API manager
    */
   private async loadSeatAvailability(flightPriceResponse: any): Promise<SeatAvailabilityData> {
     try {
-      // Check cache first
-      const cacheResponse = await api.checkSeatAvailabilityCache(flightPriceResponse)
+      logger.info("🚀 Loading seat availability via unified API manager")
       
-      if (cacheResponse.data?.cache_hit) {
-        logger.info("🎯 Seat availability cache hit")
-        return cacheResponse.data.data
+      const response = await unifiedApiManager.getSeatAvailability(flightPriceResponse)
+      
+      if (response.cache_hit) {
+        logger.info("🎯 Seat availability cache hit via unified manager")
       } else {
-        logger.info("🔄 Seat availability cache miss, fetching from API")
-        const response = await api.getSeatAvailability(flightPriceResponse)
-        
-        // 🚀 STORE the backend storage key for future cache operations
-        if (response.data && response.storage_key) {
-          const cacheKey = this.generateCacheKey(flightPriceResponse)
-          const existingCache = this.cache.get(cacheKey) || {
-            timestamp: Date.now(),
-            flightPriceResponseId: cacheKey,
-            storageKeys: {}
-          }
-          
-          if (!existingCache.storageKeys) {
-            existingCache.storageKeys = {}
-          }
-          existingCache.storageKeys.seatAvailability = response.storage_key
-          this.cache.set(cacheKey, existingCache)
-          
-          logger.info(`🔑 Stored seat availability storage key: ${response.storage_key}`)
-        }
-        
-        return response.data
+        logger.info("🔄 Seat availability loaded fresh via unified manager")
       }
+      
+      return response.data
     } catch (error) {
-      logger.error("❌ Error loading seat availability:", error)
+      logger.error("❌ Error loading seat availability via unified manager:", error)
       throw error
     }
   }
 
   /**
-   * Load service list data
+   * Load service list data using unified API manager
    */
   private async loadServiceList(flightPriceResponse: any): Promise<ServiceListData> {
     try {
-      // Check cache first
-      const cacheResponse = await api.checkServiceListCache(flightPriceResponse)
+      logger.info("🚀 Loading service list via unified API manager")
       
-      if (cacheResponse.data?.cache_hit) {
-        logger.info("🎯 Service list cache hit")
-        return cacheResponse.data.data
+      const response = await unifiedApiManager.getServiceList(flightPriceResponse)
+      
+      if (response.cache_hit) {
+        logger.info("🎯 Service list cache hit via unified manager")
       } else {
-        logger.info("🔄 Service list cache miss, fetching from API")
-        const response = await api.getServiceList(flightPriceResponse)
-        
-        // 🚀 STORE the backend storage key for future cache operations
-        if (response.data && response.storage_key) {
-          const cacheKey = this.generateCacheKey(flightPriceResponse)
-          const existingCache = this.cache.get(cacheKey) || {
-            timestamp: Date.now(),
-            flightPriceResponseId: cacheKey,
-            storageKeys: {}
-          }
-          
-          if (!existingCache.storageKeys) {
-            existingCache.storageKeys = {}
-          }
-          existingCache.storageKeys.serviceList = response.storage_key
-          this.cache.set(cacheKey, existingCache)
-          
-          logger.info(`🔑 Stored service list storage key: ${response.storage_key}`)
-        }
-        
-        return response.data
+        logger.info("🔄 Service list loaded fresh via unified manager")
       }
+      
+      return response.data
     } catch (error) {
-      logger.error("❌ Error loading service list:", error)
+      logger.error("❌ Error loading service list via unified manager:", error)
       throw error
     }
   }

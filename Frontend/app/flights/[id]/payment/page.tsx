@@ -275,11 +275,13 @@ export default function PaymentPage() {
 
 
 
+      // 🚀 Include seat/service selections from booking extras
       const response = await api.createBooking(
         booking.flightOffer,
         booking.passengers,
         paymentInfo, 
-        booking.contactInfo
+        booking.contactInfo,
+        booking.extras  // Pass the seat/service selections
       )
 
 

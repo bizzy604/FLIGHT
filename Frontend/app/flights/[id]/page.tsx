@@ -210,6 +210,12 @@ function FlightDetailsPageContent() {
               
               if (cachedPricingData.metadata) {
                 sessionStorage.setItem('flightPriceMetadata', JSON.stringify(cachedPricingData.metadata));
+                
+                // 🚀 CRITICAL FIX: Explicitly store flight_price_cache_key for seat/service retrieval
+                if (cachedPricingData.metadata.flight_price_cache_key) {
+                  sessionStorage.setItem('flight_price_cache_key', cachedPricingData.metadata.flight_price_cache_key);
+                  logger.info(`💾 Stored cached flight_price_cache_key: ${cachedPricingData.metadata.flight_price_cache_key}`);
+                }
               }
               
               // Try to get search params from URL parameters (more reliable than cache)
@@ -379,6 +385,12 @@ function FlightDetailsPageContent() {
         // Store metadata for order creation if available
         if (response.data.data.metadata) {
           sessionStorage.setItem('flightPriceMetadata', JSON.stringify(response.data.data.metadata));
+          
+          // 🚀 CRITICAL FIX: Explicitly store flight_price_cache_key for seat/service retrieval
+          if (response.data.data.metadata.flight_price_cache_key) {
+            sessionStorage.setItem('flight_price_cache_key', response.data.data.metadata.flight_price_cache_key);
+            logger.info(`💾 Stored flight_price_cache_key: ${response.data.data.metadata.flight_price_cache_key}`);
+          }
         }
 
 

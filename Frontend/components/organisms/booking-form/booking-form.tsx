@@ -84,6 +84,22 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
       try {
         const flightData = JSON.parse(storedFlightPriceResponse)
         setFlightPriceResponse(flightData)
+        
+        // Trip type detection - similar to seat-service-integration.tsx
+        const segments = flightData?.flight_segments || []
+        const hasReturnFlight = !!(
+          flightData?.returnFlight ||
+          flightData?.return_segments ||
+          (Array.isArray(segments) && segments.some((seg: any) => 
+            seg?.direction === 'return' || seg?.type === 'return'
+          ))
+        )
+        
+        setIsRoundTrip(hasReturnFlight)
+        console.log(`✅ Trip type detected: ${hasReturnFlight ? 'Round-trip' : 'One-way'}`, {
+          segments: segments.length,
+          hasReturnFlight
+        })
       } catch (error) {
         console.error('Error parsing flight price response:', error)
       }
@@ -121,6 +137,7 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('PAYMENTCARD');
   const [pricingDetails, setPricingDetails] = useState<any>({}); // State for pricing details
   const [termsAccepted, setTermsAccepted] = useState(false); // State for terms acceptance
+  const [isRoundTrip, setIsRoundTrip] = useState(false); // State for trip type detection
   // --- Add State Variables End ---
 
   // Validation functions
@@ -738,7 +755,6 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
                     <SeatSelection
                       flightPriceResponse={flightPriceResponse}
                       flightType="outbound"
-                      segmentKey="SEG1"
                       selectedSeats={selectedSeats.outbound || []}
                       onSeatChange={handleSeatChange}
                       passengers={passengersForServices}
@@ -746,20 +762,24 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
                     />
                   </div>
 
-                  <Separator />
+                  {/* Only show return flight seat selection for round-trip flights */}
+                  {isRoundTrip && (
+                    <>
+                      <Separator />
 
-                  <div>
-                    <h4 className="mb-2 text-sm sm:text-base font-medium">Return Flight (if applicable)</h4>
-                    <SeatSelection
-                      flightPriceResponse={flightPriceResponse}
-                      flightType="return"
-                      segmentKey="SEG2"
-                      selectedSeats={selectedSeats.return || []}
-                      onSeatChange={handleSeatChange}
-                      passengers={passengersForServices}
-                      className="border-none shadow-none"
-                    />
-                  </div>
+                      <div>
+                        <h4 className="mb-2 text-sm sm:text-base font-medium">Return Flight</h4>
+                        <SeatSelection
+                          flightPriceResponse={flightPriceResponse}
+                          flightType="return"
+                          selectedSeats={selectedSeats.return || []}
+                          onSeatChange={handleSeatChange}
+                          passengers={passengersForServices}
+                          className="border-none shadow-none"
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="p-6 text-center border rounded-lg">

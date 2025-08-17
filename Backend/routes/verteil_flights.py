@@ -1348,6 +1348,13 @@ async def create_order():
         seatavailability_response = data.get('seatavailability_response')
         selected_services = data.get('selected_services', [])
         selected_seats = data.get('selected_seats', [])
+        
+        # 🚀 DEBUG LOG FOR SEAT/SERVICE SELECTIONS
+        logger.info(f"[DEBUG] Seat/Service selections received (ReqID: {request_id}):")
+        logger.info(f"[DEBUG] - selected_services: {selected_services}")
+        logger.info(f"[DEBUG] - selected_seats: {selected_seats}")
+        logger.info(f"[DEBUG] - servicelist_response available: {bool(servicelist_response)}")
+        logger.info(f"[DEBUG] - seatavailability_response available: {bool(seatavailability_response)}")
 
         # Extract the REAL OfferID from the raw flight price response instead of using the index
         offer_id = None
