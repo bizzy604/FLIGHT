@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import { prisma } from "@/utils/prisma"
-import { handleApiError, createUnauthorizedError, createForbiddenError, createValidationError, createNotFoundError } from "@/utils/error-handler"
+import { handleApiError, createValidationError } from "@/utils/error-handler"
 import { logger } from "@/utils/logger"
 
 export async function POST(request: NextRequest) {
@@ -10,18 +10,18 @@ export async function POST(request: NextRequest) {
     const { userId } = await auth()
 
     // For development purposes, allow unauthenticated requests
-    // In production, you would want to remove this and require authentication
-    const userIdToUse = userId || "dev-user-id"
+    const isDev = process.env.NODE_ENV !== 'production'
+    const userIdToUse = userId || (isDev ? "dev-user-id" : undefined)
+
+    if (!userIdToUse) {
+      return NextResponse.json(
+        { error: 'Forbidden', message: 'User authentication required' },
+        { status: 403 }
+      )
+    }
 
     // Parse request body
     const body = await request.json()
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Forbidden', message: 'User ID is required' },
-        { status: 403 }
-      );
-    }
 
     // Validate required card details for backend processing
     if (!body.cardDetails) {
@@ -67,10 +67,10 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Generate unique payment ID for tracking
+    // Generate unique payment ID for tracking (do not expose PAN or CVV)
     const paymentId = `payment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-    // Determine card type based on card number
+    // Determine card type based on first digit only (do not persist full PAN)
     const getCardType = (cardNumber: string) => {
       const firstDigit = cardNumber.charAt(0)
       if (firstDigit === '4') return 'VI' // Visa
@@ -79,25 +79,17 @@ export async function POST(request: NextRequest) {
       return 'VI' // Default to Visa
     }
 
-    // Create payment info structure that matches backend expectations
-    const paymentInfo = {
-      MethodType: "PaymentCard",
-      Details: {
-        CardCode: getCardType(cleanCardNumber),
-        CardNumberToken: `tok_${cleanCardNumber}`, // In production, this would be a secure token
-        CardHolderName: { value: cardName, refs: [] },
-        EffectiveExpireDate: { Expiration: `${expiryMonth}${expiryYear}` },
-        CardType: "Credit"
-      }
-    }
+    // Create masked card descriptor for logs and DB
+    const maskedLast4 = cleanCardNumber.slice(-4)
+    const cardType = getCardType(cleanCardNumber)
 
     // First create a booking record
     const booking = await prisma.booking.create({
       data: {
         userId: userIdToUse,
-        bookingReference: `BK${Date.now()}`, // Generate a unique booking reference
+        bookingReference: `BK${Date.now()}`,
         orderItemId: body.bookingData.flightDetails.id,
-        airlineCode: "Unknown", // Will be updated from flight data
+        airlineCode: "Unknown",
         flightNumbers: [body.bookingData.flightDetails.id],
         routeSegments: {
           departure: {
@@ -109,9 +101,9 @@ export async function POST(request: NextRequest) {
             date: body.bookingData.flightDetails.returnDate || body.bookingData.flightDetails.departureDate
           }
         },
-        passengerTypes: ["ADT"], // Default to adult
+        passengerTypes: ["ADT"],
         documentNumbers: [],
-        classOfService: "Y", // Default to economy
+        classOfService: "Y",
         cabinClass: "Economy",
         flightDetails: body.bookingData.flightDetails,
         passengerDetails: {
@@ -134,11 +126,11 @@ export async function POST(request: NextRequest) {
     const payment = await prisma.payment.create({
       data: {
         paymentIntentId: paymentId,
-        bookingId: booking.id, // Link payment to the booking
+        bookingId: booking.id,
         amount: body.bookingData.amount,
         currency: body.bookingData.currency.toLowerCase(),
-        status: "captured", // Card details captured for backend processing
-        paymentMethod: `${paymentInfo.Details.CardCode} ending in ${cleanCardNumber.slice(-4)}`,
+        status: "captured",
+        paymentMethod: `${cardType} ending in ${maskedLast4}`,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -146,11 +138,11 @@ export async function POST(request: NextRequest) {
 
     logger.info("Card details captured for backend processing", {
       paymentId: payment.paymentIntentId,
-      cardLast4: cleanCardNumber.slice(-4),
-      cardType: paymentInfo.Details.CardCode,
+      cardLast4: maskedLast4,
+      cardType,
     })
 
-    // Return success response with payment and booking details
+    // Return success response with minimal details; do not echo sensitive fields
     return NextResponse.json({
       success: true,
       paymentId: payment.paymentIntentId,
@@ -158,14 +150,12 @@ export async function POST(request: NextRequest) {
       bookingReference: booking.bookingReference,
       status: payment.status,
       message: "Card details captured successfully. Your booking will be processed by the airline.",
-      paymentInfo: paymentInfo // Include payment info for backend processing
     })
   } catch (error) {
     const errorResponse = handleApiError(error);
     if (errorResponse instanceof NextResponse) {
       return errorResponse;
     }
-    // Convert any non-NextResponse errors to a proper response
     return NextResponse.json(
       { 
         error: 'Internal Server Error',
@@ -179,14 +169,17 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    // Get user ID from Clerk authentication
     const { userId } = await auth()
+    const isDev = process.env.NODE_ENV !== 'production'
+    const userIdToUse = userId || (isDev ? "dev-user-id" : undefined)
 
-    // For development purposes, allow unauthenticated requests
-    // In production, you would want to remove this and require authentication
-    const userIdToUse = userId || "dev-user-id"
+    if (!userIdToUse) {
+      return NextResponse.json(
+        { error: 'Forbidden', message: 'User authentication required' },
+        { status: 403 }
+      )
+    }
 
-    // Get query parameters
     const searchParams = request.nextUrl.searchParams
     const paymentId = searchParams.get("paymentId")
 
@@ -197,7 +190,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Retrieve payment from database
     const payment = await prisma.payment.findUnique({
       where: { paymentIntentId: paymentId },
       include: { booking: true },
@@ -217,7 +209,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Return payment details
     return NextResponse.json({
       paymentId: payment.paymentIntentId,
       amount: payment.amount,
