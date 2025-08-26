@@ -6,11 +6,30 @@ import { logger } from "@/utils/logger"
 // This endpoint handles payment webhooks from the payment gateway
 export async function POST(request: NextRequest) {
   try {
-    // Get the request body
-    const payload = await request.json()
+    // Read raw body for signature verification
+    const rawBody = await request.text()
+
+    // Validate HMAC signature (shared secret set in env)
+    const signature = request.headers.get('x-webhook-signature') || ''
+    const timestamp = request.headers.get('x-webhook-timestamp') || ''
+    const secret = process.env.WEBHOOK_SECRET || ''
+
+    if (!secret) {
+      logger.warn('WEBHOOK_SECRET is not configured; rejecting webhook for safety')
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
+    }
+
+    const isValid = await verifyHmacSignature(secret, `${timestamp}.${rawBody}`, signature)
+    if (!isValid) {
+      logger.warn('Invalid webhook signature', { signatureProvided: !!signature, timestamp })
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+    }
+
+    // Parse the verified JSON payload
+    const payload = JSON.parse(rawBody)
     
-    // Log the incoming webhook for debugging
-    logger.info('Received payment webhook', { event: payload })
+    // Log the incoming webhook for debugging (sanitized)
+    logger.info('Received payment webhook', { eventType: payload?.type })
     
     // Process the webhook based on the event type
     const eventType = payload.type || 'unknown'
@@ -36,6 +55,49 @@ export async function POST(request: NextRequest) {
     const apiError = new Error('Failed to process webhook: ' + (error.message || 'Unknown error'))
     return handleApiError(apiError)
   }
+}
+
+async function verifyHmacSignature(secret: string, data: string, signatureHex: string): Promise<boolean> {
+  try {
+    // Expect hex-encoded HMAC-SHA256 signature
+    const encoder = new TextEncoder()
+    const keyData = encoder.encode(secret)
+    const key = await crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    )
+
+    const mac = await crypto.subtle.sign('HMAC', key, encoder.encode(data))
+    const macHex = bufferToHex(mac)
+
+    // Constant-time comparison
+    return timingSafeEqual(macHex, signatureHex)
+  } catch (e) {
+    logger.error('HMAC verification failed', e)
+    return false
+  }
+}
+
+function bufferToHex(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer)
+  let hex = ''
+  for (let i = 0; i < bytes.length; i++) {
+    const h = bytes[i].toString(16).padStart(2, '0')
+    hex += h
+  }
+  return hex
+}
+
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false
+  let result = 0
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  }
+  return result === 0
 }
 
 // Handle successful payment
