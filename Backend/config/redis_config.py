@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 class RedisConfig:
     """Enhanced Redis configuration supporting both URL and individual parameters"""
     
-    # Redis Cloud URL - preferred method
-    REDIS_URL = os.getenv('REDIS_URL', 'redis://default:9CTbyLNREutwAduVCxkCA9kgI3sj9tEG@redis-14657.c89.us-east-1-3.ec2.redns.redis-cloud.com:14657/0')
+    # Redis URL - use environment or safe localhost default (no embedded secrets)
+    REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
     
     # Fallback individual parameters (for legacy compatibility)
     HOST = os.getenv('REDIS_HOST', 'localhost')
