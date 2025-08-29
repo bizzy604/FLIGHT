@@ -189,7 +189,14 @@ function FlightDetailsPageContent() {
             if (cachedPriceData.searchParams) {
               setCachedSearchParams(cachedPriceData.searchParams);
             }
-            sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(cachedPriceData.pricedOffer));
+            
+            // 🚀 CRITICAL FIX: Include metadata in the stored flight price response
+            const flightPriceResponseWithMetadata = {
+              ...cachedPriceData.pricedOffer,
+              metadata: cachedPriceData.metadata || {}
+            };
+            sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(flightPriceResponseWithMetadata));
+            
             if (cachedPriceData.rawResponse) {
               sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(cachedPriceData.rawResponse));
             }
@@ -222,8 +229,14 @@ function FlightDetailsPageContent() {
             if (pricedOfferData) {
               setPricedOffer(pricedOfferData);
               
-              // Store in sessionStorage for booking access
-              sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(pricedOfferData));
+              // 🚀 CRITICAL FIX: Include metadata in the stored flight price response
+              const flightPriceResponseWithMetadata = {
+                ...pricedOfferData,
+                metadata: cachedPricingData.metadata || {}
+              };
+              
+              // Store in sessionStorage for booking access WITH metadata
+              sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(flightPriceResponseWithMetadata));
               
               if (cachedPricingData.metadata) {
                 sessionStorage.setItem('flightPriceMetadata', JSON.stringify(cachedPricingData.metadata));
@@ -391,8 +404,14 @@ function FlightDetailsPageContent() {
         // Note: Flight pricing data is now automatically cached by the backend Redis system
         // No need for client-side storage as backend handles caching with the new Redis implementation
 
-        // Store in session storage for booking
-        sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(firstPricedOffer));
+        // 🚀 CRITICAL FIX: Include metadata in the stored flight price response
+        const flightPriceResponseWithMetadata = {
+          ...firstPricedOffer,
+          metadata: response.data.data.metadata || {}
+        };
+
+        // Store in session storage for booking WITH metadata
+        sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(flightPriceResponseWithMetadata));
 
         // Store raw flight price response for order creation
         if (response.data.data.raw_response) {

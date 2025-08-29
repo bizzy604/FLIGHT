@@ -136,11 +136,27 @@ class UnifiedApiManager {
    * KISS Principle: Single method to extract cache key consistently
    */
   private extractCacheKey(flightPriceResponse: any): string {
-    return flightPriceResponse?.metadata?.flight_price_cache_key ||
-           flightPriceResponse?.flight_price_cache_key ||
-           flightPriceResponse?.data?.metadata?.flight_price_cache_key ||
-           sessionStorage.getItem('flight_price_cache_key') ||
-           '';
+    // Try multiple locations where the cache key might be
+    const cacheKey = flightPriceResponse?.metadata?.flight_price_cache_key ||
+                     flightPriceResponse?.flight_price_cache_key ||
+                     flightPriceResponse?.data?.metadata?.flight_price_cache_key ||
+                     flightPriceResponse?.data?.data?.metadata?.flight_price_cache_key ||
+                     sessionStorage.getItem('flight_price_cache_key') ||
+                     '';
+    
+    if (cacheKey) {
+      logger.info('✅ Extracted flight_price_cache_key:', cacheKey);
+    } else {
+      logger.warn('⚠️ Could not extract flight_price_cache_key from response:', {
+        hasMetadata: !!flightPriceResponse?.metadata,
+        hasTopLevel: !!flightPriceResponse?.flight_price_cache_key,
+        hasDataMetadata: !!flightPriceResponse?.data?.metadata,
+        hasSessionStorage: !!sessionStorage.getItem('flight_price_cache_key'),
+        responseKeys: Object.keys(flightPriceResponse || {})
+      });
+    }
+    
+    return cacheKey;
   }
   
   /**
@@ -172,9 +188,17 @@ class UnifiedApiManager {
         hasData: !!response.data
       });
       
-      // Store session data consistently
-      if (response.metadata?.flight_price_cache_key) {
-        sessionStorage.setItem('flight_price_cache_key', response.metadata.flight_price_cache_key);
+      // Store session data consistently - check multiple locations
+      const cacheKeyToStore = response.metadata?.flight_price_cache_key ||
+                              response.flight_price_cache_key ||
+                              response.data?.metadata?.flight_price_cache_key ||
+                              response.data?.data?.metadata?.flight_price_cache_key;
+      
+      if (cacheKeyToStore) {
+        sessionStorage.setItem('flight_price_cache_key', cacheKeyToStore);
+        logger.info('💾 Stored flight_price_cache_key in sessionStorage:', cacheKeyToStore);
+      } else {
+        logger.warn('⚠️ No flight_price_cache_key found to store in sessionStorage');
       }
       
       // 🚀 PROACTIVE LOADING: Immediately load seat/service data for one-way flight to prevent duplicate calls
