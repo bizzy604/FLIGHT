@@ -305,11 +305,21 @@ export default function EditBookingPage() {
                 <CardTitle>Select Your Seat</CardTitle>
               </CardHeader>
               <CardContent>
-                <SeatSelection
-                  flightType="outbound"
-                  selectedSeats={selectedExtras.seat ? [selectedExtras.seat] : []}
-                  onSeatChange={handleSeatSelect}
-                />
+                {/* TODO: Implement proper seat selection with required props */}
+                <div className="space-y-4">
+                  <div className="text-sm text-gray-600">
+                    Seat selection requires flight pricing data. This feature will be implemented in the next update.
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      placeholder="Enter seat number (e.g., 12A)"
+                      value={selectedExtras.seat || ''}
+                      onChange={(e) => setSelectedExtras((prev: any) => ({ ...prev, seat: e.target.value }))}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

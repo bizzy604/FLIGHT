@@ -189,8 +189,8 @@ class SimpleApiManager {
       if (response.success && response.data) {
         simpleCacheManager.setSeatAvailability(sessionId, response.data);
         
-        // Store the actual storage key returned from backend
-        const backendStorageKey = response.storage_key;
+        // 🚀 FIXED: Backend doesn't send storage_key, use the cache key we generated
+        const backendStorageKey = response.storage_key || cacheKey;
         if (backendStorageKey) {
           const sessionKeys = this.cacheKeys.get(sessionId) || {};
           sessionKeys.seatAvailability = backendStorageKey;
@@ -202,7 +202,7 @@ class SimpleApiManager {
       return {
         ...response,
         cache_key: sessionId,
-        storage_key: response.storage_key // Use actual backend storage key
+        storage_key: response.storage_key || cacheKey // Use cache key if no storage key
       };
     });
   }
@@ -243,8 +243,8 @@ class SimpleApiManager {
       if (response.success && response.data) {
         simpleCacheManager.setServiceList(sessionId, response.data);
         
-        // Store the actual storage key returned from backend
-        const backendStorageKey = response.storage_key;
+        // 🚀 FIXED: Backend doesn't send storage_key, use the cache key we generated
+        const backendStorageKey = response.storage_key || cacheKey;
         if (backendStorageKey) {
           const sessionKeys = this.cacheKeys.get(sessionId) || {};
           sessionKeys.serviceList = backendStorageKey;
@@ -256,7 +256,7 @@ class SimpleApiManager {
       return {
         ...response,
         cache_key: sessionId,
-        storage_key: response.storage_key // Use actual backend storage key
+        storage_key: response.storage_key || cacheKey // Use cache key if no storage key
       };
     });
   }
@@ -322,10 +322,31 @@ class SimpleApiManager {
    * Extract cache key from flight price response
    */
   private extractCacheKey(flightPriceResponse: any): string {
-    return flightPriceResponse?.metadata?.flight_price_cache_key ||
-           flightPriceResponse?.flight_price_cache_key ||
-           flightPriceResponse?.data?.metadata?.flight_price_cache_key ||
-           this.getSessionId();
+    // 🚀 FIXED: Use actual fields that exist in the backend response
+    // The backend doesn't send cache_key or storage_key, it uses OfferID and ResponseID
+    const offerId = flightPriceResponse?.OfferID?.value || 
+                   flightPriceResponse?.offer_id || 
+                   flightPriceResponse?.data?.OfferID?.value
+    
+    const responseId = flightPriceResponse?.ShoppingResponseID?.ResponseID?.value ||
+                      flightPriceResponse?.shopping_response_id ||
+                      flightPriceResponse?.data?.ShoppingResponseID?.ResponseID?.value
+    
+    // Use OfferID as primary cache key, fallback to ResponseID, then session ID
+    if (offerId) {
+      console.log('🔑 Using OfferID as cache key:', offerId)
+      return offerId
+    }
+    
+    if (responseId) {
+      console.log('🔑 Using ResponseID as cache key:', responseId)
+      return responseId
+    }
+    
+    // Last resort: use session ID
+    const sessionId = this.getSessionId()
+    console.log('⚠️ No OfferID or ResponseID found, using session ID as cache key:', sessionId)
+    return sessionId
   }
 
   /**

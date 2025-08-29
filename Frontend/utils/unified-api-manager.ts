@@ -252,33 +252,23 @@ class UnifiedApiManager {
       
       // Store both storage key and cache key for future use
       logger.info('🔍 Seat availability response keys:', {
-        hasStorageKey: !!response.storage_key,
-        hasCacheKey: !!response.cache_key,
-        storageKey: response.storage_key,
-        cacheKey: response.cache_key,
         responseKeys: Object.keys(response || {})
       });
       
-      if (response.storage_key) {
-        sessionStorage.setItem('seat_availability_storage_key', response.storage_key);
-        logger.info('✅ Stored seat_availability_storage_key:', response.storage_key);
-      }
-      if (response.cache_key) {
-        sessionStorage.setItem('seat_availability_cache_key', response.cache_key);
-        logger.info('✅ Stored seat_availability_cache_key:', response.cache_key);
+      // 🚀 RESTORED: Store cache keys properly - this was working before
+      if (response.data) {
+        // Store the cache key in sessionStorage for future use
+        sessionStorage.setItem('seat_availability_cache_key', cacheKey)
         
-        // 🔍 VERIFY: Check if storage actually worked
-        const storedValue = sessionStorage.getItem('seat_availability_cache_key');
-        if (storedValue !== response.cache_key) {
-          logger.error('🚨 STORAGE VERIFICATION FAILED: seat_availability_cache_key not properly stored!', {
-            attempted: response.cache_key,
-            actuallyStored: storedValue
-          });
-        } else {
-          logger.info('✅ VERIFIED: seat_availability_cache_key correctly stored');
+        // If the response has a storage key, store it too
+        if (response.storage_key) {
+          sessionStorage.setItem('seat_availability_storage_key', response.storage_key)
         }
-      } else {
-        logger.warn('⚠️ No cache_key found in seat availability response');
+        
+        logger.info('✅ Stored seat availability cache keys:', {
+          cacheKey,
+          storageKey: response.storage_key || 'Not provided'
+        })
       }
       
       return response;
@@ -332,33 +322,23 @@ class UnifiedApiManager {
       // Store storage key for future use
       // Store both storage key and cache key for future use
       logger.info('🔍 Service list response keys:', {
-        hasStorageKey: !!response.storage_key,
-        hasCacheKey: !!response.cache_key,
-        storageKey: response.storage_key,
-        cacheKey: response.cache_key,
         responseKeys: Object.keys(response || {})
       });
       
-      if (response.storage_key) {
-        sessionStorage.setItem('service_list_storage_key', response.storage_key);
-        logger.info('✅ Stored service_list_storage_key:', response.storage_key);
-      }
-      if (response.cache_key) {
-        sessionStorage.setItem('service_list_cache_key', response.cache_key);
-        logger.info('✅ Stored service_list_cache_key:', response.cache_key);
+      // 🚀 RESTORED: Store cache keys properly - this was working before
+      if (response.data) {
+        // Store the cache key in sessionStorage for future use
+        sessionStorage.setItem('service_list_cache_key', cacheKey)
         
-        // 🔍 VERIFY: Check if storage actually worked
-        const storedValue = sessionStorage.getItem('service_list_cache_key');
-        if (storedValue !== response.cache_key) {
-          logger.error('🚨 STORAGE VERIFICATION FAILED: service_list_cache_key not properly stored!', {
-            attempted: response.cache_key,
-            actuallyStored: storedValue
-          });
-        } else {
-          logger.info('✅ VERIFIED: service_list_cache_key correctly stored');
+        // If the response has a storage key, store it too
+        if (response.storage_key) {
+          sessionStorage.setItem('service_list_storage_key', response.storage_key)
         }
-      } else {
-        logger.warn('⚠️ No cache_key found in service list response');
+        
+        logger.info('✅ Stored service list cache keys:', {
+          cacheKey,
+          storageKey: response.storage_key || 'Not provided'
+        })
       }
       
       return response;
@@ -413,10 +393,6 @@ class UnifiedApiManager {
           const seatData = seatResponse.value;
           logger.info('🔍 DEBUG: Seat availability response structure:', {
             hasData: !!seatData,
-            hasCacheKey: !!(seatData && seatData.cache_key),
-            hasStorageKey: !!(seatData && seatData.storage_key),
-            cacheKey: seatData?.cache_key,
-            storageKey: seatData?.storage_key,
             responseKeys: seatData ? Object.keys(seatData) : []
           });
         } else {
@@ -429,10 +405,6 @@ class UnifiedApiManager {
           const serviceData = serviceResponse.value;
           logger.info('🔍 DEBUG: Service list response structure:', {
             hasData: !!serviceData,
-            hasCacheKey: !!(serviceData && serviceData.cache_key),
-            hasStorageKey: !!(serviceData && serviceData.storage_key),
-            cacheKey: serviceData?.cache_key,
-            storageKey: serviceData?.storage_key,
             responseKeys: serviceData ? Object.keys(serviceData) : []
           });
         } else {
@@ -547,13 +519,19 @@ class UnifiedApiManager {
       const response = await this.makeRequest('/api/verteil/seat-availability', payload);
       
       // 🚀 CRITICAL FIX: Store cache keys in sessionStorage during proactive loading
-      if (response.storage_key) {
-        sessionStorage.setItem('seat_availability_storage_key', response.storage_key);
-        logger.info('✅ PROACTIVE: Stored seat_availability_storage_key:', response.storage_key);
-      }
-      if (response.cache_key) {
-        sessionStorage.setItem('seat_availability_cache_key', response.cache_key);
-        logger.info('✅ PROACTIVE: Stored seat_availability_cache_key:', response.cache_key);
+      if (response.data) {
+        // Store the cache key in sessionStorage for future use
+        sessionStorage.setItem('seat_availability_cache_key', cacheKey)
+        
+        // If the response has a storage key, store it too
+        if (response.storage_key) {
+          sessionStorage.setItem('seat_availability_storage_key', response.storage_key)
+        }
+        
+        logger.info('✅ Stored proactive seat availability cache keys:', {
+          cacheKey,
+          storageKey: response.storage_key || 'Not provided'
+        })
       }
       
       // Store in cache for immediate use (one-way flights)
@@ -591,13 +569,19 @@ class UnifiedApiManager {
       const response = await this.makeRequest('/api/verteil/service-list', payload);
       
       // 🚀 CRITICAL FIX: Store cache keys in sessionStorage during proactive loading
-      if (response.storage_key) {
-        sessionStorage.setItem('service_list_storage_key', response.storage_key);
-        logger.info('✅ PROACTIVE: Stored service_list_storage_key:', response.storage_key);
-      }
-      if (response.cache_key) {
-        sessionStorage.setItem('service_list_cache_key', response.cache_key);
-        logger.info('✅ PROACTIVE: Stored service_list_cache_key:', response.cache_key);
+      if (response.data) {
+        // Store the cache key in sessionStorage for future use
+        sessionStorage.setItem('service_list_cache_key', cacheKey)
+        
+        // If the response has a storage key, store it too
+        if (response.storage_key) {
+          sessionStorage.setItem('service_list_storage_key', response.storage_key)
+        }
+        
+        logger.info('✅ Stored proactive service list cache keys:', {
+          cacheKey,
+          storageKey: response.storage_key || 'Not provided'
+        })
       }
       
       // Store in cache for immediate use

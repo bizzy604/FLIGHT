@@ -223,7 +223,7 @@ export const api = {
                 data: {
                     status: isSuccess ? 'success' : 'error',
                     data: response.data,
-                    error: isSuccess ? undefined : (response.error || 'Flight pricing failed')
+                    error: isSuccess ? undefined : 'Flight pricing failed'
                 }, 
                 status: 200 
             };
@@ -317,8 +317,7 @@ export const api = {
             logger.info('🚀 Using simple API manager for seat availability (proactive cache first)');
             
             const response = await simpleApiManager.getSeatAvailability(
-                flightPriceResponse,
-                segmentKey
+                flightPriceResponse
             );
             
             logger.info('✅ Seat availability received via simple manager', {

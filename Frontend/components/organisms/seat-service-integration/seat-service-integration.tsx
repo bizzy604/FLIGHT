@@ -5,8 +5,7 @@ import { useState, useEffect } from "react"
 import { logger } from "@/utils/logger"
 import { seatServiceCache } from "@/utils/seat-service-cache-manager"
 import { simpleApiManager } from "@/utils/simple-api-manager"
-import { 
-  calculatePricingBreakdown, 
+import {
   calculateServiceFees, 
   extractFlightPricing,
   type SeatPrices 
@@ -14,6 +13,7 @@ import {
 import { SeatSelection } from "@/components/molecules/seat-selection"
 import { ServiceSelection } from "@/components/molecules/service-selection" 
 import { OrderSummary } from "@/components/molecules/order-summary"
+
 
 interface SeatServiceIntegrationProps {
   booking?: any
@@ -46,6 +46,7 @@ export function SeatServiceIntegration({
   const [flightPriceResponse, setFlightPriceResponse] = useState<any>(null)
   const [isRoundTrip, setIsRoundTrip] = useState(false)
   const [flightSegments, setFlightSegments] = useState<any[]>([])
+
   const [bookingState, setBookingState] = useState({
     step: 'seat-selection', // seat-selection, service-selection, review, complete
     isValid: false,
@@ -59,89 +60,95 @@ export function SeatServiceIntegration({
 
   // Load flight price response from session storage and detect trip type
   useEffect(() => {
-    try {
-      const storedResponse = sessionStorage.getItem('flightPriceResponseForBooking')
-      if (storedResponse) {
-        const parsedResponse = JSON.parse(storedResponse)
-        
-        // 🚀 SIMPLIFIED: Let unified API manager handle cache key extraction
-        // Just ensure session ID is available
-        if (!localStorage.getItem('flight_session_id')) {
-          const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-          localStorage.setItem('flight_session_id', sessionId)
-          logger.info('✅ Generated new flight session ID:', sessionId)
-        }
-        
-        // Merge metadata if available
-        const storedMetadata = sessionStorage.getItem('flightPriceMetadata')
-        if (storedMetadata) {
-          try {
-            const parsedMetadata = JSON.parse(storedMetadata)
-            if (!parsedResponse.metadata) {
-              parsedResponse.metadata = {}
-            }
-            Object.assign(parsedResponse.metadata, parsedMetadata)
-            logger.info('✅ Successfully merged flight price metadata')
-          } catch (metadataError) {
-            logger.warn('⚠️ Failed to parse stored metadata:', metadataError)
+    const loadFlightData = async () => {
+      try {
+        const storedResponse = sessionStorage.getItem('flightPriceResponseForBooking')
+        if (storedResponse) {
+          const parsedResponse = JSON.parse(storedResponse)
+          
+          // 🚀 SIMPLIFIED: Let unified API manager handle cache key extraction
+          // Just ensure session ID is available
+          if (!localStorage.getItem('flight_session_id')) {
+            const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+            localStorage.setItem('flight_session_id', sessionId)
+            logger.info('✅ Generated new flight session ID:', sessionId)
           }
+          
+          // Merge metadata if available
+          const storedMetadata = sessionStorage.getItem('flightPriceMetadata')
+          if (storedMetadata) {
+            try {
+              const parsedMetadata = JSON.parse(storedMetadata)
+              if (!parsedResponse.metadata) {
+                parsedResponse.metadata = {}
+              }
+              Object.assign(parsedResponse.metadata, parsedMetadata)
+              logger.info('✅ Successfully merged flight price metadata')
+            } catch (metadataError) {
+              logger.warn('⚠️ Failed to parse stored metadata:', metadataError)
+            }
+          }
+          
+          setFlightPriceResponse(parsedResponse)
+          
+          // Extract flight pricing information
+          const pricingInfo = extractFlightPricing(parsedResponse)
+          setFlightPricing(pricingInfo)
+          logger.info('💰 Extracted flight pricing:', pricingInfo)
+          
+          // Trip type detection (simplified)
+          const segments = parsedResponse?.flight_segments || []
+          setFlightSegments(segments)
+          
+          const hasReturnFlight = !!(
+            parsedResponse?.returnFlight ||
+            parsedResponse?.return_segments ||
+            (Array.isArray(segments) && segments.some((seg: any) => 
+              seg?.direction === 'return' || seg?.type === 'return'
+            ))
+          )
+          
+          setIsRoundTrip(hasReturnFlight)
+          
+          logger.info('🔍 Flight data loaded:', {
+            tripType: hasReturnFlight ? 'Round-trip' : 'One-way',
+            segments: segments.length,
+            hasMetadata: !!parsedResponse?.metadata
+          })
+          
+          // Initialize booking state
+          validateBookingState()
+          
+          // 🚀 RESTORED: Use the preload mechanism that was working before
+          seatServiceCache.preloadData(parsedResponse)
+            .then(() => {
+              logger.info('✅ Successfully pre-loaded seat/service data via unified manager')
+            })
+            .catch((preloadError) => {
+              logger.warn('⚠️ Failed to pre-load seat/service data:', preloadError)
+            })
+          
+          logger.info(`✅ Flight data loaded - ${hasReturnFlight ? 'Round-trip' : 'One-way'}, ${segments.length} segments`)
+        } else {
+          logger.warn('⚠️ No flight price response found in session storage')
+          setBookingState(prev => ({ 
+            ...prev, 
+            errors: ['No flight data available. Please select a flight first.'] 
+          }))
         }
-        
-        setFlightPriceResponse(parsedResponse)
-        
-        // Extract flight pricing information
-        const pricingInfo = extractFlightPricing(parsedResponse)
-        setFlightPricing(pricingInfo)
-        logger.info('💰 Extracted flight pricing:', pricingInfo)
-        
-        // Trip type detection (simplified)
-        const segments = parsedResponse?.flight_segments || []
-        setFlightSegments(segments)
-        
-        const hasReturnFlight = !!(
-          parsedResponse?.returnFlight ||
-          parsedResponse?.return_segments ||
-          (Array.isArray(segments) && segments.some((seg: any) => 
-            seg?.direction === 'return' || seg?.type === 'return'
-          ))
-        )
-        
-        setIsRoundTrip(hasReturnFlight)
-        
-        logger.info('🔍 Flight data loaded:', {
-          tripType: hasReturnFlight ? 'Round-trip' : 'One-way',
-          segments: segments.length,
-          hasMetadata: !!parsedResponse?.metadata
-        })
-        
-        // Initialize booking state
-        validateBookingState()
-        
-        // Pre-load seat and service data via unified manager
-        seatServiceCache.preloadData(parsedResponse)
-          .then(() => {
-            logger.info('✅ Successfully pre-loaded seat/service data via unified manager')
-          })
-          .catch((preloadError) => {
-            logger.warn('⚠️ Failed to pre-load seat/service data:', preloadError)
-          })
-        
-        logger.info(`✅ Flight data loaded - ${hasReturnFlight ? 'Round-trip' : 'One-way'}, ${segments.length} segments`)
-      } else {
-        logger.warn('⚠️ No flight price response found in session storage')
+      } catch (error) {
+        logger.error('❌ Error loading flight price response:', error)
         setBookingState(prev => ({ 
           ...prev, 
-          errors: ['No flight data available. Please select a flight first.'] 
+          errors: ['Failed to load flight data. Please try again.'] 
         }))
       }
-    } catch (error) {
-      logger.error('❌ Error loading flight price response:', error)
-      setBookingState(prev => ({ 
-        ...prev, 
-        errors: ['Failed to load flight data. Please try again.'] 
-      }))
     }
+
+    loadFlightData()
   }, [])
+
+
 
   // 🚀 Booking State Validation Function
   const validateBookingState = () => {
@@ -219,7 +226,7 @@ export function SeatServiceIntegration({
     // Validate booking state after service change
     setTimeout(validateBookingState, 100)
     
-    logger.info(`🛎️ Updated services:`, updatedServices, `Total: ${totalPrice}`)
+    logger.info(`🛎️ Updated services: ${JSON.stringify(updatedServices)} Total: ${totalPrice}`)
   }
   
   // Handle services data update from ServiceSelection component
@@ -250,9 +257,9 @@ export function SeatServiceIntegration({
           <div>Seat Data: {seatCache.data ? '✅ Cached' : seatCache.isLoading ? '🔄 Loading' : '❌ Not Available'}</div>
           <div>Service Data: {serviceCache.data ? '✅ Cached' : serviceCache.isLoading ? '🔄 Loading' : '❌ Not Available'}</div>
           <div>Local Cache: {cacheStatus.totalEntries} entries, {cacheStatus.loadingEntries} loading</div>
-          <div>Unified Cache: {simpleDebug.cacheEntries.length} entries, {simpleDebug.pendingRequests.length} pending</div>
-          <div>Session ID: {simpleDebug.sessionData.sessionId?.slice(-8) || 'Missing'}</div>
-          <div>Flight Price Cache Key: {simpleDebug.sessionData.flightPriceCacheKey?.slice(-12) || 'Missing'}</div>
+          <div>Unified Cache: {simpleDebug.pendingRequests.length} pending requests</div>
+          <div>Session ID: {simpleDebug.sessionId?.slice(-8) || 'Missing'}</div>
+          <div>Flight Price Cache Key: Not Available</div>
           {seatCache.error && <div className="text-red-600">Seat Error: {seatCache.error}</div>}
           {serviceCache.error && <div className="text-red-600">Service Error: {serviceCache.error}</div>}
         </div>

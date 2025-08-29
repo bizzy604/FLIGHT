@@ -160,7 +160,7 @@ function FlightDetailsPageContent() {
   const [cachedSearchParams, setCachedSearchParams] = useState<any>(null)
   
   // Pricing state for dynamic price summary
-  const [selectedSeats, setSelectedSeats] = useState({ outbound: [], return: [] })
+  const [selectedSeats, setSelectedSeats] = useState<{ outbound: string[], return: string[] }>({ outbound: [], return: [] })
   const [selectedServices, setSelectedServices] = useState<string[]>([])
   const [selectedBaggage, setSelectedBaggage] = useState<BaggageSelection>({ checkedBags: 0, specialEquipment: 'none' })
   const [services, setServices] = useState<any[]>([])
@@ -290,17 +290,17 @@ function FlightDetailsPageContent() {
         // Try to get flight search data from new cache system
         if (urlSearchParams.origin && urlSearchParams.destination && urlSearchParams.departDate) {
           const flightSearchParams = {
-            tripType: urlSearchParams.tripType === 'round-trip' ? 'ROUND_TRIP' : 'ONE_WAY',
+            tripType: (urlSearchParams.tripType === 'round-trip' ? 'ROUND_TRIP' : 'ONE_WAY') as 'ROUND_TRIP' | 'ONE_WAY',
             odSegments: [{
               origin: urlSearchParams.origin,
               destination: urlSearchParams.destination,
               departureDate: urlSearchParams.departDate,
               ...(urlSearchParams.tripType === 'round-trip' && urlSearchParams.returnDate ? { returnDate: urlSearchParams.returnDate } : {})
             }],
-            numAdults: urlSearchParams.adults,
-            numChildren: urlSearchParams.children,
-            numInfants: urlSearchParams.infants,
-            cabinPreference: urlSearchParams.cabinClass,
+            numAdults: Number(urlSearchParams.adults) || 1,
+            numChildren: Number(urlSearchParams.children) || 0,
+            numInfants: Number(urlSearchParams.infants) || 0,
+            cabinPreference: urlSearchParams.cabinClass || 'ECONOMY',
             directOnly: false
           };
 

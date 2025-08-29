@@ -1,7 +1,7 @@
 import { Wifi, Power, Tv, Utensils, UserPlus, DollarSign } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { AdditionalServices } from "@/types/flight-api"
+import type { AdditionalServices } from "@/types/flight-api"
 
 interface AdditionalServicesComponentProps {
   services: AdditionalServices

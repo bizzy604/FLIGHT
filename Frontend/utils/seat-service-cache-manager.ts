@@ -162,18 +162,39 @@ class SeatServiceCacheManager {
   }
 
   /**
-   * Pre-load seat availability and service list data (DISABLED)
-   * Unified API manager now handles proactive loading automatically after flight pricing
+   * Pre-load seat availability and service list data
+   * This method triggers the actual data loading via the unified API manager
    */
   async preloadData(flightPriceResponse: any): Promise<void> {
     const cacheKey = this.generateCacheKey(flightPriceResponse)
     
-    logger.info(`🚀 Preload requested for ${cacheKey} - Unified API manager handles this automatically`)
+    logger.info(`🚀 Preload requested for ${cacheKey} - Loading seat and service data`)
     
-    // No-op: Unified API manager now handles proactive loading
-    // This method is kept for backward compatibility but does nothing
-    
-    logger.info(`✅ Preload completed (handled by simple API manager)`);
+    try {
+      // Load both seat availability and service list in parallel
+      const [seatResult, serviceResult] = await Promise.allSettled([
+        this.loadSeatAvailability(flightPriceResponse),
+        this.loadServiceList(flightPriceResponse)
+      ])
+      
+      // Process results
+      if (seatResult.status === 'fulfilled') {
+        logger.info('✅ Seat availability preloaded successfully')
+      } else {
+        logger.warn('⚠️ Seat availability preload failed:', seatResult.reason)
+      }
+      
+      if (serviceResult.status === 'fulfilled') {
+        logger.info('✅ Service list preloaded successfully')
+      } else {
+        logger.warn('⚠️ Service list preload failed:', serviceResult.reason)
+      }
+      
+      logger.info(`✅ Preload completed for ${cacheKey}`)
+    } catch (error) {
+      logger.error('❌ Error during preload:', error)
+      throw error
+    }
   }
 
   /**
@@ -324,7 +345,7 @@ class SeatServiceCacheManager {
     const now = Date.now()
     let cleanedCount = 0
 
-    for (const [key, cached] of this.cache.entries()) {
+    for (const [key, cached] of Array.from(this.cache.entries())) {
       if ((now - cached.timestamp) >= this.CACHE_EXPIRY) {
         this.cache.delete(key)
         cleanedCount++
@@ -363,7 +384,7 @@ class SeatServiceCacheManager {
     let expiredCount = 0
     const storageKeys: { [key: string]: { seatAvailability?: string, serviceList?: string } } = {}
 
-    for (const [key, cached] of this.cache.entries()) {
+    for (const [key, cached] of Array.from(this.cache.entries())) {
       if ((now - cached.timestamp) >= this.CACHE_EXPIRY) {
         expiredCount++
       }

@@ -180,16 +180,16 @@ export function useFlightSelection({ flight, searchParams }: UseFlightSelectionP
       // Build search parameters to check cache (same as used in flights page)
       if (searchParams) {
         const flightSearchParams = {
-          tripType: searchParams.tripType === 'round-trip' ? 'ROUND_TRIP' : 'ONE_WAY',
+          tripType: (searchParams.tripType === 'round-trip' ? 'ROUND_TRIP' : 'ONE_WAY') as 'ROUND_TRIP' | 'ONE_WAY',
           odSegments: [{
-            origin: searchParams.origin,
-            destination: searchParams.destination,
-            departureDate: searchParams.departDate,
+            origin: searchParams.origin || '',
+            destination: searchParams.destination || '',
+            departureDate: searchParams.departDate || '',
             ...(searchParams.tripType === 'round-trip' && searchParams.returnDate ? { returnDate: searchParams.returnDate } : {})
           }],
-          numAdults: searchParams.adults || 1,
-          numChildren: searchParams.children || 0,
-          numInfants: searchParams.infants || 0,
+          numAdults: Number(searchParams.adults) || 1,
+          numChildren: Number(searchParams.children) || 0,
+          numInfants: Number(searchParams.infants) || 0,
           cabinPreference: searchParams.cabinClass || 'ECONOMY',
           directOnly: false
         };
@@ -238,13 +238,9 @@ export function useFlightSelection({ flight, searchParams }: UseFlightSelectionP
         logger.warn('⚠️ Flight offers have expired, need to refresh search results')
         
         // Show user-friendly message about expired offers
-        if (onError) {
-          onError('Flight offers have expired. Please search again for current prices and availability.')
-        } else {
-          alert('Flight offers have expired. The page will refresh to show current flights.')
-          // Auto-refresh the page to trigger a new search
-          window.location.reload()
-        }
+        alert('Flight offers have expired. The page will refresh to show current flights.')
+        // Auto-refresh the page to trigger a new search
+        window.location.reload()
         return
       }
 
