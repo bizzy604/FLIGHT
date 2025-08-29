@@ -133,17 +133,25 @@ export function useFlightSelection({ flight, searchParams }: UseFlightSelectionP
           const firstPricedOffer = cachedPricingData.priced_offers ? cachedPricingData.priced_offers[0] : cachedPricingData
           
           if (firstPricedOffer) {
-            // Add metadata if available
-            if (cachedPricingData.metadata) {
-              firstPricedOffer.metadata = cachedPricingData.metadata
+            // 🚀 CRITICAL FIX: Include metadata in the stored flight price response
+            const flightPriceResponseWithMetadata = {
+              ...firstPricedOffer,
+              metadata: cachedPricingData.metadata || {}
             }
 
-            // Store priced offer in session storage for immediate access
-            sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(firstPricedOffer))
+            // Store priced offer in session storage for immediate access WITH metadata
+            sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(flightPriceResponseWithMetadata))
             
             if (cachedPricingData.metadata) {
               sessionStorage.setItem('flightPriceMetadata', JSON.stringify(cachedPricingData.metadata))
-              logger.info('✅ Using cached flight pricing data')
+              
+              // Store flight_price_cache_key separately for easy access
+              if (cachedPricingData.metadata.flight_price_cache_key) {
+                sessionStorage.setItem('flight_price_cache_key', cachedPricingData.metadata.flight_price_cache_key)
+                logger.info(`✅ Using cached flight pricing data with cache key: ${cachedPricingData.metadata.flight_price_cache_key}`)
+              } else {
+                logger.info('✅ Using cached flight pricing data')
+              }
             }
 
             // 🚀 CRITICAL: Pre-load seat/service data even for cached flight price data
@@ -272,10 +280,22 @@ export function useFlightSelection({ flight, searchParams }: UseFlightSelectionP
       if (response.data.data.metadata) {
         sessionStorage.setItem('flightPriceMetadata', JSON.stringify(response.data.data.metadata))
         logger.info('✅ Stored flight price metadata for order creation')
+        
+        // Store flight_price_cache_key separately for easy access
+        if (response.data.data.metadata.flight_price_cache_key) {
+          sessionStorage.setItem('flight_price_cache_key', response.data.data.metadata.flight_price_cache_key)
+          logger.info(`✅ Stored flight_price_cache_key: ${response.data.data.metadata.flight_price_cache_key}`)
+        }
       }
 
-      // Store priced offer in session storage for immediate access
-      sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(firstPricedOffer))
+      // 🚀 CRITICAL FIX: Include metadata in the stored flight price response
+      const flightPriceResponseWithMetadata = {
+        ...firstPricedOffer,
+        metadata: response.data.data.metadata || {}
+      }
+
+      // Store priced offer in session storage for immediate access WITH metadata
+      sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(flightPriceResponseWithMetadata))
 
       // Store raw flight price response for order creation
       if (response.data.data.raw_response) {
