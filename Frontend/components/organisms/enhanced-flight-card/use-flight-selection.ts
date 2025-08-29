@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react'
 import { logger } from "@/utils/logger"
-import { flightStorageManager } from "@/utils/flight-storage-manager"
-import { redisFlightStorage } from "@/utils/redis-flight-storage"
+import { simpleCacheManager } from "@/utils/simple-cache-manager"
 import { api } from "@/utils/api-client"
 import { seatServiceCache } from "@/utils/seat-service-cache-manager"
 import type { FlightOffer } from "@/types/flight-api"
@@ -89,8 +88,9 @@ export function useFlightSelection({ flight, searchParams }: UseFlightSelectionP
         searchParams: searchParams || {}
       }
 
-      // Store selected flight data using robust storage manager
-      const storeResult = await flightStorageManager.storeSelectedFlight(flightData)
+      // Store selected flight data using simple cache manager
+      const sessionId = simpleCacheManager.getOrCreateSessionId();
+      const storeResult = simpleCacheManager.setFlightSearch(sessionId, flightData)
 
       if (!storeResult.success) {
         logger.warn('⚠️ Failed to store selected flight data:', storeResult.error)
@@ -108,7 +108,7 @@ export function useFlightSelection({ flight, searchParams }: UseFlightSelectionP
           searchParams: searchParams || {}
         }
 
-        const returnStoreResult = await flightStorageManager.storeSelectedFlight(returnFlightData)
+        const returnStoreResult = simpleCacheManager.setFlightSearch(sessionId + '_return', returnFlightData)
         if (!returnStoreResult.success) {
           logger.warn('⚠️ Failed to store return flight data:', returnStoreResult.error)
         }

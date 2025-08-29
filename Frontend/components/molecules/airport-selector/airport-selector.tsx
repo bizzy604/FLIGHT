@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useState, useMemo } from "react"
+import { memo, useState, useMemo, useCallback } from "react"
 import { MapPin, Plane } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/utils/cn"
 import type { AirportSelectorProps, Airport } from "./airport-selector.types"
-import { DEFAULT_AIRPORTS } from "./airport-selector.types"
+import { DEFAULT_AIRPORTS, POPULAR_AIRPORTS } from "./airport-selector.types"
 
 export const AirportSelector = memo(function AirportSelector({
   label,
@@ -33,16 +33,27 @@ export const AirportSelector = memo(function AirportSelector({
     [airports, value]
   )
 
-  // Filter airports based on search query
-  const filteredAirports = useMemo(() => {
-    if (!searchQuery) return airports
+  // Performance optimization: Show popular airports initially, search all when user types
+  const displayedAirports = useMemo(() => {
+    if (!searchQuery || searchQuery.length < 2) {
+      // Show popular airports when no search or search too short
+      return POPULAR_AIRPORTS
+    }
+    
     const query = searchQuery.toLowerCase()
-    return airports.filter(airport => 
+    const filtered = airports.filter(airport => 
       airport.code.toLowerCase().includes(query) ||
       airport.name.toLowerCase().includes(query) ||
       airport.city.toLowerCase().includes(query)
     )
+    
+    // Limit results to 50 for performance
+    return filtered.slice(0, 50)
   }, [airports, searchQuery])
+
+  const handleSearchChange = useCallback((query: string) => {
+    setSearchQuery(query)
+  }, [])
 
   const handleSelect = (airportCode: string) => {
     onChange(airportCode)
@@ -79,14 +90,24 @@ export const AirportSelector = memo(function AirportSelector({
           <PopoverContent className="w-80 p-0" align="start">
             <Command>
               <CommandInput 
-                placeholder="Search airport..."
+                placeholder="Type 2+ characters to search all airports..."
                 value={searchQuery}
-                onValueChange={setSearchQuery}
+                onValueChange={handleSearchChange}
               />
-              <CommandList>
-                <CommandEmpty>No airport found.</CommandEmpty>
+              <CommandList className="max-h-64 overflow-auto">
+                <CommandEmpty>
+                  {searchQuery.length < 2 
+                    ? "Type at least 2 characters to search all airports"
+                    : "No airport found."
+                  }
+                </CommandEmpty>
                 <CommandGroup>
-                  {filteredAirports.map((airport) => (
+                  {searchQuery.length < 2 && (
+                    <div className="px-2 py-1 text-xs text-muted-foreground border-b">
+                      Popular Airports
+                    </div>
+                  )}
+                  {displayedAirports.map((airport) => (
                     <CommandItem
                       key={airport.code}
                       value={airport.code}
@@ -104,6 +125,11 @@ export const AirportSelector = memo(function AirportSelector({
                     </CommandItem>
                   ))}
                 </CommandGroup>
+                {searchQuery.length >= 2 && displayedAirports.length === 50 && (
+                  <div className="px-2 py-1 text-xs text-muted-foreground border-t">
+                    Showing first 50 results. Type more to narrow search.
+                  </div>
+                )}
               </CommandList>
             </Command>
           </PopoverContent>
@@ -146,14 +172,24 @@ export const AirportSelector = memo(function AirportSelector({
         <PopoverContent className="w-full p-0" align="start">
           <Command>
             <CommandInput 
-              placeholder="Search airport..."
+              placeholder="Type 2+ characters to search all airports..."
               value={searchQuery}
-              onValueChange={setSearchQuery}
+              onValueChange={handleSearchChange}
             />
-            <CommandList>
-              <CommandEmpty>No airport found.</CommandEmpty>
+            <CommandList className="max-h-64 overflow-auto">
+              <CommandEmpty>
+                {searchQuery.length < 2 
+                  ? "Type at least 2 characters to search all airports"
+                  : "No airport found."
+                }
+              </CommandEmpty>
               <CommandGroup>
-                {filteredAirports.map((airport) => (
+                {searchQuery.length < 2 && (
+                  <div className="px-2 py-1 text-xs text-muted-foreground border-b">
+                    Popular Airports
+                  </div>
+                )}
+                {displayedAirports.map((airport) => (
                   <CommandItem
                     key={airport.code}
                     value={airport.code}
@@ -171,6 +207,11 @@ export const AirportSelector = memo(function AirportSelector({
                   </CommandItem>
                 ))}
               </CommandGroup>
+              {searchQuery.length >= 2 && displayedAirports.length === 50 && (
+                <div className="px-2 py-1 text-xs text-muted-foreground border-t">
+                  Showing first 50 results. Type more to narrow search.
+                </div>
+              )}
             </CommandList>
           </Command>
         </PopoverContent>

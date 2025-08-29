@@ -42,6 +42,8 @@ class SessionManager {
     sessionStorage.removeItem('flight_price_cache_key');
     sessionStorage.removeItem('seat_availability_storage_key');
     sessionStorage.removeItem('service_list_storage_key');
+    sessionStorage.removeItem('seat_availability_cache_key');
+    sessionStorage.removeItem('service_list_cache_key');
     sessionStorage.removeItem('flightPriceResponseForBooking');
     sessionStorage.removeItem('flightPriceMetadata');
     
@@ -57,6 +59,8 @@ class SessionManager {
       flightPriceCacheKey: sessionStorage.getItem('flight_price_cache_key'),
       seatStorageKey: sessionStorage.getItem('seat_availability_storage_key'),
       serviceStorageKey: sessionStorage.getItem('service_list_storage_key'),
+      seatCacheKey: sessionStorage.getItem('seat_availability_cache_key'),
+      serviceCacheKey: sessionStorage.getItem('service_list_cache_key'),
       hasFlightData: !!sessionStorage.getItem('flightPriceResponseForBooking'),
       hasMetadata: !!sessionStorage.getItem('flightPriceMetadata'),
     };

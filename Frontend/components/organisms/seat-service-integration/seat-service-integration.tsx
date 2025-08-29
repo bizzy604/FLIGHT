@@ -4,7 +4,13 @@ import * as React from "react"
 import { useState, useEffect } from "react"
 import { logger } from "@/utils/logger"
 import { seatServiceCache } from "@/utils/seat-service-cache-manager"
-import { unifiedApiManager } from "@/utils/unified-api-manager"
+import { simpleApiManager } from "@/utils/simple-api-manager"
+import { 
+  calculatePricingBreakdown, 
+  calculateServiceFees, 
+  extractFlightPricing,
+  type SeatPrices 
+} from "@/utils/pricing-calculator"
 import { SeatSelection } from "@/components/molecules/seat-selection"
 import { ServiceSelection } from "@/components/molecules/service-selection" 
 import { OrderSummary } from "@/components/molecules/order-summary"
@@ -25,11 +31,17 @@ export function SeatServiceIntegration({
     return: [] as string[]
   })
   const [selectedServices, setSelectedServices] = useState<string[]>([])
-  const [seatPrices, setSeatPrices] = useState({
+  const [seatPrices, setSeatPrices] = useState<SeatPrices>({
     outbound: 0,
     return: 0
   })
   const [servicePrices, setServicePrices] = useState(0)
+  const [flightPricing, setFlightPricing] = useState<{
+    baseFare: number
+    taxes: number
+    total: number
+    currency: string
+  }>({ baseFare: 0, taxes: 0, total: 0, currency: 'USD' })
   const [services, setServices] = useState<any[]>([])
   const [flightPriceResponse, setFlightPriceResponse] = useState<any>(null)
   const [isRoundTrip, setIsRoundTrip] = useState(false)
@@ -76,6 +88,11 @@ export function SeatServiceIntegration({
         }
         
         setFlightPriceResponse(parsedResponse)
+        
+        // Extract flight pricing information
+        const pricingInfo = extractFlightPricing(parsedResponse)
+        setFlightPricing(pricingInfo)
+        logger.info('💰 Extracted flight pricing:', pricingInfo)
         
         // Trip type detection (simplified)
         const segments = parsedResponse?.flight_segments || []
@@ -195,18 +212,26 @@ export function SeatServiceIntegration({
   const handleServiceChange = (updatedServices: string[]) => {
     setSelectedServices(updatedServices)
     
-    // Calculate service prices from actual service data
-    const totalPrice = updatedServices.reduce((total, serviceKey) => {
-      const service = services.find(s => s.objectKey === serviceKey)
-      return total + (service?.price?.[0]?.total?.value || 0)
-    }, 0)
-    
+    // Use unified pricing calculation
+    const { total: totalPrice } = calculateServiceFees(updatedServices, services)
     setServicePrices(totalPrice)
     
     // Validate booking state after service change
     setTimeout(validateBookingState, 100)
     
-    logger.info(`🛎️ Updated services:`, updatedServices)
+    logger.info(`🛎️ Updated services:`, updatedServices, `Total: ${totalPrice}`)
+  }
+  
+  // Handle services data update from ServiceSelection component
+  const handleServicesUpdate = (servicesData: any[]) => {
+    setServices(servicesData)
+    logger.info(`🛎️ Services data updated: ${servicesData.length} services available`)
+    
+    // Recalculate service prices with new service data
+    if (selectedServices.length > 0) {
+      const { total: totalPrice } = calculateServiceFees(selectedServices, servicesData)
+      setServicePrices(totalPrice)
+    }
   }
 
   // Debug: Show cache status (simplified)
@@ -216,18 +241,18 @@ export function SeatServiceIntegration({
     const seatCache = seatServiceCache.getCachedSeatAvailability(flightPriceResponse)
     const serviceCache = seatServiceCache.getCachedServiceList(flightPriceResponse)
     const cacheStatus = seatServiceCache.getCacheStatus()
-    const unifiedDebug = unifiedApiManager.getDebugInfo()
+    const simpleDebug = simpleApiManager.getDebugInfo()
     
     return (
       <div className="bg-gray-50 border rounded-lg p-4 mb-4 text-xs">
-        <h4 className="font-semibold mb-2">🔍 Unified API Manager Debug Status</h4>
+        <h4 className="font-semibold mb-2">🔍 Simple API Manager Debug Status</h4>
         <div className="space-y-1">
           <div>Seat Data: {seatCache.data ? '✅ Cached' : seatCache.isLoading ? '🔄 Loading' : '❌ Not Available'}</div>
           <div>Service Data: {serviceCache.data ? '✅ Cached' : serviceCache.isLoading ? '🔄 Loading' : '❌ Not Available'}</div>
           <div>Local Cache: {cacheStatus.totalEntries} entries, {cacheStatus.loadingEntries} loading</div>
-          <div>Unified Cache: {unifiedDebug.cacheEntries.length} entries, {unifiedDebug.pendingRequests.length} pending</div>
-          <div>Session ID: {unifiedDebug.sessionData.sessionId?.slice(-8) || 'Missing'}</div>
-          <div>Flight Price Cache Key: {unifiedDebug.sessionData.flightPriceCacheKey?.slice(-12) || 'Missing'}</div>
+          <div>Unified Cache: {simpleDebug.cacheEntries.length} entries, {simpleDebug.pendingRequests.length} pending</div>
+          <div>Session ID: {simpleDebug.sessionData.sessionId?.slice(-8) || 'Missing'}</div>
+          <div>Flight Price Cache Key: {simpleDebug.sessionData.flightPriceCacheKey?.slice(-12) || 'Missing'}</div>
           {seatCache.error && <div className="text-red-600">Seat Error: {seatCache.error}</div>}
           {serviceCache.error && <div className="text-red-600">Service Error: {serviceCache.error}</div>}
         </div>
@@ -314,6 +339,7 @@ export function SeatServiceIntegration({
             flightPriceResponse={flightPriceResponse}
             selectedServices={selectedServices}
             onServiceChange={handleServiceChange}
+            onServicesUpdate={handleServicesUpdate}
             passengers={booking?.passengers || [{ objectKey: 'pax1', name: 'Passenger 1', type: 'ADULT' }]}
           />
         </div>
@@ -321,7 +347,11 @@ export function SeatServiceIntegration({
         {/* Sidebar - Booking Summary */}
         <div className="lg:col-span-1">
           <OrderSummary
-            booking={booking}
+            booking={{
+              ...booking,
+              flightOffer: flightPriceResponse,
+              currency: flightPricing.currency
+            }}
             selectedSeats={selectedSeats}
             selectedServices={selectedServices}
             seatPrices={seatPrices}

@@ -4,35 +4,61 @@ import { Minus, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import { formatCurrency } from "@/utils/currency-formatter"
 
-interface BaggageOptionsProps {
-  selectedBaggage: any; // Expects object like { checkedBags: number, specialEquipment: string }
-  onBaggageChange: (updatedBaggage: any) => void;
-  flightBaggageAllowance?: {
-    carryOn?: string;
-    checked?: string;
-    additionalBagPrice?: number;
-    currency?: string;
-  };
+interface BaggageSelection {
+  checkedBags: number
+  specialEquipment: 'none'
 }
 
-export function BaggageOptions({ selectedBaggage, onBaggageChange, flightBaggageAllowance }: BaggageOptionsProps) {
-  const checkedBags = selectedBaggage?.checkedBags ?? 0;
-  const specialEquipment = selectedBaggage?.specialEquipment ?? 'none';
+interface BaggageOptionsProps {
+  selectedBaggage: BaggageSelection
+  onBaggageChange: (updatedBaggage: BaggageSelection) => void
+  flightBaggageAllowance?: {
+    carryOn?: string
+    checked?: string
+    additionalBagPrice?: number
+    currency?: string
+  }
+  currency?: string
+}
+
+export function BaggageOptions({ 
+  selectedBaggage, 
+  onBaggageChange, 
+  flightBaggageAllowance,
+  currency = 'USD'
+}: BaggageOptionsProps) {
+  const checkedBags = selectedBaggage?.checkedBags ?? 0
+  const specialEquipment = selectedBaggage?.specialEquipment ?? 'none'
+  
+  // Pricing constants from API or props - no hardcoded fallbacks
+  const additionalBagPrice = flightBaggageAllowance?.additionalBagPrice ?? 0
+  const specialEquipmentPrices = {
+    none: 0
+  }
 
   const incrementBags = () => {
-    const newCount = Math.min(checkedBags + 1, 5); // Ensure max 5
-    onBaggageChange({ ...selectedBaggage, checkedBags: newCount });
-  };
+    const newCount = Math.min(checkedBags + 1, 5) // Ensure max 5
+    onBaggageChange({ ...selectedBaggage, checkedBags: newCount })
+  }
 
   const decrementBags = () => {
-    const newCount = Math.max(checkedBags - 1, 0); // Ensure min 0
-    onBaggageChange({ ...selectedBaggage, checkedBags: newCount });
-  };
+    const newCount = Math.max(checkedBags - 1, 0) // Ensure min 0
+    onBaggageChange({ ...selectedBaggage, checkedBags: newCount })
+  }
 
   const handleSpecialEquipmentChange = (value: string) => {
-    onBaggageChange({ ...selectedBaggage, specialEquipment: value });
-  };
+    onBaggageChange({ 
+      ...selectedBaggage, 
+      specialEquipment: 'none'
+    })
+  }
+  
+  // Calculate total cost
+  const baggageCost = checkedBags * additionalBagPrice
+  const specialEquipmentCost = specialEquipmentPrices[specialEquipment]
+  const totalCost = baggageCost + specialEquipmentCost
 
   return (
     <div className="space-y-6">
@@ -58,13 +84,9 @@ export function BaggageOptions({ selectedBaggage, onBaggageChange, flightBaggage
         <div className="flex items-center justify-between">
           <div>
             <p className="font-medium">Additional Checked Bags</p>
-            {flightBaggageAllowance?.additionalBagPrice && flightBaggageAllowance?.currency ? (
-              <p className="text-sm text-muted-foreground">
-                {flightBaggageAllowance.additionalBagPrice} {flightBaggageAllowance.currency} per bag
-              </p>
-            ) : (
-              <p className="text-sm text-muted-foreground">Additional fees apply as per airline policy</p>
-            )}
+            <p className="text-sm text-muted-foreground">
+              {formatCurrency(additionalBagPrice, currency)} per bag
+            </p>
           </div>
           <div className="flex items-center space-x-3">
             <Button
@@ -91,39 +113,36 @@ export function BaggageOptions({ selectedBaggage, onBaggageChange, flightBaggage
           </div>
         </div>
 
-        <div className="mt-4 text-sm">
-          <p className="font-medium">Total: ${(checkedBags * 35).toFixed(2)}</p>
-        </div>
+        {checkedBags > 0 && (
+          <div className="mt-4 text-sm">
+            <p className="font-medium">
+              Subtotal: {formatCurrency(baggageCost, currency)}
+            </p>
+          </div>
+        )}
       </div>
 
-      <div className="rounded-md border p-4">
-        <h4 className="mb-4 text-sm font-medium">Special Equipment</h4>
-        <RadioGroup 
-          value={specialEquipment} 
-          onValueChange={handleSpecialEquipmentChange}
-        >
-          <div className="flex items-start space-x-3">
-            <RadioGroupItem value="none" id="special-none" />
-            <div>
-              <Label htmlFor="special-none">None</Label>
-            </div>
+      
+      {/* Total Cost Summary */}
+      {totalCost > 0 && (
+        <div className="rounded-md border p-4 bg-primary/10">
+          <div className="flex justify-between items-center">
+            <span className="font-semibold text-primary">
+              Total Baggage Cost
+            </span>
+            <span className="font-bold text-lg text-primary">
+              {formatCurrency(totalCost, currency)}
+            </span>
           </div>
-          <div className="flex items-start space-x-3">
-            <RadioGroupItem value="sports" id="special-sports" />
-            <div>
-              <Label htmlFor="special-sports">Sports Equipment</Label>
-              <p className="text-sm text-muted-foreground">Skis, golf clubs, bicycles, etc. ($50.00)</p>
+          {baggageCost > 0 && (
+            <div className="text-sm text-primary/80 mt-1">
+              {checkedBags} bag{checkedBags > 1 ? 's' : ''}: {formatCurrency(baggageCost, currency)}
             </div>
-          </div>
-          <div className="flex items-start space-x-3">
-            <RadioGroupItem value="musical" id="special-musical" />
-            <div>
-              <Label htmlFor="special-musical">Musical Instrument</Label>
-              <p className="text-sm text-muted-foreground">Guitar, violin, etc. ($35.00)</p>
-            </div>
-          </div>
-        </RadioGroup>
-      </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
+
+export type { BaggageSelection }

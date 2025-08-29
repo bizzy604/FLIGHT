@@ -14,6 +14,7 @@ import { api } from "@/utils/api-client"
 import { seatServiceCache } from "@/utils/seat-service-cache-manager"
 import { logger } from "@/utils/logger"
 import { formatCurrency, formatCurrencyForDisplay } from "@/utils/currency-formatter"
+import { BaggageOptions, type BaggageSelection } from "@/components/molecules/baggage-options"
 
 interface Service {
   objectKey: string
@@ -73,6 +74,10 @@ interface ServiceSelectionProps {
   flightPriceResponse: any
   selectedServices: string[]
   onServiceChange: (updatedServices: string[]) => void
+  onServicesUpdate?: (services: any[]) => void // New callback for services data
+  onPricingUpdate?: (totalPrice: number, servicesCount: number, currency: string) => void // Direct pricing callback
+  selectedBaggage?: BaggageSelection
+  onBaggageChange?: (baggage: BaggageSelection) => void
   passengers: Array<{
     objectKey: string
     name: string
@@ -84,7 +89,11 @@ interface ServiceSelectionProps {
 export function ServiceSelection({ 
   flightPriceResponse, 
   selectedServices, 
-  onServiceChange, 
+  onServiceChange,
+  onServicesUpdate,
+  onPricingUpdate,
+  selectedBaggage = { checkedBags: 0, specialEquipment: 'none' },
+  onBaggageChange,
   passengers,
   className 
 }: ServiceSelectionProps) {
@@ -249,7 +258,7 @@ export function ServiceSelection({
     }
 
     loadServices()
-  }, [flightPriceResponse])
+  }, [flightPriceResponse]) // Remove onServicesUpdate from dependencies since it's optional
 
   // Categorize services by type - enhanced for better categorization
   const categorizeServices = (servicesList: Service[]): Record<string, Service[]> => {
@@ -346,6 +355,14 @@ export function ServiceSelection({
     
     logger.info(`🛎️ Service selection changed from [${selectedServices.join(', ')}] to [${updatedServices.join(', ')}]`)
     onServiceChange(updatedServices)
+    
+    // Send direct pricing data to parent for Price Summary
+    const totalPrice = updatedServices.reduce((total, serviceObjectKey) => {
+      const service = services.find(s => s.objectKey === serviceObjectKey)
+      return total + (service ? getSelectedServicePrice(service) : 0)
+    }, 0)
+    const currency = getCurrency()
+    onPricingUpdate?.(totalPrice, updatedServices.length, currency)
   }
 
   const getSelectedServicePrice = (service: Service): number => {
@@ -417,7 +434,7 @@ export function ServiceSelection({
       {/* Services Header */}
       <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-1 h-6 bg-purple-600 rounded-full"></div>
+          <div className="w-1 h-6 bg-primary rounded-full"></div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add Services</h2>
         </div>
         
@@ -429,7 +446,7 @@ export function ServiceSelection({
               className={cn(
                 "px-5 py-3 font-semibold transition-all duration-300 relative",
                 activeTab === categoryKey
-                  ? "text-purple-600 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-1 after:bg-purple-600 after:rounded-t-md"
+                  ? "text-primary after:absolute after:bottom-0 after:left-0 after:right-0 after:h-1 after:bg-primary after:rounded-t-md"
                   : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
               )}
               onClick={() => setActiveTab(categoryKey)}
@@ -439,9 +456,101 @@ export function ServiceSelection({
           ))}
         </div>
 
-        {/* Service Grid */}
+        {/* Service Content */}
         <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-          {servicesByCategory[activeTab]?.map((service) => {
+          {/* Special handling for baggage tab */}
+          {activeTab === 'baggage' ? (
+            <div className="space-y-4">
+              {/* Baggage quantity selection */}
+              <BaggageOptions
+                selectedBaggage={selectedBaggage}
+                onBaggageChange={onBaggageChange || (() => {})}
+                flightBaggageAllowance={{
+                  carryOn: 'As per airline policy',
+                  checked: 'As per airline policy',
+                  additionalBagPrice: (() => {
+                    // Find the most appropriate baggage service price from actual API data
+                    const baggageServices = servicesByCategory[activeTab] || [];
+                    const weightSystemService = baggageServices.find(s => s.name?.value?.toLowerCase().includes('weight system'));
+                    const bagService = baggageServices.find(s => s.name?.value?.toLowerCase().includes('bag'));
+                    const firstBaggageService = baggageServices[0];
+                    
+                    // Priority: weight system > bag > first service > 0 (no hardcoded fallback)
+                    const selectedService = weightSystemService || bagService || firstBaggageService;
+                    return selectedService?.price?.[0]?.total?.value || 0;
+                  })(),
+                  currency: getCurrency()
+                }}
+                currency={getCurrency()}
+              />
+              
+              {/* Additional baggage services from API */}
+              {servicesByCategory[activeTab]?.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-gray-900 dark:text-white border-t pt-4">Additional Baggage Services</h4>
+                  {servicesByCategory[activeTab].map((service) => {
+                    const isSelected = selectedServices.includes(service.objectKey)
+                    const price = getSelectedServicePrice(service)
+                    const currency = service.price?.[0]?.total?.code || 'USD'
+                    const isFree = price === 0
+
+                    return (
+                      <div
+                        key={service.objectKey}
+                        className={cn(
+                          "border-2 rounded-xl p-4 cursor-pointer transition-all duration-300 relative overflow-hidden",
+                          isSelected 
+                            ? "border-primary bg-gradient-to-r from-primary/10 to-primary/20" 
+                            : "border-gray-200 dark:border-gray-600 hover:border-primary/50 hover:shadow-md hover:-translate-y-1"
+                        )}
+                        onClick={() => handleServiceToggle(service.objectKey)}
+                      >
+                        {/* Selection checkmark */}
+                        {isSelected && (
+                          <div className="absolute top-3 right-3 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                            <Check className="h-4 w-4 text-white font-bold" />
+                          </div>
+                        )}
+
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1 pr-10">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h4 className="font-semibold text-gray-900 dark:text-white">{service.name?.value}</h4>
+                              {service.bookingInstructions?.ssrCode && (
+                                <Badge variant="secondary" className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                                  {service.bookingInstructions.ssrCode[0]}
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            {service.descriptions?.description?.[0]?.text?.value && (
+                              <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+                                {service.descriptions.description[0].text.value}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="text-right">
+                            {isFree ? (
+                              <span className="inline-block px-3 py-1 bg-primary/20 text-primary text-sm font-semibold rounded-lg">
+                                FREE
+                              </span>
+                            ) : (
+                              <div className="text-lg font-bold text-primary">
+                                {formatCurrency(price, currency)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Regular service grid for other tabs */
+            servicesByCategory[activeTab]?.map((service) => {
             const isSelected = selectedServices.includes(service.objectKey)
             const price = getSelectedServicePrice(service)
             const currency = service.price?.[0]?.total?.code || 'USD'
@@ -453,14 +562,14 @@ export function ServiceSelection({
                 className={cn(
                   "border-2 rounded-xl p-4 cursor-pointer transition-all duration-300 relative overflow-hidden",
                   isSelected 
-                    ? "border-green-500 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/30" 
-                    : "border-gray-200 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-md hover:-translate-y-1"
+                    ? "border-primary bg-gradient-to-r from-primary/10 to-primary/20" 
+                    : "border-gray-200 dark:border-gray-600 hover:border-primary/50 hover:shadow-md hover:-translate-y-1"
                 )}
                 onClick={() => handleServiceToggle(service.objectKey)}
               >
                 {/* Selection checkmark */}
                 {isSelected && (
-                  <div className="absolute top-3 right-3 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                  <div className="absolute top-3 right-3 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                     <Check className="h-4 w-4 text-white font-bold" />
                   </div>
                 )}
@@ -485,11 +594,11 @@ export function ServiceSelection({
 
                   <div className="text-right">
                     {isFree ? (
-                      <span className="inline-block px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-semibold rounded-lg">
+                      <span className="inline-block px-3 py-1 bg-primary/20 text-primary text-sm font-semibold rounded-lg">
                         FREE
                       </span>
                     ) : (
-                      <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                      <div className="text-lg font-bold text-primary">
                         {formatCurrency(price, currency)}
                       </div>
                     )}
@@ -497,9 +606,11 @@ export function ServiceSelection({
                 </div>
               </div>
             )
-          })}
+            })
+          )}
           
-          {(!servicesByCategory[activeTab] || servicesByCategory[activeTab].length === 0) && (
+          {/* No services message */}
+          {activeTab !== 'baggage' && (!servicesByCategory[activeTab] || servicesByCategory[activeTab].length === 0) && (
             <div className="text-center py-8 text-gray-500">
               No {getCategoryName(activeTab).toLowerCase()} services available for this flight.
             </div>

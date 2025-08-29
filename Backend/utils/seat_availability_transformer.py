@@ -52,7 +52,8 @@ def transform_seat_availability_lean_frontend(api_response):
                 "seatList": {
                     "seats": seats
                 }
-            }
+            },
+            "raw_response": api_response  # Include raw response for OrderCreate builder
         }
         
         logger.info(f"✅ Lean frontend transformation complete: {len(seats)} seats")
@@ -298,6 +299,26 @@ def _extract_complete_seat_map(api_response):
         seat_list = data_lists.get('SeatList', {})
         seat_data = seat_list.get('Seats', [])  # Real API uses 'Seats' not 'Seat'
         
+        # Debug logging to understand the actual API response structure
+        logger.info(f"DEBUG: DataLists keys: {list(data_lists.keys())}")
+        if 'SeatList' in data_lists:
+            logger.info(f"DEBUG: SeatList keys: {list(data_lists['SeatList'].keys())}")
+            logger.info(f"DEBUG: Found {len(seat_data)} seats in Seats array")
+            if seat_data and len(seat_data) > 0:
+                first_seat = seat_data[0]
+                logger.info(f"DEBUG: First seat keys: {list(first_seat.keys()) if isinstance(first_seat, dict) else 'Not a dict'}")
+                if isinstance(first_seat, dict) and 'Location' in first_seat:
+                    location = first_seat['Location']
+                    logger.info(f"DEBUG: First seat location keys: {list(location.keys())}")
+                    if 'Row' in location:
+                        row_data = location['Row']
+                        logger.info(f"DEBUG: Row data structure: {row_data}")
+                        if isinstance(row_data, dict) and 'Number' in row_data:
+                            number_data = row_data['Number']
+                            logger.info(f"DEBUG: Number data structure: {number_data}")
+                            if isinstance(number_data, dict) and 'value' in number_data:
+                                logger.info(f"DEBUG: Row value: {number_data['value']}")
+        
         # Create a pricing lookup from Services
         services_data = api_response.get('Services', {}).get('Service', [])
         price_lookup = {}
@@ -340,18 +361,57 @@ def _extract_complete_seat_map(api_response):
                     continue
                 seen_seats.add(seat_id)
                 
-                # Extract price from refs (seat services)
-                refs = seat.get('refs', [])
+                # Extract price from refs (seat services) - API doesn't provide refs, so we create them
+                # The seat availability API doesn't include pricing references, so we need to create them
+                # based on the seat position and the flight price response structure
+                
+                # Create a pricing reference based on seat position and offer structure
+                # This is a workaround since the API doesn't provide the actual refs
+                # We need to create a reference that the OrderCreate builder can use
+                # to map seat positions to pricing ObjectKeys
+                
+                # Create a unique reference for this seat that can be used for pricing lookup
+                # The format should match what the OrderCreate builder expects
+                seat_ref = f"SEAT-{row_value}{column}"
+                
+                # Try to find a matching service for this seat
+                matching_service_ref = None
+                if services_data:
+                    for service in services_data:
+                        # Check if service has associations that match this seat
+                        associations = service.get('Associations', [])
+                        for assoc in associations:
+                            if isinstance(assoc, dict):
+                                # Look for seat-related associations
+                                if 'Seat' in assoc or 'Location' in str(assoc):
+                                    matching_service_ref = service.get('ObjectKey')
+                                    break
+                        if matching_service_ref:
+                            break
+                
+                # Use the matching service ref if found, otherwise use the seat ref
+                if matching_service_ref:
+                    refs = [matching_service_ref]
+                else:
+                    # Create a reference that includes both seat position and potential pricing info
+                    # This will help the OrderCreate builder identify this as a seat selection
+                    refs = [f"SEAT-POSITION-{row_value}{column}"]
+                
                 price_value = 0.0
                 currency_code = 'INR'
                 
-                # Look up pricing from services using refs
-                for ref in refs:
-                    if ref in price_lookup:
-                        price_info = price_lookup[ref]
-                        price_value = price_info['value']
-                        currency_code = price_info['code']
-                        break  # Use first price found
+                # Try to find pricing from services if available
+                if services_data:
+                    # Look for a service that matches this seat
+                    for service in services_data:
+                        service_refs = service.get('refs', [])
+                        if seat_ref in service_refs or any(seat_ref in str(ref) for ref in service_refs):
+                            price_info = service.get('Price', [{}])[0] if service.get('Price') else {}
+                            if price_info:
+                                total = price_info.get('Total', {})
+                                price_value = float(total.get('value', 0))
+                                currency_code = total.get('Code', 'INR')
+                                break
                 
                 # Extract ALL characteristics (comprehensive IATA codes)
                 characteristics_data = location.get('Characteristics', {})
@@ -426,7 +486,7 @@ def _extract_complete_seat_map(api_response):
                     # 🚀 CRITICAL FIX: Add pricing refs for OrderCreate mapping
                     # Frontend needs these to map seat positions to pricing ObjectKeys
                     if refs:
-                        seat_obj["pricingRefs"] = refs
+                        seat_obj["refs"] = refs  # Use 'refs' to match what OrderCreate builder expects
                     
                     # Add ALL characteristics if they exist
                     if all_characteristics:

@@ -237,13 +237,22 @@ class FlightPricingService(FlightService):
                 response_travelers = response['DataLists']['AnonymousTravelerList']
                 logger.info(f"[PASSENGER DEBUG] Flight Price API Response - AnonymousTravelerList count: {len(response_travelers) if isinstance(response_travelers, list) else 1}")
 
-            # Cache the raw flight price response for order creation
+            # Cache the raw flight price response for order creation using SimpleFlightCache
+            # Use consistent key format: flight_price_raw_{request_id}_{timestamp}
             flight_price_cache_key = f"flight_price_raw_{request_id}_{int(datetime.now().timestamp())}"
             try:
-                from utils.cache_manager import cache_manager
-                # Cache for 30 minutes (1800 seconds) - same as frontend session
-                cache_manager.set(flight_price_cache_key, response, ttl=1800)
-                logger.info(f"Raw flight price response cached with key: {flight_price_cache_key}")
+                from services.simple_flight_cache import simple_flight_cache
+                # Store in cache with consistent format (30 minutes TTL)
+                cache_result = simple_flight_cache.store_flight_price(
+                    session_id=flight_price_cache_key,
+                    price_data=response,
+                    ttl=1800  # 30 minutes
+                )
+                if cache_result.get('success'):
+                    logger.info(f"Raw flight price response cached with key: {flight_price_cache_key}")
+                else:
+                    logger.warning(f"Failed to cache flight price: {cache_result.get('message')}")
+                    flight_price_cache_key = None
             except Exception as cache_error:
                 logger.warning(f"Failed to cache raw flight price response: {cache_error}")
                 flight_price_cache_key = None
@@ -894,10 +903,21 @@ class FlightPricingService(FlightService):
             except Exception as e:
                 logger.warning(f"Could not extract IDs for additional cache keys: {str(e)}")
 
-            # Store the complete raw response in cache for 30 minutes using all keys
+            # Store the complete raw response using SimpleFlightCache for 30 minutes using all keys
             for cache_key in cache_keys:
-                cache_manager.set(cache_key, response, ttl=1800)
-                logger.info(f"Stored flight price response in cache with key: {cache_key}")
+                try:
+                    from services.simple_flight_cache import simple_flight_cache
+                    cache_result = simple_flight_cache.store_flight_price(
+                        session_id=cache_key,
+                        price_data=response,
+                        ttl=1800  # 30 minutes
+                    )
+                    if cache_result.get('success'):
+                        logger.info(f"Stored flight price response with key: {cache_key}")
+                    else:
+                        logger.warning(f"Failed to store flight price: {cache_result.get('message')}")
+                except Exception as cache_error:
+                    logger.warning(f"Failed to cache flight price response with key {cache_key}: {cache_error}")
             
             # Cache the response using the primary cache key only
             
@@ -962,10 +982,21 @@ class FlightPricingService(FlightService):
             except Exception as e:
                 logger.warning(f"Could not extract IDs for additional cache keys: {str(e)}")
 
-            # Store the complete raw response in cache for 30 minutes using all keys
+            # Store the complete raw response using SimpleFlightCache for 30 minutes using all keys
             for cache_key in cache_keys:
-                cache_manager.set(cache_key, response, ttl=1800)
-                logger.info(f"Stored flight price response in cache with key: {cache_key}")
+                try:
+                    from services.simple_flight_cache import simple_flight_cache
+                    cache_result = simple_flight_cache.store_flight_price(
+                        session_id=cache_key,
+                        price_data=response,
+                        ttl=1800  # 30 minutes
+                    )
+                    if cache_result.get('success'):
+                        logger.info(f"Stored flight price response with key: {cache_key}")
+                    else:
+                        logger.warning(f"Failed to store flight price: {cache_result.get('message')}")
+                except Exception as cache_error:
+                    logger.warning(f"Failed to cache flight price response with key {cache_key}: {cache_error}")
             
             # Try to extract basic offer information for fallback
             basic_offers = []

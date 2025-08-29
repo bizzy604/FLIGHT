@@ -97,6 +97,8 @@ class FlightBookingService(FlightService):
         seatavailability_response: Optional[Dict[str, Any]] = None,
         selected_services: Optional[List[str]] = None,
         selected_seats: Optional[List[str]] = None,
+        seat_availability_cache_key: Optional[str] = None,  # 🚀 Direct cache key from frontend
+        service_list_cache_key: Optional[str] = None,  # 🚀 Direct cache key from frontend
     ) -> BookingResponse:
         # VERY FIRST LOG - This should appear if method is called
         print("🟢🟢🟢 FIRST LINE OF create_booking METHOD 🟢🟢🟢")
@@ -155,7 +157,9 @@ class FlightBookingService(FlightService):
                 servicelist_response=servicelist_response,
                 seatavailability_response=seatavailability_response,
                 selected_services=selected_services,
-                selected_seats=selected_seats
+                selected_seats=selected_seats,
+                seat_availability_cache_key=seat_availability_cache_key,  # 🚀 Pass cache keys
+                service_list_cache_key=service_list_cache_key  # 🚀 Pass cache keys
             )
             logger.info(f"[DEBUG] Finished calling _build_booking_payload (ReqID: {request_id})")
             print(f"[PRINT DEBUG] Finished calling _build_booking_payload (ReqID: {request_id})")
@@ -543,21 +547,28 @@ class FlightBookingService(FlightService):
             
             # Validate document expiry date
             expiry_date = passenger.get('expiryDate', {})
+            logger.info(f"[DEBUG] Passenger {passenger_number} expiry_date structure: {expiry_date}")
             if not expiry_date or not all([expiry_date.get('year'), expiry_date.get('month'), expiry_date.get('day')]):
+                logger.warning(f"[DEBUG] Passenger {passenger_number} missing expiry date components: year={expiry_date.get('year')}, month={expiry_date.get('month')}, day={expiry_date.get('day')}")
                 missing_fields.append('Document expiry date')
             else:
                 try:
                     year = int(expiry_date.get('year', 0))
                     month = int(expiry_date.get('month', 0))
                     day = int(expiry_date.get('day', 0))
+                    logger.info(f"[DEBUG] Passenger {passenger_number} parsed expiry date: {year}-{month:02d}-{day:02d}")
                     
                     if year < 2024 or year > 2040:
+                        logger.warning(f"[DEBUG] Passenger {passenger_number} invalid expiry year: {year} (must be 2024-2040)")
                         missing_fields.append('Valid expiry year')
                     if month < 1 or month > 12:
+                        logger.warning(f"[DEBUG] Passenger {passenger_number} invalid expiry month: {month}")
                         missing_fields.append('Valid expiry month')
                     if day < 1 or day > 31:
+                        logger.warning(f"[DEBUG] Passenger {passenger_number} invalid expiry day: {day}")
                         missing_fields.append('Valid expiry day')
-                except (ValueError, TypeError):
+                except (ValueError, TypeError) as e:
+                    logger.warning(f"[DEBUG] Passenger {passenger_number} expiry date parsing error: {e}")
                     missing_fields.append('Valid expiry date format')
             
             if not passenger.get('issuingCountry') or str(passenger.get('issuingCountry')).strip() == '':
@@ -641,7 +652,9 @@ class FlightBookingService(FlightService):
         servicelist_response: Optional[Dict[str, Any]] = None,
         seatavailability_response: Optional[Dict[str, Any]] = None,
         selected_services: Optional[List[str]] = None,
-        selected_seats: Optional[List[str]] = None
+        selected_seats: Optional[List[str]] = None,
+        seat_availability_cache_key: Optional[str] = None,  # 🚀 Cache keys from frontend
+        service_list_cache_key: Optional[str] = None  # 🚀 Cache keys from frontend
     ) -> Dict[str, Any]:
         """
         Build the OrderCreate request payload using the request builder.
@@ -703,11 +716,10 @@ class FlightBookingService(FlightService):
             logger.info(f"[DEBUG] Extracted offer_id from frontend (ReqID: {request_id}): {offer_id}")
             logger.info(f"[DEBUG] Extracted shopping_response_id from frontend (ReqID: {request_id}): {shopping_response_id}")
 
-            # Try to get the raw flight price response from the new Redis flight storage system
+            # FIXED: Try to get the raw flight price response from cache_manager (where pricing service stores it)
             raw_flight_price_response = None
             try:
-                from services.redis_flight_storage import RedisFlightStorage
-                redis_flight_storage = RedisFlightStorage()
+                from utils.cache_manager import cache_manager
 
                 # Try multiple cache keys since request_id might be different between pricing and booking
                 # Check if metadata contains the actual cache key
@@ -732,13 +744,17 @@ class FlightBookingService(FlightService):
                     cache_keys_to_try.append(pricing_cache_key)
                     logger.info(f"[DEBUG] Generated pricing cache key: {pricing_cache_key} (ReqID: {request_id})")
 
-                # Try to get cached data from Redis flight storage
+                # FIXED: Try to get cached data from Redis (consistent with new storage approach)
                 for cache_key in cache_keys_to_try:
-                    cached_result = redis_flight_storage.get_flight_price(cache_key)
-                    if cached_result['success']:
-                        raw_flight_price_response = cached_result['data']
-                        logger.info(f"[DEBUG] Found raw flight price response in Redis using key: {cache_key} (ReqID: {request_id})")
-                        break
+                    try:
+                        from services.redis_flight_storage import redis_flight_storage
+                        cached_price_result = redis_flight_storage.get_flight_price(cache_key)
+                        if cached_price_result.get('success') and cached_price_result.get('data'):
+                            raw_flight_price_response = cached_price_result['data']
+                            logger.info(f"[DEBUG] Found raw flight price response in Redis using key: {cache_key} (ReqID: {request_id})")
+                            break
+                    except Exception as e:
+                        logger.warning(f"[DEBUG] Failed to retrieve flight price from Redis with key {cache_key}: {e} (ReqID: {request_id})")
 
                 if not raw_flight_price_response:
                     logger.info(f"[DEBUG] No flight price data found in Redis for keys: {cache_keys_to_try} (ReqID: {request_id})")
@@ -1166,58 +1182,71 @@ class FlightBookingService(FlightService):
             # 🚀 RETRIEVE SEAT/SERVICE RESPONSES FROM CACHE FOR ORDERCREATE
             logger.info(f"[DEBUG] Retrieving seat/service responses from cache (ReqID: {request_id})")
             
-            # If seat/service responses were not provided by frontend, try to get them from cache
+            # If seat/service responses were not provided by frontend, try to get them from cache using provided cache keys
             if not servicelist_response or not seatavailability_response:
                 logger.info(f"[DEBUG] Missing seat/service responses - attempting cache retrieval (ReqID: {request_id})")
+                logger.info(f"[DEBUG] servicelist_response provided: {bool(servicelist_response)}, seatavailability_response provided: {bool(seatavailability_response)} (ReqID: {request_id})")
+                logger.info(f"[DEBUG] Cache keys provided by frontend - seat: {repr(seat_availability_cache_key)}, service: {repr(service_list_cache_key)} (ReqID: {request_id})")
                 
-                # Use the same cache key logic as seat-service-integration
-                cache_key_hash = None
-                
-                # Try to get cache key from metadata (same logic as frontend)
-                if isinstance(enhanced_flight_price_response, dict):
-                    metadata = enhanced_flight_price_response.get('metadata')
-                    if metadata and metadata.get('flight_price_cache_key'):
-                        flight_price_cache_key = metadata['flight_price_cache_key']
-                        logger.info(f"[DEBUG] Found flight_price_cache_key in metadata: {flight_price_cache_key} (ReqID: {request_id})")
-                        
-                        # Extract hash from flight_price_raw_* format
-                        if 'flight_price_raw_' in flight_price_cache_key:
-                            cache_key_hash = flight_price_cache_key.replace('flight_price_raw_', '').replace('flight_price:', '')
-                        elif ':' in flight_price_cache_key:
-                            cache_key_hash = flight_price_cache_key.split(':')[1]
+                # Try to retrieve seat availability response using provided cache key
+                if not seatavailability_response and seat_availability_cache_key:
+                    # Cache key is now the session_id directly
+                    session_id = seat_availability_cache_key
+                    
+                    try:
+                        from services.simple_flight_cache import simple_flight_cache
+                        logger.info(f"[DEBUG] 🔍 Attempting to retrieve seat availability with session_id: {session_id} (ReqID: {request_id})")
+                        cached_seat_result = simple_flight_cache.get_seat_availability(session_id)
+                        logger.info(f"[DEBUG] 🔍 Seat cache result: success={cached_seat_result.get('success')}, has_data={bool(cached_seat_result.get('data'))} (ReqID: {request_id})")
+                        if cached_seat_result.get('success') and cached_seat_result.get('data'):
+                            # Extract raw response from cached data for OrderCreate builder
+                            cached_data = cached_seat_result['data']
+                            seatavailability_response = cached_data.get('raw_response', cached_data)
+                            logger.info(f"[DEBUG] ✅ Retrieved seat availability from cache using key: {seat_availability_cache_key} (ReqID: {request_id})")
+                            logger.info(f"[DEBUG] 🔧 Using raw_response: {bool(cached_data.get('raw_response'))} (ReqID: {request_id})")
                         else:
-                            cache_key_hash = flight_price_cache_key
+                            logger.info(f"[DEBUG] ❌ No seat availability found in cache for key: {seat_availability_cache_key} (ReqID: {request_id})")
+                            logger.info(f"[DEBUG] 🔍 Cache result details: {cached_seat_result} (ReqID: {request_id})")
+                    except Exception as e:
+                        logger.warning(f"[DEBUG] Error retrieving seat availability from cache: {e} (ReqID: {request_id})")
                 
-                if cache_key_hash:
-                    logger.info(f"[DEBUG] Using cache_key_hash: {cache_key_hash} for seat/service retrieval (ReqID: {request_id})")
+                # Try to retrieve service list response using provided cache key
+                if not servicelist_response and service_list_cache_key:
+                    # Cache key is now the session_id directly
+                    session_id = service_list_cache_key
                     
-                    # Try to retrieve seat availability response
-                    if not seatavailability_response:
-                        seat_cache_key = f"seat_availability:{cache_key_hash}"
-                        try:
-                            cached_seat_result = redis_flight_storage.get_seat_availability(cache_key_hash)
-                            if cached_seat_result.get('success') and cached_seat_result.get('data'):
-                                seatavailability_response = cached_seat_result['data']
-                                logger.info(f"[DEBUG] ✅ Retrieved seat availability from cache using key: {seat_cache_key} (ReqID: {request_id})")
-                            else:
-                                logger.info(f"[DEBUG] ❌ No seat availability found in cache for key: {seat_cache_key} (ReqID: {request_id})")
-                        except Exception as e:
-                            logger.warning(f"[DEBUG] Error retrieving seat availability from cache: {e} (ReqID: {request_id})")
-                    
-                    # Try to retrieve service list response  
-                    if not servicelist_response:
-                        service_cache_key = f"service_list:{cache_key_hash}"
-                        try:
-                            cached_service_result = redis_flight_storage.get_service_list(cache_key_hash)
-                            if cached_service_result.get('success') and cached_service_result.get('data'):
-                                servicelist_response = cached_service_result['data']
-                                logger.info(f"[DEBUG] ✅ Retrieved service list from cache using key: {service_cache_key} (ReqID: {request_id})")
-                            else:
-                                logger.info(f"[DEBUG] ❌ No service list found in cache for key: {service_cache_key} (ReqID: {request_id})")
-                        except Exception as e:
-                            logger.warning(f"[DEBUG] Error retrieving service list from cache: {e} (ReqID: {request_id})")
-                else:
-                    logger.warning(f"[DEBUG] Could not determine cache key for seat/service retrieval (ReqID: {request_id})")
+                    try:
+                        from services.simple_flight_cache import simple_flight_cache
+                        logger.info(f"[DEBUG] 🔍 Attempting to retrieve service list with session_id: {session_id} (ReqID: {request_id})")
+                        cached_service_result = simple_flight_cache.get_service_list(session_id)
+                        logger.info(f"[DEBUG] 🔍 Service cache result: success={cached_service_result.get('success')}, has_data={bool(cached_service_result.get('data'))} (ReqID: {request_id})")
+                        if cached_service_result.get('success') and cached_service_result.get('data'):
+                            # Extract raw response from cached data for OrderCreate builder
+                            cached_data = cached_service_result['data']
+                            servicelist_response = cached_data.get('raw_response', cached_data)
+                            logger.info(f"[DEBUG] ✅ Retrieved service list from cache using key: {service_list_cache_key} (ReqID: {request_id})")
+                            logger.info(f"[DEBUG] 🔧 Using raw_response: {bool(cached_data.get('raw_response'))} (ReqID: {request_id})")
+                        else:
+                            logger.info(f"[DEBUG] ❌ No service list found in cache for key: {service_list_cache_key} (ReqID: {request_id})")
+                            logger.info(f"[DEBUG] 🔍 Cache result details: {cached_service_result} (ReqID: {request_id})")
+                    except Exception as e:
+                        logger.warning(f"[DEBUG] Error retrieving service list from cache: {e} (ReqID: {request_id})")
+                
+                # Log detailed status of cache keys
+                if not seat_availability_cache_key and not service_list_cache_key:
+                    logger.error(f"[DEBUG] ❌ CRITICAL: No seat/service cache keys provided by frontend (ReqID: {request_id})")
+                    logger.error(f"[DEBUG] This means the frontend is not sending 'seat_availability_cache_key' and 'service_list_cache_key' parameters (ReqID: {request_id})")
+                elif not seat_availability_cache_key:
+                    logger.warning(f"[DEBUG] ⚠️ Missing seat_availability_cache_key from frontend (ReqID: {request_id})")
+                elif not service_list_cache_key:
+                    logger.warning(f"[DEBUG] ⚠️ Missing service_list_cache_key from frontend (ReqID: {request_id})")
+                
+                # Final status check
+                logger.info(f"[DEBUG] FINAL STATUS - seat_response: {bool(seatavailability_response)}, service_response: {bool(servicelist_response)} (ReqID: {request_id})")
+                if not seatavailability_response and selected_seats:
+                    logger.error(f"[DEBUG] ❌ CRITICAL: Seats selected ({selected_seats}) but no seat availability response available (ReqID: {request_id})")
+                if not servicelist_response and selected_services:
+                    logger.error(f"[DEBUG] ❌ CRITICAL: Services selected ({selected_services}) but no service list response available (ReqID: {request_id})")
             
             # 🚀 CRITICAL FIX: Convert seat positions to pricing ObjectKeys
             # Frontend sends seat positions like ["47A", "47C"] but OrderCreate needs pricing ObjectKeys like ["PRICE3-SEG2"]
@@ -1230,9 +1259,17 @@ class FlightBookingService(FlightService):
                 
                 # Get seat data from response
                 data_lists = seatavailability_response.get('DataLists', {})
-                seat_list = data_lists.get('SeatList', {}).get('Seat', [])
+                seat_list = data_lists.get('SeatList', {}).get('Seats', [])  # Use 'Seats' (plural) not 'Seat'
                 if not isinstance(seat_list, list):
                     seat_list = [seat_list] if seat_list else []
+                
+                logger.info(f"[DEBUG] Found {len(seat_list)} seats in response")
+                if seat_list:
+                    logger.info(f"[DEBUG] First seat structure: {list(seat_list[0].keys()) if isinstance(seat_list[0], dict) else 'Not a dict'}")
+                    if isinstance(seat_list[0], dict):
+                        logger.info(f"[DEBUG] First seat has refs: {'refs' in seat_list[0]}")
+                        if 'refs' in seat_list[0]:
+                            logger.info(f"[DEBUG] First seat refs: {seat_list[0]['refs']}")
                 
                 for seat in seat_list:
                     try:
@@ -2410,7 +2447,9 @@ async def process_order_create(order_data: Dict[str, Any]) -> Dict[str, Any]:
                 servicelist_response=order_data.get('servicelist_response'),
                 seatavailability_response=order_data.get('seatavailability_response'),
                 selected_services=order_data.get('selected_services'),
-                selected_seats=order_data.get('selected_seats')
+                selected_seats=order_data.get('selected_seats'),
+                seat_availability_cache_key=order_data.get('seat_availability_cache_key'),  # 🚀 Pass cache keys
+                service_list_cache_key=order_data.get('service_list_cache_key')  # 🚀 Pass cache keys
             )
 
             print(f"🟢🟢🟢 create_booking returned successfully! 🟢🟢🟢")

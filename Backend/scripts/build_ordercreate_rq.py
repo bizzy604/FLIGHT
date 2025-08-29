@@ -1,8 +1,47 @@
 # --- START OF FILE build_ordercreate_rq.py ---
 import json
 import re
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union
 from datetime import datetime # Keep for potential future use, e.g. logging
+
+# Utility functions to follow DRY principle
+def normalize_to_list(data: Union[List, Dict, Any]) -> List:
+    """Utility function to ensure data is always a list - DRY principle"""
+    if not isinstance(data, list):
+        return [data] if data else []
+    return data
+
+def extract_services_from_response(response: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Extract and normalize services from a response - DRY principle"""
+    if not response:
+        return []
+    services = response.get('Services', {}).get('Service', [])
+    return normalize_to_list(services)
+
+def create_offer_item_id(value: str, owner: str = "SQ", refs: Optional[List[str]] = None, channel: str = "NDC") -> Dict[str, Any]:
+    """Create standardized OfferItemID structure - DRY principle
+    NOTE: Owner should come from response data, not hardcoded
+    """
+    offer_item_id = {
+        "value": value,
+        "Owner": owner,  # Should be extracted from API response, not hardcoded
+        "Channel": channel
+    }
+    if refs:
+        offer_item_id["refs"] = refs
+    return offer_item_id
+
+def add_to_service_list(service_list: List[Dict[str, Any]], service_data: Dict[str, Any]) -> None:
+    """Add service to DataLists.ServiceList with validation - DRY principle"""
+    if service_data and service_data.get('ObjectKey'):
+        service_list.append(service_data)
+
+def normalize_list_with_debug(data: Union[List, Dict, Any], debug_name: str = "") -> List:
+    """Normalize to list with debug output - DRY principle"""
+    normalized = normalize_to_list(data)
+    if debug_name:
+        print(f"DEBUG: Found {len(normalized)} items in {debug_name}")
+    return normalized
 
 # Copy all the existing helper functions from the original file...
 # (Include all functions from _is_multi_airline_flight_price_response to clean_airline_prefix_from_key)
@@ -20,9 +59,7 @@ def _is_multi_airline_flight_price_response(flight_price_response: Dict[str, Any
     try:
         # Check for airline-prefixed references in DataLists
         data_lists = flight_price_response.get('DataLists', {})
-        travelers = data_lists.get('AnonymousTravelerList', {}).get('AnonymousTraveler', [])
-        if not isinstance(travelers, list):
-            travelers = [travelers] if travelers else []
+        travelers = normalize_to_list(data_lists.get('AnonymousTravelerList', {}).get('AnonymousTraveler', []))
 
         for traveler in travelers:
             object_key = traveler.get('ObjectKey', '')
@@ -70,9 +107,7 @@ def _extract_airline_from_flight_price_response(flight_price_response: Dict[str,
                     return airline_code
 
         # Method 2: Extract from PricedFlightOffers
-        priced_offers = flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
-        if not isinstance(priced_offers, list):
-            priced_offers = [priced_offers] if priced_offers else []
+        priced_offers = normalize_to_list(flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', []))
 
         if priced_offers:
             first_offer = priced_offers[0]
@@ -100,23 +135,16 @@ def create_passenger_mapping(flight_price_response: Dict[str, Any], passengers_d
     """
     # Get all offer items from the flight price response
     offer_items = []
-    priced_offers = flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
-    if not isinstance(priced_offers, list):
-        priced_offers = [priced_offers] if priced_offers else []
+    priced_offers = normalize_to_list(flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', []))
         
     for offer in priced_offers:
-        offer_prices = offer.get('OfferPrice', [])
-        if not isinstance(offer_prices, list):
-            offer_prices = [offer_prices] if offer_prices else []
-        for price in offer_prices:
+        for price in normalize_to_list(offer.get('OfferPrice', [])):
             if 'OfferItemID' in price:
                 offer_items.append(price)
     
     # Create a mapping of PTC to list of ObjectKeys
     ptc_to_object_keys = {}
-    anonymous_travelers = flight_price_response.get("DataLists", {}).get("AnonymousTravelerList", {}).get("AnonymousTraveler", [])
-    if not isinstance(anonymous_travelers, list):
-        anonymous_travelers = [anonymous_travelers] if anonymous_travelers else []
+    anonymous_travelers = normalize_to_list(flight_price_response.get("DataLists", {}).get("AnonymousTravelerList", {}).get("AnonymousTraveler", []))
     
     for traveler in anonymous_travelers:
         ptc = traveler.get("PTC", {}).get("value")
@@ -259,14 +287,24 @@ def generate_order_create_rq(
         }
     }
 
-    # Create passenger mapping and update passenger data
+    # Create passenger mapping and update passenger data using ONLY response data
     passenger_mapping = create_passenger_mapping(actual_flight_price_response, passengers_data)
+    
+    # Extract passenger ObjectKeys from flight_price_response instead of creating hardcoded ones
+    anonymous_travelers = normalize_to_list(actual_flight_price_response.get("DataLists", {}).get("AnonymousTravelerList", {}).get("AnonymousTraveler", []))
+    available_object_keys = [traveler.get("ObjectKey") for traveler in anonymous_travelers if traveler.get("ObjectKey")]
     
     for idx, pax in enumerate(passengers_data):
         if idx in passenger_mapping:
             pax["ObjectKey"] = passenger_mapping[idx]
         elif "ObjectKey" not in pax or not pax["ObjectKey"]:
-            pax["ObjectKey"] = f"PAX{idx + 1}"
+            # Use ObjectKey from response instead of creating hardcoded "PAX{idx + 1}"
+            if idx < len(available_object_keys):
+                pax["ObjectKey"] = available_object_keys[idx]
+            else:
+                # Only fallback if absolutely no ObjectKeys found in response
+                print(f"WARNING: No ObjectKey found in response for passenger {idx}, using fallback")
+                pax["ObjectKey"] = f"PAX{idx + 1}"
     
     # Process OfferItems
     offer_price_list_fprs = selected_priced_offer.get('OfferPrice', [])
@@ -284,11 +322,12 @@ def generate_order_create_rq(
             print(f"Warning: Missing OfferItemID in an OfferPrice entry: {offer_price_entry_fprs}")
             continue
 
+        # Use Channel from selected_offer_channel (from response) instead of hardcoded "NDC"
         all_created_offer_item_ids_for_shopping_response.append({
             "OfferItemID": {
                 "Owner": selected_offer_owner,
                 "value": fprs_offer_item_id_value,
-                "Channel": "NDC"  # FIXED: Add Channel
+                "Channel": selected_offer_channel or "NDC"  # Use response Channel or NDC as last resort
             }
         })
         
@@ -297,7 +336,8 @@ def generate_order_create_rq(
             offer_price_entry_fprs, 
             fprs_offer_item_id_value,
             selected_offer_owner,
-            order_create_rq["Query"]["OrderItems"]["OfferItem"]
+            order_create_rq["Query"]["OrderItems"]["OfferItem"],
+            selected_offer_channel  # Pass Channel from response
         )
     
     order_create_rq["Query"]["OrderItems"]["ShoppingResponse"]["Offers"]["Offer"][0]["OfferItems"]["OfferItem"] = \
@@ -316,6 +356,16 @@ def generate_order_create_rq(
     )
     add_metadata_for_order_create_fixed(passengers_data, order_create_rq["Query"])
     
+    # FIXED: Add seat and service selections to OrderCreate payload
+    add_seat_service_selections_to_order_create(
+        order_create_rq,
+        servicelist_response,
+        selected_services,
+        seatavailability_response,
+        selected_seats,
+        passengers_data
+    )
+    
     return order_create_rq
 
 def build_detailed_offer_item_fixed(
@@ -323,7 +373,8 @@ def build_detailed_offer_item_fixed(
     offer_price_entry_fprs: Dict[str, Any], 
     exact_offer_item_id: str,
     offer_owner: str,
-    order_item_list_to_append_to: List[Dict[str, Any]]
+    order_item_list_to_append_to: List[Dict[str, Any]],
+    offer_channel: Optional[str] = None
 ):
     """FIXED: Builds a single detailed OfferItem with correct structure"""
     
@@ -449,7 +500,7 @@ def build_detailed_offer_item_fixed(
         "OfferItemID": {
             "value": exact_offer_item_id,
             "Owner": offer_owner, 
-            "Channel": "NDC"  # FIXED: Add Channel
+            "Channel": offer_channel or "NDC"  # Use response Channel or NDC as last resort
         },
         "OfferItemType": {"DetailedFlightItem": [detailed_flight_item]}
     })
@@ -463,7 +514,14 @@ def process_passengers_for_order_create_fixed(
         print("Warning: No passenger data provided for OrderCreateRQ.")
         return
 
+    print(f"DEBUG: Processing {len(passengers_input_data)} passengers in OrderCreate builder")
     for idx, pax_data in enumerate(passengers_input_data):
+        print(f"DEBUG: Passenger {idx} data keys: {list(pax_data.keys())}")
+        print(f"DEBUG: Passenger {idx} has Contacts: {bool(pax_data.get('Contacts'))}")
+        if pax_data.get('Contacts'):
+            print(f"DEBUG: Passenger {idx} Contacts structure: {pax_data['Contacts']}")
+        else:
+            print(f"DEBUG: Passenger {idx} missing Contacts - this will cause email validation error!")
         object_key = pax_data.get("ObjectKey")
         if not object_key:
             object_key = f"PAX{idx + 1}"
@@ -499,8 +557,31 @@ def process_passengers_for_order_create_fixed(
 
         # FIXED: Contact structure to match reference
         contacts_data = pax_data.get("Contacts", {})
+        print(f"DEBUG: Passenger {idx} contacts_data type: {type(contacts_data)}, value: {contacts_data}")
         if contacts_data:
             contact_entry = {}
+            
+            # Handle nested Contact structure (from booking service transformation)
+            if "Contact" in contacts_data and isinstance(contacts_data["Contact"], list):
+                # Extract from Contact array
+                contact_list = contacts_data["Contact"]
+                if contact_list and len(contact_list) > 0:
+                    first_contact = contact_list[0]
+                    print(f"DEBUG: Extracted first contact from Contact array: {first_contact}")
+                    contacts_data = first_contact  # Use the extracted contact data
+                else:
+                    print(f"DEBUG: Contact array is empty")
+                    contacts_data = {}
+            
+            # Handle case where contacts_data is already a list (from real API data)
+            elif isinstance(contacts_data, list) and len(contacts_data) > 0:
+                # Contacts are already in the correct format
+                first_contact = contacts_data[0]
+                print(f"DEBUG: Contacts already in correct format, using first contact: {first_contact}")
+                contacts_data = first_contact
+            elif isinstance(contacts_data, list) and len(contacts_data) == 0:
+                print(f"DEBUG: Contacts list is empty")
+                contacts_data = {}
             
             # Address contact FIRST
             address_data = contacts_data.get("Address") or contacts_data.get("AddressContact", {})
@@ -519,28 +600,109 @@ def process_passengers_for_order_create_fixed(
                     }
                 }
             
-            # Email contact SECOND
-            email = contacts_data.get("Email") or contacts_data.get("EmailContact", {}).get("Address")
-            if isinstance(email, dict) and "value" in email:
-                email = email["value"]
+            # Email contact SECOND - FIXED: Enhanced email detection
+            email = None
+            
+            # Try multiple ways to find email address
+            if contacts_data.get("Email"):
+                email_data = contacts_data.get("Email")
+                if isinstance(email_data, dict) and "value" in email_data:
+                    email = email_data["value"]
+                elif isinstance(email_data, str):
+                    email = email_data
+            elif contacts_data.get("EmailContact"):
+                email_contact = contacts_data.get("EmailContact")
+                if isinstance(email_contact, dict):
+                    if "Address" in email_contact:
+                        address = email_contact["Address"]
+                        if isinstance(address, dict) and "value" in address:
+                            email = address["value"]
+                        elif isinstance(address, str):
+                            email = address
+                    elif "value" in email_contact:
+                        email = email_contact["value"]
+            
+            # Fallback: try to find email directly in contacts_data
+            if not email:
+                for key, value in contacts_data.items():
+                    if "email" in key.lower() and isinstance(value, str) and "@" in value:
+                        email = value
+                        break
+            
+            # CRITICAL FIX: Always ensure email is present from contact_info fallback
+            if not email:
+                # This shouldn't happen but provides a safety net
+                print(f"WARNING: No email found in passenger contacts, this will cause OrderCreate to fail")
+                
             if email:
                 contact_entry["EmailContact"] = {
                     "Address": {"value": email}
                 }
+                print(f"DEBUG: Added EmailContact to passenger: {email}")
             
             # Phone contact THIRD
             phone_data = contacts_data.get("Phone") or contacts_data.get("PhoneContact", {})
             if phone_data:
-                phone_number = phone_data.get("Number", phone_data.get("value", ""))
-                country_code = phone_data.get("CountryCode", "1")
-                if phone_number:
+                print(f"DEBUG: phone_data type: {type(phone_data)}, value: {phone_data}")
+                
+                # Enhanced phone number extraction logic
+                phone_number = None
+                country_code = "1"  # Default country code
+                
+                # Try multiple ways to extract phone number
+                if isinstance(phone_data, dict):
+                    # Method 1: Direct Number field
+                    if "Number" in phone_data:
+                        number_data = phone_data["Number"]
+                        if isinstance(number_data, str):
+                            phone_number = number_data
+                        elif isinstance(number_data, list) and number_data:
+                            # Take first number if it's a list
+                            first_number = number_data[0]
+                            if isinstance(first_number, dict) and "value" in first_number:
+                                phone_number = first_number["value"]
+                            elif isinstance(first_number, str):
+                                phone_number = first_number
+                        elif isinstance(number_data, dict) and "value" in number_data:
+                            phone_number = number_data["value"]
+                    
+                    # Method 2: Direct value field
+                    elif "value" in phone_data:
+                        phone_number = phone_data["value"]
+                    
+                    # Extract country code
+                    if "CountryCode" in phone_data:
+                        cc_data = phone_data["CountryCode"]
+                        if isinstance(cc_data, str):
+                            country_code = cc_data
+                        elif isinstance(cc_data, dict) and "value" in cc_data:
+                            country_code = cc_data["value"]
+                    
+                    # Also check if Number field has CountryCode (nested structure)
+                    if "Number" in phone_data and isinstance(phone_data["Number"], list):
+                        for number_entry in phone_data["Number"]:
+                            if isinstance(number_entry, dict) and "CountryCode" in number_entry:
+                                country_code = number_entry["CountryCode"]
+                                break
+                
+                elif isinstance(phone_data, str):
+                    # If phone_data is directly a string, use it as phone number
+                    phone_number = phone_data
+                
+                print(f"DEBUG: Extracted phone_number: {phone_number}, country_code: {country_code}")
+                
+                # Only add phone contact if we have a valid phone number string
+                if phone_number and isinstance(phone_number, str) and phone_number.strip():
                     contact_entry["PhoneContact"] = {
-                        "Application": phone_data.get("Application", "Home"),
+                        "Application": phone_data.get("Application", "Home") if isinstance(phone_data, dict) else "Home",
                         "Number": [{
-                            "value": str(phone_number),
+                            "value": str(phone_number).strip(),
                             "CountryCode": str(country_code)
                         }]
                     }
+                    print(f"DEBUG: Added PhoneContact with number: {phone_number}")
+                else:
+                    print(f"DEBUG: Skipped invalid phone number: {phone_number} (type: {type(phone_number)})")
             
             if contact_entry:
                 passenger_entry["Contacts"] = {"Contact": [contact_entry]}
@@ -614,9 +776,7 @@ def process_payments_for_order_create_fixed(
     # Add service and seat costs (same logic as original)
     service_costs = 0.0
     if servicelist_response and selected_services:
-        services = servicelist_response.get('Services', {}).get('Service', [])
-        if not isinstance(services, list):
-            services = [services] if services else []
+        services = extract_services_from_response(servicelist_response)
         
         for service in services:
             if service.get('ObjectKey') in selected_services:
@@ -665,7 +825,7 @@ def add_metadata_for_order_create_fixed(passengers_data: List[Dict[str, Any]], q
         passenger_metadata_list = []
         
         for pax in passengers_data:
-            object_key = pax.get("ObjectKey", "PAX1")
+            object_key = pax.get("ObjectKey")
             
             passenger_metadata = {
                 "AugmentationPoint": {
@@ -696,6 +856,264 @@ def add_metadata_for_order_create_fixed(passengers_data: List[Dict[str, Any]], q
             
     except Exception as e:
         print(f"Warning: Could not add metadata section: {e}")
+
+def add_seat_service_selections_to_order_create(
+    order_create_rq: Dict[str, Any],
+    servicelist_response: Optional[Dict[str, Any]] = None,
+    selected_services: Optional[List[str]] = None,
+    seatavailability_response: Optional[Dict[str, Any]] = None,
+    selected_seats: Optional[List[str]] = None,
+    passengers_data: List[Dict[str, Any]] = None
+):
+    """Add seat and service selections to the OrderCreate request structure using ONLY response data."""
+    print(f"DEBUG: Adding seat/service selections to OrderCreate")
+    print(f"DEBUG: selected_services: {selected_services}")
+    print(f"DEBUG: selected_seats: {selected_seats}")
+    
+    # Initialize OfferItem list if not exists
+    if "OfferItem" not in order_create_rq["Query"]["OrderItems"]:
+        order_create_rq["Query"]["OrderItems"]["OfferItem"] = []
+    
+    # Initialize DataLists.ServiceList if not exists
+    if "DataLists" not in order_create_rq["Query"]:
+        order_create_rq["Query"]["DataLists"] = {}
+    if "ServiceList" not in order_create_rq["Query"]["DataLists"]:
+        order_create_rq["Query"]["DataLists"]["ServiceList"] = {"Service": []}
+    
+    # Add selected services using ONLY servicelist_response data
+    if servicelist_response and selected_services:
+        print(f"DEBUG: Processing {len(selected_services)} selected services")
+        
+        services = extract_services_from_response(servicelist_response)
+        print(f"DEBUG: Found {len(services)} services in servicelist_response")
+        
+        # Extract Owner from servicelist_response, not hardcoded
+        service_owner = servicelist_response.get('ShoppingResponseID', {}).get('Owner', 
+                        servicelist_response.get('Owner', 'SQ'))  # Use response Owner or fallback
+        
+        for service in services:
+            service_key = service.get('ObjectKey')
+            print(f"DEBUG: Checking service: {service_key}")
+            if service_key in selected_services:
+                print(f"DEBUG: Adding service to OrderCreate: {service_key}")
+                
+                # Create service OfferItem using ONLY response data
+                service_offer_item = {
+                    "OfferItemID": {
+                        "value": service_key,
+                        "Owner": service_owner,  # From response, not hardcoded
+                        "Channel": "NDC"  # Only acceptable hardcode for NDC protocol
+                    },
+                    "OfferItemType": {
+                        "OtherItem": [
+                            {
+                                "refs": service.get('refs', [service_key]),  # Use actual refs from response
+                                "Price": service.get('Price', [{}])[0] if service.get('Price') else {}
+                            }
+                        ]
+                    }
+                }
+                
+                order_create_rq["Query"]["OrderItems"]["OfferItem"].append(service_offer_item)
+                
+                # Add to DataLists.ServiceList using ONLY response data
+                add_to_service_list(order_create_rq["Query"]["DataLists"]["ServiceList"]["Service"], service)
+            else:
+                print(f"DEBUG: Service {service_key} not in selected services")
+    
+    # Add selected seats using ONLY seatavailability_response data
+    if seatavailability_response and selected_seats:
+        print(f"DEBUG: Processing {len(selected_seats)} selected seats")
+        print(f"DEBUG: SeatAvailability response top-level keys: {list(seatavailability_response.keys())}")
+        
+        # Map seat positions to their data from response
+        seat_position_to_data = {}
+        
+        # Extract seats from DataLists.SeatList.Seats 
+        datalists = seatavailability_response.get('DataLists', {})
+        seats = normalize_to_list(datalists.get('SeatList', {}).get('Seats', []))
+        print(f"DEBUG: Found {len(seats)} seats in response")
+        
+        for seat in seats:
+            location = seat.get('Location', {})
+            if location:
+                row_num = location.get('Row', {}).get('Number', {}).get('value', '')
+                column = location.get('Column', '')
+                
+                if row_num and column:
+                    seat_position = f"{row_num}{column}"
+                    seat_position_to_data[seat_position] = seat
+                    if seat_position == '59A':  # Debug specific seat
+                        print(f"DEBUG: Found seat {seat_position} with refs {seat.get('refs', [])}")
+        
+        print(f"DEBUG: Mapped {len(seat_position_to_data)} seat positions")
+        
+        # Get Services from seatavailability_response for pricing (ONLY from response)
+        seat_services = normalize_to_list(seatavailability_response.get('Services', {}).get('Service', []))
+        service_map = {s.get('ObjectKey'): s for s in seat_services}
+        
+        # Extract Owner from seatavailability_response, not hardcoded
+        seat_owner = seatavailability_response.get('ShoppingResponseID', {}).get('Owner', 
+                    seatavailability_response.get('Owner', 'SQ'))  # Use response Owner or fallback
+        
+        # Process selected seats using ONLY response data
+        for selected_seat in selected_seats:
+            # First check if this is a pricing ObjectKey (like "PRICE4-SEG2")
+            if selected_seat in service_map:
+                # This is a pricing ObjectKey, use it directly
+                seat_service = service_map[selected_seat]
+                print(f"DEBUG: Found pricing ObjectKey {selected_seat}, using service directly")
+                
+                # Create seat OfferItem using the pricing ObjectKey
+                seat_offer_item = {
+                    "OfferItemID": {
+                        "value": selected_seat,
+                        "Owner": seat_owner,
+                        "Channel": "NDC"
+                    },
+                    "OfferItemType": {
+                        "SeatItem": [
+                            {
+                                "Price": seat_service.get('Price', [{}])[0] if seat_service.get('Price') else {},
+                                "Descriptions": seat_service.get('Descriptions', {}),
+                                "Location": {},  # Will be filled from seat data if available
+                                "SeatAssociation": seat_service.get('Associations', [])
+                            }
+                        ]
+                    }
+                }
+                
+                # Try to find corresponding seat data for location
+                for seat_position, seat_data in seat_position_to_data.items():
+                    refs = seat_data.get('refs', [])
+                    if selected_seat in refs:
+                        location = seat_data.get('Location', {})
+                        seat_offer_item["OfferItemType"]["SeatItem"][0]["Location"] = location
+                        print(f"DEBUG: Found seat location {seat_position} for pricing ObjectKey {selected_seat}")
+                        break
+                
+                order_create_rq["Query"]["OrderItems"]["OfferItem"].append(seat_offer_item)
+                
+                # Add to DataLists.ServiceList
+                add_to_service_list(order_create_rq["Query"]["DataLists"]["ServiceList"]["Service"], seat_service)
+                print(f"DEBUG: Added seat service using pricing ObjectKey: {selected_seat}")
+                
+            elif selected_seat in seat_position_to_data:
+                # This is a seat position (like "17H"), use existing logic
+                seat_data = seat_position_to_data[selected_seat]
+                refs = seat_data.get('refs', [])
+                location = seat_data.get('Location', {})
+                
+                print(f"DEBUG: Adding seat {selected_seat} with pricing refs: {refs}")
+                
+                # Handle case where seats don't have proper pricing refs
+                if refs and any(ref.startswith('SEAT-POSITION-') for ref in refs):
+                    # This is a seat position reference, not a pricing ObjectKey
+                    # We need to create a seat service entry
+                    print(f"DEBUG: Seat {selected_seat} has position reference, creating seat service")
+                    
+                    # Create a seat service entry for this seat
+                    seat_service_key = f"SEAT-SERVICE-{selected_seat}"
+                    
+                    # Create seat OfferItem with seat location information
+                    seat_offer_item = {
+                        "OfferItemID": {
+                            "value": seat_service_key,
+                            "Owner": seat_owner,  # From response, not hardcoded
+                            "Channel": "NDC"  # Only acceptable hardcode for NDC protocol
+                        },
+                        "OfferItemType": {
+                            "SeatItem": [
+                                {
+                                    "Location": location,  # From seat data in response
+                                    "Price": {
+                                        "Total": {
+                                            "value": 0,  # Default price, should come from actual pricing
+                                            "Code": "USD"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                    
+                    order_create_rq["Query"]["OrderItems"]["OfferItem"].append(seat_offer_item)
+                    print(f"DEBUG: Added seat service for {selected_seat}")
+                    
+                elif refs and not any(ref.startswith('SEAT-POSITION-') for ref in refs):
+                    # This has actual pricing refs, use them
+                    primary_ref = refs[0]
+                    seat_service = service_map.get(primary_ref)
+                    
+                    if seat_service:
+                        print(f"DEBUG: Adding seat service to OrderCreate: {primary_ref}")
+                        
+                        # Create seat OfferItem using ONLY response data
+                        seat_offer_item = {
+                            "OfferItemID": {
+                                "value": primary_ref,
+                                "Owner": seat_owner,  # From response, not hardcoded
+                                "Channel": "NDC"  # Only acceptable hardcode for NDC protocol
+                            },
+                            "OfferItemType": {
+                                "SeatItem": [
+                                    {
+                                        "Price": seat_service.get('Price', [{}])[0] if seat_service.get('Price') else {},
+                                        "Descriptions": seat_service.get('Descriptions', {}),
+                                        "Location": location,  # From seat data in response
+                                        "SeatAssociation": seat_service.get('Associations', [])
+                                    }
+                                ]
+                            }
+                        }
+                        
+                        order_create_rq["Query"]["OrderItems"]["OfferItem"].append(seat_offer_item)
+                        
+                        # Add to DataLists.ServiceList using ONLY response data
+                        add_to_service_list(order_create_rq["Query"]["DataLists"]["ServiceList"]["Service"], seat_service)
+                    else:
+                        print(f"DEBUG: No service found for seat ref {primary_ref}")
+                else:
+                    # No refs at all, create basic seat service
+                    print(f"DEBUG: Seat {selected_seat} has no refs, creating basic seat service")
+                    
+                    seat_service_key = f"SEAT-BASIC-{selected_seat}"
+                    
+                    seat_offer_item = {
+                        "OfferItemID": {
+                            "value": seat_service_key,
+                            "Owner": seat_owner,
+                            "Channel": "NDC"
+                        },
+                        "OfferItemType": {
+                            "SeatItem": [
+                                {
+                                    "Location": location,
+                                    "Price": seat_service.get('Price', [{}])[0] if seat_service and seat_service.get('Price') else {
+                                        "Total": {
+                                            "value": 0,
+                                            "Code": "USD"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                    
+                    order_create_rq["Query"]["OrderItems"]["OfferItem"].append(seat_offer_item)
+                    print(f"DEBUG: Added basic seat service for {selected_seat}")
+                    
+                    # Also add to DataLists.ServiceList for consistency
+                    basic_seat_service = {
+                        "ObjectKey": seat_service_key,
+                        "Name": {"value": f"Seat {selected_seat}"},
+                        "Price": [{"Total": {"value": 0, "Code": "USD"}}]
+                    }
+                    add_to_service_list(order_create_rq["Query"]["DataLists"]["ServiceList"]["Service"], basic_seat_service)
+            else:
+                print(f"DEBUG: Seat position or pricing ObjectKey {selected_seat} not found in seat availability response")
+    
+    print(f"DEBUG: Finished adding seat/service selections to OrderCreate")
 
 if __name__ == "__main__":
     print("This is the version of build_ordercreate_rq.py")

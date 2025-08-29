@@ -1,0 +1,220 @@
+{
+  "timestamp": "2025-08-29T08:01:41.397948",
+  "service": "FlightPrice",
+  "request_id": "9aa18064-8372-4ca1-aadf-69c2ac30ad90",
+  "endpoint": "/entrygate/rest/request:flightPrice",
+  "headers": {
+    "Content-Type": "application/json",
+    "Accept": "*/*",
+    "Authorization": "Bearer ***M32beJ7Q",
+    "OfficeId": "***3746",
+    "service": "FlightPrice",
+    "User-Agent": "PostmanRuntime/7.41",
+    "Cache-Control": "no-cache",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "ThirdpartyId": "***"
+  },
+  "payload": {
+    "DataLists": {
+      "FareGroup": [
+        {
+          "ListKey": "EY-FG-156966148698978",
+          "FareBasisCode": {
+            "Code": "UNN00H2T"
+          }
+        }
+      ],
+      "AnonymousTravelerList": {
+        "AnonymousTraveler": [
+          {
+            "ObjectKey": "EY-PAX1",
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      }
+    },
+    "Query": {
+      "OriginDestination": [
+        {
+          "Flight": [
+            {
+              "SegmentKey": "EY-SEG6",
+              "Departure": {
+                "AirportCode": {
+                  "value": "CDG"
+                },
+                "Date": "2025-09-03T10:20:00.000",
+                "Time": "10:20",
+                "Terminal": {
+                  "Name": "1"
+                }
+              },
+              "Arrival": {
+                "AirportCode": {
+                  "value": "AUH"
+                },
+                "Date": "2025-09-03T19:00:00.000",
+                "Time": "19:00",
+                "Terminal": {
+                  "Name": "A"
+                }
+              },
+              "MarketingCarrier": {
+                "AirlineID": {
+                  "value": "EY"
+                },
+                "Name": "Etihad Airways",
+                "FlightNumber": {
+                  "value": "32"
+                }
+              },
+              "OperatingCarrier": {
+                "AirlineID": {
+                  "value": "EY"
+                },
+                "Name": "ETIHAD AIRWAYS"
+              },
+              "FlightDetail": {
+                "FlightDuration": {
+                  "Value": "PT6H40M"
+                }
+              }
+            },
+            {
+              "SegmentKey": "EY-SEG3",
+              "Departure": {
+                "AirportCode": {
+                  "value": "AUH"
+                },
+                "Date": "2025-09-04T09:00:00.000",
+                "Time": "09:00",
+                "Terminal": {
+                  "Name": "A"
+                }
+              },
+              "Arrival": {
+                "AirportCode": {
+                  "value": "NBO"
+                },
+                "Date": "2025-09-04T13:00:00.000",
+                "Time": "13:00",
+                "Terminal": {
+                  "Name": "1E"
+                }
+              },
+              "MarketingCarrier": {
+                "AirlineID": {
+                  "value": "EY"
+                },
+                "Name": "Etihad Airways",
+                "FlightNumber": {
+                  "value": "767"
+                }
+              },
+              "OperatingCarrier": {
+                "AirlineID": {
+                  "value": "EY"
+                },
+                "Name": "ETIHAD AIRWAYS"
+              },
+              "FlightDetail": {
+                "FlightDuration": {
+                  "Value": "PT5H0M"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "Offers": {
+        "Offer": [
+          {
+            "OfferID": {
+              "value": "1H0EYZ_YHALK2XBW455CA3FZWEWMVTODSTZ",
+              "Owner": "EY",
+              "Channel": "NDC"
+            },
+            "OfferItemIDs": {
+              "OfferItemID": [
+                {
+                  "value": "1H0EYZ_YHALK2XBW455CA3FZWEWMVTODSTZ-1-1",
+                  "refs": [
+                    "EY-PAX1"
+                  ]
+                }
+              ]
+            },
+            "refs": [
+              {
+                "Ref": "VDC-AIRLINE-SRID"
+              },
+              {
+                "Ref": "VDC-PR-8VdAOssUR0VFZeV8l72k"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "ShoppingResponseID": {
+      "Owner": "EY",
+      "ResponseID": {
+        "value": "NZxI41tyXRwS8UCmljmfg7M1kjKoA0tszHBxtnwqf9c-EY"
+      }
+    },
+    "Travelers": {
+      "Traveler": [
+        {
+          "AnonymousTraveler": [
+            {
+              "PTC": {
+                "value": "ADT"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Metadata": {
+      "Other": {
+        "OtherMetadata": [
+          {
+            "PriceMetadatas": {
+              "PriceMetadata": [
+                {
+                  "MetadataKey": "VDC-AIRLINE-SRID",
+                  "AugmentationPoint": {
+                    "AugPoint": [
+                      {
+                        "any": {
+                          "type": "java.util.HashMap",
+                          "value": "eyJRUiI6IjFIMVFSWl9WWDdVRlU4SkxWMkhEUURLWFFRSzBCQ1ZGS0I0IiwiS0wiOiJZMm1KUEJmd01vRWlNeEw1ZXl3dyIsIkVZIjoiUVRaVVQ2SkFUU0tZMFIzJENPRCNQI0ZCMjAiLCJBRiI6IlhCVHJlVVZ6YzB6WEsxTHhJWGs5IiwiRUsiOiJYREVGMkY5NzUtMTlDOC00MDY3LThBQzkiLCJLUSI6IjFIMEtRWl9CVFJYVURGQjNVN0hIODFDNlBFN1gxUFUxMUoyIiwiTEhHIjoiWEFCODJGMERFLUZFN0ItNEI0Ri1BRkE0IiwiRVQiOiJMQkgyNVcwRVRVRkFONjcifQ=="
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "MetadataKey": "VDC-PR-8VdAOssUR0VFZeV8l72k",
+                  "AugmentationPoint": {
+                    "AugPoint": [
+                      {
+                        "any": {
+                          "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
+                          "value": "N1L5GDH59A8MCI6pUu6Ir8xAxd2rW2mkkwHPnQBUndwAkGMtS1cJJm84IKZGviNwFTE2Ne+N3dkE5sbIHv2hhol7kG93jQDOJg5vPBtTeh4u6oIEUJ6bDb310PYdSMp2a+waADTT8lmBxzfiTT+rr3nnZFVq6xn2EKZQRFs407MTkdm8Ax31f15QYO9ZcRpRrYSWtuU+sfaksH8d3QSxBbd/6MN9+29W8KSvTP8BYL5ScRw0JseJN6P9ZjnQkkEPZ2KxM1EbEWc7uBP6/iBtRvGYLSUkAH7FckgLDvhxCpcVr1K3/3+jToII405D0YEagY6Ho7Jtndk6wygAFQ5QEZW6Xyh/whkkuR3I6sfk79xFxymy3XupkA4/Jt/oTY+jObfDK6utfg=="
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

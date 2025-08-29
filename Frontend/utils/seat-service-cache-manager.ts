@@ -1,5 +1,5 @@
 import { api } from "@/utils/api-client"
-import { unifiedApiManager } from "@/utils/unified-api-manager"
+import { simpleApiManager } from "@/utils/simple-api-manager"
 import { logger } from "@/utils/logger"
 
 interface SeatAvailabilityData {
@@ -173,7 +173,7 @@ class SeatServiceCacheManager {
     // No-op: Unified API manager now handles proactive loading
     // This method is kept for backward compatibility but does nothing
     
-    logger.info(`✅ Preload completed (handled by unified API manager)`);
+    logger.info(`✅ Preload completed (handled by simple API manager)`);
   }
 
   /**
@@ -218,45 +218,45 @@ class SeatServiceCacheManager {
   }
 
   /**
-   * Load seat availability data using unified API manager
+   * Load seat availability data using simple API manager
    */
   private async loadSeatAvailability(flightPriceResponse: any): Promise<SeatAvailabilityData> {
     try {
-      logger.info("🚀 Loading seat availability via unified API manager")
+      logger.info("🚀 Loading seat availability via simple API manager")
       
-      const response = await unifiedApiManager.getSeatAvailability(flightPriceResponse)
+      const response = await simpleApiManager.getSeatAvailability(flightPriceResponse)
       
       if (response.cache_hit) {
-        logger.info("🎯 Seat availability cache hit via unified manager")
+        logger.info("🎯 Seat availability cache hit via simple manager")
       } else {
-        logger.info("🔄 Seat availability loaded fresh via unified manager")
+        logger.info("🔄 Seat availability loaded fresh via simple manager")
       }
       
       return response.data
     } catch (error) {
-      logger.error("❌ Error loading seat availability via unified manager:", error)
+      logger.error("❌ Error loading seat availability via simple manager:", error)
       throw error
     }
   }
 
   /**
-   * Load service list data using unified API manager
+   * Load service list data using simple API manager
    */
   private async loadServiceList(flightPriceResponse: any): Promise<ServiceListData> {
     try {
-      logger.info("🚀 Loading service list via unified API manager")
+      logger.info("🚀 Loading service list via simple API manager")
       
-      const response = await unifiedApiManager.getServiceList(flightPriceResponse)
+      const response = await simpleApiManager.getServiceList(flightPriceResponse)
       
       if (response.cache_hit) {
-        logger.info("🎯 Service list cache hit via unified manager")
+        logger.info("🎯 Service list cache hit via simple manager")
       } else {
-        logger.info("🔄 Service list loaded fresh via unified manager")
+        logger.info("🔄 Service list loaded fresh via simple manager")
       }
       
       return response.data
     } catch (error) {
-      logger.error("❌ Error loading service list via unified manager:", error)
+      logger.error("❌ Error loading service list via simple manager:", error)
       throw error
     }
   }

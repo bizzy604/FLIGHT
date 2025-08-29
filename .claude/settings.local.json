@@ -15,7 +15,13 @@
       "Bash(timeout 20 npm run dev)",
       "Bash(npm run dev:*)",
       "Bash(python:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npx playwright install)",
+      "Bash(npx playwright install:*)",
+      "WebFetch(domain:github.com)",
+      "mcp__ide__getDiagnostics",
+      "Bash(tasklist:*)",
+      "Bash(npm test:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

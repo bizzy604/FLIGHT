@@ -21,12 +21,10 @@ def clear_flight_cache():
         all_keys = redis_client.keys('*')
         print(f"Found {len(all_keys)} total keys in Redis")
         
-        # Filter flight-related keys
+        # Filter flight-related keys - updated for new consistent format
         flight_patterns = [
-            'flight_search:',
-            'flight_price:',
-            'flight:',
-            'air_shopping_raw_',
+            'flight:',  # New consistent format: flight:{data_type}:{session_id}
+            'air_shopping_raw_',  # Legacy patterns for backward compatibility
             'flight_price_raw_',
             'flight_price_response:'
         ]

@@ -13,6 +13,7 @@ export { AuthRedirectButton } from "./auth-redirect-button"
 // Utility Components  
 export { DataPlaceholder } from "./data-placeholder"
 export { LoadingSpinner } from "./loading-spinner"
+export { FullscreenLoadingOverlay } from "./fullscreen-loading-overlay"
 export { Image } from "./image"
 export { SkipToContent } from "./skip-to-content"
 export { ErrorBoundary } from "./error-boundary"

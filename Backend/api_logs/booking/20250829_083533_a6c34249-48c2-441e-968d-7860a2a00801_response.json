@@ -1,0 +1,18 @@
+{
+  "timestamp": "2025-08-29T08:35:33.656481",
+  "service": "OrderCreate",
+  "request_id": "a6c34249-48c2-441e-968d-7860a2a00801",
+  "status_code": 200,
+  "response_time_ms": 2372.182846069336,
+  "response": {
+    "Errors": {
+      "Error": [
+        {
+          "ShortText": "INTERNAL_ERROR - WE ARE SORRY, THERE IS AN INTERNAL ERROR PROCESSING YOUR REQUEST. PLEASE CONTACT VERTEIL SUPPORT WITH TRANSACTION ID: CQ93BL-1756445732308",
+          "Code": "AIRLINE_ERROR",
+          "Reason": "UNKNOWN"
+        }
+      ]
+    }
+  }
+}

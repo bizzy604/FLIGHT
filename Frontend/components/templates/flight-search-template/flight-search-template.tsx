@@ -62,8 +62,10 @@ export function FlightSearchTemplate({
       searchParams.set('returnDate', formData.returnDate.toISOString().split('T')[0])
     }
     
-    // Immediately redirect to results page - this provides instant feedback to user
-    router.push(`/flights?${searchParams.toString()}`)
+    // Add a small delay to show the loading overlay before redirecting
+    setTimeout(() => {
+      router.push(`/flights?${searchParams.toString()}`)
+    }, 500) // Show loading for 500ms before redirect
     return true // Indicate successful redirection
   }
 

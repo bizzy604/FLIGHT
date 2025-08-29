@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { debounce } from 'lodash';
 import { logger } from './logger';
-import { unifiedApiManager } from './unified-api-manager';
+import { simpleApiManager } from './simple-api-manager';
 import type { FlightSearchResponse } from '@/types/flight-api';
 
 // Get backend URL from environment
@@ -188,26 +188,26 @@ export const api = {
     // Flight Pricing - Using unified manager to eliminate duplicates
     getFlightPrice: async (flightIndex: number, shoppingResponseId: string, airShoppingResponse: any) => {
         try {
-            logger.info('🚀 Using unified API manager for flight price request', {
+            logger.info('🚀 Using simple API manager for flight price request', {
                 flightIndex,
                 shoppingResponseId,
                 hasAirShoppingResponse: !!airShoppingResponse
             });
 
-            const response = await unifiedApiManager.getFlightPrice(
+            const response = await simpleApiManager.getFlightPrice(
                 flightIndex, 
                 shoppingResponseId, 
                 airShoppingResponse
             );
             
-            logger.info('✅ Flight price response received via unified manager', {
+            logger.info('✅ Flight price response received via simple manager', {
                 success: response.success,
                 cacheHit: response.cache_hit,
                 hasData: !!response.data
             });
             
-            // Response received from unified manager
-            logger.info('✅ Unified manager response processed', {
+            // Response received from simple manager
+            logger.info('✅ Simple manager response processed', {
                 success: response.success,
                 status: response.status,
                 hasData: !!response.data
@@ -237,7 +237,7 @@ export const api = {
             return formattedResponse;
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            logger.error('❌ Error in unified getFlightPrice', {
+            logger.error('❌ Error in simple getFlightPrice', {
                 flightIndex,
                 error: errorMessage
             });
@@ -245,12 +245,12 @@ export const api = {
         }
     },
 
-    // Booking - Using unified manager for consistent session handling
+    // Booking - Using simple manager for consistent session handling
     createBooking: async (flightOffer: any, passengers: any[], payment: any, contactInfo: any, extras?: any) => {
         try {
-            logger.info('🚀 Using unified API manager for booking creation');
+            logger.info('🚀 Using simple API manager for booking creation');
             
-            const response = await unifiedApiManager.createBooking(
+            const response = await simpleApiManager.createBooking(
                 flightOffer,
                 passengers,
                 payment,
@@ -258,7 +258,7 @@ export const api = {
                 extras
             );
             
-            logger.info('✅ Booking created via unified manager', {
+            logger.info('✅ Booking created via simple manager', {
                 success: response.success,
                 hasData: !!response.data
             });
@@ -266,7 +266,7 @@ export const api = {
             return { data: response.data };
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            logger.error('❌ Error in unified createBooking', { error: errorMessage });
+            logger.error('❌ Error in simple createBooking', { error: errorMessage });
             throw error;
         }
     },
@@ -279,21 +279,21 @@ export const api = {
         return apiClient.get(`/api/airports/autocomplete?query=${encodeURIComponent(query)}`);
     },
 
-    // ServiceList API - Using unified manager with proactive caching
+    // ServiceList API - Using simple manager with proactive caching
     getServiceList: async (flightPriceResponse: any): Promise<{ data: any }> => {
         try {
-            logger.info('🚀 Using unified API manager for service list (proactive cache first)');
+            logger.info('🚀 Using simple API manager for service list (proactive cache first)');
             
-            const response = await unifiedApiManager.getServiceList(flightPriceResponse);
+            const response = await simpleApiManager.getServiceList(flightPriceResponse);
             
-            logger.info('✅ Service list received via unified manager', {
+            logger.info('✅ Service list received via simple manager', {
                 hasData: !!response.data,
                 source: response.cache_hit ? 'proactive_cache' : 'api_call'
             });
             
             return { data: response.data };
         } catch (error) {
-            logger.error('❌ Error in unified getServiceList:', error);
+            logger.error('❌ Error in simple getServiceList:', error);
             throw error;
         }
     },
@@ -311,24 +311,24 @@ export const api = {
         };
     },
 
-    // SeatAvailability API - Using unified manager with proactive caching
+    // SeatAvailability API - Using simple manager with proactive caching
     getSeatAvailability: async (flightPriceResponse: any, segmentKey?: string): Promise<{ data: any }> => {
         try {
-            logger.info('🚀 Using unified API manager for seat availability (proactive cache first)');
+            logger.info('🚀 Using simple API manager for seat availability (proactive cache first)');
             
-            const response = await unifiedApiManager.getSeatAvailability(
+            const response = await simpleApiManager.getSeatAvailability(
                 flightPriceResponse,
                 segmentKey
             );
             
-            logger.info('✅ Seat availability received via unified manager', {
+            logger.info('✅ Seat availability received via simple manager', {
                 hasData: !!response.data,
                 source: response.cache_hit ? 'proactive_cache' : 'api_call'
             });
             
             return { data: response.data };
         } catch (error) {
-            logger.error('❌ Error in unified getSeatAvailability:', error);
+            logger.error('❌ Error in simple getSeatAvailability:', error);
             throw error;
         }
     },

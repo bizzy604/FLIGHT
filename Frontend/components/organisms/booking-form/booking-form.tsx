@@ -47,9 +47,23 @@ interface BookingFormProps {
   adults?: number;
   children?: number;
   infants?: number;
+  onSeatChange?: (seats: { outbound: string[]; return: string[] }) => void;
+  onServiceChange?: (serviceIds: string[], services: any[]) => void;
+  onBaggageChange?: (baggage: { checkedBags: number; specialEquipment: 'none' }) => void;
+  onSeatPriceChange?: (prices: { outbound: number; return: number }) => void;
+  onPricingUpdate?: (totalPrice: number, servicesCount: number, currency: string) => void;
 }
 
-export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFormProps) {
+export function BookingForm({ 
+  adults = 1, 
+  children = 0, 
+  infants = 0,
+  onSeatChange,
+  onServiceChange,
+  onBaggageChange,
+  onSeatPriceChange,
+  onPricingUpdate
+}: BookingFormProps) {
   const router = useRouter()
   const pathname = usePathname()
   const { isSignedIn } = useAuth()
@@ -133,6 +147,8 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
   const [contactInfo, setContactInfo] = useState<ContactInfoState>({}); // State for contact info
   const [selectedSeats, setSelectedSeats] = useState<{outbound: string[], return: string[]}>({outbound: [], return: []}); // State for seat selection
   const [selectedServices, setSelectedServices] = useState<string[]>([]); // State for additional services
+  const [seatPrices, setSeatPrices] = useState<{outbound: number, return: number}>({outbound: 0, return: 0}); // State for seat pricing
+  const [selectedBaggage, setSelectedBaggage] = useState<{ checkedBags: number; specialEquipment: 'none' }>({ checkedBags: 0, specialEquipment: 'none' }); // State for baggage selection
   const [flightPriceResponse, setFlightPriceResponse] = useState<any>(null); // Flight price response for services/seats
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('PAYMENTCARD');
   const [pricingDetails, setPricingDetails] = useState<any>({}); // State for pricing details
@@ -262,13 +278,36 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
   };
 
   // --- Add Handler for Seat Selection Changes ---
-  const handleSeatChange = (flightType: 'outbound' | 'return', updatedSeats: string[]) => {
-    setSelectedSeats((prev) => ({ ...prev, [flightType]: updatedSeats }));
+  const handleSeatChange = (flightType: 'outbound' | 'return', updatedSeats: string[], pricingRefs: string[] = [], totalPrice: number = 0) => {
+    const newSeats = { ...selectedSeats, [flightType]: updatedSeats };
+    setSelectedSeats(newSeats);
+    
+    // Use the actual calculated price from SeatSelection component
+    const newPrices = { ...seatPrices, [flightType]: totalPrice };
+    setSeatPrices(newPrices);
+    
+    // Notify parent component
+    onSeatChange?.(newSeats);
+    onSeatPriceChange?.(newPrices);
   };
 
   // --- Add Handler for Service Changes ---
   const handleServiceChange = (updatedServices: string[]) => {
     setSelectedServices(updatedServices);
+    // Notify parent component - we need to get services data from ServiceSelection
+    onServiceChange?.(updatedServices, []); // Services will be updated via handleServicesUpdate
+  };
+  
+  // Handle services data update from ServiceSelection
+  const handleServicesUpdate = (servicesData: any[]) => {
+    // Notify parent with current selected services and full services data
+    onServiceChange?.(selectedServices, servicesData);
+  };
+  
+  // Handle baggage selection changes
+  const handleBaggageChange = (baggage: { checkedBags: number; specialEquipment: 'none' }) => {
+    setSelectedBaggage(baggage);
+    onBaggageChange?.(baggage);
   };
 
   // Handle passenger count changes with validation
@@ -802,6 +841,10 @@ export function BookingForm({ adults = 1, children = 0, infants = 0 }: BookingFo
                   flightPriceResponse={flightPriceResponse}
                   selectedServices={selectedServices}
                   onServiceChange={handleServiceChange}
+                  onServicesUpdate={handleServicesUpdate}
+                  onPricingUpdate={onPricingUpdate}
+                  selectedBaggage={selectedBaggage}
+                  onBaggageChange={handleBaggageChange}
                   passengers={passengersForServices}
                   className="border-none shadow-none"
                 />

@@ -1,0 +1,178 @@
+{
+  "timestamp": "2025-08-29T08:33:08.412240",
+  "service": "SeatAvailability",
+  "request_id": "bfd6abbb-10c0-470f-8b36-acdb25361bba",
+  "endpoint": "/entrygate/rest/request:preSeatAvailability",
+  "headers": {
+    "Content-Type": "application/json",
+    "Accept": "*/*",
+    "Authorization": "Bearer ***M32beJ7Q",
+    "OfficeId": "***3746",
+    "service": "SeatAvailability",
+    "User-Agent": "PostmanRuntime/7.41",
+    "Cache-Control": "no-cache",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "ThirdpartyId": "***"
+  },
+  "payload": {
+    "Travelers": {
+      "Traveler": [
+        {
+          "AnonymousTraveler": [
+            {
+              "ObjectKey": "PAX1",
+              "PTC": {
+                "value": "ADT"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Query": {
+      "OriginDestination": [
+        {
+          "FlightSegmentReference": [
+            {
+              "ref": "SEG18"
+            },
+            {
+              "ref": "SEG10"
+            }
+          ]
+        }
+      ],
+      "Offers": {
+        "Offer": [
+          {
+            "OfferID": {
+              "value": "1H1QRZ_XD3NZB4EVZLPCTVRU2JYTJD2G6SB",
+              "Owner": "QR",
+              "Channel": "NDC"
+            },
+            "OfferItemIDs": {
+              "OfferItemID": [
+                {
+                  "value": "1H1QRZ_XD3NZB4EVZLPCTVRU2JYTJD2G6SB-1-1"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "DataLists": {
+      "FlightSegmentList": {
+        "FlightSegment": [
+          {
+            "SegmentKey": "SEG18",
+            "Departure": {
+              "AirportCode": {
+                "value": "LHR"
+              },
+              "Date": "2025-09-04T13:45:00.000",
+              "Time": "13:45",
+              "Terminal": {
+                "Name": "5"
+              }
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "DOH"
+              },
+              "Date": "2025-09-04T22:40:00.000",
+              "Time": "22:40"
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "QR"
+              },
+              "Name": "Qatar Airways",
+              "FlightNumber": {
+                "value": "5942"
+              }
+            },
+            "Equipment": {
+              "AircraftCode": {
+                "value": "777"
+              }
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT6H55M"
+              }
+            }
+          },
+          {
+            "SegmentKey": "SEG10",
+            "Departure": {
+              "AirportCode": {
+                "value": "DOH"
+              },
+              "Date": "2025-09-05T08:15:00.000",
+              "Time": "08:15"
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "AMS"
+              },
+              "Date": "2025-09-05T13:55:00.000",
+              "Time": "13:55"
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "QR"
+              },
+              "Name": "Qatar Airways",
+              "FlightNumber": {
+                "value": "273"
+              }
+            },
+            "Equipment": {
+              "AircraftCode": {
+                "value": "77W"
+              }
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT6H40M"
+              }
+            }
+          }
+        ]
+      },
+      "FareList": {
+        "FareGroup": [
+          {
+            "ListKey": "FG-99786283060492",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              }
+            },
+            "FareBasisCode": {
+              "Code": "VLR7R1SE"
+            }
+          },
+          {
+            "ListKey": "FG-99786283084352",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              }
+            },
+            "FareBasisCode": {
+              "Code": "SLR7R1SE"
+            }
+          }
+        ]
+      }
+    },
+    "ShoppingResponseID": {
+      "ResponseID": {
+        "value": "LevDyfYKqmLxBpOxRadxSgQ-G8pocXe0jGFV6hVafug-QR"
+      }
+    }
+  }
+}

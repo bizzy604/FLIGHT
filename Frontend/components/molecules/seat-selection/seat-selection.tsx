@@ -346,7 +346,7 @@ interface SeatSelectionProps {
   flightType: 'outbound' | 'return'
   segmentKey?: string
   selectedSeats: string[]
-  onSeatChange: (flightType: 'outbound' | 'return', updatedSeats: string[], pricingRefs: string[]) => void
+  onSeatChange: (flightType: 'outbound' | 'return', updatedSeats: string[], pricingRefs: string[], totalPrice?: number) => void
   passengers: Array<{
     objectKey: string
     name: string
@@ -1005,8 +1005,13 @@ export function SeatSelection({
     logger.info(`🪑 Seat selection changed from [${selectedSeats.join(', ')}] to [${newSelectedSeats.join(', ')}]`)
     logger.info(`🎯 Pricing ObjectKeys for OrderCreate: [${pricingRefs.join(', ')}]`)
     
-    // Pass both seat positions (for display) and pricing refs (for booking)
-    onSeatChange(flightType, newSelectedSeats, pricingRefs)
+    // Calculate the total price for the new selection
+    const totalPrice = newSelectedSeats.reduce((total, seatId) => {
+      return total + getSeatPrice(seatId)
+    }, 0)
+    
+    // Pass seat positions, pricing refs, and actual total price
+    onSeatChange(flightType, newSelectedSeats, pricingRefs, totalPrice)
   }
 
   const getTotalPrice = (): number => {

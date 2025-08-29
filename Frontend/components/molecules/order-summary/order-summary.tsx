@@ -3,6 +3,15 @@ import { Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { formatCurrency } from "@/utils/currency-formatter"
+import { 
+  calculatePricingBreakdown, 
+  calculateServiceFees, 
+  extractFlightPricing,
+  formatSeatSummary,
+  getPassengerCountText,
+  type SeatPrices,
+  type ServiceInfo 
+} from "@/utils/pricing-calculator"
 
 // Helper function outside component to avoid parsing issues
 const formatDateTime = (isoString: string): { time: string; date: string } => {
@@ -21,10 +30,7 @@ interface OrderSummaryProps {
     return: string[]
   }
   selectedServices?: string[]
-  seatPrices?: {
-    outbound: number
-    return: number
-  }
+  seatPrices?: SeatPrices
   servicePrices?: number
   services?: any[]
   onContinue?: () => void
@@ -65,37 +71,25 @@ function OrderSummary({
     return formatCurrency(numericValue, currencyCode)
   }
 
-  // Extract pricing information from the stored flight data
+  // Extract pricing information using unified system
   const pricedOffer = booking?.flightOffer || {}
-
-  // Extract pricing data using the same structure as flight details page
-  let currency: string = 'USD'
-  let totalPrice: number = 0
-  let taxes: number = 0
-  let baseFare: number = 0
-
-  // Use the same pricing structure as flight details page
-  if (pricedOffer.total_price) {
-    totalPrice = pricedOffer.total_price.amount || 0
-    currency = pricedOffer.total_price.currency || 'USD'
-
-    // Extract base fare and taxes from passengers pricing
-    if (pricedOffer.passengers && Array.isArray(pricedOffer.passengers)) {
-      const firstPassenger = pricedOffer.passengers[0]
-      if (firstPassenger?.pricing) {
-        baseFare = firstPassenger.pricing.base_fare?.amount || 0
-        taxes = firstPassenger.pricing.taxes?.amount || 0
-      }
-    }
-  } else if (booking?.pricing) {
-    // Fallback to booking pricing if available
-    totalPrice = booking.pricing.total || 0
-    baseFare = booking.pricing.baseFare || 0
-    taxes = booking.pricing.taxes || 0
-    currency = booking.pricing.currency || booking.currency || 'USD'
-  }
-
-  const total = totalPrice
+  const flightPricing = extractFlightPricing(pricedOffer)
+  
+  // Use unified pricing calculation
+  const { serviceDetails } = calculateServiceFees(selectedServices || [], services || [])
+  const pricingBreakdown = calculatePricingBreakdown(
+    flightPricing.baseFare,
+    flightPricing.taxes,
+    seatPrices || { outbound: 0, return: 0 },
+    selectedServices || [],
+    services || [],
+    null, // baggageSelection - to be added later
+    35, // additionalBagPrice
+    flightPricing.currency
+  )
+  
+  const { currency, baseFare, taxes } = flightPricing
+  const total = pricingBreakdown.total
 
   // Extract flight segments using the same structure as flight details page
   let outboundSegments: any[] = []
@@ -220,18 +214,18 @@ function OrderSummary({
             {/* Selected Seats */}
             <div className="space-y-2">
               <div className="text-sm font-medium text-gray-600">SELECTED SEATS</div>
-              {(selectedSeats.outbound.length > 0 || selectedSeats.return.length > 0) ? (
+              {(selectedSeats && (selectedSeats.outbound.length > 0 || selectedSeats.return.length > 0)) ? (
                 <div className="space-y-1">
                   {selectedSeats.outbound.length > 0 && (
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-700">Outbound: {selectedSeats.outbound.join(", ")}</span>
-                      <span className="font-medium">{formatCurrencyDisplay(seatPrices.outbound, currency)}</span>
+                      <span className="font-medium">{formatCurrencyDisplay(seatPrices?.outbound || 0, currency)}</span>
                     </div>
                   )}
                   {selectedSeats.return.length > 0 && (
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-700">Return: {selectedSeats.return.join(", ")}</span>
-                      <span className="font-medium">{formatCurrencyDisplay(seatPrices.return, currency)}</span>
+                      <span className="font-medium">{formatCurrencyDisplay(seatPrices?.return || 0, currency)}</span>
                     </div>
                   )}
                 </div>
@@ -243,25 +237,20 @@ function OrderSummary({
             {/* Selected Services */}
             <div className="space-y-2">
               <div className="text-sm font-medium text-gray-600">SELECTED SERVICES</div>
-              {selectedServices.length > 0 ? (
+              {serviceDetails.length > 0 ? (
                 <div className="space-y-1">
-                  {selectedServices.map((serviceKey, index) => {
-                    const service = services.find(s => s.objectKey === serviceKey)
-                    const serviceName = service?.name?.value || `Service ${index + 1}`
-                    const servicePrice = service?.price?.[0]?.total?.value || 0
-                    return (
-                      <div key={serviceKey} className="flex justify-between items-center text-sm">
-                        <span className="text-gray-700">{serviceName}</span>
-                        <span className="font-medium">
-                          {servicePrice === 0 ? (
-                            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded">FREE</span>
-                          ) : (
-                            formatCurrencyDisplay(servicePrice, service?.price?.[0]?.total?.code || currency)
-                          )}
-                        </span>
-                      </div>
-                    )
-                  })}
+                  {serviceDetails.map((service) => (
+                    <div key={service.objectKey} className="flex justify-between items-center text-sm">
+                      <span className="text-gray-700">{service.name}</span>
+                      <span className="font-medium">
+                        {service.isFree ? (
+                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded">FREE</span>
+                        ) : (
+                          formatCurrencyDisplay(service.price, service.currency)
+                        )}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="text-sm text-gray-500">No services selected</div>
@@ -278,7 +267,7 @@ function OrderSummary({
                 <>
                   {pricedOffer.passengers.map((passenger: any, index: number) => (
                     <div key={index} className="space-y-1">
-                      <div className="text-sm font-medium text-muted-foreground">
+                      <div className="text-sm font-medium text-muted-foreground border-b pb-1">
                         {passenger.type} {index + 1}
                       </div>
                       {passenger.pricing?.base_fare && (
@@ -300,12 +289,12 @@ function OrderSummary({
                 <>
                   {/* Fallback to aggregated pricing */}
                   <div className="flex justify-between">
-                    <span>Base fare ({booking.passengers?.length || 1} passenger{booking.passengers?.length !== 1 ? 's' : ''})</span>
-                    <span>{formatCurrencyDisplay(baseFare, currency)}</span>
+                    <span>Flight fare ({booking.passengers?.length || 1} passenger{booking.passengers?.length !== 1 ? 's' : ''})</span>
+                    <span>{formatCurrencyDisplay(flightPricing.total > 0 ? flightPricing.total * 0.8 : baseFare, currency)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Taxes and fees</span>
-                    <span>{formatCurrencyDisplay(taxes, currency)}</span>
+                    <span>{formatCurrencyDisplay(flightPricing.total > 0 ? flightPricing.total * 0.2 : taxes, currency)}</span>
                   </div>
                 </>
               )}
@@ -343,25 +332,31 @@ function OrderSummary({
               )}
 
               {/* Seat Selection Fees */}
-              {(seatPrices.outbound > 0 || seatPrices.return > 0) && (
+              {pricingBreakdown.seatFees > 0 && (
                 <div className="flex justify-between">
                   <span>Seat selection fees</span>
-                  <span>{formatCurrencyDisplay(seatPrices.outbound + seatPrices.return, currency)}</span>
+                  <span>{formatCurrencyDisplay(pricingBreakdown.seatFees, currency)}</span>
                 </div>
               )}
 
               {/* Service Fees */}
-              {servicePrices > 0 && (
+              {pricingBreakdown.serviceFees > 0 && (
                 <div className="flex justify-between">
                   <span>Additional services</span>
-                  <span>{formatCurrencyDisplay(servicePrices, currency)}</span>
+                  <span>{formatCurrencyDisplay(pricingBreakdown.serviceFees, currency)}</span>
                 </div>
               )}
 
               <Separator />
               <div className="flex justify-between font-bold text-lg">
                 <span>Total Amount</span>
-                <span className="text-purple-600">{formatCurrencyDisplay(total + seatPrices.outbound + seatPrices.return + servicePrices, currency)}</span>
+                <span className="text-purple-600">
+                  {formatCurrencyDisplay(
+                    flightPricing.total > 0 ? flightPricing.total + pricingBreakdown.seatFees + pricingBreakdown.serviceFees : 
+                    pricingBreakdown.total, 
+                    currency
+                  )}
+                </span>
               </div>
             </div>
           </div>

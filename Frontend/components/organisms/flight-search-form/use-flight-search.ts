@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { api } from "@/utils/api-client"
 import { useLoading } from "@/utils/loading-state"
 import type { FlightOffer } from "@/types/flight-api"
@@ -51,6 +51,14 @@ export function useFlightSearch(
   const [results, setResults] = useState<FlightOffer[]>([])
   const [meta, setMeta] = useState<any>(null)
   const { setLoadingState } = useLoading()
+
+  // Cleanup loading state when component unmounts
+  useEffect(() => {
+    return () => {
+      setLoading(false)
+      setLoadingState({ isLoading: false })
+    }
+  }, [setLoadingState])
 
   const setFormData = useCallback((data: Partial<FlightSearchFormData>) => {
     setFormDataState(prev => ({ ...prev, ...data }))
@@ -119,23 +127,31 @@ export function useFlightSearch(
 
   const handleSearch = useCallback(async () => {
     if (!validateForm()) {
+      // Clear loading state if validation fails
+      setLoading(false)
+      setLoadingState({ isLoading: false })
       return
     }
+
+    // Set loading state immediately when search button is clicked
+    setLoading(true)
+    setLoadingState({ isLoading: true })
 
     // If we have onSearchStart callback, call it for immediate redirection
     if (onSearchStart) {
       const shouldRedirect = onSearchStart(formData)
       if (shouldRedirect) {
         // User is being redirected to results page
+        // Keep loading state active - it will be cleared when the page redirects
         // The results page will handle the actual search API call
+        // Note: Loading state will be cleared when component unmounts during navigation
         return
       }
     }
 
     // Fallback: If no onSearchStart or it returns false, continue with the search here
     // This maintains backward compatibility for components that don't use the new flow
-    setLoading(true)
-    setLoadingState({ isLoading: true })
+    // Note: Loading state is already set above
     
     try {
       // Map trip type to API format

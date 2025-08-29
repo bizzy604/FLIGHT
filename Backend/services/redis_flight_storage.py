@@ -6,8 +6,6 @@ and booking data using Redis with automatic expiration.
 """
 import json
 import uuid
-import gzip
-import base64
 from typing import Dict, Any, Optional, Union
 from datetime import datetime, timedelta
 import logging
@@ -38,7 +36,15 @@ class RedisFlightStorage:
             self.redis_client = None
             self.redis_available = False
 
-        self.default_ttl = 300  # 5 minutes in seconds (reduced to match typical offer expiration times)
+        # TTL policies aligned with UnifiedCacheService
+        self.ttl_policies = {
+            'search': 1800,  # 30 minutes - flight search data
+            'price': 1800,   # 30 minutes - flight price data
+            'seat_availability': 900,  # 15 minutes - seat availability data
+            'service_list': 900,       # 15 minutes - service list data
+            'booking': 3600             # 60 minutes - booking data
+        }
+        self.default_ttl = 900  # 15 minutes default
         
     def _generate_session_id(self) -> str:
         """Generate a unique session ID for flight data."""
@@ -47,42 +53,13 @@ class RedisFlightStorage:
     def _get_key(self, session_id: str, data_type: str) -> str:
         """Generate Redis key for flight data."""
         return f"flight:{data_type}:{session_id}"
+    
+    def _get_ttl_for_data_type(self, data_type: str, custom_ttl: Optional[int] = None) -> int:
+        """Get appropriate TTL for data type."""
+        if custom_ttl:
+            return custom_ttl
+        return self.ttl_policies.get(data_type, self.default_ttl)
 
-    def _compress_data(self, data: Dict[str, Any]) -> str:
-        """Compress data using gzip and base64 encoding."""
-        try:
-            # Convert to JSON string
-            json_str = json.dumps(data, default=str)
-
-            # Compress using gzip
-            compressed = gzip.compress(json_str.encode('utf-8'))
-
-            # Encode to base64 for storage
-            encoded = base64.b64encode(compressed).decode('utf-8')
-
-            logger.info(f"Data compression: {len(json_str)} -> {len(encoded)} bytes ({len(encoded)/len(json_str)*100:.1f}%)")
-
-            return encoded
-        except Exception as e:
-            logger.error(f"Failed to compress data: {str(e)}")
-            raise
-
-    def _decompress_data(self, encoded_data: str) -> Dict[str, Any]:
-        """Decompress data from base64 and gzip."""
-        try:
-            # Decode from base64
-            compressed = base64.b64decode(encoded_data.encode('utf-8'))
-
-            # Decompress using gzip
-            json_str = gzip.decompress(compressed).decode('utf-8')
-
-            # Parse JSON
-            data = json.loads(json_str)
-
-            return data
-        except Exception as e:
-            logger.error(f"Failed to decompress data: {str(e)}")
-            raise
     
     def store_flight_search(
         self,
@@ -105,8 +82,7 @@ class RedisFlightStorage:
             if not session_id:
                 session_id = self._generate_session_id()
 
-            if not ttl:
-                ttl = self.default_ttl
+            ttl = self._get_ttl_for_data_type('search', ttl)
 
             # If Redis is not available, return session_id but don't store
             if not self.redis_available:
@@ -126,14 +102,14 @@ class RedisFlightStorage:
                 "stored_at": datetime.utcnow().isoformat(),
                 "expires_at": (datetime.utcnow() + timedelta(seconds=ttl)).isoformat(),
                 "data_type": "flight_search",
-                "compressed": True
             }
 
-            # Compress the data before storing
-            compressed_data = self._compress_data(storage_data)
-
-            # Store compressed data in Redis with expiration
-            self.redis_client.setex(key, ttl, compressed_data)
+            # Store data in Redis with expiration
+            self.redis_client.setex(
+                key,
+                ttl,
+                json.dumps(storage_data, default=str)
+            )
 
             logger.info(f"Stored flight search data with session_id: {session_id}")
 
@@ -182,15 +158,8 @@ class RedisFlightStorage:
                     "message": "No flight search data found for this session"
                 }
 
-            # Check if data is compressed
-            try:
-                # Try to decompress first (new format)
-                parsed_data = self._decompress_data(stored_data)
-                logger.info(f"Retrieved compressed flight search data for session_id: {session_id}")
-            except:
-                # Fallback to uncompressed format (old format)
-                parsed_data = json.loads(stored_data)
-                logger.info(f"Retrieved uncompressed flight search data for session_id: {session_id}")
+            parsed_data = json.loads(stored_data)
+            logger.info(f"Retrieved flight search data for session_id: {session_id}")
 
             return {
                 "success": True,
@@ -226,8 +195,7 @@ class RedisFlightStorage:
             Dict with success status and any error messages
         """
         try:
-            if not ttl:
-                ttl = self.default_ttl
+            ttl = self._get_ttl_for_data_type('price', ttl)
 
             # If Redis is not available, return success but don't store
             if not self.redis_available:
@@ -341,8 +309,7 @@ class RedisFlightStorage:
             Dict with success status and any error messages
         """
         try:
-            if not ttl:
-                ttl = self.default_ttl
+            ttl = self._get_ttl_for_data_type('booking', ttl)
 
             # If Redis is not available, return success but don't store
             if not self.redis_available:
@@ -500,8 +467,7 @@ class RedisFlightStorage:
             Dict with success status and any error messages
         """
         try:
-            if not ttl:
-                ttl = self.default_ttl
+            ttl = self._get_ttl_for_data_type('seat_availability', ttl)
 
             # If Redis is not available, return success but don't store
             if not self.redis_available:
@@ -523,15 +489,13 @@ class RedisFlightStorage:
                 "data_type": "seat_availability"
             }
 
-            # Compress and store data
-            compressed_data = self._compress_data(storage_data)
-            original_size = len(json.dumps(storage_data).encode())
-            compressed_size = len(compressed_data.encode())
-            compression_ratio = (compressed_size / original_size) * 100
+            # Store data without compression (consistent with flight price format)
+            self.redis_client.setex(
+                key,
+                ttl,
+                json.dumps(storage_data, default=str)
+            )
 
-            self.redis_client.setex(key, ttl, compressed_data)
-
-            logger.info(f"Data compression: {original_size} -> {compressed_size} bytes ({compression_ratio:.1f}%)")
             logger.info(f"Stored seat availability data with session_id: {session_id}")
 
             return {
@@ -579,15 +543,15 @@ class RedisFlightStorage:
                     "message": "No seat availability data found for this session"
                 }
 
-            decompressed_data = self._decompress_data(stored_data)
+            parsed_data = json.loads(stored_data)
             
-            logger.info(f"Retrieved compressed seat availability data for session_id: {session_id}")
+            logger.info(f"Retrieved seat availability data for session_id: {session_id}")
 
             return {
                 "success": True,
-                "data": decompressed_data["data"],
-                "stored_at": decompressed_data["stored_at"],
-                "expires_at": decompressed_data["expires_at"],
+                "data": parsed_data["data"],
+                "stored_at": parsed_data["stored_at"],
+                "expires_at": parsed_data["expires_at"],
                 "message": "Seat availability data retrieved successfully"
             }
             
@@ -617,8 +581,7 @@ class RedisFlightStorage:
             Dict with success status and any error messages
         """
         try:
-            if not ttl:
-                ttl = self.default_ttl
+            ttl = self._get_ttl_for_data_type('service_list', ttl)
 
             # If Redis is not available, return success but don't store
             if not self.redis_available:
@@ -640,15 +603,13 @@ class RedisFlightStorage:
                 "data_type": "service_list"
             }
 
-            # Compress and store data
-            compressed_data = self._compress_data(storage_data)
-            original_size = len(json.dumps(storage_data).encode())
-            compressed_size = len(compressed_data.encode())
-            compression_ratio = (compressed_size / original_size) * 100
+            # Store data without compression (consistent with flight price format)
+            self.redis_client.setex(
+                key,
+                ttl,
+                json.dumps(storage_data, default=str)
+            )
 
-            self.redis_client.setex(key, ttl, compressed_data)
-
-            logger.info(f"Data compression: {original_size} -> {compressed_size} bytes ({compression_ratio:.1f}%)")
             logger.info(f"Stored service list data with session_id: {session_id}")
 
             return {
@@ -696,15 +657,15 @@ class RedisFlightStorage:
                     "message": "No service list data found for this session"
                 }
 
-            decompressed_data = self._decompress_data(stored_data)
+            parsed_data = json.loads(stored_data)
             
-            logger.info(f"Retrieved compressed service list data for session_id: {session_id}")
+            logger.info(f"Retrieved service list data for session_id: {session_id}")
 
             return {
                 "success": True,
-                "data": decompressed_data["data"],
-                "stored_at": decompressed_data["stored_at"],
-                "expires_at": decompressed_data["expires_at"],
+                "data": parsed_data["data"],
+                "stored_at": parsed_data["stored_at"],
+                "expires_at": parsed_data["expires_at"],
                 "message": "Service list data retrieved successfully"
             }
             

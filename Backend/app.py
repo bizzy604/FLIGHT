@@ -95,6 +95,14 @@ def create_app(test_config=None):
     # Register clean seat and service routes
     from routes import clean_seat_service
     app.register_blueprint(clean_seat_service.bp)
+    
+    # Register cache health monitoring routes
+    from routes.cache_health import cache_health_bp
+    app.register_blueprint(cache_health_bp)
+    
+    # Register cache test routes
+    from routes.cache_test_routes import cache_test_bp
+    app.register_blueprint(cache_test_bp)
 
     # Initialize centralized authentication
     @app.before_serving

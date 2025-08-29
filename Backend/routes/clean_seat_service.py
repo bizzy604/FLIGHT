@@ -10,7 +10,7 @@ from quart_cors import route_cors
 from utils.auth import TokenManager
 from scripts.build_seatavailability_rq import build_seatavailability_request
 from scripts.build_servicelist_rq import build_servicelist_request
-from services.redis_flight_storage import RedisFlightStorage
+from services.simple_flight_cache import simple_flight_cache
 from services.flight.core import FlightService
 from utils.service_list_transformer import transform_service_list_lean_frontend
 from utils.seat_availability_transformer import transform_seat_availability_lean_frontend
@@ -55,9 +55,23 @@ def _create_error_response(message: str, status_code: int = 400, request_id: str
         'request_id': request_id or _get_request_id()
     }
 
-def _generate_seat_availability_cache_key(flight_price_response: dict, segment_key: str = None) -> str:
+def _generate_seat_availability_cache_key(flight_price_response: dict, segment_key: str = None, flight_price_cache_key: str = None) -> str:
     """Generate a deterministic cache key for seat availability parameters."""
-    # Extract key identifiers from flight price response
+    
+    # FIXED: Use flight_price_cache_key for consistent cache key generation with OrderCreate
+    if flight_price_cache_key:
+        # Extract the hash from flight_price_raw_* format to match OrderCreate logic
+        if 'flight_price_raw_' in flight_price_cache_key:
+            cache_key_hash = flight_price_cache_key.replace('flight_price_raw_', '')
+        elif ':' in flight_price_cache_key:
+            cache_key_hash = flight_price_cache_key.split(':')[-1]  # Get the LAST part (session_id)
+        else:
+            cache_key_hash = flight_price_cache_key
+        
+        logger.debug(f"Generated seat availability cache key from flight_price_cache_key: {cache_key_hash}")
+        return cache_key_hash  # Return session_id directly for Redis storage
+    
+    # Fallback to MD5 hash method for backward compatibility
     offer_id = "unknown"
     shopping_response_id = "unknown"
     
@@ -82,12 +96,26 @@ def _generate_seat_availability_cache_key(flight_price_response: dict, segment_k
     param_string = '|'.join(f"{k}:{v}" for k, v in sorted(normalized_params.items()) if v)
     cache_key = hashlib.md5(param_string.encode()).hexdigest()
     
-    logger.debug(f"Generated seat availability cache key: {cache_key} for offer: {offer_id}")
-    return f"seat_availability:{cache_key}"
+    logger.debug(f"Generated seat availability cache key (fallback): {cache_key} for offer: {offer_id}")
+    return cache_key  # Return session_id directly for Redis storage
 
-def _generate_service_list_cache_key(flight_price_response: dict) -> str:
+def _generate_service_list_cache_key(flight_price_response: dict, flight_price_cache_key: str = None) -> str:
     """Generate a deterministic cache key for service list parameters."""
-    # Extract key identifiers from flight price response
+    
+    # FIXED: Use flight_price_cache_key for consistent cache key generation with OrderCreate
+    if flight_price_cache_key:
+        # Extract the hash from flight_price_raw_* format to match OrderCreate logic
+        if 'flight_price_raw_' in flight_price_cache_key:
+            cache_key_hash = flight_price_cache_key.replace('flight_price_raw_', '')
+        elif ':' in flight_price_cache_key:
+            cache_key_hash = flight_price_cache_key.split(':')[-1]  # Get the LAST part (session_id)
+        else:
+            cache_key_hash = flight_price_cache_key
+        
+        logger.debug(f"Generated service list cache key from flight_price_cache_key: {cache_key_hash}")
+        return cache_key_hash  # Return session_id directly for Redis storage
+    
+    # Fallback to MD5 hash method for backward compatibility
     offer_id = "unknown"
     shopping_response_id = "unknown"
     
@@ -111,8 +139,8 @@ def _generate_service_list_cache_key(flight_price_response: dict) -> str:
     param_string = '|'.join(f"{k}:{v}" for k, v in sorted(normalized_params.items()) if v)
     cache_key = hashlib.md5(param_string.encode()).hexdigest()
     
-    logger.debug(f"Generated service list cache key: {cache_key} for offer: {offer_id}")
-    return f"service_list:{cache_key}"
+    logger.debug(f"Generated service list cache key (fallback): {cache_key} for offer: {offer_id}")
+    return cache_key  # Return session_id directly for Redis storage
 
 @bp.route('/clean-test', methods=['GET'])
 async def clean_test():
@@ -154,8 +182,7 @@ async def check_seat_availability_cache():
         # Prefer cache key approach for retrieving raw response
         if flight_price_cache_key:
             try:
-                redis_storage = RedisFlightStorage()
-                cached_result = redis_storage.get_flight_price(flight_price_cache_key)
+                cached_result = simple_flight_cache.get_flight_price(flight_price_cache_key)
                 if cached_result['success']:
                     flight_price_response = cached_result['data']
                     logger.info(f"Retrieved flight price response from cache key for cache check: {flight_price_cache_key}")
@@ -172,11 +199,13 @@ async def check_seat_availability_cache():
             })
         
         # Generate cache key from the flight price response
-        cache_key = _generate_seat_availability_cache_key(flight_price_response, segment_key)
+        cache_key = _generate_seat_availability_cache_key(flight_price_response, segment_key, flight_price_cache_key)
+        
+        # Cache key is now the session_id directly
+        session_id = cache_key
         
         # Try to retrieve cached data from Redis
-        redis_storage = RedisFlightStorage()
-        cached_result = redis_storage.get_seat_availability(cache_key)
+        cached_result = simple_flight_cache.get_seat_availability(session_id)
         
         if cached_result['success']:
             logger.info(f"Seat availability cache hit for key: {cache_key} - Request ID: {request_id}")
@@ -232,8 +261,7 @@ async def check_service_list_cache():
         # Prefer cache key approach for retrieving raw response
         if flight_price_cache_key:
             try:
-                redis_storage = RedisFlightStorage()
-                cached_result = redis_storage.get_flight_price(flight_price_cache_key)
+                cached_result = simple_flight_cache.get_flight_price(flight_price_cache_key)
                 if cached_result['success']:
                     flight_price_response = cached_result['data']
                     logger.info(f"Retrieved flight price response from cache key for cache check: {flight_price_cache_key}")
@@ -250,11 +278,13 @@ async def check_service_list_cache():
             })
         
         # Generate cache key from the flight price response
-        cache_key = _generate_service_list_cache_key(flight_price_response)
+        cache_key = _generate_service_list_cache_key(flight_price_response, flight_price_cache_key)
+        
+        # Cache key is now the session_id directly
+        session_id = cache_key
         
         # Try to retrieve cached data from Redis
-        redis_storage = RedisFlightStorage()
-        cached_result = redis_storage.get_service_list(cache_key)
+        cached_result = simple_flight_cache.get_service_list(session_id)
         
         if cached_result['success']:
             logger.info(f"Service list cache hit for key: {cache_key} - Request ID: {request_id}")
@@ -313,30 +343,23 @@ async def get_seat_availability():
         # Use cache_manager to get RAW flight price response (not Redis storage which has transformed data)
         if flight_price_cache_key:
             try:
-                from utils.cache_manager import cache_manager
                 logger.info(f"Attempting to retrieve RAW flight price response from cache with key: {flight_price_cache_key}")
-                flight_price_response = cache_manager.get(flight_price_cache_key)
-                if flight_price_response:
-                    logger.info(f"✅ Successfully retrieved RAW flight price response from cache key: {flight_price_cache_key}")
+                cached_result = simple_flight_cache.get_flight_price(flight_price_cache_key)
+                
+                if cached_result.get('success') and cached_result.get('data'):
+                    flight_price_response = cached_result['data']
+                    logger.info(f"✅ Successfully retrieved RAW flight price response from Redis key: {flight_price_cache_key}")
                     logger.info(f"Retrieved response type: {type(flight_price_response)}, keys: {list(flight_price_response.keys()) if isinstance(flight_price_response, dict) else 'Not a dict'}")
                     # Check if it's wrapped in FlightPriceRS structure and unwrap for build script
                     if isinstance(flight_price_response, dict) and 'FlightPriceRS' in flight_price_response:
                         flight_price_response = flight_price_response['FlightPriceRS']
                         logger.info("Unwrapped FlightPriceRS structure for build script")
                 else:
-                    logger.warning(f"❌ RAW flight price response not found in cache: {flight_price_cache_key}")
-                    # Check what keys exist in cache_manager (for debugging)
-                    try:
-                        cache_keys = list(cache_manager._cache.keys())
-                        logger.info(f"Available cache keys: {cache_keys}")
-                        # Look for similar keys
-                        similar_keys = [k for k in cache_keys if 'flight_price_raw' in k]
-                        logger.info(f"Similar flight_price_raw keys found: {similar_keys}")
-                    except Exception:
-                        logger.info("Could not inspect cache keys")
-                    return jsonify(_create_error_response("Flight price data expired. Please request new pricing.", 404, request_id))
+                    logger.warning(f"❌ RAW flight price response not found in Redis: {flight_price_cache_key}")
+                    logger.warning(f"Redis result: {cached_result}")
+                    return jsonify(_create_error_response("Flight price data expired or not found. Please request new pricing.", 404, request_id))
             except Exception as cache_error:
-                logger.error(f"Error retrieving RAW flight price response from cache: {cache_error}")
+                logger.error(f"Error retrieving RAW flight price response from Redis: {cache_error}")
                 return jsonify(_create_error_response(f"Cache retrieval error: {cache_error}", 500, request_id))
 
         if not flight_price_response:
@@ -446,17 +469,16 @@ async def get_seat_availability():
         # Cache the transformed result and get the ACTUAL storage key
         actual_storage_key = None
         try:
-            cache_key = _generate_seat_availability_cache_key(flight_price_response, data.get('segment_key'))
-            redis_storage = RedisFlightStorage()
+            cache_key = _generate_seat_availability_cache_key(flight_price_response, data.get('segment_key'), flight_price_cache_key)
+            # Cache key is now the session_id directly
+            session_id = cache_key
             
-            # Get the actual Redis key that will be used for storage
-            actual_storage_key = redis_storage._get_key(cache_key, "seat_availability")
-            
-            cache_result = redis_storage.store_seat_availability(
+            cache_result = simple_flight_cache.store_seat_availability(
+                session_id=session_id,
                 seat_data=final_data,  # Cache the transformed data
-                session_id=cache_key,
                 ttl=300  # 5 minutes
             )
+            actual_storage_key = cache_result.get('cache_key')
             if cache_result['success']:
                 logger.info(f"💾 Cached transformed seat availability data for key: {cache_key} - Request ID: {request_id}")
                 logger.info(f"🔑 Actual Redis storage key: {actual_storage_key} - Request ID: {request_id}")
@@ -513,30 +535,23 @@ async def get_service_list():
         # Use cache_manager to get RAW flight price response (not Redis storage which has transformed data)
         if flight_price_cache_key:
             try:
-                from utils.cache_manager import cache_manager
                 logger.info(f"Attempting to retrieve RAW flight price response from cache with key: {flight_price_cache_key}")
-                flight_price_response = cache_manager.get(flight_price_cache_key)
-                if flight_price_response:
-                    logger.info(f"✅ Successfully retrieved RAW flight price response from cache key: {flight_price_cache_key}")
+                cached_result = simple_flight_cache.get_flight_price(flight_price_cache_key)
+                
+                if cached_result.get('success') and cached_result.get('data'):
+                    flight_price_response = cached_result['data']
+                    logger.info(f"✅ Successfully retrieved RAW flight price response from Redis key: {flight_price_cache_key}")
                     logger.info(f"Retrieved response type: {type(flight_price_response)}, keys: {list(flight_price_response.keys()) if isinstance(flight_price_response, dict) else 'Not a dict'}")
                     # Check if it's wrapped in FlightPriceRS structure and unwrap for build script
                     if isinstance(flight_price_response, dict) and 'FlightPriceRS' in flight_price_response:
                         flight_price_response = flight_price_response['FlightPriceRS']
                         logger.info("Unwrapped FlightPriceRS structure for build script")
                 else:
-                    logger.warning(f"❌ RAW flight price response not found in cache: {flight_price_cache_key}")
-                    # Check what keys exist in cache_manager (for debugging)
-                    try:
-                        cache_keys = list(cache_manager._cache.keys())
-                        logger.info(f"Available cache keys: {cache_keys}")
-                        # Look for similar keys
-                        similar_keys = [k for k in cache_keys if 'flight_price_raw' in k]
-                        logger.info(f"Similar flight_price_raw keys found: {similar_keys}")
-                    except Exception:
-                        logger.info("Could not inspect cache keys")
-                    return jsonify(_create_error_response("Flight price data expired. Please request new pricing.", 404, request_id))
+                    logger.warning(f"❌ RAW flight price response not found in Redis: {flight_price_cache_key}")
+                    logger.warning(f"Redis result: {cached_result}")
+                    return jsonify(_create_error_response("Flight price data expired or not found. Please request new pricing.", 404, request_id))
             except Exception as cache_error:
-                logger.error(f"Error retrieving RAW flight price response from cache: {cache_error}")
+                logger.error(f"Error retrieving RAW flight price response from Redis: {cache_error}")
                 return jsonify(_create_error_response(f"Cache retrieval error: {cache_error}", 500, request_id))
 
         if not flight_price_response:
@@ -640,17 +655,16 @@ async def get_service_list():
         # Cache the transformed result and get the ACTUAL storage key
         actual_storage_key = None
         try:
-            cache_key = _generate_service_list_cache_key(flight_price_response)
-            redis_storage = RedisFlightStorage()
+            cache_key = _generate_service_list_cache_key(flight_price_response, flight_price_cache_key)
+            # Cache key is now the session_id directly
+            session_id = cache_key
             
-            # Get the actual Redis key that will be used for storage
-            actual_storage_key = redis_storage._get_key(cache_key, "service_list")
-            
-            cache_result = redis_storage.store_service_list(
+            cache_result = simple_flight_cache.store_service_list(
+                session_id=session_id,
                 service_data=final_data,  # Cache the transformed data
-                session_id=cache_key,
                 ttl=300  # 5 minutes
             )
+            actual_storage_key = cache_result.get('cache_key')
             if cache_result['success']:
                 logger.info(f"💾 Cached transformed service list data for key: {cache_key} - Request ID: {request_id}")
                 logger.info(f"🔑 Actual Redis storage key: {actual_storage_key} - Request ID: {request_id}")

@@ -10,6 +10,7 @@ import {
   PassengerSelector,
   CabinSelector
 } from "@/components/molecules"
+import { FullscreenLoadingOverlay } from "@/components/atoms"
 import { cn } from "@/utils/cn"
 import { useFlightSearch } from "./use-flight-search"
 import type { FlightSearchFormProps } from "./flight-search-form.types"
@@ -57,6 +58,12 @@ export const FlightSearchForm = memo(function FlightSearchForm({
 
   return (
     <div className={cn("w-full", className)}>
+      {/* Full-screen loading overlay */}
+      <FullscreenLoadingOverlay 
+        isVisible={loading} 
+        message="Searching for flights..."
+      />
+      
       <div className="bg-card border border-border rounded-2xl p-2 shadow-2xl w-full animate-[slideUp_0.5s_ease-out]">
         {/* Trip Type - Horizontal Radio Buttons */}
         <div className="mb-2">

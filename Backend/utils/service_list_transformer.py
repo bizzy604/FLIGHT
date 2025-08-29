@@ -53,7 +53,8 @@ def transform_service_list_lean_frontend(api_response):
                 "responseId": {
                     "value": shopping_response_id
                 }
-            }
+            },
+            "raw_response": api_response  # Include raw response for OrderCreate builder
         }
         
         logger.info(f"Lean frontend service transformation complete: {len(essential_services)} essential services")

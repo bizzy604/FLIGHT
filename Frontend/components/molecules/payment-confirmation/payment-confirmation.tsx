@@ -102,7 +102,13 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
   const getPassengerData = (bookingData: any) => {
     console.log('🔍 Getting passenger data from booking data:', bookingData);
 
-    // Priority 1: Check if we have the rawData.data.passengers structure (from confirmation page)
+    // Priority 1: Check if we have the rawData.passengers structure (from confirmation page)
+    if (bookingData.rawData?.passengers && Array.isArray(bookingData.rawData.passengers)) {
+      console.log('✅ Using rawData.passengers array:', bookingData.rawData.passengers);
+      return bookingData.rawData.passengers;
+    }
+
+    // Priority 2: Check if we have the rawData.data.passengers structure (legacy format)
     if (bookingData.rawData?.data?.passengers && Array.isArray(bookingData.rawData.data.passengers)) {
       console.log('✅ Using rawData.data.passengers array:', bookingData.rawData.data.passengers);
       return bookingData.rawData.data.passengers;
@@ -325,7 +331,30 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
   const getContactInfo = (bookingData: any) => {
     console.log('🔍 Getting contact info from booking data:', bookingData);
 
-    // Priority 1: Check if we have the rawData.data.contactInfo structure (from confirmation page)
+    // Priority 1: Check if we have the rawData.contactInfo structure (from confirmation page)
+    if (bookingData.rawData?.contactInfo?.email) {
+      console.log('✅ Using rawData.contactInfo:', bookingData.rawData.contactInfo);
+      const contact = bookingData.rawData.contactInfo;
+
+      // Handle different phone formats
+      let phoneDisplay = 'N/A'
+      if (contact.phone) {
+        if (typeof contact.phone === 'string') {
+          phoneDisplay = contact.phone
+        } else if (contact.phone.formatted) {
+          phoneDisplay = contact.phone.formatted
+        } else if (contact.phone.countryCode && contact.phone.number) {
+          phoneDisplay = `${contact.phone.countryCode} ${contact.phone.number}`
+        }
+      }
+
+      return {
+        email: contact.email || 'N/A',
+        phone: phoneDisplay
+      }
+    }
+
+    // Priority 2: Check if we have the rawData.data.contactInfo structure (legacy format)
     if (bookingData.rawData?.data?.contactInfo?.email) {
       console.log('✅ Using rawData.data.contactInfo:', bookingData.rawData.data.contactInfo);
       const contact = bookingData.rawData.data.contactInfo;
@@ -348,7 +377,7 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
       }
     }
 
-    // Priority 2: Check if we have the database booking structure with contactInfo JSON column
+    // Priority 3: Check if we have the database booking structure with contactInfo JSON column
     if (bookingData.contactInfo?.email) {
       console.log('✅ Using database contactInfo JSON column');
       const contact = bookingData.contactInfo;
@@ -371,7 +400,7 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
       }
     }
 
-    // Priority 3: Try to get data from session storage if available
+    // Priority 4: Try to get data from session storage if available
     if (typeof window !== 'undefined') {
       try {
         const possibleKeys = ['dev_completedBooking', 'booking-storage', 'booking', 'bookingData', 'hybridStorage', 'booking-data']
@@ -437,19 +466,25 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
   const getPricingInfo = (bookingData: any) => {
     console.log('🔍 Getting pricing info from booking data:', bookingData);
 
-    // Priority 1: Check if we have the rawData.data.pricing structure (from confirmation page)
+    // Priority 1: Check if we have the rawData.pricing structure (from confirmation page)
+    if (bookingData.rawData?.pricing?.baseFare?.amount !== undefined) {
+      console.log('✅ Using rawData.pricing structure:', bookingData.rawData.pricing);
+      return bookingData.rawData.pricing;
+    }
+
+    // Priority 2: Check if we have the rawData.data.pricing structure (legacy format)
     if (bookingData.rawData?.data?.pricing?.baseFare?.amount !== undefined) {
       console.log('✅ Using rawData.data.pricing structure:', bookingData.rawData.data.pricing);
       return bookingData.rawData.data.pricing;
     }
 
-    // Priority 2: Check if we have the database booking structure with pricing from backend response
+    // Priority 3: Check if we have the database booking structure with pricing from backend response
     if (bookingData.pricing?.baseFare?.amount !== undefined) {
       console.log('✅ Using database pricing structure');
       return bookingData.pricing;
     }
 
-    // Priority 3: Try to get data from session storage if available
+    // Priority 4: Try to get data from session storage if available
     if (typeof window !== 'undefined') {
       try {
         const possibleKeys = ['dev_completedBooking', 'booking-storage', 'booking', 'bookingData', 'hybridStorage', 'booking-data']
@@ -482,7 +517,7 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
       }
     }
 
-    // Priority 4: For API format, create a basic pricing structure using totalAmount
+    // Priority 5: For API format, create a basic pricing structure using totalAmount
     const totalAmount = bookingData.totalAmount || 0;
     console.log(`⚠️ Using fallback pricing with totalAmount: ${totalAmount}`);
 
@@ -495,7 +530,19 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
 
   // Helper function to get extras info from either format
   const getExtrasInfo = (bookingData: any) => {
-    // First, try to get data from session storage if available
+    // Priority 1: Check if we have the rawData.extras structure (from confirmation page)
+    if (bookingData.rawData?.extras && Array.isArray(bookingData.rawData.extras)) {
+      console.log('✅ Using rawData.extras array:', bookingData.rawData.extras);
+      return bookingData.rawData.extras;
+    }
+
+    // Priority 2: Check if we have the rawData.data.extras structure (legacy format)
+    if (bookingData.rawData?.data?.extras && Array.isArray(bookingData.rawData.data.extras)) {
+      console.log('✅ Using rawData.data.extras array:', bookingData.rawData.data.extras);
+      return bookingData.rawData.data.extras;
+    }
+
+    // Priority 3: First, try to get data from session storage if available
     if (typeof window !== 'undefined') {
       try {
         const sessionData = sessionStorage.getItem('booking-storage')
@@ -515,7 +562,7 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
       }
     }
     
-    // Return booking data extras or empty array
+    // Priority 4: Return booking data extras or empty array
     return bookingData.extras || []
   }
 
@@ -1118,7 +1165,7 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
 
                 {/* Hidden compact version for PDF generation */}
                 <div id="compact-itinerary" className="hidden">
-                  <OfficialItinerary data={itineraryData} className="compact-mode" />
+                  <OfficialItinerary data={itineraryData} />
                 </div>
 
                 {/* Hidden boarding pass version for future use */}
@@ -1144,7 +1191,7 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
 
                 {/* Hidden compact version for PDF generation */}
                 <div id="compact-itinerary" className="hidden">
-                  <OfficialItinerary data={itineraryData} className="compact-mode" />
+                  <OfficialItinerary data={itineraryData} />
                 </div>
 
                 {/* Hidden boarding pass version for future use */}

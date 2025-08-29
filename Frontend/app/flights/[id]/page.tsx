@@ -8,11 +8,15 @@ import { ChevronLeft, AlertCircle, Loader2 } from "lucide-react"
 
 import { api } from "@/utils/api-client"
 import { logger } from "@/utils/logger"
+import { 
+  calculatePricingBreakdown,
+  extractFlightPricing,
+  type BaggageSelection 
+} from "@/utils/pricing-calculator"
 
 
-import { flightStorageManager, FlightPriceData } from "@/utils/flight-storage-manager"
-import { redisFlightStorage } from "@/utils/redis-flight-storage"
-import { navigationCacheManager } from "@/utils/navigation-cache-manager"
+import { simpleCacheManager } from "@/utils/simple-cache-manager"
+import { simpleApiManager } from "@/utils/simple-api-manager"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -154,20 +158,33 @@ function FlightDetailsPageContent() {
   const [error, setError] = useState<string | null>(null)
   const [pricedOffer, setPricedOffer] = useState<TransformedOffer | null>(null)
   const [cachedSearchParams, setCachedSearchParams] = useState<any>(null)
+  
+  // Pricing state for dynamic price summary
+  const [selectedSeats, setSelectedSeats] = useState({ outbound: [], return: [] })
+  const [selectedServices, setSelectedServices] = useState<string[]>([])
+  const [selectedBaggage, setSelectedBaggage] = useState<BaggageSelection>({ checkedBags: 0, specialEquipment: 'none' })
+  const [services, setServices] = useState<any[]>([])
+  const [seatPrices, setSeatPrices] = useState({ outbound: 0, return: 0 })
+  
+  // Direct pricing data from ServiceSelection (working data)
+  const [directServicesPricing, setDirectServicesPricing] = useState({ 
+    totalPrice: 0, 
+    servicesCount: 0, 
+    currency: 'INR' 
+  })
 
   useEffect(() => {
     const fetchFlightPrice = async () => {
       setIsLoading(true)
       setError(null)
       try {
-        // Update navigation state
-        navigationCacheManager.updateNavigationState('details', { flightId });
-
-        // Check if we should skip API call based on navigation context
-        if (navigationCacheManager.shouldSkipApiCall('details', { flightId })) {
-          const cacheValidation = await navigationCacheManager.validateFlightPriceCache(flightId);
-          if (cacheValidation.isValid && cacheValidation.data) {
-            const cachedPriceData = cacheValidation.data;
+        // Simple cache check - KISS principle applied
+        const sessionId = simpleCacheManager.getOrCreateSessionId();
+        const cachedPriceResult = simpleCacheManager.getFlightPrice(sessionId);
+        
+        if (cachedPriceResult.success && cachedPriceResult.data) {
+          const cachedPriceData = cachedPriceResult.data;
+          if (cachedPriceData.pricedOffer) {
             setPricedOffer(cachedPriceData.pricedOffer);
             if (cachedPriceData.searchParams) {
               setCachedSearchParams(cachedPriceData.searchParams);
@@ -532,8 +549,7 @@ function FlightDetailsPageContent() {
               destination={getAirportDisplay(cachedSearchParams?.destination || outboundSegments[outboundSegments.length - 1]?.arrival_airport)}
               destinationCode={cachedSearchParams?.destination || outboundSegments[outboundSegments.length - 1]?.arrival_airport}
               departDate={cachedSearchParams?.departDate || outboundSegments[0]?.departure_datetime}
-              price={pricedOffer.total_price.amount}
-              currency={pricedOffer.total_price.currency}
+              showPrice={false}
               adults={adults}
               children={children}
               infants={infants}
@@ -588,6 +604,22 @@ function FlightDetailsPageContent() {
                     adults={adults}
                     children={children}
                     infants={infants}
+                    onSeatChange={(seats) => {
+                      setSelectedSeats(seats)
+                    }}
+                    onServiceChange={(servicesIds, servicesData) => {
+                      setSelectedServices(servicesIds)
+                      setServices(servicesData)
+                    }}
+                    onBaggageChange={(baggage) => {
+                      setSelectedBaggage(baggage)
+                    }}
+                    onSeatPriceChange={(prices) => {
+                      setSeatPrices(prices)
+                    }}
+                    onPricingUpdate={(totalPrice, servicesCount, currency) => {
+                      setDirectServicesPricing({ totalPrice, servicesCount, currency })
+                    }}
                   />
                 </div>
               </div>
@@ -599,24 +631,188 @@ function FlightDetailsPageContent() {
               </div>
               <Separator />
               <div className="p-4 sm:p-6 space-y-4">
-                <div className="flex justify-between text-base sm:text-lg font-bold">
-                  <span>Total Price</span>
-                  <span>{pricedOffer.total_price.amount.toFixed(2)} {pricedOffer.total_price.currency}</span>
-                </div>
-                 <div className="space-y-2 text-xs sm:text-sm mt-4 border-t pt-4">
-                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
-                      <span className="text-muted-foreground">Offer expires:</span>
-                      <span className="font-medium text-orange-600 text-xs sm:text-sm">
-                        {pricedOffer.time_limits.offer_expiration ? new Date(pricedOffer.time_limits.offer_expiration).toLocaleString() : "Not specified"}
-                      </span>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
-                      <span className="text-muted-foreground">Payment deadline:</span>
-                      <span className="font-medium text-red-600 text-xs sm:text-sm">
-                        {pricedOffer.time_limits.payment_deadline ? new Date(pricedOffer.time_limits.payment_deadline).toLocaleString() : "Not specified"}
-                      </span>
-                    </div>
+                {(() => {
+                  // Calculate dynamic pricing
+                  const flightPricing = extractFlightPricing(pricedOffer)
+                  
+                  // Use EXACT same logic as working ServiceSelection component
+                  const getSelectedServicePrice = (service: any): number => {
+                    return service.price?.[0]?.total?.value || 0;
+                  };
+                  
+                  const getTotalServicesPrice = (): number => {
+                    return selectedServices.reduce((total, serviceObjectKey) => {
+                      const service = services.find(s => s.objectKey === serviceObjectKey);
+                      return total + (service ? getSelectedServicePrice(service) : 0);
+                    }, 0);
+                  };
+                  
+                  const getCurrency = (): string => {
+                    const firstService = services.find(s => s.price?.[0]?.total?.code);
+                    return firstService?.price?.[0]?.total?.code || 'INR';
+                  };
+                  
+                  // Calculate seat fees directly
+                  const getSeatFees = (): number => {
+                    return (seatPrices?.outbound || 0) + (seatPrices?.return || 0);
+                  };
+                  
+                  // Get selected baggage services (weight-based options like 25KG, 30KG, etc.)
+                  const getSelectedBaggageServices = () => {
+                    return services.filter(service => {
+                      const serviceName = service.name?.value?.toLowerCase() || "";
+                      const serviceCode = service.serviceId?.value?.toLowerCase() || "";
+                      return (serviceName.includes("bag") || serviceName.includes("luggage") || serviceName.includes("weight") ||
+                             serviceCode.includes("bag") || serviceCode.includes("xwbg") || serviceCode.includes("wbg")) &&
+                             selectedServices.includes(service.objectKey);
+                    });
+                  };
+                  
+                  // Get price for basic baggage (+/- buttons) - use price from selected baggage services
+                  const getBasicBaggagePrice = (): number => {
+                    const selectedBaggageServices = getSelectedBaggageServices();
+                    if (selectedBaggageServices.length > 0) {
+                      // Use the price from user's selected baggage service for +/- buttons
+                      return selectedBaggageServices[0]?.price?.[0]?.total?.value || 0;
+                    }
+                    return 0; // No fallback price - user must select a service first
+                  };
+                  
+                  // Calculate total baggage cost: basic bags + selected baggage services
+                  const getTotalBaggageCost = (): number => {
+                    const basicBaggageCost = selectedBaggage.checkedBags * getBasicBaggagePrice();
+                    const selectedBaggageServicesCost = getSelectedBaggageServices()
+                      .reduce((total, service) => total + (service.price?.[0]?.total?.value || 0), 0);
+                    return basicBaggageCost + selectedBaggageServicesCost;
+                  };
+                  
+                  // Calculate total baggage count: basic bags + selected baggage services  
+                  const getTotalBaggageCount = (): number => {
+                    return selectedBaggage.checkedBags + getSelectedBaggageServices().length;
+                  };
+                  
+                  // Calculate non-baggage services total (exclude baggage from total services)
+                  const getNonBaggageServicesPrice = (): number => {
+                    const baggageServiceKeys = getSelectedBaggageServices().map(s => s.objectKey);
+                    return selectedServices
+                      .filter(serviceKey => !baggageServiceKeys.includes(serviceKey))
+                      .reduce((total, serviceKey) => {
+                        const service = services.find(s => s.objectKey === serviceKey);
+                        return total + (service ? getSelectedServicePrice(service) : 0);
+                      }, 0);
+                  };
+                  
+                  // Calculate non-baggage services count
+                  const getNonBaggageServicesCount = (): number => {
+                    const baggageServiceKeys = getSelectedBaggageServices().map(s => s.objectKey);
+                    return selectedServices.filter(serviceKey => !baggageServiceKeys.includes(serviceKey)).length;
+                  };
+                  
+                  
+                  return (
+                    <>
+                      {/* Price Breakdown */}
+                      <div className="space-y-3">
+                        {/* Base flight pricing */}
+                        {pricedOffer.passengers && Array.isArray(pricedOffer.passengers) ? (
+                          <>
+                            {pricedOffer.passengers.map((passenger: any, index: number) => (
+                              <div key={index} className="space-y-2">
+                                <div className="text-sm font-medium text-muted-foreground border-b pb-1">
+                                  {passenger.type} {index + 1}
+                                </div>
+                                {passenger.pricing?.base_fare && (
+                                  <div className="flex justify-between text-sm">
+                                    <span className="ml-2">Base fare</span>
+                                    <span>{passenger.pricing.base_fare.amount?.toFixed(2)} {passenger.pricing.base_fare.currency || pricedOffer.total_price.currency}</span>
+                                  </div>
+                                )}
+                                {passenger.pricing?.taxes && (
+                                  <div className="flex justify-between text-sm">
+                                    <span className="ml-2">Taxes and fees</span>
+                                    <span>{passenger.pricing.taxes.amount?.toFixed(2)} {passenger.pricing.taxes.currency || pricedOffer.total_price.currency}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </>
+                        ) : (
+                          <>
+                            {/* Fallback to simple pricing display */}
+                            <div className="flex justify-between text-sm">
+                              <span>Flight fare ({adults + children + infants} passenger{adults + children + infants > 1 ? 's' : ''})</span>
+                              <span>{(pricedOffer.total_price.amount * 0.8).toFixed(2)} {pricedOffer.total_price.currency}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span>Taxes and fees</span>
+                              <span>{(pricedOffer.total_price.amount * 0.2).toFixed(2)} {pricedOffer.total_price.currency}</span>
+                            </div>
+                          </>
+                        )}
+                        
+                        {/* Dynamic additional fees */}
+                        <div className="space-y-1 text-sm border-t pt-3">
+                          <div className="flex justify-between">
+                            <span>Seat selection</span>
+                            <span className={getSeatFees() > 0 ? 'font-medium text-primary' : 'text-muted-foreground'}>
+                              {getSeatFees() > 0 ? `${getSeatFees().toFixed(2)} ${flightPricing.currency}` : 'Not selected'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Baggage ({getTotalBaggageCount()} {getTotalBaggageCount() === 1 ? 'item' : 'items'})</span>
+                            <span className={getTotalBaggageCost() > 0 ? 'font-medium text-primary' : 'text-muted-foreground'}>
+                              {getTotalBaggageCost() > 0 ? 
+                                `${getTotalBaggageCost().toFixed(2)} ${getCurrency()}` : 
+                                'Not selected'
+                              }
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Services ({directServicesPricing.servicesCount} selected)</span>
+                            <span className={directServicesPricing.totalPrice > 0 ? 'font-medium text-primary' : 'text-muted-foreground'}>
+                              {directServicesPricing.totalPrice > 0 ? 
+                                `${directServicesPricing.totalPrice.toFixed(2)} ${directServicesPricing.currency}` : 
+                                'Not selected'
+                              }
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <Separator />
+                      
+                      {/* Dynamic Total Price */}
+                      <div className="flex justify-between text-base sm:text-lg font-bold">
+                        <span>Total Price</span>
+                        <span className="text-primary">{(flightPricing.total + getSeatFees() + directServicesPricing.totalPrice).toFixed(2)} {flightPricing.currency}</span>
+                      </div>
+                      
+                      {/* Show additional costs if any */}
+                      {(getSeatFees() + directServicesPricing.totalPrice) > 0 && (
+                        <div className="text-xs text-muted-foreground bg-primary/10 p-2 rounded">
+                          Includes {(getSeatFees() + directServicesPricing.totalPrice).toFixed(2)} {flightPricing.currency} in additional services
+                        </div>
+                      )}
+                    </>
+                  )
+                })()}
+                
+                {/* Important timestamps */}
+                <div className="space-y-2 text-xs sm:text-sm mt-4 border-t pt-4">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                    <span className="text-muted-foreground">Offer expires:</span>
+                    <span className="font-medium text-orange-600 text-xs sm:text-sm">
+                      {pricedOffer.time_limits?.offer_expiration ? new Date(pricedOffer.time_limits.offer_expiration).toLocaleString() : "Not specified"}
+                    </span>
                   </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                    <span className="text-muted-foreground">Payment deadline:</span>
+                    <span className="font-medium text-red-600 text-xs sm:text-sm">
+                      {pricedOffer.time_limits?.payment_deadline ? new Date(pricedOffer.time_limits.payment_deadline).toLocaleString() : "Not specified"}
+                    </span>
+                  </div>
+                </div>
+                
               </div>
             </div>
           </div>

@@ -1,0 +1,157 @@
+{
+  "timestamp": "2025-08-29T08:01:48.811342",
+  "service": "ServiceList",
+  "request_id": "c6e1ad7d-62e4-4ca2-b929-4f1a9000d6cb",
+  "endpoint": "/entrygate/rest/request:preServiceList",
+  "headers": {
+    "Content-Type": "application/json",
+    "Accept": "*/*",
+    "Authorization": "Bearer ***M32beJ7Q",
+    "OfficeId": "***3746",
+    "service": "ServiceList",
+    "User-Agent": "PostmanRuntime/7.41",
+    "Cache-Control": "no-cache",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "ThirdpartyId": "***"
+  },
+  "payload": {
+    "Travelers": {
+      "Traveler": [
+        {
+          "AnonymousTraveler": [
+            {
+              "ObjectKey": "PAX1",
+              "PTC": {
+                "value": "ADT"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Query": {
+      "OriginDestination": [
+        {
+          "Flight": [
+            {
+              "SegmentKey": "SEG6",
+              "Departure": {
+                "AirportCode": {
+                  "value": "CDG"
+                },
+                "Date": "2025-09-03T10:20:00.000",
+                "Time": "10:20",
+                "AirportName": "Charles De Gaulle Airport",
+                "Terminal": {
+                  "Name": "1"
+                }
+              },
+              "Arrival": {
+                "AirportCode": {
+                  "value": "AUH"
+                },
+                "Date": "2025-09-03T19:00:00.000",
+                "Time": "19:00",
+                "AirportName": "Abu Dhabi International Airport",
+                "Terminal": {
+                  "Name": "A"
+                }
+              },
+              "MarketingCarrier": {
+                "AirlineID": {
+                  "value": "EY"
+                },
+                "Name": "ETIHAD AIRWAYS",
+                "FlightNumber": {
+                  "value": "32"
+                }
+              },
+              "Equipment": {
+                "AircraftCode": {
+                  "value": "388"
+                }
+              },
+              "FlightDetail": {
+                "FlightDuration": {
+                  "Value": "PT6H40M"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "Flight": [
+            {
+              "SegmentKey": "SEG3",
+              "Departure": {
+                "AirportCode": {
+                  "value": "AUH"
+                },
+                "Date": "2025-09-04T09:00:00.000",
+                "Time": "09:00",
+                "AirportName": "Abu Dhabi International Airport",
+                "Terminal": {
+                  "Name": "A"
+                }
+              },
+              "Arrival": {
+                "AirportCode": {
+                  "value": "NBO"
+                },
+                "Date": "2025-09-04T13:00:00.000",
+                "Time": "13:00",
+                "AirportName": "Jomo Kenyatta International Airport",
+                "Terminal": {
+                  "Name": "1E"
+                }
+              },
+              "MarketingCarrier": {
+                "AirlineID": {
+                  "value": "EY"
+                },
+                "Name": "ETIHAD AIRWAYS",
+                "FlightNumber": {
+                  "value": "767"
+                }
+              },
+              "Equipment": {
+                "AircraftCode": {
+                  "value": "32A"
+                }
+              },
+              "FlightDetail": {
+                "FlightDuration": {
+                  "Value": "PT5H0M"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "Offers": {
+        "Offer": [
+          {
+            "OfferID": {
+              "value": "1H0EYZ_YHALK2XBW455CA3FZWEWMVTODSTZ",
+              "Owner": "EY",
+              "Channel": "NDC"
+            },
+            "OfferItemIDs": {
+              "OfferItemID": [
+                {
+                  "value": "1H0EYZ_YHALK2XBW455CA3FZWEWMVTODSTZ-1-1"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "ShoppingResponseID": {
+      "ResponseID": {
+        "value": "NZxI41tyXRwS8UCmljmfg7M1kjKoA0tszHBxtnwqf9c-EY"
+      }
+    }
+  }
+}

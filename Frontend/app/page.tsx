@@ -31,7 +31,10 @@ export default function HomePage() {
       searchParams.set('returnDate', formData.returnDate.toISOString().split('T')[0])
     }
     
-    router.push(`/flights?${searchParams.toString()}`)
+    // Add a small delay to show the loading overlay before redirecting
+    setTimeout(() => {
+      router.push(`/flights?${searchParams.toString()}`)
+    }, 500) // Show loading for 500ms before redirect
     return true
   }
 

@@ -1,1 +1,0 @@
-export { BookingSummary } from './booking-summary'
