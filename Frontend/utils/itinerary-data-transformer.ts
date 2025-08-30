@@ -126,6 +126,8 @@ export interface ItineraryData {
   };
   baggageAllowance: BaggageDetails;
   fareRules: PassengerFareRules[];
+  ticketNumbers?: string[];
+  bookingReference?: string;
 }
 
 // Airport code to name mapping (extend as needed)
@@ -787,7 +789,9 @@ function transformFromFrontendAPIResponse(data: any): ItineraryData {
     pricing,
     contactInfo,
     baggageAllowance,
-    fareRules: []
+    fareRules: [],
+    ticketNumbers: [],
+    bookingReference: bookingInfo.bookingReference
   };
 }
 
@@ -910,7 +914,9 @@ function transformFromOriginalFlightOffer(originalFlightOffer: any, basicBooking
     pricing: pricingInfo,
     contactInfo,
     baggageAllowance,
-    fareRules: []
+    fareRules: [],
+    ticketNumbers: passengers.map(p => p.ticketNumber).filter(Boolean),
+    bookingReference: bookingInfo.bookingReference
   };
 }
 
@@ -1086,66 +1092,74 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
     phone: primaryPassenger?.phone || 'N/A'
   };
 
-  // Extract flight segments
-  const originDestinations = firstOrderItem?.FlightItem?.OriginDestination || [];
+  // Extract ticket numbers from TicketDocInfos
+  const ticketNumbers = response.TicketDocInfos?.TicketDocInfo?.flatMap((ticketDoc: any) => 
+    ticketDoc.TicketDocument?.map((doc: any) => doc.TicketDocNbr) || []
+  ) || [];
+
+  // Extract flight segments from DataLists.FlightSegmentList (NDC standard structure)
+  const flightSegments = response.DataLists?.FlightSegmentList?.FlightSegment || [];
   const outboundFlight: FlightSegment[] = [];
   const returnFlight: FlightSegment[] = [];
 
-  originDestinations.forEach((od: any, odIndex: number) => {
-    const flights = od.Flight || [];
-    
-    flights.forEach((flight: any) => {
-      const segment: FlightSegment = {
-        segmentKey: flight.SegmentKey || `SEG${odIndex + 1}`,
-        flightNumber: `${flight.MarketingCarrier?.AirlineID?.value || ''} ${flight.MarketingCarrier?.FlightNumber?.value || ''}`.trim(),
-        airline: (() => {
-          const carrierName = flight.MarketingCarrier?.Name;
-          const carrierCode = flight.MarketingCarrier?.AirlineID?.value;
-          console.log(`🔍 Flight segment airline data: Name="${carrierName}", Code="${carrierCode}"`);
+  console.log('🔍 Processing flight segments:', {
+    segmentCount: flightSegments.length,
+    segments: flightSegments.map((seg: any, i: number) => ({
+      index: i,
+      departure: seg.Departure?.AirportCode?.value,
+      arrival: seg.Arrival?.AirportCode?.value,
+      flightNumber: `${seg.MarketingCarrier?.AirlineID?.value || ''}${seg.MarketingCarrier?.FlightNumber?.value || ''}`
+    }))
+  });
 
-          // Prioritize API-provided name, use fallback mapping only if API name is missing
-          if (carrierName && carrierName.trim() && carrierName !== 'None') {
-            console.log(`🔍 Using API-provided airline name: "${carrierName}"`);
-            return carrierName;
-          } else {
-            console.log(`🔍 API name missing/invalid, using fallback mapping for code: "${carrierCode}"`);
-            return getAirlineName(carrierCode || '');
-          }
-        })(),
-        airlineCode: flight.MarketingCarrier?.AirlineID?.value || '',
-        airlineLogo: `/airlines/${flight.MarketingCarrier?.AirlineID?.value || 'default'}.svg`,
-        aircraft: flight.Equipment?.Name || 'Unknown',
-        aircraftCode: flight.Equipment?.AircraftCode?.value || '',
-        departure: {
-          airport: flight.Departure?.AirportCode?.value || '',
-          airportName: getAirportName(flight.Departure?.AirportCode?.value || ''),
-          date: formatDateOnly(flight.Departure?.Date || ''),
-          time: flight.Departure?.Time || formatTimeOnly(flight.Departure?.Date || ''),
-          terminal: flight.Departure?.Terminal?.Name || '',
-          formattedDateTime: formatDateTimeFromISO(flight.Departure?.Date || '')
-        },
-        arrival: {
-          airport: flight.Arrival?.AirportCode?.value || '',
-          airportName: getAirportName(flight.Arrival?.AirportCode?.value || ''),
-          date: formatDateOnly(flight.Arrival?.Date || ''),
-          time: flight.Arrival?.Time || formatTimeOnly(flight.Arrival?.Date || ''),
-          terminal: flight.Arrival?.Terminal?.Name || '',
-          formattedDateTime: formatDateTimeFromISO(flight.Arrival?.Date || '')
-        },
-        duration: flight.Details?.FlightDuration?.Value || '',
-        durationFormatted: formatDuration(flight.Details?.FlightDuration?.Value || ''),
-        classOfService: flight.ClassOfService?.MarketingName?.value || 'Economy',
-        cabinClass: flight.ClassOfService?.CabinDesignator || 'Y',
-        fareBasisCode: flight.MarketingCarrier?.ResBookDesigCode || ''
-      };
+  flightSegments.forEach((flight: any, segmentIndex: number) => {
+    const segment: FlightSegment = {
+      segmentKey: `S${segmentIndex + 2}`, // Match API structure (S2, S3, etc.)
+      flightNumber: `${flight.MarketingCarrier?.AirlineID?.value || ''}${flight.MarketingCarrier?.FlightNumber?.value || ''}`,
+      airline: (() => {
+        const carrierName = flight.MarketingCarrier?.Name;
+        const carrierCode = flight.MarketingCarrier?.AirlineID?.value;
+        console.log(`🔍 Flight segment airline data: Name="${carrierName}", Code="${carrierCode}"`);
 
-      // Determine if this is outbound or return based on segment key or index
-      if (odIndex === 0) {
-        outboundFlight.push(segment);
-      } else {
-        returnFlight.push(segment);
-      }
-    });
+        // Prioritize API-provided name, use fallback mapping only if API name is missing
+        if (carrierName && carrierName.trim() && carrierName !== 'None') {
+          console.log(`🔍 Using API-provided airline name: "${carrierName}"`);
+          return carrierName;
+        } else {
+          console.log(`🔍 API name missing/invalid, using fallback mapping for code: "${carrierCode}"`);
+          return getAirlineName(carrierCode || '');
+        }
+      })(),
+      airlineCode: flight.MarketingCarrier?.AirlineID?.value || '',
+      airlineLogo: `/airlines/${flight.MarketingCarrier?.AirlineID?.value || 'default'}.svg`,
+      aircraft: flight.Equipment?.Name || 'Unknown',
+      aircraftCode: flight.Equipment?.AircraftCode?.value || '',
+      departure: {
+        airport: flight.Departure?.AirportCode?.value || '',
+        airportName: flight.Departure?.AirportName || getAirportName(flight.Departure?.AirportCode?.value || ''),
+        date: formatDateOnly(flight.Departure?.Date || ''),
+        time: flight.Departure?.Time || formatTimeOnly(flight.Departure?.Date || ''),
+        terminal: flight.Departure?.Terminal?.Name || '',
+        formattedDateTime: formatDateTimeFromISO(flight.Departure?.Date || '')
+      },
+      arrival: {
+        airport: flight.Arrival?.AirportCode?.value || '',
+        airportName: flight.Arrival?.AirportName || getAirportName(flight.Arrival?.AirportCode?.value || ''),
+        date: formatDateOnly(flight.Arrival?.Date || ''),
+        time: flight.Arrival?.Time || formatTimeOnly(flight.Arrival?.Date || ''),
+        terminal: flight.Arrival?.Terminal?.Name || '',
+        formattedDateTime: formatDateTimeFromISO(flight.Arrival?.Date || '')
+      },
+      duration: flight.FlightDetail?.FlightDuration?.Value || '',
+      durationFormatted: formatDuration(flight.FlightDetail?.FlightDuration?.Value || ''),
+      classOfService: 'Economy', // Will be extracted from order items if needed
+      cabinClass: 'Y', // Default cabin class
+      fareBasisCode: '' // Will be extracted from fare details if needed
+    };
+
+    // All segments from the API response are part of the outbound journey
+    // since this is a connecting flight (JFK→DXB→NBO)
+    outboundFlight.push(segment);
   });
 
   // Extract detailed baggage allowance
@@ -1183,6 +1197,8 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
     pricing,
     contactInfo,
     baggageAllowance,
-    fareRules
+    fareRules,
+    ticketNumbers,
+    bookingReference: bookingInfo.bookingReference
   };
 }

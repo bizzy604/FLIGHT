@@ -114,7 +114,22 @@ export function ServiceSelection({
       try {
         logger.info('🛎️ Loading service list data...')
         
-        // 🚀 STEP 1: Check our pre-loaded cache first
+        // 🚀 STEP 1: Check proactive loading cache first (from simple-api-manager)
+        const sessionId = localStorage.getItem('flight_session_id')
+        if (sessionId) {
+          // Check simple cache manager first (populated by proactive loading)
+          const simpleCacheManager = await import('@/utils/simple-cache-manager')
+          const proactiveCacheResult = simpleCacheManager.simpleCacheManager.getServiceList(sessionId)
+          
+          if (proactiveCacheResult.success && proactiveCacheResult.data) {
+            logger.info('⚡ Using proactively loaded service list data!')
+            processServiceListData(proactiveCacheResult.data)
+            setLoading(false)
+            return
+          }
+        }
+
+        // 🚀 STEP 2: Check our pre-loaded cache as fallback
         const cachedResult = seatServiceCache.getCachedServiceList(flightPriceResponse)
         
         if (cachedResult.data) {

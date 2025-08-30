@@ -119,18 +119,7 @@ class SimpleApiManager {
     return this.executeWithDeduplication(requestKey, async () => {
       const sessionId = this.getSessionId();
 
-      // Check cache first
-      const cachedResult = simpleCacheManager.getFlightPrice(sessionId);
-      if (cachedResult.success) {
-        console.log('✅ Using cached flight price data');
-        return {
-          data: cachedResult.data,
-          success: true,
-          cache_hit: true,
-          cache_key: sessionId
-        };
-      }
-
+      // 🚀 PRIORITY FIX: Always make fresh API calls, cache is just for storage
       // Make API call
       const payload = {
         offer_id: flightIndex.toString(),
@@ -161,19 +150,7 @@ class SimpleApiManager {
     const requestKey = `seat_availability_${sessionId}`;
 
     return this.executeWithDeduplication(requestKey, async () => {
-      // Check cache first
-      const cachedResult = simpleCacheManager.getSeatAvailability(sessionId);
-      if (cachedResult.success) {
-        console.log('✅ Using cached seat availability data');
-        return {
-          data: cachedResult.data,
-          success: true,
-          cache_hit: true,
-          cache_key: sessionId,
-          storage_key: sessionId
-        };
-      }
-
+      // 🚀 PRIORITY FIX: Always make fresh API calls, cache is just for storage
       // Extract cache key from response
       const cacheKey = this.extractCacheKey(flightPriceResponse);
       if (!cacheKey) {
@@ -215,19 +192,7 @@ class SimpleApiManager {
     const requestKey = `service_list_${sessionId}`;
 
     return this.executeWithDeduplication(requestKey, async () => {
-      // Check cache first
-      const cachedResult = simpleCacheManager.getServiceList(sessionId);
-      if (cachedResult.success) {
-        console.log('✅ Using cached service list data');
-        return {
-          data: cachedResult.data,
-          success: true,
-          cache_hit: true,
-          cache_key: sessionId,
-          storage_key: sessionId
-        };
-      }
-
+      // 🚀 PRIORITY FIX: Always make fresh API calls, cache is just for storage
       // Extract cache key from response
       const cacheKey = this.extractCacheKey(flightPriceResponse);
       if (!cacheKey) {
@@ -322,30 +287,52 @@ class SimpleApiManager {
    * Extract cache key from flight price response
    */
   private extractCacheKey(flightPriceResponse: any): string {
-    // 🚀 FIXED: Use actual fields that exist in the backend response
-    // The backend doesn't send cache_key or storage_key, it uses OfferID and ResponseID
+    // 🚀 PRIORITY: Check for flight_price_cache_key in metadata (stored after flight price API call)
+    if (flightPriceResponse?.metadata?.flight_price_cache_key) {
+      console.log('🔑 Using metadata flight_price_cache_key:', flightPriceResponse.metadata.flight_price_cache_key)
+      return flightPriceResponse.metadata.flight_price_cache_key
+    }
+    
+    // Check for direct cache key field
+    if (flightPriceResponse?.flight_price_cache_key) {
+      console.log('🔑 Using direct flight_price_cache_key:', flightPriceResponse.flight_price_cache_key)
+      return flightPriceResponse.flight_price_cache_key
+    }
+    
+    // Try original offer_id from transformed response
+    if (flightPriceResponse?.original_offer_id) {
+      console.log('🔑 Using original_offer_id as cache key:', flightPriceResponse.original_offer_id)
+      return flightPriceResponse.original_offer_id
+    }
+    
+    // Try offer_id from transformed response
+    if (flightPriceResponse?.offer_id) {
+      console.log('🔑 Using offer_id as cache key:', flightPriceResponse.offer_id)
+      return flightPriceResponse.offer_id
+    }
+    
+    // Fallback: extract from raw NDC response structure
     const offerId = flightPriceResponse?.OfferID?.value || 
-                   flightPriceResponse?.offer_id || 
                    flightPriceResponse?.data?.OfferID?.value
     
     const responseId = flightPriceResponse?.ShoppingResponseID?.ResponseID?.value ||
                       flightPriceResponse?.shopping_response_id ||
                       flightPriceResponse?.data?.ShoppingResponseID?.ResponseID?.value
     
-    // Use OfferID as primary cache key, fallback to ResponseID, then session ID
     if (offerId) {
-      console.log('🔑 Using OfferID as cache key:', offerId)
+      console.log('🔑 Using NDC OfferID as cache key:', offerId)
       return offerId
     }
     
     if (responseId) {
-      console.log('🔑 Using ResponseID as cache key:', responseId)
+      console.log('🔑 Using NDC ResponseID as cache key:', responseId)
       return responseId
     }
     
     // Last resort: use session ID
     const sessionId = this.getSessionId()
-    console.log('⚠️ No OfferID or ResponseID found, using session ID as cache key:', sessionId)
+    console.warn('⚠️ No valid cache key found, using session ID:', sessionId)
+    console.warn('Available response keys:', Object.keys(flightPriceResponse || {}))
     return sessionId
   }
 
@@ -353,10 +340,15 @@ class SimpleApiManager {
    * Proactively load seat and service data to prevent duplicate calls
    */
   private proactivelyLoadSeatAndService(sessionId: string, flightPriceResponse: any): void {
+    // 🚀 OPTIMIZATION: Use dedicated proactive loading methods that store in cache
+    // Don't use getSeatAvailability/getServiceList as they now always make fresh API calls
+    
+    console.log('🚀 Starting proactive seat/service loading in background...');
+    
     // Fire and forget - load seat and service data in background
     Promise.allSettled([
-      this.getSeatAvailability(flightPriceResponse),
-      this.getServiceList(flightPriceResponse)
+      this.proactiveLoadSeatAvailability(sessionId, flightPriceResponse),
+      this.proactiveLoadServiceList(sessionId, flightPriceResponse)
     ]).then(([seatResult, serviceResult]) => {
       if (seatResult.status === 'fulfilled') {
         console.log('✅ Proactively loaded seat availability');
@@ -370,6 +362,74 @@ class SimpleApiManager {
         console.warn('⚠️ Proactive service loading failed:', serviceResult.reason);
       }
     });
+  }
+
+  /**
+   * Proactive seat availability loading (stores in cache, doesn't return data)
+   */
+  private async proactiveLoadSeatAvailability(sessionId: string, flightPriceResponse: any): Promise<void> {
+    // Check if we already have cached data
+    const existingData = simpleCacheManager.getSeatAvailability(sessionId);
+    if (existingData.success) {
+      console.log('✅ Seat availability already cached, skipping proactive load');
+      return;
+    }
+
+    // Extract cache key and make API call
+    const cacheKey = this.extractCacheKey(flightPriceResponse);
+    if (!cacheKey) {
+      throw new Error('flight_price_cache_key is required for proactive seat loading');
+    }
+
+    const response = await this.makeRequest('/api/verteil/seat-availability', {
+      flight_price_cache_key: cacheKey
+    });
+
+    // Store in cache for later use
+    if (response.success && response.data) {
+      simpleCacheManager.setSeatAvailability(sessionId, response.data);
+      
+      // Store backend storage key
+      const backendStorageKey = response.storage_key || cacheKey;
+      const sessionKeys = this.cacheKeys.get(sessionId) || {};
+      sessionKeys.seatAvailability = backendStorageKey;
+      this.cacheKeys.set(sessionId, sessionKeys);
+      console.log('🔑 Proactively stored seat availability cache key:', backendStorageKey);
+    }
+  }
+
+  /**
+   * Proactive service list loading (stores in cache, doesn't return data)
+   */
+  private async proactiveLoadServiceList(sessionId: string, flightPriceResponse: any): Promise<void> {
+    // Check if we already have cached data
+    const existingData = simpleCacheManager.getServiceList(sessionId);
+    if (existingData.success) {
+      console.log('✅ Service list already cached, skipping proactive load');
+      return;
+    }
+
+    // Extract cache key and make API call
+    const cacheKey = this.extractCacheKey(flightPriceResponse);
+    if (!cacheKey) {
+      throw new Error('flight_price_cache_key is required for proactive service loading');
+    }
+
+    const response = await this.makeRequest('/api/verteil/service-list', {
+      flight_price_cache_key: cacheKey
+    });
+
+    // Store in cache for later use
+    if (response.success && response.data) {
+      simpleCacheManager.setServiceList(sessionId, response.data);
+      
+      // Store backend storage key
+      const backendStorageKey = response.storage_key || cacheKey;
+      const sessionKeys = this.cacheKeys.get(sessionId) || {};
+      sessionKeys.serviceList = backendStorageKey;
+      this.cacheKeys.set(sessionId, sessionKeys);
+      console.log('🔑 Proactively stored service list cache key:', backendStorageKey);
+    }
   }
 
   /**

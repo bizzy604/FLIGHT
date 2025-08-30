@@ -632,7 +632,22 @@ export function SeatSelection({
           original_offer_id: flightPriceResponse?.original_offer_id
         })
         
-        // 🚀 STEP 1: Check our pre-loaded cache first
+        // 🚀 STEP 1: Check proactive loading cache first (from simple-api-manager)
+        const sessionId = localStorage.getItem('flight_session_id')
+        if (sessionId) {
+          // Check simple cache manager first (populated by proactive loading)
+          const simpleCacheManager = await import('@/utils/simple-cache-manager')
+          const proactiveCacheResult = simpleCacheManager.simpleCacheManager.getSeatAvailability(sessionId)
+          
+          if (proactiveCacheResult.success && proactiveCacheResult.data) {
+            logger.info('⚡ Using proactively loaded seat availability data!')
+            processSeatAvailabilityData(proactiveCacheResult.data)
+            setLoading(false)
+            return
+          }
+        }
+
+        // 🚀 STEP 2: Check our pre-loaded cache as fallback
         const cachedResult = seatServiceCache.getCachedSeatAvailability(flightPriceResponse)
         
         if (cachedResult.data) {

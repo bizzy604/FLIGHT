@@ -647,9 +647,9 @@ async def air_shopping():
         # Generate cache key for this search
         cache_key = _generate_cache_key(converted_data)
         
-        # Check if we have cached data first (only for GET and POST without force_refresh)
-        force_refresh = converted_data.get('force_refresh', False)
-        if not force_refresh:
+        # 🚀 PRIORITY FIX: Make API calls primary, cache only when explicitly requested
+        use_cache_only = converted_data.get('use_cache_only', False)
+        if use_cache_only:
             # Extract hash part from cache_key to use as session_id
             session_id = cache_key.split(':')[-1] if ':' in cache_key else cache_key
             cached_result = simple_flight_cache.get_flight_search(session_id)
@@ -940,15 +940,17 @@ async def flight_price():
         shopping_response_id = data['shopping_response_id']
         cache_key = _generate_flight_price_cache_key(offer_id, shopping_response_id)
         
-        # Check if we have cached pricing data first
-        force_refresh = data.get('force_refresh', False)
-        if not force_refresh:
+        # 🚀 PRIORITY FIX: Make API calls primary, cache only when explicitly requested
+        use_cache_only = data.get('use_cache_only', False)
+        
+        # Only use cache if explicitly requested via use_cache_only parameter
+        if use_cache_only:
             # Extract hash part from cache_key to use as session_id
             session_id = cache_key.split(':')[-1] if ':' in cache_key else cache_key
             cached_result = simple_flight_cache.get_flight_price(session_id)
             
             if cached_result['success']:
-                logger.info(f"🚀 Flight price cache hit! Returning cached data for key: {cache_key} - Request ID: {request_id}")
+                logger.info(f"📦 Using cached flight price data for key: {cache_key} - Request ID: {request_id}")
                 
                 # 🚀 ROBUST SOLUTION: Ensure cached data also has guaranteed cache key
                 cached_data = cached_result['data']

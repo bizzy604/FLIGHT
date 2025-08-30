@@ -119,14 +119,26 @@ export function SeatServiceIntegration({
           // Initialize booking state
           validateBookingState()
           
-          // 🚀 RESTORED: Use the preload mechanism that was working before
-          seatServiceCache.preloadData(parsedResponse)
-            .then(() => {
-              logger.info('✅ Successfully pre-loaded seat/service data via unified manager')
+          // 🚀 OPTIMIZATION: Check for existing cached data from proactive loading
+          // Only preload if data is not already available from flight selection
+          const existingSeatData = seatServiceCache.getCachedSeatAvailability(parsedResponse)
+          const existingServiceData = seatServiceCache.getCachedServiceList(parsedResponse)
+          
+          if (!existingSeatData.data && !existingServiceData.data) {
+            logger.info('🔄 No existing cached data found, preloading seat/service data...')
+            seatServiceCache.preloadData(parsedResponse)
+              .then(() => {
+                logger.info('✅ Successfully pre-loaded seat/service data')
+              })
+              .catch((preloadError) => {
+                logger.warn('⚠️ Failed to pre-load seat/service data:', preloadError)
+              })
+          } else {
+            logger.info('✅ Using existing seat/service data from proactive loading:', {
+              hasSeatData: !!existingSeatData.data,
+              hasServiceData: !!existingServiceData.data
             })
-            .catch((preloadError) => {
-              logger.warn('⚠️ Failed to pre-load seat/service data:', preloadError)
-            })
+          }
           
           logger.info(`✅ Flight data loaded - ${hasReturnFlight ? 'Round-trip' : 'One-way'}, ${segments.length} segments`)
         } else {

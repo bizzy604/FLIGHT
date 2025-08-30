@@ -1130,6 +1130,12 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
           if (!orderCreateResponse) {
             orderCreateResponse = booking?.orderCreateResponse;
           }
+          
+          // Priority 2.5: Try to get from booking_with_raw_response (new embedded field)
+          if (!orderCreateResponse && booking?.booking_with_raw_response?.raw_order_create_response) {
+            orderCreateResponse = booking.booking_with_raw_response.raw_order_create_response;
+            console.log('✅ Found OrderCreate response in booking_with_raw_response field');
+          }
 
           // Priority 3: Fallback to session storage if not in booking data
           if (!orderCreateResponse) {
@@ -1200,8 +1206,84 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
                 </div>
               </div>
             );
+          } else if (booking?.flightDetails || booking?.rawData?.flightDetails) {
+            // 🚀 FALLBACK: Use existing flightDetails from booking data
+            console.log('📋 Using existing flightDetails from booking data for itinerary');
+            const flightDetails = booking.flightDetails || booking.rawData.flightDetails;
+            console.log('📋 Available flight details:', flightDetails);
+            
+            // Transform existing flightDetails to itinerary format
+            const flights = [];
+            
+            // Add outbound flight
+            if (flightDetails.outbound) {
+              flights.push({
+                departure: {
+                  airport: flightDetails.outbound.departure?.airport || 'N/A',
+                  dateTime: flightDetails.outbound.departure?.fullDate || flightDetails.outbound.departure?.time || 'N/A'
+                },
+                arrival: {
+                  airport: flightDetails.outbound.arrival?.airport || 'N/A', 
+                  dateTime: flightDetails.outbound.arrival?.fullDate || flightDetails.outbound.arrival?.time || 'N/A'
+                },
+                flightNumber: flightDetails.outbound.airline?.flightNumber || 'N/A',
+                airline: flightDetails.outbound.airline?.name || 'N/A'
+              });
+            }
+            
+            // Add return flight if available
+            if (flightDetails.return) {
+              flights.push({
+                departure: {
+                  airport: flightDetails.return.departure?.airport || 'N/A',
+                  dateTime: flightDetails.return.departure?.fullDate || flightDetails.return.departure?.time || 'N/A'
+                },
+                arrival: {
+                  airport: flightDetails.return.arrival?.airport || 'N/A',
+                  dateTime: flightDetails.return.arrival?.fullDate || flightDetails.return.arrival?.time || 'N/A'
+                },
+                flightNumber: flightDetails.return.airline?.flightNumber || 'N/A',
+                airline: flightDetails.return.airline?.name || 'N/A'
+              });
+            }
+            
+            const itineraryData = {
+              bookingReference: booking.bookingReference || booking.order_id,
+              status: booking.status || 'confirmed',
+              flights: flights,
+              passengers: booking.passengers || booking.rawData?.passengers || [],
+              pricing: booking.pricing || {
+                baseFare: { amount: 0, currency: 'USD' },
+                taxes: { amount: 0, currency: 'USD' },
+                total: { amount: 0, currency: 'USD' }
+              },
+              contactInfo: booking.contactInfo || booking.rawData?.contactInfo || {},
+              extras: booking.extras || booking.rawData?.extras || [],
+              timestamp: booking.timestamp || booking.createdAt || new Date().toISOString()
+            };
+            
+            console.log('📋 Transformed itinerary from flightDetails:', itineraryData);
+
+            return (
+              <div className="mb-8">
+                {/* Visible original itinerary */}
+                <div id="official-itinerary">
+                  <OfficialItinerary data={itineraryData} />
+                </div>
+
+                {/* Hidden compact version for PDF generation */}
+                <div id="compact-itinerary" className="hidden">
+                  <OfficialItinerary data={itineraryData} />
+                </div>
+
+                {/* Hidden boarding pass version for future use */}
+                <div id="boarding-pass-itinerary" className="hidden">
+                  <BoardingPassItinerary data={itineraryData} />
+                </div>
+              </div>
+            );
           } else {
-            console.warn('⚠️ No OrderCreate response or originalFlightOffer found in booking data');
+            console.warn('⚠️ No OrderCreate response, originalFlightOffer, or flightDetails found in booking data');
             // Fallback: Try to show something if we have booking data
             if (booking) {
               return (

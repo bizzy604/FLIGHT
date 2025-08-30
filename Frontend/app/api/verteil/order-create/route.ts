@@ -433,7 +433,8 @@ export async function POST(request: NextRequest) {
           bookingReference: finalBookingReference,
           hasOrderCreateResponse: !!data.raw_order_create_response,
           orderCreateResponseType: typeof data.raw_order_create_response,
-          orderCreateResponseSize: data.raw_order_create_response ? JSON.stringify(data.raw_order_create_response).length : 0
+          orderCreateResponseSize: data.raw_order_create_response ? JSON.stringify(data.raw_order_create_response).length : 0,
+          orderCreateResponsePreview: data.raw_order_create_response ? JSON.stringify(data.raw_order_create_response).substring(0, 300) : 'null'
         });
 
         // Create booking record in database using the properly extracted data
@@ -485,7 +486,9 @@ export async function POST(request: NextRequest) {
           bookingReference: dbBooking.bookingReference,
           hasOrderCreateResponse: !!dbBooking.orderCreateResponse,
           hasFlightDetails: !!dbBooking.flightDetails,
-          orderCreateResponseType: typeof dbBooking.orderCreateResponse
+          orderCreateResponseType: typeof dbBooking.orderCreateResponse,
+          orderCreateResponseSize: dbBooking.orderCreateResponse ? JSON.stringify(dbBooking.orderCreateResponse).length : 0,
+          orderCreateResponsePreview: dbBooking.orderCreateResponse ? JSON.stringify(dbBooking.orderCreateResponse).substring(0, 200) : 'null'
         });
 
         console.log('🔍 Raw OrderCreate response availability:', {
@@ -530,11 +533,17 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Add debug info to response for frontend visibility
+    // 🚀 ITINERARY FIX: Ensure OrderCreate response is available for frontend itinerary display
     const responseWithDebug = {
       ...data,
       // Include raw OrderCreate response for frontend session storage
       raw_order_create_response: data.raw_order_create_response,
+      // 🚀 NEW: Add processed booking data with raw response embedded for immediate access
+      booking_with_raw_response: data.data ? {
+        ...data.data,
+        raw_order_create_response: data.raw_order_create_response,
+        orderCreateResponse: data.raw_order_create_response // Alias for component compatibility
+      } : null,
       debug_info: {
         nextjs_route_hit: true,
         flight_offer_received: !!body.flight_offer,
@@ -545,7 +554,8 @@ export async function POST(request: NextRequest) {
         backend_status: response.status,
         db_booking_stored: !!dbBookingId,
         db_booking_id: dbBookingId,
-        raw_order_create_response_available: !!data.raw_order_create_response
+        raw_order_create_response_available: !!data.raw_order_create_response,
+        booking_with_raw_response_created: !!(data.data && data.raw_order_create_response)
       }
     };
     
