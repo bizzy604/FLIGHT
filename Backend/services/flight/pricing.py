@@ -155,7 +155,18 @@ class FlightPricingService(FlightService):
 
             # Validate input
             if not actual_airshopping_response or not offer_id:
-                raise ValidationError("Missing required parameters for flight pricing")
+                raise ValidationError(
+                    "Flight search results are no longer available (expired after 30 minutes). "
+                    "Please perform a new flight search to get updated pricing."
+                )
+            
+            # Check if the air shopping data is empty (cache miss scenario)
+            if isinstance(actual_airshopping_response, dict) and len(actual_airshopping_response) == 0:
+                logger.warning("Received empty air shopping data - likely cache miss")
+                raise ValidationError(
+                    "Flight search results have expired. "
+                    "Please perform a new flight search to get updated pricing and seat/service options."
+                )
 
             # Allow frontend to pass placeholder for shopping_response_id in multi-airline scenarios
             if not shopping_response_id or shopping_response_id == 'BACKEND_WILL_EXTRACT':

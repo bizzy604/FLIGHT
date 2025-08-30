@@ -278,6 +278,43 @@ export function BoardingPassItinerary({ data }: BoardingPassItineraryProps) {
         </Card>
       )}
 
+      {/* Additional Services */}
+      {data.additionalServices && data.additionalServices.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Additional Services
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {data.additionalServices.map((service: any, index: number) => (
+                <div key={index} className="flex justify-between items-center p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">
+                      {service.serviceType === 'MEAL' ? '🍽️' : 
+                       service.serviceType === 'SEAT' ? '💺' :
+                       service.serviceType === 'BAGGAGE' ? '🧳' : '🔧'} {service.serviceName}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{service.description}</p>
+                    <div className="flex gap-3 text-xs text-muted-foreground mt-1">
+                      <span>Passenger: {service.passengerReference}</span>
+                      <span>Status: {service.status}</span>
+                    </div>
+                  </div>
+                  {service.price && (
+                    <div className="text-right">
+                      <p className="font-semibold text-green-600">{service.price.formattedPrice}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Contact Information */}
       {data.contactInfo && (
         <Card>
@@ -295,7 +332,27 @@ export function BoardingPassItinerary({ data }: BoardingPassItineraryProps) {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Phone Number</p>
-                <p className="font-medium">{data.contactInfo.phone}</p>
+                <p className="font-medium">
+                  {(() => {
+                    const phone = data.contactInfo.phone;
+                    if (!phone) return 'N/A';
+                    
+                    if (typeof phone === 'object' && phone !== null) {
+                      if (phone.formatted) {
+                        return phone.formatted;
+                      }
+                      if (phone.countryCode && phone.number) {
+                        return `${phone.countryCode} ${phone.number}`;
+                      }
+                      if (phone.number) {
+                        return phone.number;
+                      }
+                      return 'N/A';
+                    }
+                    
+                    return phone;
+                  })()}
+                </p>
               </div>
             </div>
           </CardContent>

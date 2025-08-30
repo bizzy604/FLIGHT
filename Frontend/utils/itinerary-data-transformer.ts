@@ -114,6 +114,21 @@ export interface PassengerFareRules {
   rules: FareRule[];
 }
 
+export interface AdditionalService {
+  serviceId: string;
+  serviceName: string;
+  serviceType: 'MEAL' | 'SEAT' | 'BAGGAGE' | 'OTHER';
+  description: string;
+  passengerReference: string;
+  segmentReference: string;
+  price?: {
+    amount: number;
+    currency: string;
+    formattedPrice: string;
+  };
+  status: string;
+}
+
 export interface ItineraryData {
   bookingInfo: BookingInfo;
   passengers: PassengerInfo[];
@@ -128,6 +143,7 @@ export interface ItineraryData {
   fareRules: PassengerFareRules[];
   ticketNumbers?: string[];
   bookingReference?: string;
+  additionalServices?: AdditionalService[];
 }
 
 // Airport code to name mapping (extend as needed)
@@ -556,6 +572,96 @@ function extractFareRules(orderCreateResponse: any): PassengerFareRules[] {
   return result;
 }
 
+// Helper function to extract additional services from OrderCreate response
+function extractAdditionalServices(orderCreateResponse: any): AdditionalService[] {
+  const response = orderCreateResponse.Response || orderCreateResponse;
+  const services: AdditionalService[] = [];
+
+  console.log('🔍 Extracting additional services from OrderCreate response');
+
+  // Get service definitions from DataLists
+  const serviceList = response.DataLists?.ServiceList?.Service || [];
+  const serviceDefinitions: Record<string, any> = {};
+
+  serviceList.forEach((service: any) => {
+    if (service.ObjectKey) {
+      serviceDefinitions[service.ObjectKey] = service;
+    }
+  });
+
+  console.log('🔍 Service definitions found:', Object.keys(serviceDefinitions));
+
+  // Extract services from OrderItems
+  const orderItems = response.Order?.[0]?.OrderItems?.OrderItem || [];
+
+  orderItems.forEach((orderItem: any) => {
+    // Check for services in this order item
+    if (orderItem.Services) {
+      orderItem.Services.forEach((service: any) => {
+        const serviceId = service.ServiceID?.ObjectKey;
+        const passengerRef = service.PassengerReferences;
+        const segmentRef = service.SegmentRefs;
+        const serviceDefRef = service.ServiceDefinitionRefs;
+        const status = service.ServiceID?.Status || 'Unknown';
+
+        // Get service details from definitions
+        const serviceDefinition = serviceDefinitions[serviceDefRef] || {};
+        const serviceName = serviceDefinition.Name?.value || serviceId || 'Unknown Service';
+        
+        // Determine service type based on service name/code
+        let serviceType: 'MEAL' | 'SEAT' | 'BAGGAGE' | 'OTHER' = 'OTHER';
+        const nameUpper = serviceName.toUpperCase();
+        
+        if (nameUpper.includes('MEAL') || nameUpper.includes('LFML') || nameUpper.includes('FOOD')) {
+          serviceType = 'MEAL';
+        } else if (nameUpper.includes('SEAT') || nameUpper.includes('CHAIR')) {
+          serviceType = 'SEAT';
+        } else if (nameUpper.includes('BAG') || nameUpper.includes('LUGGAGE')) {
+          serviceType = 'BAGGAGE';
+        }
+
+        // Get price information from order item
+        const price = orderItem.Price?.Total?.value ? {
+          amount: orderItem.Price.Total.value,
+          currency: orderItem.Price.Total.Code || 'USD',
+          formattedPrice: formatCurrency(
+            orderItem.Price.Total.value,
+            orderItem.Price.Total.Code || 'USD'
+          )
+        } : undefined;
+
+        // Get description from service definition
+        const description = serviceDefinition.Descriptions?.Description?.[0]?.Text?.value ||
+          serviceDefinition.Name?.value ||
+          serviceName;
+
+        services.push({
+          serviceId: serviceId || 'Unknown',
+          serviceName,
+          serviceType,
+          description,
+          passengerReference: passengerRef || 'Unknown',
+          segmentReference: segmentRef || 'Unknown',
+          price,
+          status
+        });
+
+        console.log('🔍 Extracted service:', {
+          serviceId,
+          serviceName,
+          serviceType,
+          passengerRef,
+          segmentRef,
+          price: price?.formattedPrice
+        });
+      });
+    }
+  });
+
+  console.log(`🔍 Total additional services extracted: ${services.length}`);
+  return services;
+}
+
 // Helper function to extract fare rules from processed flight price data
 function extractFareRulesFromProcessedData(flightPriceData: any): PassengerFareRules[] {
   console.log('🎯 extractFareRulesFromProcessedData - Input data:', {
@@ -791,7 +897,8 @@ function transformFromFrontendAPIResponse(data: any): ItineraryData {
     baggageAllowance,
     fareRules: [],
     ticketNumbers: [],
-    bookingReference: bookingInfo.bookingReference
+    bookingReference: bookingInfo.bookingReference,
+    additionalServices: []
   };
 }
 
@@ -916,7 +1023,8 @@ function transformFromOriginalFlightOffer(originalFlightOffer: any, basicBooking
     baggageAllowance,
     fareRules: [],
     ticketNumbers: passengers.map(p => p.ticketNumber).filter(Boolean),
-    bookingReference: bookingInfo.bookingReference
+    bookingReference: bookingInfo.bookingReference,
+    additionalServices: []
   };
 }
 
@@ -1189,6 +1297,9 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
     console.log('🎯 Extracted fare rules from OrderCreate:', fareRules.length, 'passenger groups');
   }
 
+  // Extract additional services
+  const additionalServices = extractAdditionalServices({ Response: response });
+
   return {
     bookingInfo,
     passengers,
@@ -1199,6 +1310,7 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
     baggageAllowance,
     fareRules,
     ticketNumbers,
-    bookingReference: bookingInfo.bookingReference
+    bookingReference: bookingInfo.bookingReference,
+    additionalServices
   };
 }

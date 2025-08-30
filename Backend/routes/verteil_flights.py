@@ -119,8 +119,11 @@ def _generate_cache_key(search_params: Dict[str, Any], cache_type: str = "search
             destination = first_segment.get('destination', '')
             depart_date = first_segment.get('departureDate', '')
             
-            # Get second segment for return if it exists
-            if len(od_segments) > 1:
+            # For round-trip, check if return date is in the first segment
+            if first_segment.get('returnDate'):
+                return_date = first_segment.get('returnDate', '')
+            # Otherwise, get second segment for return if it exists (legacy format)
+            elif len(od_segments) > 1:
                 second_segment = od_segments[1]
                 return_date = second_segment.get('departureDate', '')
     

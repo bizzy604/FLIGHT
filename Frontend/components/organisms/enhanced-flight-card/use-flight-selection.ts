@@ -226,6 +226,17 @@ export function useFlightSelection({ flight, searchParams }: UseFlightSelectionP
         logger.warn('⚠️ No search parameters available, backend will handle cache retrieval');
       }
 
+      // Check if we have valid air shopping data before making the API call
+      if (!airShoppingData || Object.keys(airShoppingData).length === 0) {
+        logger.warn('⚠️ No air shopping data available - flight search results may have expired')
+        
+        // Show user-friendly message about expired search results
+        alert('Flight search results have expired. The page will refresh to show current flights.')
+        // Auto-refresh the page to trigger a new search
+        window.location.reload()
+        return
+      }
+
       // Call flight pricing API
       const response = await api.getFlightPrice(
         flightIndex,
@@ -242,6 +253,17 @@ export function useFlightSelection({ flight, searchParams }: UseFlightSelectionP
         // Auto-refresh the page to trigger a new search
         window.location.reload()
         return
+      }
+
+      // Handle cache/data expiration errors
+      if (response.data?.status === 'error' && response.data?.error) {
+        const errorMessage = response.data.error.toLowerCase()
+        if (errorMessage.includes('expired') || errorMessage.includes('cache') || errorMessage.includes('search results')) {
+          logger.warn('⚠️ Flight search data expired, refreshing page')
+          alert('Flight search results have expired. The page will refresh to show current flights.')
+          window.location.reload()
+          return
+        }
       }
 
       if (!response.data || response.data.status !== 'success') {

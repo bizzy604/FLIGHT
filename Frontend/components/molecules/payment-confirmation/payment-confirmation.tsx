@@ -444,10 +444,15 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
       let phoneValue = 'N/A';
       if (bookingData.contactInfo.phone) {
         if (typeof bookingData.contactInfo.phone === 'object') {
-          phoneValue = bookingData.contactInfo.phone.formatted ||
-                      bookingData.contactInfo.phone.number ||
-                      `${bookingData.contactInfo.phone.countryCode || ''}${bookingData.contactInfo.phone.number || ''}` ||
-                      'N/A';
+          if (bookingData.contactInfo.phone.formatted) {
+            phoneValue = bookingData.contactInfo.phone.formatted;
+          } else if (bookingData.contactInfo.phone.countryCode && bookingData.contactInfo.phone.number) {
+            phoneValue = `${bookingData.contactInfo.phone.countryCode} ${bookingData.contactInfo.phone.number}`;
+          } else if (bookingData.contactInfo.phone.number) {
+            phoneValue = bookingData.contactInfo.phone.number;
+          } else {
+            phoneValue = 'N/A';
+          }
         } else {
           phoneValue = bookingData.contactInfo.phone;
         }
@@ -969,10 +974,16 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
                       <span className="font-medium">Phone:</span> {(() => {
                         if (typeof contactInfo.phone === 'object' && contactInfo.phone !== null) {
                           // Handle phone object with different possible structures
-                          return contactInfo.phone.formatted ||
-                                 contactInfo.phone.number ||
-                                 `${contactInfo.phone.countryCode || ''}${contactInfo.phone.number || ''}` ||
-                                 'N/A';
+                          if (contactInfo.phone.formatted) {
+                            return contactInfo.phone.formatted;
+                          }
+                          if (contactInfo.phone.countryCode && contactInfo.phone.number) {
+                            return `${contactInfo.phone.countryCode} ${contactInfo.phone.number}`;
+                          }
+                          if (contactInfo.phone.number) {
+                            return contactInfo.phone.number;
+                          }
+                          return 'N/A';
                         }
                         // Handle string phone numbers
                         return contactInfo.phone || 'N/A';

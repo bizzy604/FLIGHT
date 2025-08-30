@@ -336,6 +336,14 @@ function FlightDetailsPageContent() {
           logger.warn('⚠️ No search parameters available from URL, backend will handle cache retrieval');
         }
 
+        // Check if we have valid air shopping data before making the API call
+        if (!airShoppingMetadata || Object.keys(airShoppingMetadata).length === 0) {
+          logger.warn('⚠️ No air shopping data available - flight search results may have expired');
+          setError('Flight search results have expired. Please search for flights again.');
+          setIsLoading(false);
+          return;
+        }
+
         // Make flight pricing API call
         const response = await api.getFlightPrice(
           flightIndex,
@@ -365,6 +373,17 @@ function FlightDetailsPageContent() {
           // Redirect to flights page to trigger fresh search
           window.location.href = `/flights?${searchUrl.toString()}`;
           return;
+        }
+
+        // Handle cache/data expiration errors
+        if (response.data?.status === 'error' && response.data?.error) {
+          const errorMessage = response.data.error.toLowerCase();
+          if (errorMessage.includes('expired') || errorMessage.includes('cache') || errorMessage.includes('search results')) {
+            logger.warn('⚠️ Flight search data expired');
+            setError('Flight search results have expired. Please search for flights again.');
+            setIsLoading(false);
+            return;
+          }
         }
 
         if (!response.data || response.data.status !== 'success') {

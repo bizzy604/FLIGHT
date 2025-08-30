@@ -1111,7 +1111,27 @@ export default function BookingDetailsPage() {
                       {itineraryData && passenger.phone && (
                         <div className="mt-2">
                           <p className="text-sm text-muted-foreground">Phone</p>
-                          <p className="font-semibold text-xs">{passenger.phone}</p>
+                          <p className="font-semibold text-xs">
+                            {(() => {
+                              const phone = passenger.phone;
+                              if (!phone) return 'N/A';
+                              
+                              if (typeof phone === 'object' && phone !== null) {
+                                if (phone.formatted) {
+                                  return phone.formatted;
+                                }
+                                if (phone.countryCode && phone.number) {
+                                  return `${phone.countryCode} ${phone.number}`;
+                                }
+                                if (phone.number) {
+                                  return phone.number;
+                                }
+                                return 'N/A';
+                              }
+                              
+                              return phone;
+                            })()} 
+                          </p>
                         </div>
                       )}
                     </div>
@@ -1360,7 +1380,27 @@ export default function BookingDetailsPage() {
                   <Phone className="w-4 h-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm text-muted-foreground">Phone</p>
-                    <p className="font-semibold">{booking.contactInfo?.phone || 'Not provided'}</p>
+                    <p className="font-semibold">
+                      {(() => {
+                        const phone = booking.contactInfo?.phone;
+                        if (!phone) return 'Not provided';
+                        
+                        if (typeof phone === 'object' && phone !== null) {
+                          if (phone.formatted) {
+                            return phone.formatted;
+                          }
+                          if (phone.countryCode && phone.number) {
+                            return `${phone.countryCode} ${phone.number}`;
+                          }
+                          if (phone.number) {
+                            return phone.number;
+                          }
+                          return 'Not provided';
+                        }
+                        
+                        return phone;
+                      })()} 
+                    </p>
                   </div>
                 </div>
               </div>

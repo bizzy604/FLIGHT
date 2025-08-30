@@ -259,11 +259,78 @@ export function OfficialItinerary({ data }: OfficialItineraryProps) {
             </div>
             <div>
               <p className="font-medium text-foreground">Phone Number</p>
-              <p className="text-sm text-muted-foreground">{data.contactInfo?.phone || 'N/A'}</p>
+              <p className="text-sm text-muted-foreground">
+                {(() => {
+                  const phone = data.contactInfo?.phone;
+                  if (!phone) return 'N/A';
+                  
+                  if (typeof phone === 'object' && phone !== null) {
+                    if (phone.formatted) {
+                      return phone.formatted;
+                    }
+                    if (phone.countryCode && phone.number) {
+                      return `${phone.countryCode} ${phone.number}`;
+                    }
+                    if (phone.number) {
+                      return phone.number;
+                    }
+                    return 'N/A';
+                  }
+                  
+                  return phone;
+                })()}
+              </p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Additional Services */}
+      {data.additionalServices && data.additionalServices.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-foreground mb-4 border-b border-border pb-2">ADDITIONAL SERVICES</h2>
+          
+          <div className="space-y-4">
+            {/* Group services by type */}
+            {['MEAL', 'SEAT', 'BAGGAGE', 'OTHER'].map(serviceType => {
+              const servicesOfType = data.additionalServices.filter((s: any) => s.serviceType === serviceType);
+              if (servicesOfType.length === 0) return null;
+
+              return (
+                <div key={serviceType} className="border border-border rounded-lg p-4 bg-card">
+                  <h3 className="font-semibold mb-3 text-foreground">
+                    {serviceType === 'MEAL' ? '🍽️ Meal Services' : 
+                     serviceType === 'SEAT' ? '💺 Seat Services' :
+                     serviceType === 'BAGGAGE' ? '🧳 Baggage Services' : 
+                     '🔧 Other Services'}
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    {servicesOfType.map((service: any, index: number) => (
+                      <div key={index} className="flex justify-between items-start p-3 bg-muted/30 rounded border border-border">
+                        <div className="flex-1">
+                          <p className="font-medium text-foreground">{service.serviceName}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{service.description}</p>
+                          <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+                            <span>Passenger: {service.passengerReference}</span>
+                            <span>Flight: {service.segmentReference}</span>
+                            <span className="capitalize">Status: {service.status}</span>
+                          </div>
+                        </div>
+                        {service.price && (
+                          <div className="text-right ml-4">
+                            <p className="font-semibold text-foreground">{service.price.formattedPrice}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Important Travel Information */}
       <div className="mb-8">
