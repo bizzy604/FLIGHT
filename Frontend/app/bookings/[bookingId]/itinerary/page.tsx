@@ -12,7 +12,7 @@ import { UserNav } from "@/components/organisms"
 import { LoadingSpinner } from "@/components/atoms"
 import { LoadingButton } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
-import { OfficialItinerary, BoardingPassItinerary } from "@/components/organisms"
+import { OfficialItinerary } from "@/components/organisms"
 import { transformOrderCreateToItinerary, ItineraryData } from "@/utils/itinerary-data-transformer"
 import { generatePDFFromComponent } from "@/utils/download-utils"
 
@@ -309,10 +309,10 @@ export default function BookingItineraryPage() {
             </div>
           </div>
 
-          {/* Boarding Pass Itinerary Display */}
+          {/* Official Itinerary Display */}
           <div className="mb-8">
             <div id="booking-itinerary">
-              <BoardingPassItinerary data={itineraryData} />
+              <OfficialItinerary data={itineraryData} />
             </div>
           </div>
         </div>

@@ -17,6 +17,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { PassengerForm } from "@/components/molecules"
 import { ServiceSelection, SeatSelection } from "@/components/molecules"
+import { api } from "@/utils/api-client"
+import { seatServiceCache } from "@/utils/seat-service-cache-manager"
+import { logger } from "@/utils/logger"
 
 interface ContactInfoState {
   email?: string;
@@ -114,11 +117,171 @@ export function BookingForm({
           segments: segments.length,
           hasReturnFlight
         })
+        
+        // 🚀 CENTRALIZED: Load seat and service data once here
+        loadSeatAndServiceData(flightData)
       } catch (error) {
         console.error('Error parsing flight price response:', error)
       }
     }
   }, [])
+
+  // 🚀 CENTRALIZED DATA LOADING: Load seat and service data once
+  const loadSeatAndServiceData = async (flightPriceResponse: any) => {
+    if (!flightPriceResponse) return
+    
+    logger.info('🔄 Starting centralized seat and service data loading...')
+    
+    // Load seat data
+    loadSeatData(flightPriceResponse)
+    
+    // Load service data  
+    loadServiceData(flightPriceResponse)
+  }
+  
+  const loadSeatData = async (flightPriceResponse: any) => {
+    setDataLoading(prev => ({...prev, seat: true}))
+    setDataErrors(prev => ({...prev, seat: null}))
+    
+    try {
+      logger.info('🪑 Loading seat availability data...')
+      
+      // Step 1: Check proactive loading cache first
+      const sessionId = localStorage.getItem('flight_session_id')
+      if (sessionId) {
+        const simpleCacheManager = await import('@/utils/simple-cache-manager')
+        const proactiveCacheResult = simpleCacheManager.simpleCacheManager.getSeatAvailability(sessionId)
+        
+        if (proactiveCacheResult.success && proactiveCacheResult.data) {
+          logger.info('⚡ Using proactively loaded seat availability data!')
+          setSeatData(proactiveCacheResult.data)
+          setDataLoading(prev => ({...prev, seat: false}))
+          return
+        }
+      }
+
+      // Step 2: Check pre-loaded cache
+      const cachedResult = seatServiceCache.getCachedSeatAvailability(flightPriceResponse)
+      
+      if (cachedResult.data) {
+        logger.info('⚡ Using pre-loaded seat availability data from cache!')
+        setSeatData(cachedResult.data)
+        setDataLoading(prev => ({...prev, seat: false}))
+        return
+      }
+      
+      if (cachedResult.isLoading) {
+        logger.info('🔄 Seat data is loading in background, waiting...')
+        await waitForSeatCache(flightPriceResponse)
+        return
+      }
+
+      // Step 3: Fallback to API call
+      logger.info('💻 Making direct seat API call')
+      const response = await api.getSeatAvailability(flightPriceResponse)
+      setSeatData(response.data)
+      logger.info('✅ Seat data loaded via API')
+      
+    } catch (error) {
+      logger.error('❌ Error loading seat data:', error)
+      setDataErrors(prev => ({...prev, seat: 'Failed to load seat map. Please try again.'}))
+    } finally {
+      setDataLoading(prev => ({...prev, seat: false}))
+    }
+  }
+  
+  const loadServiceData = async (flightPriceResponse: any) => {
+    setDataLoading(prev => ({...prev, service: true}))
+    setDataErrors(prev => ({...prev, service: null}))
+    
+    try {
+      logger.info('🛎️ Loading service list data...')
+      
+      // Step 1: Check proactive loading cache first
+      const sessionId = localStorage.getItem('flight_session_id')
+      if (sessionId) {
+        const simpleCacheManager = await import('@/utils/simple-cache-manager')
+        const proactiveCacheResult = simpleCacheManager.simpleCacheManager.getServiceList(sessionId)
+        
+        if (proactiveCacheResult.success && proactiveCacheResult.data) {
+          logger.info('⚡ Using proactively loaded service list data!')
+          setServiceData(proactiveCacheResult.data)
+          setDataLoading(prev => ({...prev, service: false}))
+          return
+        }
+      }
+
+      // Step 2: Check pre-loaded cache
+      const cachedResult = seatServiceCache.getCachedServiceList(flightPriceResponse)
+      
+      if (cachedResult.data) {
+        logger.info('⚡ Using pre-loaded service list data from cache!')
+        setServiceData(cachedResult.data)
+        setDataLoading(prev => ({...prev, service: false}))
+        return
+      }
+      
+      if (cachedResult.isLoading) {
+        logger.info('🔄 Service data is loading in background, waiting...')
+        await waitForServiceCache(flightPriceResponse)
+        return
+      }
+
+      // Step 3: Fallback to API call
+      logger.info('💻 Making direct service API call')
+      const response = await api.getServiceList(flightPriceResponse)
+      setServiceData(response.data)
+      logger.info('✅ Service data loaded via API')
+      
+    } catch (error) {
+      logger.error('❌ Error loading service data:', error)
+      setDataErrors(prev => ({...prev, service: 'Failed to load services. Please try again.'}))
+    } finally {
+      setDataLoading(prev => ({...prev, service: false}))
+    }
+  }
+  
+  const waitForSeatCache = async (flightPriceResponse: any) => {
+    for (let attempt = 1; attempt <= 5; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+      
+      const retryResult = seatServiceCache.getCachedSeatAvailability(flightPriceResponse)
+      if (retryResult.data) {
+        logger.info(`✅ Got cached seat data after ${attempt} attempts!`)
+        setSeatData(retryResult.data)
+        setDataLoading(prev => ({...prev, seat: false}))
+        return
+      }
+      
+      if (!retryResult.isLoading) break
+    }
+    
+    // Final fallback to API
+    const response = await api.getSeatAvailability(flightPriceResponse)
+    setSeatData(response.data)
+    setDataLoading(prev => ({...prev, seat: false}))
+  }
+  
+  const waitForServiceCache = async (flightPriceResponse: any) => {
+    for (let attempt = 1; attempt <= 5; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+      
+      const retryResult = seatServiceCache.getCachedServiceList(flightPriceResponse)
+      if (retryResult.data) {
+        logger.info(`✅ Got cached service data after ${attempt} attempts!`)
+        setServiceData(retryResult.data)
+        setDataLoading(prev => ({...prev, service: false}))
+        return
+      }
+      
+      if (!retryResult.isLoading) break
+    }
+    
+    // Final fallback to API
+    const response = await api.getServiceList(flightPriceResponse)
+    setServiceData(response.data)
+    setDataLoading(prev => ({...prev, service: false}))
+  }
 
   // --- Add State Variables Start ---
   const [passengers, setPassengers] = useState<any[]>(() => {
@@ -154,6 +317,12 @@ export function BookingForm({
   const [pricingDetails, setPricingDetails] = useState<any>({}); // State for pricing details
   const [termsAccepted, setTermsAccepted] = useState(false); // State for terms acceptance
   const [isRoundTrip, setIsRoundTrip] = useState(false); // State for trip type detection
+  
+  // 🚀 NEW: Centralized data loading state
+  const [seatData, setSeatData] = useState<any>(null)
+  const [serviceData, setServiceData] = useState<any>(null)
+  const [dataLoading, setDataLoading] = useState<{seat: boolean, service: boolean}>({seat: false, service: false})
+  const [dataErrors, setDataErrors] = useState<{seat: string | null, service: string | null}>({seat: null, service: null})
   // --- Add State Variables End ---
 
   // Validation functions
@@ -798,6 +967,9 @@ export function BookingForm({
                       onSeatChange={handleSeatChange}
                       passengers={passengersForServices}
                       className="border-none shadow-none"
+                      preloadedData={seatData}
+                      loading={dataLoading.seat}
+                      error={dataErrors.seat}
                     />
                   </div>
 
@@ -815,6 +987,9 @@ export function BookingForm({
                           onSeatChange={handleSeatChange}
                           passengers={passengersForServices}
                           className="border-none shadow-none"
+                          preloadedData={seatData}
+                          loading={dataLoading.seat}
+                          error={dataErrors.seat}
                         />
                       </div>
                     </>
@@ -847,6 +1022,9 @@ export function BookingForm({
                   onBaggageChange={handleBaggageChange}
                   passengers={passengersForServices}
                   className="border-none shadow-none"
+                  preloadedData={serviceData}
+                  loading={dataLoading.service}
+                  error={dataErrors.service}
                 />
               ) : (
                 <div className="p-6 text-center border rounded-lg">

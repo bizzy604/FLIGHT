@@ -84,6 +84,10 @@ interface ServiceSelectionProps {
     type: string
   }>
   className?: string
+  // 🚀 NEW: Preloaded data from parent component
+  preloadedData?: any
+  loading?: boolean
+  error?: string | null
 }
 
 export function ServiceSelection({ 
@@ -95,185 +99,117 @@ export function ServiceSelection({
   selectedBaggage = { checkedBags: 0, specialEquipment: 'none' },
   onBaggageChange,
   passengers,
-  className 
+  className,
+  preloadedData,
+  loading = false,
+  error = null
 }: ServiceSelectionProps) {
   const [services, setServices] = useState<Service[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [internalError, setInternalError] = useState<string | null>(null)
   const [servicesByCategory, setServicesByCategory] = useState<Record<string, Service[]>>({})
   const [activeTab, setActiveTab] = useState('meals')
+  
+  // Use external loading/error states when preloaded data is provided
+  const isLoading = preloadedData ? loading : false
+  const displayError = preloadedData ? error : internalError
 
-  // Load services from backend with intelligent caching
+  // Helper function to process service list data
+  const processServiceListData = (servicesData: any) => {
+    logger.info('🔍 Processing service list data structure:', Object.keys(servicesData || {}))
+    
+    // Handle the backend transformer response structure
+    let actualData = servicesData
+    
+    // If it's wrapped in a status response, extract the data
+    if (servicesData?.status === 'success' && servicesData?.data) {
+      actualData = servicesData.data
+      logger.info('✅ Extracted services data from status wrapper')
+    }
+    
+    // Look for services in multiple possible locations
+    let servicesList = null
+    
+    if (actualData?.services?.service) {
+      servicesList = actualData.services.service
+      logger.info(`✅ Found ${servicesList.length} services in services.service`)
+    } else if (actualData?.services) {
+      servicesList = actualData.services
+      logger.info(`✅ Found ${servicesList.length} services in top-level services`)
+    } else if (actualData?.service) {
+      servicesList = actualData.service
+      logger.info(`✅ Found ${servicesList.length} services in service array`)
+    }
+    
+    if (servicesList && servicesList.length > 0) {
+      setServices(servicesList)
+      
+      // Categorize services
+      const categorized = categorizeServices(servicesList)
+      setServicesByCategory(categorized)
+      
+      // Set active tab to first available category
+      const categories = Object.keys(categorized)
+      if (categories.length > 0 && !categories.includes(activeTab)) {
+        setActiveTab(categories[0])
+      }
+      
+      logger.info(`✅ Successfully processed ${servicesList.length} services into ${categories.length} categories`)
+    } else {
+      logger.warn('⚠️ No services found in response')
+      setServices([])
+      setServicesByCategory({})
+    }
+  }
+
+  // 🚀 UPDATED: Use preloaded data when available
   useEffect(() => {
-    const loadServices = async () => {
-      if (!flightPriceResponse) return
+    if (preloadedData) {
+      // Use preloaded data from parent component
+      logger.info('⚡ ServiceSelection using preloaded data from parent component')
+      processServiceListData(preloadedData)
+      return
+    }
+    
+    // 🚫 LEGACY: Only fallback to individual loading if no preloaded data
+    if (!flightPriceResponse) return
+    
+    logger.warn('⚠️ ServiceSelection falling back to individual data loading (should be avoided)')
+    loadServicesDataFallback()
+  }, [flightPriceResponse, preloadedData])
+  
+  const loadServicesDataFallback = async () => {
+    setInternalError(null)
 
-      setLoading(true)
-      setError(null)
-
-      try {
-        logger.info('🛎️ Loading service list data...')
+    try {
+      logger.info('🛎️ Loading service list data (fallback)...')
+      
+      // Check simple cache manager first
+      const sessionId = localStorage.getItem('flight_session_id')
+      if (sessionId) {
+        const simpleCacheManager = await import('@/utils/simple-cache-manager')
+        const proactiveCacheResult = simpleCacheManager.simpleCacheManager.getServiceList(sessionId)
         
-        // 🚀 STEP 1: Check proactive loading cache first (from simple-api-manager)
-        const sessionId = localStorage.getItem('flight_session_id')
-        if (sessionId) {
-          // Check simple cache manager first (populated by proactive loading)
-          const simpleCacheManager = await import('@/utils/simple-cache-manager')
-          const proactiveCacheResult = simpleCacheManager.simpleCacheManager.getServiceList(sessionId)
-          
-          if (proactiveCacheResult.success && proactiveCacheResult.data) {
-            logger.info('⚡ Using proactively loaded service list data!')
-            processServiceListData(proactiveCacheResult.data)
-            setLoading(false)
-            return
-          }
-        }
-
-        // 🚀 STEP 2: Check our pre-loaded cache as fallback
-        const cachedResult = seatServiceCache.getCachedServiceList(flightPriceResponse)
-        
-        if (cachedResult.data) {
-          logger.info('⚡ Using pre-loaded service list data from cache!')
-          const servicesData = cachedResult.data
-          
-          // Process cached data
-          processServiceListData(servicesData)
-          setLoading(false)
-          return
-        } 
-        
-        if (cachedResult.isLoading) {
-          logger.info('🔄 Service list data is still loading in background, waiting with exponential backoff...')
-          // Use exponential backoff to wait for global preloading to complete
-          await waitForCacheWithBackoff(flightPriceResponse, 5, 1000) // 5 retries, starting with 1 second
+        if (proactiveCacheResult.success && proactiveCacheResult.data) {
+          logger.info('⚡ Using cached service data in fallback!')
+          processServiceListData(proactiveCacheResult.data)
           return
         }
-
-        if (cachedResult.error) {
-          logger.warn('⚠️ Service pre-loading failed with error:', cachedResult.error)
-        }
-
-        // 🚀 STEP 2: Fall back to direct API call
-        logger.info('💻 No pre-loaded service data available, using direct API call')
-        await fallbackToApiCall()
-
-      } catch (err) {
-        logger.error("❌ Error loading services:", err)
-        setError("Failed to load services. Please try again.")
-        setServices([])
-        setServicesByCategory({})
-      } finally {
-        setLoading(false)
       }
+
+      // Final fallback to API
+      logger.info('💻 Making direct service API call (fallback)')
+      const response = await api.getServiceList(flightPriceResponse)
+      processServiceListData(response.data)
+      
+    } catch (err) {
+      logger.error("❌ Error in service list fallback:", err)
+      setInternalError("Failed to load services. Please try again.")
+      setServices([])
+      setServicesByCategory({})
     }
 
-    // 🚀 ENHANCED: Wait for cache with exponential backoff to prevent redundant API calls
-    const waitForCacheWithBackoff = async (flightPriceResponse: any, maxRetries: number, initialDelay: number) => {
-      let delay = initialDelay
-      
-      for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        logger.info(`🔄 Service cache wait attempt ${attempt}/${maxRetries}, delay: ${delay}ms`)
-        
-        await new Promise(resolve => setTimeout(resolve, delay))
-        
-        const retryResult = seatServiceCache.getCachedServiceList(flightPriceResponse)
-        
-        if (retryResult.data) {
-          logger.info(`✅ Got pre-loaded service list data after ${attempt} attempts!`)
-          processServiceListData(retryResult.data)
-          setLoading(false)
-          return
-        }
-        
-        if (!retryResult.isLoading) {
-          logger.info(`🚫 Global loading completed but no service data available after ${attempt} attempts`)
-          break
-        }
-        
-        // Exponential backoff with jitter
-        delay = Math.min(delay * 2, 10000) + Math.random() * 1000
-      }
-      
-      // If we reach here, fall back to API call as last resort
-      logger.warn(`⚠️ Service cache wait timeout after ${maxRetries} attempts, falling back to API call`)
-      await fallbackToApiCall()
-      setLoading(false)
-    }
 
-    // Helper function to process service list data
-    const processServiceListData = (servicesData: any) => {
-      logger.info('🔍 Processing service list data structure:', Object.keys(servicesData || {}))
-      
-      // Handle the backend transformer response structure
-      let actualData = servicesData
-      
-      // If it's wrapped in a status response, extract the data
-      if (servicesData?.status === 'success' && servicesData?.data) {
-        actualData = servicesData.data
-        logger.info('✅ Extracted services data from status wrapper')
-      }
-      
-      // Look for services in multiple possible locations
-      let servicesList = null
-      
-      if (actualData?.services?.service) {
-        servicesList = actualData.services.service
-        logger.info(`✅ Found ${servicesList.length} services in services.service`)
-      } else if (actualData?.services) {
-        servicesList = actualData.services
-        logger.info(`✅ Found ${servicesList.length} services in top-level services`)
-      } else if (actualData?.service) {
-        servicesList = actualData.service
-        logger.info(`✅ Found ${servicesList.length} services in service array`)
-      }
-      
-      if (servicesList && servicesList.length > 0) {
-        setServices(servicesList)
-        
-        // Categorize services
-        const categorized = categorizeServices(servicesList)
-        setServicesByCategory(categorized)
-        
-        // Set active tab to first available category
-        const categories = Object.keys(categorized)
-        if (categories.length > 0 && !categories.includes(activeTab)) {
-          setActiveTab(categories[0])
-        }
-        
-        logger.info(`✅ Successfully processed ${servicesList.length} services into ${categories.length} categories`)
-      } else {
-        logger.warn('⚠️ No services found in response')
-        setServices([])
-        setServicesByCategory({})
-      }
-    }
-
-    // Fallback function for direct API calls (original logic)
-    const fallbackToApiCall = async () => {
-      try {
-        // Check backend cache first
-        const cacheResponse = await api.checkServiceListCache(flightPriceResponse)
-        
-        let servicesData = null
-        
-        if (cacheResponse.data?.cache_hit) {
-          logger.info("🎯 Backend service list cache hit")
-          servicesData = cacheResponse.data.data
-        } else {
-          logger.info("📞 Backend cache miss, making fresh API call")
-          const response = await api.getServiceList(flightPriceResponse)
-          servicesData = response.data
-        }
-
-        processServiceListData(servicesData)
-      } catch (apiError) {
-        logger.error("❌ Service API fallback failed:", apiError)
-        throw apiError
-      }
-    }
-
-    loadServices()
-  }, [flightPriceResponse]) // Remove onServicesUpdate from dependencies since it's optional
+  }
 
   // Categorize services by type - enhanced for better categorization
   const categorizeServices = (servicesList: Service[]): Record<string, Service[]> => {
@@ -396,7 +332,7 @@ export function ServiceSelection({
     return firstService?.price?.[0]?.total?.code || 'USD'
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card className={className}>
         <CardHeader>
@@ -412,12 +348,12 @@ export function ServiceSelection({
     )
   }
 
-  if (error) {
+  if (displayError) {
     return (
       <Card className={className}>
         <CardHeader>
           <CardTitle>Additional Services</CardTitle>
-          <CardDescription className="text-red-600">{error}</CardDescription>
+          <CardDescription className="text-red-600">{displayError}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">

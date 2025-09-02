@@ -110,7 +110,7 @@ export default function BookingsPage() {
               status: booking.status,
               createdAt: booking.createdAt,
               totalAmount: booking.totalAmount,
-              currency: 'USD', // Default currency
+              currency: '', // Default currency
               airlineCode: outbound.airline?.code || 'Unknown'
             };
           });

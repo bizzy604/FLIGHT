@@ -353,6 +353,10 @@ interface SeatSelectionProps {
     type: string
   }>
   className?: string
+  // 🚀 NEW: Preloaded data from parent component
+  preloadedData?: any
+  loading?: boolean
+  error?: string | null
 }
 
 // 🧠 INTELLIGENT CABIN SEPARATION HELPERS
@@ -460,12 +464,18 @@ export function SeatSelection({
   selectedSeats, 
   onSeatChange,
   passengers,
-  className 
+  className,
+  preloadedData,
+  loading = false,
+  error = null
 }: SeatSelectionProps) {
   const [seats, setSeats] = useState<Seat[]>([])
   const [seatMap, setSeatMap] = useState<SeatMap | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [internalError, setInternalError] = useState<string | null>(null)
+  
+  // Use external loading/error states when preloaded data is provided
+  const isLoading = preloadedData ? loading : false
+  const displayError = preloadedData ? error : internalError
   
   // 🎯 NEW: Seat filtering state
   const [activeFilter, setActiveFilter] = useState<'standard' | 'premium' | 'preferred' | 'exit' | null>(null)
@@ -610,285 +620,212 @@ export function SeatSelection({
     }
   }, [activeFilter, applySeatFilter])
 
-  // Load seat availability from backend with intelligent caching
-  useEffect(() => {
-    const loadSeatAvailability = async () => {
-      if (!flightPriceResponse) return
-
-      setLoading(true)
-      setError(null)
-
-      try {
-        logger.info('🪑 Loading seat availability data...')
-        
-        // 🔍 DEBUG: Check what flight price response we're receiving
-        logger.info('🔍 SEAT SELECTION - Flight Price Response Debug:', {
-          response_type: typeof flightPriceResponse,
-          response_keys: Object.keys(flightPriceResponse || {}),
-          has_metadata: !!flightPriceResponse?.metadata,
-          metadata_keys: Object.keys(flightPriceResponse?.metadata || {}),
-          flight_price_cache_key: flightPriceResponse?.metadata?.flight_price_cache_key,
-          offer_id: flightPriceResponse?.offer_id,
-          original_offer_id: flightPriceResponse?.original_offer_id
-        })
-        
-        // 🚀 STEP 1: Check proactive loading cache first (from simple-api-manager)
-        const sessionId = localStorage.getItem('flight_session_id')
-        if (sessionId) {
-          // Check simple cache manager first (populated by proactive loading)
-          const simpleCacheManager = await import('@/utils/simple-cache-manager')
-          const proactiveCacheResult = simpleCacheManager.simpleCacheManager.getSeatAvailability(sessionId)
-          
-          if (proactiveCacheResult.success && proactiveCacheResult.data) {
-            logger.info('⚡ Using proactively loaded seat availability data!')
-            processSeatAvailabilityData(proactiveCacheResult.data)
-            setLoading(false)
-            return
-          }
-        }
-
-        // 🚀 STEP 2: Check our pre-loaded cache as fallback
-        const cachedResult = seatServiceCache.getCachedSeatAvailability(flightPriceResponse)
-        
-        if (cachedResult.data) {
-          logger.info('⚡ Using pre-loaded seat availability data from cache!')
-          const seatData = cachedResult.data
-          
-          // Process cached data
-          processSeatAvailabilityData(seatData)
-          setLoading(false)
-          return
-        } 
-        
-        if (cachedResult.isLoading) {
-          logger.info('🔄 Seat availability data is still loading in background, waiting with exponential backoff...')
-          // Use exponential backoff to wait for global preloading to complete
-          await waitForCacheWithBackoff(flightPriceResponse, 5, 1000) // 5 retries, starting with 1 second
-          return
-        }
-
-        if (cachedResult.error) {
-          logger.warn('⚠️ Pre-loading failed with error:', cachedResult.error)
-        }
-
-        // 🚀 STEP 2: Fall back to direct API call
-        logger.info('💻 No pre-loaded data available, using direct API call')
-        await fallbackToApiCall()
-
-      } catch (err) {
-        logger.error("❌ Error loading seat availability:", err)
-        setError("Failed to load seat map. Using simplified layout.")
-        // Use fallback data
-        setSeatMap({
-          cabinSections: [{
-            index: 1,
-            seatDisplay: {
-              columns: [
-                {value: "A", position: "left"}, 
-                {value: "B", position: "center"}, 
-                {value: "C", position: "aisle"}, 
-                {value: "D", position: "aisle"}, 
-                {value: "E", position: "center"}, 
-                {value: "F", position: "right"}
-              ],
-              rows: { first: 1, last: 30, upperDeckInd: false },
-              component: []
-            },
-            code: 'Y',
-            cabinLayout: {}
-          }]
-        })
-        setSeats([])
-      } finally {
-        setLoading(false)
-      }
+  // Helper function to process seat availability data
+  const processSeatAvailabilityData = (seatData: any) => {
+    logger.info('🔍 Processing seat availability data structure:', Object.keys(seatData || {}))
+    
+    // Handle the backend transformer response structure
+    let actualData = seatData
+    
+    // If it's wrapped in a status response, extract the data
+    if (seatData?.status === 'success' && seatData?.data) {
+      actualData = seatData.data
+      logger.info('✅ Extracted data from status wrapper')
     }
-
-    // 🚀 ENHANCED: Wait for cache with exponential backoff to prevent redundant API calls
-    const waitForCacheWithBackoff = async (flightPriceResponse: any, maxRetries: number, initialDelay: number) => {
-      let delay = initialDelay
+    
+    // Set seat display configuration from all cabin sections
+    if (actualData?.flights?.[0]?.cabin) {
+      const cabinSections = actualData.flights[0].cabin
+      logger.info(`🛫 Processing ${cabinSections.length} cabin sections`)
       
-      for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        logger.info(`🔄 Cache wait attempt ${attempt}/${maxRetries}, delay: ${delay}ms`)
-        
-        await new Promise(resolve => setTimeout(resolve, delay))
-        
-        const retryResult = seatServiceCache.getCachedSeatAvailability(flightPriceResponse)
-        
-        if (retryResult.data) {
-          logger.info(`✅ Got pre-loaded seat availability data after ${attempt} attempts!`)
-          processSeatAvailabilityData(retryResult.data)
-          setLoading(false)
-          return
-        }
-        
-        if (!retryResult.isLoading) {
-          logger.info(`🚫 Global loading completed but no data available after ${attempt} attempts`)
-          break
-        }
-        
-        // Exponential backoff with jitter
-        delay = Math.min(delay * 2, 10000) + Math.random() * 1000
-      }
+      // Set combined configuration for all cabins
+      const allCabinSections = cabinSections.map((cabin: any, index: number) => ({
+        index: index + 1,
+        seatDisplay: cabin.seatDisplay,
+        code: cabin.code || 'Y',
+        cabinLayout: cabin.cabinLayout || {}
+      }))
       
-      // If we reach here, fall back to API call as last resort
-      logger.warn(`⚠️ Cache wait timeout after ${maxRetries} attempts, falling back to API call`)
-      await fallbackToApiCall()
-      setLoading(false)
-    }
-
-    // Helper function to process seat availability data
-    const processSeatAvailabilityData = (seatData: any) => {
-      logger.info('🔍 Processing seat availability data structure:', Object.keys(seatData || {}))
+      setSeatMap({ cabinSections: allCabinSections })
       
-      // Handle the backend transformer response structure
-      let actualData = seatData
-      
-      // If it's wrapped in a status response, extract the data
-      if (seatData?.status === 'success' && seatData?.data) {
-        actualData = seatData.data
-        logger.info('✅ Extracted data from status wrapper')
-      }
-      
-      // Set seat display configuration from all cabin sections
-      if (actualData?.flights?.[0]?.cabin) {
-        const cabinSections = actualData.flights[0].cabin
-        logger.info(`🛫 Processing ${cabinSections.length} cabin sections`)
-        
-        // Set combined configuration for all cabins
-        const allCabinSections = cabinSections.map((cabin: any, index: number) => ({
-          index: index + 1,
-          seatDisplay: cabin.seatDisplay,
-          code: cabin.code || 'Y',
-          cabinLayout: cabin.cabinLayout || {}
+      logger.info('✅ Set multi-cabin seat map configuration from response:', {
+        cabin_count: allCabinSections.length,
+        cabin_details: allCabinSections.map((cabin: CabinSection) => ({
+          index: cabin.index,
+          columns_count: cabin.seatDisplay?.columns?.length || 0,
+          row_range: cabin.seatDisplay?.rows,
+          is_upper_deck: cabin.seatDisplay?.rows?.upperDeckInd || false
         }))
-        
-        setSeatMap({ cabinSections: allCabinSections })
-        
-        logger.info('✅ Set multi-cabin seat map configuration from response:', {
-          cabin_count: allCabinSections.length,
-          cabin_details: allCabinSections.map((cabin: CabinSection) => ({
-            index: cabin.index,
-            columns_count: cabin.seatDisplay?.columns?.length || 0,
-            row_range: cabin.seatDisplay?.rows,
-            is_upper_deck: cabin.seatDisplay?.rows?.upperDeckInd || false
-          }))
-        })
-      } else {
-        logger.warn('⚠️ No cabin sections found, using fallback configuration')
-        setSeatMap({
-          cabinSections: [{
-            index: 1,
-            seatDisplay: {
-              columns: [
-                {value: "A", position: "left"}, 
-                {value: "B", position: "center"}, 
-                {value: "C", position: "aisle"}, 
-                {value: "D", position: "aisle"}, 
-                {value: "E", position: "center"}, 
-                {value: "F", position: "right"}
-              ],
-              rows: { first: 1, last: 30, upperDeckInd: false },
-              component: []
-            },
-            code: 'Y',
-            cabinLayout: {}
-          }]
-        })
-      }
+      })
+    } else {
+      logger.warn('⚠️ No cabin sections found, using fallback configuration')
+      setSeatMap({
+        cabinSections: [{
+          index: 1,
+          seatDisplay: {
+            columns: [
+              {value: "A", position: "left"}, 
+              {value: "B", position: "center"}, 
+              {value: "C", position: "aisle"}, 
+              {value: "D", position: "aisle"}, 
+              {value: "E", position: "center"}, 
+              {value: "F", position: "right"}
+            ],
+            rows: { first: 1, last: 30, upperDeckInd: false },
+            component: []
+          },
+          code: 'Y',
+          cabinLayout: {}
+        }]
+      })
+    }
 
-      // Set seats data - check multiple possible locations
-      let seatsArray = null
+    // Set seats data - check multiple possible locations
+    let seatsArray = null
+    
+    if (actualData?.dataLists?.seatList?.seats) {
+      seatsArray = actualData.dataLists.seatList.seats
+      // logger.info(`✅ Found ${seatsArray.length} seats in dataLists.seatList.seats`)
+    } else if (actualData?.dataLists?.seats) {
+      seatsArray = actualData.dataLists.seats
+      // logger.info(`✅ Found ${seatsArray.length} seats in dataLists.seats`)
+    } else if (actualData?.seats) {
+      seatsArray = actualData.seats
+      // logger.info(`✅ Found ${seatsArray.length} seats in top-level seats`)
+    }
+    
+    if (seatsArray && seatsArray.length > 0) {
+      setSeats(seatsArray)
       
-      if (actualData?.dataLists?.seatList?.seats) {
-        seatsArray = actualData.dataLists.seatList.seats
-        // logger.info(`✅ Found ${seatsArray.length} seats in dataLists.seatList.seats`)
-      } else if (actualData?.dataLists?.seats) {
-        seatsArray = actualData.dataLists.seats
-        // logger.info(`✅ Found ${seatsArray.length} seats in dataLists.seats`)
-      } else if (actualData?.seats) {
-        seatsArray = actualData.seats
-        // logger.info(`✅ Found ${seatsArray.length} seats in top-level seats`)
-      }
-      
-      if (seatsArray && seatsArray.length > 0) {
-        setSeats(seatsArray)
-        
-        // 🔍 Debug: Analyze seat distribution across rows
-        const rowDistribution = seatsArray.reduce((acc: any, seat: any) => {
-          const row = seat.location?.row?.number?.value
-          if (row) {
-            acc[row] = (acc[row] || 0) + 1
-          }
-          return acc
-        }, {})
-        
-        const rows = Object.keys(rowDistribution).map(r => parseInt(r)).sort((a, b) => a - b)
-        const minRow = Math.min(...rows)
-        const maxRow = Math.max(...rows)
-        
-        // 🚀 CRITICAL FIX: Validate seat map against actual seat data
-        if (rows.length > 0) {
-          logger.info('🔧 Validated multi-cabin seat map against actual seat data:', {
-            min_row: minRow,
-            max_row: maxRow,
-            total_rows_with_seats: rows.length,
-            total_seats: seatsArray.length
-          })
+      // 🔍 Debug: Analyze seat distribution across rows
+      const rowDistribution = seatsArray.reduce((acc: any, seat: any) => {
+        const row = seat.location?.row?.number?.value
+        if (row) {
+          acc[row] = (acc[row] || 0) + 1
         }
-        
-        logger.info(`✅ Successfully loaded ${seatsArray.length} seats for selection`, {
-          seat_count: seatsArray.length,
-          rows_with_seats: rows.length,
+        return acc
+      }, {})
+      
+      const rows = Object.keys(rowDistribution).map(r => parseInt(r)).sort((a, b) => a - b)
+      const minRow = Math.min(...rows)
+      const maxRow = Math.max(...rows)
+      
+      // 🚀 CRITICAL FIX: Validate seat map against actual seat data
+      if (rows.length > 0) {
+        logger.info('🔧 Validated multi-cabin seat map against actual seat data:', {
           min_row: minRow,
           max_row: maxRow,
-          first_5_rows: rows.slice(0, 5),
-          last_5_rows: rows.slice(-5),
-          sample_seat_locations: seatsArray.slice(0, 3).map((s: any) => ({
-            row: s.location?.row?.number?.value,
-            column: s.location?.column
-          }))
-        })
-      } else {
-        logger.warn('⚠️ No seats found in response, using fallback')
-        // Create fallback data
-        setSeats([])
-        setSeatMap({
-          cabinSections: [{
-            index: 1,
-            seatDisplay: {
-              columns: [
-                {value: "A", position: "left"}, 
-                {value: "B", position: "center"}, 
-                {value: "C", position: "aisle"}, 
-                {value: "D", position: "aisle"}, 
-                {value: "E", position: "center"}, 
-                {value: "F", position: "right"}
-              ],
-              rows: { first: 1, last: 30, upperDeckInd: false },
-              component: []
-            },
-            code: 'Y',
-            cabinLayout: {}
-          }]
+          total_rows_with_seats: rows.length,
+          total_seats: seatsArray.length
         })
       }
+      
+      logger.info(`✅ Successfully loaded ${seatsArray.length} seats for selection`, {
+        seat_count: seatsArray.length,
+        rows_with_seats: rows.length,
+        min_row: minRow,
+        max_row: maxRow,
+        first_5_rows: rows.slice(0, 5),
+        last_5_rows: rows.slice(-5),
+        sample_seat_locations: seatsArray.slice(0, 3).map((s: any) => ({
+          row: s.location?.row?.number?.value,
+          column: s.location?.column
+        }))
+      })
+    } else {
+      logger.warn('⚠️ No seats found in response, using fallback')
+      // Create fallback data
+      setSeats([])
+      setSeatMap({
+        cabinSections: [{
+          index: 1,
+          seatDisplay: {
+            columns: [
+              {value: "A", position: "left"}, 
+              {value: "B", position: "center"}, 
+              {value: "C", position: "aisle"}, 
+              {value: "D", position: "aisle"}, 
+              {value: "E", position: "center"}, 
+              {value: "F", position: "right"}
+            ],
+            rows: { first: 1, last: 30, upperDeckInd: false },
+            component: []
+          },
+          code: 'Y',
+          cabinLayout: {}
+        }]
+      })
     }
+  }
 
-    // Fallback function for direct API calls (simplified to use unified API manager)
-    const fallbackToApiCall = async () => {
-      try {
-        logger.info("Using unified API manager (should hit proactive cache)")
-        const response = await api.getSeatAvailability(flightPriceResponse, segmentKey)
-        processSeatAvailabilityData(response.data)
-      } catch (apiError) {
-        logger.error("❌ API fallback failed:", apiError)
-        throw apiError
+  // 🚀 UPDATED: Use preloaded data when available
+  useEffect(() => {
+    if (preloadedData) {
+      // Use preloaded data from parent component
+      logger.info('⚡ SeatSelection using preloaded data from parent component')
+      processSeatAvailabilityData(preloadedData)
+      return
+    }
+    
+    // 🚫 LEGACY: Only fallback to individual loading if no preloaded data
+    if (!flightPriceResponse) return
+    
+    logger.warn('⚠️ SeatSelection falling back to individual data loading (should be avoided)')
+    loadSeatAvailabilityFallback()
+  }, [flightPriceResponse, preloadedData])
+  
+  const loadSeatAvailabilityFallback = async () => {
+    setInternalError(null)
+
+    try {
+      logger.info('🪑 Loading seat availability data (fallback)...')
+      
+      // Check simple cache manager first
+      const sessionId = localStorage.getItem('flight_session_id')
+      if (sessionId) {
+        const simpleCacheManager = await import('@/utils/simple-cache-manager')
+        const proactiveCacheResult = simpleCacheManager.simpleCacheManager.getSeatAvailability(sessionId)
+        
+        if (proactiveCacheResult.success && proactiveCacheResult.data) {
+          logger.info('⚡ Using cached seat data in fallback!')
+          processSeatAvailabilityData(proactiveCacheResult.data)
+          return
+        }
       }
+
+      // Final fallback to API
+      logger.info('💻 Making direct seat API call (fallback)')
+      const response = await api.getSeatAvailability(flightPriceResponse, segmentKey)
+      processSeatAvailabilityData(response.data)
+      
+    } catch (err) {
+      logger.error("❌ Error in seat availability fallback:", err)
+      setInternalError("Failed to load seat map. Using simplified layout.")
+      // Use fallback layout
+      setSeatMap({
+        cabinSections: [{
+          index: 1,
+          seatDisplay: {
+            columns: [
+              {value: "A", position: "left"}, 
+              {value: "B", position: "center"}, 
+              {value: "C", position: "aisle"}, 
+              {value: "D", position: "aisle"}, 
+              {value: "E", position: "center"}, 
+              {value: "F", position: "right"}
+            ],
+            rows: { first: 1, last: 30, upperDeckInd: false },
+            component: []
+          },
+          code: 'Y',
+          cabinLayout: {}
+        }]
+      })
+      setSeats([])
     }
 
-    loadSeatAvailability()
-  }, [flightPriceResponse]) // One-way flights only - no segment key needed
+
+  }
 
   // 🔍 DEBUG: Log dynamic layout information for all cabins
   useEffect(() => {
@@ -1035,7 +972,7 @@ export function SeatSelection({
     }, 0)
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card className={className}>
         <CardHeader>
@@ -1051,12 +988,12 @@ export function SeatSelection({
     )
   }
 
-  if (error && !seatMap) {
+  if (displayError && !seatMap) {
     return (
       <Card className={className}>
         <CardHeader>
           <CardTitle>Seat Selection - {flightType}</CardTitle>
-          <CardDescription className="text-red-600">{error}</CardDescription>
+          <CardDescription className="text-red-600">{displayError}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
@@ -1166,9 +1103,9 @@ export function SeatSelection({
             </div>
           )}
         </div>
-        {error && (
+        {displayError && (
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-3 mb-4 flex items-center gap-2 text-sm text-yellow-800 dark:text-yellow-200">
-            ⚠️ {error}
+            ⚠️ {displayError}
           </div>
         )}
 
