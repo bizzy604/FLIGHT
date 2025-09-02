@@ -18,9 +18,16 @@ export async function POST(request: NextRequest) {
     const data = await response.json();
 
     // Extract cache key from response metadata for frontend use
-    if (data && data.metadata && data.metadata.cache_key) {
-      // Store cache key in response for frontend to use in order creation
-      data.flight_price_cache_key = data.metadata.cache_key;
+    // The backend returns { status: 'success', data: { metadata: { flight_price_cache_key: ... } } }
+    if (data && data.data && data.data.metadata && data.data.metadata.flight_price_cache_key) {
+      // Store cache key at top level for easier access
+      data.flight_price_cache_key = data.data.metadata.flight_price_cache_key;
+      console.log('[Flight Price API] Found flight_price_cache_key in metadata:', data.flight_price_cache_key);
+    } else if (data && data.flight_price_cache_key) {
+      // Backend might also send it at top level
+      console.log('[Flight Price API] Found flight_price_cache_key at top level:', data.flight_price_cache_key);
+    } else {
+      console.warn('[Flight Price API] No flight_price_cache_key found in response');
     }
 
     // Pass through the raw_response from backend if it exists (when caching failed)
