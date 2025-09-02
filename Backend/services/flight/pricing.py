@@ -10,6 +10,7 @@ import uuid
 import sys
 import os
 from datetime import datetime
+import asyncio
 
 # Import the flight price transformer and request builder from their respective packages
 from utils.flight_price_transformer import transform_for_frontend, transform_flight_price_response
@@ -84,11 +85,48 @@ class FlightPricingService(FlightService):
                         logger.info(f"✅ Retrieved raw air shopping response from cache using key: {cache_key}")
                         actual_airshopping_response = cached_raw_response
                     else:
-                        logger.error(f"❌ Raw response not found in cache for key: {cache_key}")
-                        raise ValidationError(f"Raw air shopping response not found in cache. Cache key: {cache_key}")
+                        logger.warning(f"⚠️ Raw response not found in cache for key: {cache_key}")
+                        logger.warning("Raw cache likely expired. Checking for alternative cache keys...")
+                        
+                        # Try alternative cache key patterns as fallback
+                        alternative_keys = [
+                            cache_key.replace('air_shopping_raw_', 'flight_search_'),  # Check flight search cache
+                            cache_key + '_backup',  # Check backup cache
+                            cache_key.split('_')[0] + '_' + '_'.join(cache_key.split('_')[1:])  # Alternative format
+                        ]
+                        
+                        fallback_found = False
+                        for alt_key in alternative_keys:
+                            try:
+                                fallback_response = cache_manager.get(alt_key)
+                                if fallback_response:
+                                    logger.info(f"✅ Found fallback cache data with key: {alt_key}")
+                                    actual_airshopping_response = fallback_response
+                                    fallback_found = True
+                                    break
+                            except Exception:
+                                continue
+                        
+                        if not fallback_found:
+                            logger.error("No fallback cache data found. Flight search results have expired.")
+                            raise ValidationError(
+                                "Flight search results have expired (cache TTL: 30 minutes). "
+                                "Please perform a new flight search to get updated pricing and seat/service options. "
+                                f"Expired cache key: {cache_key}"
+                            )
                 except Exception as cache_error:
                     logger.error(f"❌ Failed to retrieve raw response from cache: {cache_error}")
-                    raise ValidationError(f"Failed to retrieve raw air shopping response from cache: {cache_error}")
+                    # Check if this is a cache miss vs other errors
+                    if any(term in str(cache_error).lower() for term in ["not found", "expired", "missing", "key error"]):
+                        raise ValidationError(
+                            "Flight search results are no longer available (expired after 30 minutes). "
+                            "Please perform a new flight search to get updated pricing."
+                        )
+                    else:
+                        raise ValidationError(
+                            f"Unable to retrieve flight search data from cache. "
+                            f"Please try searching again. Technical error: {cache_error}"
+                        )
 
             # Also check the raw_response_cache_key parameter (alternative method)
             elif raw_response_cache_key:
@@ -117,7 +155,18 @@ class FlightPricingService(FlightService):
 
             # Validate input
             if not actual_airshopping_response or not offer_id:
-                raise ValidationError("Missing required parameters for flight pricing")
+                raise ValidationError(
+                    "Flight search results are no longer available (expired after 30 minutes). "
+                    "Please perform a new flight search to get updated pricing."
+                )
+            
+            # Check if the air shopping data is empty (cache miss scenario)
+            if isinstance(actual_airshopping_response, dict) and len(actual_airshopping_response) == 0:
+                logger.warning("Received empty air shopping data - likely cache miss")
+                raise ValidationError(
+                    "Flight search results have expired. "
+                    "Please perform a new flight search to get updated pricing and seat/service options."
+                )
 
             # Allow frontend to pass placeholder for shopping_response_id in multi-airline scenarios
             if not shopping_response_id or shopping_response_id == 'BACKEND_WILL_EXTRACT':
@@ -199,13 +248,22 @@ class FlightPricingService(FlightService):
                 response_travelers = response['DataLists']['AnonymousTravelerList']
                 logger.info(f"[PASSENGER DEBUG] Flight Price API Response - AnonymousTravelerList count: {len(response_travelers) if isinstance(response_travelers, list) else 1}")
 
-            # Cache the raw flight price response for order creation
+            # Cache the raw flight price response for order creation using SimpleFlightCache
+            # Use consistent key format: flight_price_raw_{request_id}_{timestamp}
             flight_price_cache_key = f"flight_price_raw_{request_id}_{int(datetime.now().timestamp())}"
             try:
-                from utils.cache_manager import cache_manager
-                # Cache for 30 minutes (1800 seconds) - same as frontend session
-                cache_manager.set(flight_price_cache_key, response, ttl=1800)
-                logger.info(f"Raw flight price response cached with key: {flight_price_cache_key}")
+                from services.simple_flight_cache import simple_flight_cache
+                # Store in cache with consistent format (30 minutes TTL)
+                cache_result = simple_flight_cache.store_flight_price(
+                    session_id=flight_price_cache_key,
+                    price_data=response,
+                    ttl=1800  # 30 minutes
+                )
+                if cache_result.get('success'):
+                    logger.info(f"Raw flight price response cached with key: {flight_price_cache_key}")
+                else:
+                    logger.warning(f"Failed to cache flight price: {cache_result.get('message')}")
+                    flight_price_cache_key = None
             except Exception as cache_error:
                 logger.warning(f"Failed to cache raw flight price response: {cache_error}")
                 flight_price_cache_key = None
@@ -856,10 +914,21 @@ class FlightPricingService(FlightService):
             except Exception as e:
                 logger.warning(f"Could not extract IDs for additional cache keys: {str(e)}")
 
-            # Store the complete raw response in cache for 30 minutes using all keys
+            # Store the complete raw response using SimpleFlightCache for 30 minutes using all keys
             for cache_key in cache_keys:
-                cache_manager.set(cache_key, response, ttl=1800)
-                logger.info(f"Stored flight price response in cache with key: {cache_key}")
+                try:
+                    from services.simple_flight_cache import simple_flight_cache
+                    cache_result = simple_flight_cache.store_flight_price(
+                        session_id=cache_key,
+                        price_data=response,
+                        ttl=1800  # 30 minutes
+                    )
+                    if cache_result.get('success'):
+                        logger.info(f"Stored flight price response with key: {cache_key}")
+                    else:
+                        logger.warning(f"Failed to store flight price: {cache_result.get('message')}")
+                except Exception as cache_error:
+                    logger.warning(f"Failed to cache flight price response with key {cache_key}: {cache_error}")
             
             # Cache the response using the primary cache key only
             
@@ -924,10 +993,21 @@ class FlightPricingService(FlightService):
             except Exception as e:
                 logger.warning(f"Could not extract IDs for additional cache keys: {str(e)}")
 
-            # Store the complete raw response in cache for 30 minutes using all keys
+            # Store the complete raw response using SimpleFlightCache for 30 minutes using all keys
             for cache_key in cache_keys:
-                cache_manager.set(cache_key, response, ttl=1800)
-                logger.info(f"Stored flight price response in cache with key: {cache_key}")
+                try:
+                    from services.simple_flight_cache import simple_flight_cache
+                    cache_result = simple_flight_cache.store_flight_price(
+                        session_id=cache_key,
+                        price_data=response,
+                        ttl=1800  # 30 minutes
+                    )
+                    if cache_result.get('success'):
+                        logger.info(f"Stored flight price response with key: {cache_key}")
+                    else:
+                        logger.warning(f"Failed to store flight price: {cache_result.get('message')}")
+                except Exception as cache_error:
+                    logger.warning(f"Failed to cache flight price response with key {cache_key}: {cache_error}")
             
             # Try to extract basic offer information for fallback
             basic_offers = []

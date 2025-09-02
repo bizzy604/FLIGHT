@@ -1,0 +1,575 @@
+{
+	"Response": {
+		"Passengers": {
+			"Passenger": [
+				{
+					"ObjectKey": "PAX1",
+					"PTC": {
+						"value": "ADT"
+					},
+					"Age": {
+						"BirthDate": {
+							"value": "1992-06-10T00:00:00.000"
+						}
+					},
+					"Name": {
+						"Surname": {
+							"value": "DOE"
+						},
+						"Given": [
+							{
+								"value": "JAN"
+							}
+						],
+						"Title": "MR"
+					},
+					"Contacts": {
+						"Contact": [
+							{
+								"EmailContact": {
+									"Address": {
+										"value": "ABC.XYZ@CC.COM"
+									}
+								},
+								"PhoneContact": {
+									"Application": "MOBILE",
+									"Number": [
+										{
+											"value": "9987655232",
+											"CountryCode": "91"
+										}
+									]
+								},
+								"ContactType": "STANDARD"
+							}
+						]
+					}
+				}
+			]
+		},
+		"Order": [
+			{
+				"OrderItems": {
+					"OrderItem": [
+						{
+							"OrderItemID": {
+								"value": "26_55CPVE_AIR-1",
+								"Owner": "26"
+							},
+							"FlightItem": {
+								"Price": {
+									"BaseAmount": {
+										"value": 99720,
+										"Code": "INR"
+									},
+									"Taxes": {
+										"Total": {
+											"value": 16328,
+											"Code": "INR"
+										},
+										"Breakdown": {
+											"Tax": [
+												{
+													"Amount": {
+														"value": 10533,
+														"Code": "INR"
+													},
+													"TaxCode": "GB"
+												},
+												{
+													"Amount": {
+														"value": 5795,
+														"Code": "INR"
+													},
+													"TaxCode": "UB"
+												}
+											]
+										}
+									}
+								},
+								"OriginDestination": [
+									{
+										"Flight": [
+											{
+												"SegmentKey": "SEG1",
+												"Departure": {
+													"AirportCode": {
+														"value": "LHR"
+													},
+													"Date": "2025-05-13T09:25:00.000",
+													"Time": "09:25:00",
+													"Terminal": {
+														"Name": "2"
+													}
+												},
+												"Arrival": {
+													"AirportCode": {
+														"value": "SIN"
+													},
+													"Date": "2025-05-14T05:30:00.000",
+													"Time": "05:30:00",
+													"Terminal": {
+														"Name": "0"
+													}
+												},
+												"MarketingCarrier": {
+													"AirlineID": {
+														"value": "26"
+													},
+													"Name": "26",
+													"FlightNumber": {
+														"value": "305"
+													},
+													"ResBookDesigCode": "E"
+												},
+												"OperatingCarrier": {
+													"AirlineID": {
+														"value": "26"
+													},
+													"Name": "26"
+												},
+												"Equipment": {
+													"Name": "77W",
+													"AircraftCode": {
+														"value": "77W"
+													}
+												},
+												"ClassOfService": {
+													"Code": {
+														"value": "E"
+													},
+													"MarketingName": {
+														"value": "ECONOMY",
+														"CabinDesignator": "Y"
+													},
+													"refs": [
+														"FG-749-E4YRUWS-1"
+													]
+												},
+												"Details": {
+													"FlightSegmentType": {
+														"Code": "HK"
+													},
+													"FlightDuration": {
+														"Value": "PT13H5M"
+													}
+												}
+											}
+										]
+									}
+								],
+								"FareDetail": {
+									"FareComponent": [
+										{
+											"PriceClassReference": [
+												"FF21"
+											],
+											"refs": [
+												"SEG1"
+											]
+										}
+									]
+								}
+							},
+							"BaggageItem": {
+								"refs": [
+									"BAGALLOW_1SEG1_PAX1"
+								]
+							},
+							"Associations": {
+								"Passengers": {
+									"PassengerReferences": [
+										"PAX1"
+									]
+								},
+								"IncludedService": {
+									"ServiceReferences": [
+										"SEG1_PAX1"
+									]
+								},
+								"AssociatedService": {
+									"ServiceReferences": [
+										"SEG1"
+									]
+								}
+							}
+						},
+						{
+							"OrderItemID": {
+								"value": "26_55CPVE_FSSR4",
+								"Owner": "26"
+							},
+							"Price": {
+								"Total": {
+									"value": 0
+								}
+							},
+							"Services": [
+								{
+									"ServiceID": {
+										"ObjectKey": "SSR4",
+										"Status": "HK"
+									},
+									"PassengerReferences": "PAX1",
+									"SegmentRefs": "SEG1",
+									"ServiceDefinitionRefs": "LFML_1"
+								}
+							]
+						}
+					]
+				},
+				"CreationAPI": "NDC",
+				"LastModificationAPI": "NDC",
+				"OrderID": {
+					"value": "55CPVE",
+					"Owner": "26",
+					"Channel": "NDC"
+				},
+				"BookingReferences": {
+					"BookingReference": [
+						{
+							"ID": "1669165",
+							"OtherID": {
+								"value": "26_55CPVE",
+								"Name": "orderId"
+							}
+						}
+					]
+				},
+				"TotalOrderPrice": {
+					"SimpleCurrencyPrice": {
+						"value": 116048,
+						"Code": "INR"
+					}
+				},
+				"Status": {
+					"StatusCode": {
+						"Code": "OPENED"
+					}
+				}
+			}
+		],
+		"Payments": {
+			"Payment": [
+				{
+					"Type": {
+						"Code": "CA"
+					},
+					"Method": {
+						"CashMethod": {
+							"Amount": {
+								"value": 116048,
+								"Code": "INR"
+							}
+						}
+					},
+					"Amount": {
+						"value": 116048,
+						"Code": "INR"
+					},
+					"Associations": {
+						"OrderID": {
+							"value": "55CPVE",
+							"Owner": "26"
+						},
+						"OrderItemID": [
+							{
+								"value": "26_55CPVE_AIR-1",
+								"Owner": "26"
+							}
+						]
+					}
+				}
+			]
+		},
+		"TicketDocInfos": {
+			"TicketDocInfo": [
+				{
+					"AgentIDs": {
+						"AgentID": [
+							{
+								"Type": {
+									"Code": "B"
+								},
+								"ID": {
+									"value": "9999WS/AS"
+								}
+							}
+						]
+					},
+					"IssuingAirlineInfo": {
+						"AirlineName": "26"
+					},
+					"TicketDocument": [
+						{
+							"TicketDocNbr": "6182461049584",
+							"Type": {
+								"Code": "T"
+							},
+							"NumberofBooklets": 1,
+							"DateOfIssue": "2025-04-11T00:00:00.000",
+							"CouponInfo": [
+								{
+									"CouponNumber": 1,
+									"CouponReference": "SEG1",
+									"FareBasisCode": {
+										"Code": "E12GBOLPO"
+									},
+									"Status": {
+										"Code": "I"
+									},
+									"AddlBaggageInfo": {
+										"CheckedFree": {
+											"MaxBagWght": "30K"
+										}
+									}
+								}
+							],
+							"ReportingType": "BSP"
+						}
+					],
+					"PassengerReference": [
+						"PAX1"
+					]
+				}
+			]
+		},
+		"DataLists": {
+			"CheckedBagAllowanceList": {
+				"CheckedBagAllowance": [
+					{
+						"ListKey": "FBA1",
+						"AllowanceDescription": {
+							"ApplicableParty": "Traveler"
+						},
+						"WeightAllowance": {
+							"MaximumWeight": [
+								{
+									"Value": 30,
+									"UOM": "Kilogram"
+								}
+							]
+						}
+					}
+				]
+			},
+			"FareList": {
+				"FareGroup": [
+					{
+						"ListKey": "FG-749-E4YRUWS-1",
+						"Fare": {
+							"FareCode": {
+								"Code": "749"
+							},
+							"FareDetail": {
+								"FareComponent": [
+									{
+										"SegmentReference": {
+											"value": [
+												"SEG1"
+											]
+										},
+										"PriceBreakdown": {
+											"Price": {
+												"Taxes": {
+													"Total": {
+														"value": 16328,
+														"Code": "INR"
+													},
+													"Breakdown": {
+														"Tax": [
+															{
+																"Amount": {
+																	"value": 10533,
+																	"Code": "INR"
+																},
+																"TaxType": "GB"
+															},
+															{
+																"Amount": {
+																	"value": 5795,
+																	"Code": "INR"
+																},
+																"TaxType": "UB"
+															}
+														]
+													}
+												},
+												"BaseAmount": {
+													"value": 99720,
+													"Code": "INR"
+												}
+											}
+										},
+										"FareBasis": {
+											"RBD": "E"
+										}
+									}
+								],
+								"Remarks": {
+									"Remark": [
+										{
+											"value": "FC-LON 26 SIN1139.62NUC1139.62END ROE0.780956"
+										},
+										{
+											"value": "FE-RESTRICTIONS APPLY 14382082"
+										},
+										{
+											"value": "FG-PVT"
+										}
+									]
+								}
+							}
+						},
+						"FareBasisCode": {
+							"Code": "E12GBOLPO"
+						},
+						"refs": [
+							"PAX1"
+						]
+					}
+				]
+			},
+			"FlightSegmentList": {
+				"FlightSegment": [
+					{
+						"Departure": {
+							"AirportCode": {
+								"value": "LHR"
+							},
+							"Date": "2025-05-13T09:25:00.000",
+							"Time": "09:25:00",
+							"Terminal": {
+								"Name": "2"
+							}
+						},
+						"Arrival": {
+							"AirportCode": {
+								"value": "SIN"
+							},
+							"Date": "2025-05-14T05:30:00.000",
+							"Time": "05:30:00",
+							"Terminal": {
+								"Name": "0"
+							}
+						},
+						"MarketingCarrier": {
+							"AirlineID": {
+								"value": "26"
+							},
+							"Name": "26",
+							"FlightNumber": {
+								"value": "305"
+							},
+							"ResBookDesigCode": "E"
+						},
+						"ClassOfService": {
+							"Code": {
+								"value": "E"
+							},
+							"MarketingName": {
+								"value": "ECONOMY",
+								"CabinDesignator": "Y"
+							}
+						}
+					}
+				]
+			},
+			"FlightList": {
+				"Flight": [
+					{
+						"FlightKey": "FLT1",
+						"Journey": {
+							"Time": "PT13H5M"
+						},
+						"SegmentReferences": {
+							"value": [
+								"SEG1"
+							]
+						}
+					}
+				]
+			},
+			"PriceClassList": {
+				"PriceClass": [
+					{
+						"ObjectKey": "FF21",
+						"Name": "SIN - ECON FLEXI FF2"
+					}
+				]
+			},
+			"ServiceList": {
+				"Service": [
+					{
+						"ObjectKey": "BAGALLOW_1SEG1_PAX1",
+						"Name": {
+							"value": "BAG:Checked Bag Allowance"
+						},
+						"Descriptions": {
+							"Description": [
+								{
+									"Text": {
+										"value": "Checked Bag Allowance"
+									}
+								}
+							]
+						},
+						"Associations": [
+							{
+								"Traveler": {
+									"TravelerReferences": [
+										"PAX1"
+									]
+								},
+								"Flight": {
+									"originDestinationReferencesOrSegmentReferences": [
+										"SEG1"
+									]
+								}
+							}
+						],
+						"refs": [
+							"FBA1"
+						]
+					},
+					{
+						"ObjectKey": "SEG1_PAX1",
+						"Associations": [
+							{
+								"Traveler": {
+									"TravelerReferences": [
+										"PAX1"
+									]
+								},
+								"Flight": {
+									"originDestinationReferencesOrSegmentReferences": [
+										"SEG1"
+									]
+								}
+							}
+						]
+					},
+					{
+						"ObjectKey": "LFML_1",
+						"Name": {
+							"value": "MEAL:LOW FAT MEAL"
+						},
+						"Descriptions": {
+							"Description": [
+								{
+									"ObjectKey": "LFML-1"
+								}
+							]
+						},
+						"BookingInstructions": {
+							"SSRCode": [
+								"LFML"
+							],
+							"Method": "SSR"
+						}
+					}
+				]
+			}
+		}
+	}
+}

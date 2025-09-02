@@ -1,30 +1,59 @@
 "use client"
 
+import { MainNav, UserNav, FlightSearchForm } from "@/components/organisms"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { FlightSearchForm } from "@/components/flight-search-form"
-import { MainNav } from "@/components/main-nav"
-import { UserNav } from "@/components/user-nav"
-import { ServicesSection } from "@/components/sections/services-section"
-import { DestinationsSection } from "@/components/sections/destinations-section"
-import { StatsSection } from "@/components/sections/stats-section"
-import { TestimonialsSection } from "@/components/sections/testimonials-section"
-import { PartnersSection } from "@/components/sections/partners-section"
-
 
 export default function HomePage() {
+  const router = useRouter()
+
+  const handleSearch = (results: any[], meta: any, formData?: any) => {
+    console.log('Search completed with results:', results.length, 'offers')
+  }
+
+  const handleSearchStart = (formData: any) => {
+    if (!formData.origin || !formData.destination || !formData.departDate) {
+      return false
+    }
+
+    const searchParams = new URLSearchParams({
+      origin: formData.origin || '',
+      destination: formData.destination || '',
+      departDate: formData.departDate ? formData.departDate.toISOString().split('T')[0] : '',
+      tripType: formData.tripType === 'round-trip' ? 'round-trip' : 'one-way',
+      adults: formData.passengers?.adults?.toString() || '1',
+      children: formData.passengers?.children?.toString() || '0',
+      infants: formData.passengers?.infants?.toString() || '0',
+      cabinClass: formData.cabinType || 'ECONOMY'
+    })
+    
+    if (formData.tripType === 'round-trip' && formData.returnDate) {
+      searchParams.set('returnDate', formData.returnDate.toISOString().split('T')[0])
+    }
+    
+    // Add a small delay to show the loading overlay before redirecting
+    setTimeout(() => {
+      router.push(`/flights?${searchParams.toString()}`)
+    }, 500) // Show loading for 500ms before redirect
+    return true
+  }
+
+  const handleError = (error: string) => {
+    console.error('Flight search error:', error)
+  }
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 sm:h-16 items-center justify-between px-3 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2 sm:gap-3">
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/95 shadow-sm">
+        <div className="container flex h-16 sm:h-18 items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
             <Image
               src="/logo1.png"
               alt="Rea Travel Logo"
-              width={32}
-              height={32}
-              className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12"
+              width={40}
+              height={40}
+              className="w-10 h-10 sm:w-12 sm:h-12"
             />
-            <span className="text-sm sm:text-base md:text-lg font-semibold">Rea Travel</span>
+            <span className="text-lg sm:text-xl font-bold text-foreground">Rea Travel</span>
           </div>
           <div className="flex items-center gap-4">
             <MainNav />
@@ -33,41 +62,17 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative min-h-[85vh] sm:min-h-[90vh] lg:min-h-screen flex items-center">
-          <div className="absolute inset-0 z-0">
-            <Image
-              src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1600&auto=format&fit=crop&q=80"
-              alt="Travel destinations"
-              fill
-              className="object-cover brightness-[0.6] sm:brightness-[0.7]"
-              loading="lazy"
+      <main className="flex-1 bg-secondary/20">
+        {/* Compact Search Section */}
+        <section className="py-8">
+          <div className="w-full px-4">
+            <FlightSearchForm 
+              onSearch={handleSearch}
+              onError={handleError}
+              onSearchStart={handleSearchStart}
             />
           </div>
-          <div className="container relative z-10 py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-4xl text-center">
-              <h1 className="mb-4 sm:mb-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
-                Discover the World with Rea Travel
-              </h1>
-              <p className="mb-8 sm:mb-10 lg:mb-12 text-base sm:text-lg lg:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
-                Find and book the best deals on flights to your dream destinations
-              </p>
-
-              {/* Flight Search Form */}
-              <div className="mx-auto max-w-4xl rounded-xl sm:rounded-2xl bg-white/95 backdrop-blur-sm p-3 sm:p-4 lg:p-6 shadow-xl border border-white/20">
-                <FlightSearchForm />
-              </div>
-            </div>
-          </div>
         </section>
-      <div className="space-y-0">
-        <ServicesSection />
-        <DestinationsSection />
-        <StatsSection />
-        <TestimonialsSection />
-        <PartnersSection />
-      </div>
       </main>
     </div>
   )

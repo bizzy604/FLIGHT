@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { debounce } from 'lodash';
 import { logger } from './logger';
+import { simpleApiManager } from './simple-api-manager';
 import type { FlightSearchResponse } from '@/types/flight-api';
 
 // Get backend URL from environment
@@ -136,6 +137,47 @@ const debouncedSearchFlights = debounce(async (params: FlightSearchRequest, reso
 }, 1000); // 1 second debounce delay
 
 export const api = {
+    // Flight Search Cache Check
+    checkFlightSearchCache: async (params: FlightSearchRequest): Promise<{ data: any }> => {
+        try {
+            const response = await apiClient.post('/api/verteil/air-shopping/cache-check', params);
+            logger.info('Flight search cache check response:', response.data);
+            return response;
+        } catch (error) {
+            logger.error('Error checking flight search cache:', error);
+            throw error;
+        }
+    },
+
+    // Flight Price Cache Check
+    checkFlightPriceCache: async (offerId: string, shoppingResponseId: string): Promise<{ data: any }> => {
+        try {
+            const response = await apiClient.post('/api/verteil/flight-price/cache-check', {
+                offer_id: offerId,
+                shopping_response_id: shoppingResponseId
+            });
+            logger.info('Flight price cache check response:', response.data);
+            return response;
+        } catch (error) {
+            logger.error('Error checking flight price cache:', error);
+            throw error;
+        }
+    },
+
+    // Booking Cache Check
+    checkBookingCache: async (bookingId: string): Promise<{ data: any }> => {
+        try {
+            const response = await apiClient.post('/api/verteil/booking/cache-check', {
+                booking_id: bookingId
+            });
+            logger.info('Booking cache check response:', response.data);
+            return response;
+        } catch (error) {
+            logger.error('Error checking booking cache:', error);
+            throw error;
+        }
+    },
+
     // Flight Search with debouncing
     searchFlights: async (params: FlightSearchRequest): Promise<{ data: FlightSearchResponse }> => {
         return new Promise((resolve, reject) => {
@@ -143,80 +185,90 @@ export const api = {
         });
     },
 
-    // Flight Pricing
+    // Flight Pricing - Using unified manager to eliminate duplicates
     getFlightPrice: async (flightIndex: number, shoppingResponseId: string, airShoppingResponse: any) => {
         try {
-            logger.info('Sending flight price request', {
+            logger.info('🚀 Using simple API manager for flight price request', {
                 flightIndex,
                 shoppingResponseId,
-                hasAirShoppingResponse: !!airShoppingResponse,
-                airShoppingResponseType: airShoppingResponse ? typeof airShoppingResponse : 'undefined'
+                hasAirShoppingResponse: !!airShoppingResponse
             });
 
-            const response = await apiClient.post('/api/verteil/flight-price', {
-                offer_id: flightIndex.toString(), // Send index as string to backend
-                shopping_response_id: shoppingResponseId,
-                air_shopping_response: airShoppingResponse
+            const response = await simpleApiManager.getFlightPrice(
+                flightIndex, 
+                shoppingResponseId, 
+                airShoppingResponse
+            );
+            
+            logger.info('✅ Flight price response received via simple manager', {
+                success: response.success,
+                cacheHit: response.cache_hit,
+                hasData: !!response.data
             });
             
-            logger.info('Flight price response received', {
+            // Response received from simple manager
+            logger.info('✅ Simple manager response processed', {
+                success: response.success,
                 status: response.status,
-                data: response.data ? 'Received' : 'No data'
+                hasData: !!response.data
             });
             
-            return response;
+            // Convert to expected format for backward compatibility
+            // The existing code expects: response.data.status and response.data.data
+            
+            // Handle backend response format: { status: 'success'|'error', data: {...} }
+            const isSuccess = response.success === true || response.status === 'success';
+            
+            const formattedResponse = { 
+                data: {
+                    status: isSuccess ? 'success' : 'error',
+                    data: response.data,
+                    error: isSuccess ? undefined : 'Flight pricing failed'
+                }, 
+                status: 200 
+            };
+            
+            // Response formatted for backward compatibility
+            logger.info('✅ Response formatted for existing code', {
+                dataStatus: formattedResponse.data.status,
+                hasData: !!formattedResponse.data.data
+            });
+            
+            return formattedResponse;
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            const errorResponse = error && typeof error === 'object' && 'response' in error 
-                ? (error as any).response?.data 
-                : undefined;
-                
-            logger.error('Error in getFlightPrice', {
+            logger.error('❌ Error in simple getFlightPrice', {
                 flightIndex,
-                error: errorMessage,
-                response: errorResponse
+                error: errorMessage
             });
-            
-            throw new Error(errorResponse?.message || errorMessage);
+            throw error;
         }
     },
 
-    // Booking - Use fetch directly to call Next.js API route
-    createBooking: async (flightOffer: any, passengers: any[], payment: any, contactInfo: any) => {
-        // Get session ID from localStorage for backend to retrieve flight price data from Redis
-        const sessionId = localStorage.getItem('flight_session_id');
-
-        console.log('🔍 API Client - Creating booking with:');
-        console.log('- Session ID:', sessionId);
-        console.log('- Flight offer keys:', flightOffer ? Object.keys(flightOffer) : 'none');
-        console.log('- Has raw_flight_price_response:', !!(flightOffer?.raw_flight_price_response));
-
-        const requestBody = {
-            flight_offer: flightOffer,
-            passengers,
-            payment,
-            contact_info: contactInfo,
-            session_id: sessionId
-        };
-
-        const response = await fetch('/api/verteil/order-create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody)
-        });
-        
-        const data = await response.json();
-        
-        // Log for debugging
-        logger.info('API Response', { status: response.status, url: '/api/verteil/order-create' });
-        
-        if (!response.ok) {
-            throw new Error(data.message || 'Booking failed');
+    // Booking - Using simple manager for consistent session handling
+    createBooking: async (flightOffer: any, passengers: any[], payment: any, contactInfo: any, extras?: any) => {
+        try {
+            logger.info('🚀 Using simple API manager for booking creation');
+            
+            const response = await simpleApiManager.createBooking(
+                flightOffer,
+                passengers,
+                payment,
+                contactInfo,
+                extras
+            );
+            
+            logger.info('✅ Booking created via simple manager', {
+                success: response.success,
+                hasData: !!response.data
+            });
+            
+            return { data: response.data };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            logger.error('❌ Error in simple createBooking', { error: errorMessage });
+            throw error;
         }
-        
-        return { data };
     },
 
     // Airport Suggestions
@@ -225,6 +277,72 @@ export const api = {
             return { data: [] };
         }
         return apiClient.get(`/api/airports/autocomplete?query=${encodeURIComponent(query)}`);
+    },
+
+    // ServiceList API - Using simple manager with proactive caching
+    getServiceList: async (flightPriceResponse: any): Promise<{ data: any }> => {
+        try {
+            logger.info('🚀 Using simple API manager for service list (proactive cache first)');
+            
+            const response = await simpleApiManager.getServiceList(flightPriceResponse);
+            
+            logger.info('✅ Service list received via simple manager', {
+                hasData: !!response.data,
+                source: response.cache_hit ? 'proactive_cache' : 'api_call'
+            });
+            
+            return { data: response.data };
+        } catch (error) {
+            logger.error('❌ Error in simple getServiceList:', error);
+            throw error;
+        }
+    },
+
+    // ServiceList Cache Check - DISABLED: Using proactive loading instead
+    checkServiceListCache: async (flightPriceResponse: any): Promise<{ data: any }> => {
+        logger.info('🚀 Cache check bypassed - using proactive loading');
+        // Return cache miss to trigger direct API call (which will use proactive cache)
+        return { 
+            data: { 
+                cache_hit: false, 
+                status: 'cache_miss', 
+                message: 'Proactive loading enabled - use direct API call' 
+            } 
+        };
+    },
+
+    // SeatAvailability API - Using simple manager with proactive caching
+    getSeatAvailability: async (flightPriceResponse: any, segmentKey?: string): Promise<{ data: any }> => {
+        try {
+            logger.info('🚀 Using simple API manager for seat availability (proactive cache first)');
+            
+            const response = await simpleApiManager.getSeatAvailability(
+                flightPriceResponse
+            );
+            
+            logger.info('✅ Seat availability received via simple manager', {
+                hasData: !!response.data,
+                source: response.cache_hit ? 'proactive_cache' : 'api_call'
+            });
+            
+            return { data: response.data };
+        } catch (error) {
+            logger.error('❌ Error in simple getSeatAvailability:', error);
+            throw error;
+        }
+    },
+
+    // SeatAvailability Cache Check - DISABLED: Using proactive loading instead
+    checkSeatAvailabilityCache: async (flightPriceResponse: any, segmentKey?: string): Promise<{ data: any }> => {
+        logger.info('🚀 Cache check bypassed - using proactive loading');
+        // Return cache miss to trigger direct API call (which will use proactive cache)
+        return { 
+            data: { 
+                cache_hit: false, 
+                status: 'cache_miss', 
+                message: 'Proactive loading enabled - use direct API call' 
+            } 
+        };
     },
 
     // Health Check

@@ -8,20 +8,20 @@ import { ChevronLeft, AlertCircle, Loader2 } from "lucide-react"
 
 import { api } from "@/utils/api-client"
 import { logger } from "@/utils/logger"
+import { 
+  calculatePricingBreakdown,
+  extractFlightPricing,
+  type BaggageSelection 
+} from "@/utils/pricing-calculator"
 
 
-import { flightStorageManager, FlightPriceData } from "@/utils/flight-storage-manager"
-import { redisFlightStorage } from "@/utils/redis-flight-storage"
-import { navigationCacheManager } from "@/utils/navigation-cache-manager"
+import { simpleCacheManager } from "@/utils/simple-cache-manager"
+import { simpleApiManager } from "@/utils/simple-api-manager"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { MainNav } from "@/components/main-nav"
-import { UserNav } from "@/components/user-nav"
-import { FlightDetailsHeader } from "@/components/flight-details-header"
-import { BookingForm } from "@/components/booking-form"
-import { FareRulesTable } from "@/components/fare-rules-table"
-import { FlightItineraryCard } from "@/components/flight-itinerary-card"
+import { MainNav, UserNav, BookingForm, FlightItineraryCard } from "@/components/organisms"
+import { FlightRouteInfo, FareRulesTable } from "@/components/molecules"
 
 // Airport code to name mapping for route display
 const AIRPORT_NAMES: Record<string, string> = {
@@ -158,25 +158,45 @@ function FlightDetailsPageContent() {
   const [error, setError] = useState<string | null>(null)
   const [pricedOffer, setPricedOffer] = useState<TransformedOffer | null>(null)
   const [cachedSearchParams, setCachedSearchParams] = useState<any>(null)
+  
+  // Pricing state for dynamic price summary
+  const [selectedSeats, setSelectedSeats] = useState<{ outbound: string[], return: string[] }>({ outbound: [], return: [] })
+  const [selectedServices, setSelectedServices] = useState<string[]>([])
+  const [selectedBaggage, setSelectedBaggage] = useState<BaggageSelection>({ checkedBags: 0, specialEquipment: 'none' })
+  const [services, setServices] = useState<any[]>([])
+  const [seatPrices, setSeatPrices] = useState({ outbound: 0, return: 0 })
+  
+  // Direct pricing data from ServiceSelection (working data)
+  const [directServicesPricing, setDirectServicesPricing] = useState({ 
+    totalPrice: 0, 
+    servicesCount: 0, 
+    currency: 'INR' 
+  })
 
   useEffect(() => {
     const fetchFlightPrice = async () => {
       setIsLoading(true)
       setError(null)
       try {
-        // Update navigation state
-        navigationCacheManager.updateNavigationState('details', { flightId });
-
-        // Check if we should skip API call based on navigation context
-        if (navigationCacheManager.shouldSkipApiCall('details', { flightId })) {
-          const cacheValidation = await navigationCacheManager.validateFlightPriceCache(flightId);
-          if (cacheValidation.isValid && cacheValidation.data) {
-            const cachedPriceData = cacheValidation.data;
+        // Simple cache check - KISS principle applied
+        const sessionId = simpleCacheManager.getOrCreateSessionId();
+        const cachedPriceResult = simpleCacheManager.getFlightPrice(sessionId);
+        
+        if (cachedPriceResult.success && cachedPriceResult.data) {
+          const cachedPriceData = cachedPriceResult.data;
+          if (cachedPriceData.pricedOffer) {
             setPricedOffer(cachedPriceData.pricedOffer);
             if (cachedPriceData.searchParams) {
               setCachedSearchParams(cachedPriceData.searchParams);
             }
-            sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(cachedPriceData.pricedOffer));
+            
+            // 🚀 CRITICAL FIX: Include metadata in the stored flight price response
+            const flightPriceResponseWithMetadata = {
+              ...cachedPriceData.pricedOffer,
+              metadata: cachedPriceData.metadata || {}
+            };
+            sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(flightPriceResponseWithMetadata));
+            
             if (cachedPriceData.rawResponse) {
               sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(cachedPriceData.rawResponse));
             }
@@ -185,71 +205,199 @@ function FlightDetailsPageContent() {
           }
         }
 
-        // Try to get existing flight price data from Redis first
-        let flightPriceResult = await redisFlightStorage.getFlightPrice();
-
-
-
-        // If Redis has flight price data, use it directly
-        if (flightPriceResult.success && flightPriceResult.data) {
-          const cachedPriceData = flightPriceResult.data;
-
-          if (cachedPriceData.pricedOffer) {
-            setPricedOffer(cachedPriceData.pricedOffer);
-
-            // Store search parameters for back button navigation
-            if (cachedPriceData.searchParams) {
-              setCachedSearchParams(cachedPriceData.searchParams);
-            }
-
-            // Store in sessionStorage for booking and faster future access
-            sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(cachedPriceData.pricedOffer));
-            if (cachedPriceData.rawResponse) {
-              sessionStorage.setItem('rawFlightPriceResponse', JSON.stringify(cachedPriceData.rawResponse));
-            }
-
-            setIsLoading(false);
-            return; // Data found and loaded, no need to fetch from API
-          }
-        }
-
-        // If no flight price data found, try to make API call as fallback
-
-        // Get flight search data for API call
-        const flightSearchResult = await redisFlightStorage.getFlightSearch();
-
-        if (!flightSearchResult.success || !flightSearchResult.data) {
-          throw new Error('Flight data not found. Your session may have expired. Please start a new search.');
-        }
-
-        const rawAirShoppingResponse = flightSearchResult.data.airShoppingResponse;
-        let airShoppingMetadata = {};
-        let shoppingResponseId = 'BACKEND_WILL_EXTRACT';
-
-        // Extract search parameters from flight search data for route display
-        if (flightSearchResult.data.searchParams && !cachedSearchParams) {
-          setCachedSearchParams(flightSearchResult.data.searchParams);
-        }
-
-        // Extract metadata for backend cache retrieval
-        if (rawAirShoppingResponse?.data?.metadata) {
-          airShoppingMetadata = rawAirShoppingResponse.data.metadata;
-        } else if (rawAirShoppingResponse?.metadata) {
-          airShoppingMetadata = rawAirShoppingResponse.metadata;
-        }
-
-        // Make flight pricing API call
+        // Try to get flight pricing from cache first using backend API
         const flightIndex = parseInt(flightId);
+        const shoppingResponseId = 'BACKEND_WILL_EXTRACT';
 
         if (isNaN(flightIndex) || flightIndex < 0) {
           throw new Error(`Invalid flight ID: ${flightId}. Please select a flight again.`);
         }
 
+        try {
+          // Check cache first via backend API
+          logger.info(`🔍 Checking flight price cache for flight ID: ${flightId}`);
+          const cacheCheckResponse = await api.checkFlightPriceCache(flightId, shoppingResponseId);
+          
+          if (cacheCheckResponse.data.status === 'success' && cacheCheckResponse.data.source === 'cache') {
+            logger.info('🚀 Flight price cache hit! Using cached pricing data from backend');
+            
+            const cachedPricingData = cacheCheckResponse.data.data;
+            
+            // Extract the priced offer from cached response
+            const pricedOfferData = cachedPricingData.priced_offers ? cachedPricingData.priced_offers[0] : cachedPricingData;
+            
+            if (pricedOfferData) {
+              setPricedOffer(pricedOfferData);
+              
+              // 🚀 CRITICAL FIX: Include metadata in the stored flight price response
+              const flightPriceResponseWithMetadata = {
+                ...pricedOfferData,
+                metadata: cachedPricingData.metadata || {}
+              };
+              
+              // Store in sessionStorage for booking access WITH metadata
+              sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(flightPriceResponseWithMetadata));
+              
+              if (cachedPricingData.metadata) {
+                sessionStorage.setItem('flightPriceMetadata', JSON.stringify(cachedPricingData.metadata));
+                
+                // 🚀 CRITICAL FIX: Explicitly store flight_price_cache_key for seat/service retrieval
+                if (cachedPricingData.metadata.flight_price_cache_key) {
+                  sessionStorage.setItem('flight_price_cache_key', cachedPricingData.metadata.flight_price_cache_key);
+                  logger.info(`💾 Stored cached flight_price_cache_key: ${cachedPricingData.metadata.flight_price_cache_key}`);
+                }
+              }
+              
+              // Try to get search params from URL parameters (more reliable than cache)
+              const urlSearchParams = {
+                origin: searchParams.get('origin'),
+                destination: searchParams.get('destination'),
+                departDate: searchParams.get('departDate'),
+                returnDate: searchParams.get('returnDate'),
+                tripType: searchParams.get('tripType'),
+                adults: searchParams.get('adults'),
+                children: searchParams.get('children'),
+                infants: searchParams.get('infants'),
+                cabinClass: searchParams.get('cabinClass')
+              };
+
+              // Only set cached params if we have the essential ones
+              if (urlSearchParams.origin && urlSearchParams.destination && urlSearchParams.departDate) {
+                setCachedSearchParams(urlSearchParams);
+                logger.info('✅ Using search params from URL');
+              } else {
+                logger.warn('⚠️ Could not get search params from URL, will use flight data for route display');
+              }
+              
+              setIsLoading(false);
+              return; // Successfully loaded from cache
+            }
+          }
+        } catch (cacheError) {
+          logger.warn('⚠️ Flight price cache check failed, falling back to API:', cacheError);
+        }
+
+        // Cache miss - get flight search data for API call using new cache system
+        logger.info(`💫 Cache miss for flight ID: ${flightId} - calling pricing API`);
+        
+        let airShoppingMetadata = {};
+        
+        // Try to get search parameters from URL first
+        const urlSearchParams = {
+          origin: searchParams.get('origin'),
+          destination: searchParams.get('destination'),
+          departDate: searchParams.get('departDate'),
+          returnDate: searchParams.get('returnDate'),
+          tripType: searchParams.get('tripType'),
+          adults: Number(searchParams.get('adults')) || 1,
+          children: Number(searchParams.get('children')) || 0,
+          infants: Number(searchParams.get('infants')) || 0,
+          cabinClass: searchParams.get('cabinClass') || 'ECONOMY'
+        };
+
+        // Set cached search params if available from URL
+        if (urlSearchParams.origin && urlSearchParams.destination && urlSearchParams.departDate && !cachedSearchParams) {
+          setCachedSearchParams(urlSearchParams);
+        }
+
+        // Try to get flight search data from new cache system
+        if (urlSearchParams.origin && urlSearchParams.destination && urlSearchParams.departDate) {
+          const flightSearchParams = {
+            tripType: (urlSearchParams.tripType === 'round-trip' ? 'ROUND_TRIP' : 'ONE_WAY') as 'ROUND_TRIP' | 'ONE_WAY',
+            odSegments: [{
+              origin: urlSearchParams.origin,
+              destination: urlSearchParams.destination,
+              departureDate: urlSearchParams.departDate,
+              ...(urlSearchParams.tripType === 'round-trip' && urlSearchParams.returnDate ? { returnDate: urlSearchParams.returnDate } : {})
+            }],
+            numAdults: Number(urlSearchParams.adults) || 1,
+            numChildren: Number(urlSearchParams.children) || 0,
+            numInfants: Number(urlSearchParams.infants) || 0,
+            cabinPreference: urlSearchParams.cabinClass || 'ECONOMY',
+            directOnly: false
+          };
+
+          try {
+            // Check the new cache-first system for flight search data
+            const cacheCheckResponse = await api.checkFlightSearchCache(flightSearchParams);
+            
+            if (cacheCheckResponse.data.status === 'success' && cacheCheckResponse.data.source === 'cache') {
+              logger.info('✅ Found flight search data in new cache system for pricing API');
+              
+              const cachedFlightData = cacheCheckResponse.data.data;
+              
+              // Extract metadata if available
+              if (cachedFlightData?.metadata) {
+                airShoppingMetadata = cachedFlightData.metadata;
+                logger.info('✅ Using metadata from new cache system for pricing API');
+              } else if (cachedFlightData?.raw_response) {
+                // Use raw response if metadata not available
+                airShoppingMetadata = cachedFlightData.raw_response;
+                logger.info('✅ Using raw response from new cache system for pricing API');
+              } else {
+                // Fallback to the whole cached data
+                airShoppingMetadata = cachedFlightData;
+                logger.info('✅ Using full cached data from new cache system for pricing API');
+              }
+            } else {
+              logger.warn('⚠️ No flight search data found in new cache system, backend will handle cache retrieval');
+            }
+          } catch (cacheError) {
+            logger.warn('⚠️ Failed to check new cache system for pricing API, backend will handle cache retrieval:', cacheError);
+          }
+        } else {
+          logger.warn('⚠️ No search parameters available from URL, backend will handle cache retrieval');
+        }
+
+        // Check if we have valid air shopping data before making the API call
+        if (!airShoppingMetadata || Object.keys(airShoppingMetadata).length === 0) {
+          logger.warn('⚠️ No air shopping data available - flight search results may have expired');
+          setError('Flight search results have expired. Please search for flights again.');
+          setIsLoading(false);
+          return;
+        }
+
+        // Make flight pricing API call
         const response = await api.getFlightPrice(
           flightIndex,
           shoppingResponseId,
           airShoppingMetadata
         );
+
+        // Handle expired offers error specifically
+        if (response.data?.status === 'expired_offer_error') {
+          logger.warn('⚠️ Flight offers have expired, redirecting to search results');
+          
+          // Redirect back to search results page with a message
+          alert('Flight offers have expired. You will be redirected to search for current flights.');
+          
+          // Build the search URL with current parameters
+          const searchUrl = new URLSearchParams();
+          if (urlSearchParams.origin) searchUrl.set('origin', urlSearchParams.origin);
+          if (urlSearchParams.destination) searchUrl.set('destination', urlSearchParams.destination);
+          if (urlSearchParams.departDate) searchUrl.set('departDate', urlSearchParams.departDate);
+          if (urlSearchParams.returnDate) searchUrl.set('returnDate', urlSearchParams.returnDate);
+          if (urlSearchParams.tripType) searchUrl.set('tripType', urlSearchParams.tripType);
+          if (urlSearchParams.adults) searchUrl.set('adults', urlSearchParams.adults.toString());
+          if (urlSearchParams.children) searchUrl.set('children', urlSearchParams.children.toString());
+          if (urlSearchParams.infants) searchUrl.set('infants', urlSearchParams.infants.toString());
+          if (urlSearchParams.cabinClass) searchUrl.set('cabinClass', urlSearchParams.cabinClass);
+          
+          // Redirect to flights page to trigger fresh search
+          window.location.href = `/flights?${searchUrl.toString()}`;
+          return;
+        }
+
+        // Handle cache/data expiration errors
+        if (response.data?.status === 'error' && response.data?.error) {
+          const errorMessage = response.data.error.toLowerCase();
+          if (errorMessage.includes('expired') || errorMessage.includes('cache') || errorMessage.includes('search results')) {
+            logger.warn('⚠️ Flight search data expired');
+            setError('Flight search results have expired. Please search for flights again.');
+            setIsLoading(false);
+            return;
+          }
+        }
 
         if (!response.data || response.data.status !== 'success') {
           throw new Error(response.data?.error || 'Failed to get flight pricing');
@@ -272,21 +420,17 @@ function FlightDetailsPageContent() {
 
         setPricedOffer(firstPricedOffer);
 
-        // Store the data in Redis for future use
-        const flightPriceData = {
-          flightId: flightId,
-          pricedOffer: firstPricedOffer,
-          rawResponse: response.data.data.raw_response, // This will be null when caching works
-          metadata: response.data.data.metadata, // Store metadata with cache keys
-          searchParams: cachedSearchParams || {},
-          timestamp: Date.now(),
-          expiresAt: Date.now() + (30 * 60 * 1000) // 30 minutes
+        // Note: Flight pricing data is now automatically cached by the backend Redis system
+        // No need for client-side storage as backend handles caching with the new Redis implementation
+
+        // 🚀 CRITICAL FIX: Include metadata in the stored flight price response
+        const flightPriceResponseWithMetadata = {
+          ...firstPricedOffer,
+          metadata: response.data.data.metadata || {}
         };
 
-        const redisStoreResult = await redisFlightStorage.storeFlightPrice(flightPriceData);
-
-        // Store in session storage for booking
-        sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(firstPricedOffer));
+        // Store in session storage for booking WITH metadata
+        sessionStorage.setItem('flightPriceResponseForBooking', JSON.stringify(flightPriceResponseWithMetadata));
 
         // Store raw flight price response for order creation
         if (response.data.data.raw_response) {
@@ -296,6 +440,12 @@ function FlightDetailsPageContent() {
         // Store metadata for order creation if available
         if (response.data.data.metadata) {
           sessionStorage.setItem('flightPriceMetadata', JSON.stringify(response.data.data.metadata));
+          
+          // 🚀 CRITICAL FIX: Explicitly store flight_price_cache_key for seat/service retrieval
+          if (response.data.data.metadata.flight_price_cache_key) {
+            sessionStorage.setItem('flight_price_cache_key', response.data.data.metadata.flight_price_cache_key);
+            logger.info(`💾 Stored flight_price_cache_key: ${response.data.data.metadata.flight_price_cache_key}`);
+          }
         }
 
 
@@ -431,15 +581,13 @@ function FlightDetailsPageContent() {
             </Link>
 
             {/* ## FIX 3: Use original search parameters for route display instead of flight segments ## */}
-            <FlightDetailsHeader
+            <FlightRouteInfo
               origin={getAirportDisplay(cachedSearchParams?.origin || outboundSegments[0]?.departure_airport)}
               originCode={cachedSearchParams?.origin || outboundSegments[0]?.departure_airport}
               destination={getAirportDisplay(cachedSearchParams?.destination || outboundSegments[outboundSegments.length - 1]?.arrival_airport)}
               destinationCode={cachedSearchParams?.destination || outboundSegments[outboundSegments.length - 1]?.arrival_airport}
               departDate={cachedSearchParams?.departDate || outboundSegments[0]?.departure_datetime}
-              returnDate={cachedSearchParams?.returnDate || returnSegments[0]?.departure_datetime} // Safely access for round-trip
-              price={pricedOffer.total_price.amount}
-              currency={pricedOffer.total_price.currency}
+              showPrice={false}
               adults={adults}
               children={children}
               infants={infants}
@@ -494,6 +642,22 @@ function FlightDetailsPageContent() {
                     adults={adults}
                     children={children}
                     infants={infants}
+                    onSeatChange={(seats) => {
+                      setSelectedSeats(seats)
+                    }}
+                    onServiceChange={(servicesIds, servicesData) => {
+                      setSelectedServices(servicesIds)
+                      setServices(servicesData)
+                    }}
+                    onBaggageChange={(baggage) => {
+                      setSelectedBaggage(baggage)
+                    }}
+                    onSeatPriceChange={(prices) => {
+                      setSeatPrices(prices)
+                    }}
+                    onPricingUpdate={(totalPrice, servicesCount, currency) => {
+                      setDirectServicesPricing({ totalPrice, servicesCount, currency })
+                    }}
                   />
                 </div>
               </div>
@@ -505,24 +669,188 @@ function FlightDetailsPageContent() {
               </div>
               <Separator />
               <div className="p-4 sm:p-6 space-y-4">
-                <div className="flex justify-between text-base sm:text-lg font-bold">
-                  <span>Total Price</span>
-                  <span>{pricedOffer.total_price.amount.toFixed(2)} {pricedOffer.total_price.currency}</span>
-                </div>
-                 <div className="space-y-2 text-xs sm:text-sm mt-4 border-t pt-4">
-                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
-                      <span className="text-muted-foreground">Offer expires:</span>
-                      <span className="font-medium text-orange-600 text-xs sm:text-sm">
-                        {pricedOffer.time_limits.offer_expiration ? new Date(pricedOffer.time_limits.offer_expiration).toLocaleString() : "Not specified"}
-                      </span>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
-                      <span className="text-muted-foreground">Payment deadline:</span>
-                      <span className="font-medium text-red-600 text-xs sm:text-sm">
-                        {pricedOffer.time_limits.payment_deadline ? new Date(pricedOffer.time_limits.payment_deadline).toLocaleString() : "Not specified"}
-                      </span>
-                    </div>
+                {(() => {
+                  // Calculate dynamic pricing
+                  const flightPricing = extractFlightPricing(pricedOffer)
+                  
+                  // Use EXACT same logic as working ServiceSelection component
+                  const getSelectedServicePrice = (service: any): number => {
+                    return service.price?.[0]?.total?.value || 0;
+                  };
+                  
+                  const getTotalServicesPrice = (): number => {
+                    return selectedServices.reduce((total, serviceObjectKey) => {
+                      const service = services.find(s => s.objectKey === serviceObjectKey);
+                      return total + (service ? getSelectedServicePrice(service) : 0);
+                    }, 0);
+                  };
+                  
+                  const getCurrency = (): string => {
+                    const firstService = services.find(s => s.price?.[0]?.total?.code);
+                    return firstService?.price?.[0]?.total?.code || 'INR';
+                  };
+                  
+                  // Calculate seat fees directly
+                  const getSeatFees = (): number => {
+                    return (seatPrices?.outbound || 0) + (seatPrices?.return || 0);
+                  };
+                  
+                  // Get selected baggage services (weight-based options like 25KG, 30KG, etc.)
+                  const getSelectedBaggageServices = () => {
+                    return services.filter(service => {
+                      const serviceName = service.name?.value?.toLowerCase() || "";
+                      const serviceCode = service.serviceId?.value?.toLowerCase() || "";
+                      return (serviceName.includes("bag") || serviceName.includes("luggage") || serviceName.includes("weight") ||
+                             serviceCode.includes("bag") || serviceCode.includes("xwbg") || serviceCode.includes("wbg")) &&
+                             selectedServices.includes(service.objectKey);
+                    });
+                  };
+                  
+                  // Get price for basic baggage (+/- buttons) - use price from selected baggage services
+                  const getBasicBaggagePrice = (): number => {
+                    const selectedBaggageServices = getSelectedBaggageServices();
+                    if (selectedBaggageServices.length > 0) {
+                      // Use the price from user's selected baggage service for +/- buttons
+                      return selectedBaggageServices[0]?.price?.[0]?.total?.value || 0;
+                    }
+                    return 0; // No fallback price - user must select a service first
+                  };
+                  
+                  // Calculate total baggage cost: basic bags + selected baggage services
+                  const getTotalBaggageCost = (): number => {
+                    const basicBaggageCost = selectedBaggage.checkedBags * getBasicBaggagePrice();
+                    const selectedBaggageServicesCost = getSelectedBaggageServices()
+                      .reduce((total, service) => total + (service.price?.[0]?.total?.value || 0), 0);
+                    return basicBaggageCost + selectedBaggageServicesCost;
+                  };
+                  
+                  // Calculate total baggage count: basic bags + selected baggage services  
+                  const getTotalBaggageCount = (): number => {
+                    return selectedBaggage.checkedBags + getSelectedBaggageServices().length;
+                  };
+                  
+                  // Calculate non-baggage services total (exclude baggage from total services)
+                  const getNonBaggageServicesPrice = (): number => {
+                    const baggageServiceKeys = getSelectedBaggageServices().map(s => s.objectKey);
+                    return selectedServices
+                      .filter(serviceKey => !baggageServiceKeys.includes(serviceKey))
+                      .reduce((total, serviceKey) => {
+                        const service = services.find(s => s.objectKey === serviceKey);
+                        return total + (service ? getSelectedServicePrice(service) : 0);
+                      }, 0);
+                  };
+                  
+                  // Calculate non-baggage services count
+                  const getNonBaggageServicesCount = (): number => {
+                    const baggageServiceKeys = getSelectedBaggageServices().map(s => s.objectKey);
+                    return selectedServices.filter(serviceKey => !baggageServiceKeys.includes(serviceKey)).length;
+                  };
+                  
+                  
+                  return (
+                    <>
+                      {/* Price Breakdown */}
+                      <div className="space-y-3">
+                        {/* Base flight pricing */}
+                        {pricedOffer.passengers && Array.isArray(pricedOffer.passengers) ? (
+                          <>
+                            {pricedOffer.passengers.map((passenger: any, index: number) => (
+                              <div key={index} className="space-y-2">
+                                <div className="text-sm font-medium text-muted-foreground border-b pb-1">
+                                  {passenger.type} {index + 1}
+                                </div>
+                                {passenger.pricing?.base_fare && (
+                                  <div className="flex justify-between text-sm">
+                                    <span className="ml-2">Base fare</span>
+                                    <span>{passenger.pricing.base_fare.amount?.toFixed(2)} {passenger.pricing.base_fare.currency || pricedOffer.total_price.currency}</span>
+                                  </div>
+                                )}
+                                {passenger.pricing?.taxes && (
+                                  <div className="flex justify-between text-sm">
+                                    <span className="ml-2">Taxes and fees</span>
+                                    <span>{passenger.pricing.taxes.amount?.toFixed(2)} {passenger.pricing.taxes.currency || pricedOffer.total_price.currency}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </>
+                        ) : (
+                          <>
+                            {/* Fallback to simple pricing display */}
+                            <div className="flex justify-between text-sm">
+                              <span>Flight fare ({adults + children + infants} passenger{adults + children + infants > 1 ? 's' : ''})</span>
+                              <span>{(pricedOffer.total_price.amount * 0.8).toFixed(2)} {pricedOffer.total_price.currency}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span>Taxes and fees</span>
+                              <span>{(pricedOffer.total_price.amount * 0.2).toFixed(2)} {pricedOffer.total_price.currency}</span>
+                            </div>
+                          </>
+                        )}
+                        
+                        {/* Dynamic additional fees */}
+                        <div className="space-y-1 text-sm border-t pt-3">
+                          <div className="flex justify-between">
+                            <span>Seat selection</span>
+                            <span className={getSeatFees() > 0 ? 'font-medium text-primary' : 'text-muted-foreground'}>
+                              {getSeatFees() > 0 ? `${getSeatFees().toFixed(2)} ${flightPricing.currency}` : 'Not selected'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Baggage ({getTotalBaggageCount()} {getTotalBaggageCount() === 1 ? 'item' : 'items'})</span>
+                            <span className={getTotalBaggageCost() > 0 ? 'font-medium text-primary' : 'text-muted-foreground'}>
+                              {getTotalBaggageCost() > 0 ? 
+                                `${getTotalBaggageCost().toFixed(2)} ${getCurrency()}` : 
+                                'Not selected'
+                              }
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Services ({directServicesPricing.servicesCount} selected)</span>
+                            <span className={directServicesPricing.totalPrice > 0 ? 'font-medium text-primary' : 'text-muted-foreground'}>
+                              {directServicesPricing.totalPrice > 0 ? 
+                                `${directServicesPricing.totalPrice.toFixed(2)} ${directServicesPricing.currency}` : 
+                                'Not selected'
+                              }
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <Separator />
+                      
+                      {/* Dynamic Total Price */}
+                      <div className="flex justify-between text-base sm:text-lg font-bold">
+                        <span>Total Price</span>
+                        <span className="text-primary">{(flightPricing.total + getSeatFees() + directServicesPricing.totalPrice).toFixed(2)} {flightPricing.currency}</span>
+                      </div>
+                      
+                      {/* Show additional costs if any */}
+                      {(getSeatFees() + directServicesPricing.totalPrice) > 0 && (
+                        <div className="text-xs text-muted-foreground bg-primary/10 p-2 rounded">
+                          Includes {(getSeatFees() + directServicesPricing.totalPrice).toFixed(2)} {flightPricing.currency} in additional services
+                        </div>
+                      )}
+                    </>
+                  )
+                })()}
+                
+                {/* Important timestamps */}
+                <div className="space-y-2 text-xs sm:text-sm mt-4 border-t pt-4">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                    <span className="text-muted-foreground">Offer expires:</span>
+                    <span className="font-medium text-orange-600 text-xs sm:text-sm">
+                      {pricedOffer.time_limits?.offer_expiration ? new Date(pricedOffer.time_limits.offer_expiration).toLocaleString() : "Not specified"}
+                    </span>
                   </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                    <span className="text-muted-foreground">Payment deadline:</span>
+                    <span className="font-medium text-red-600 text-xs sm:text-sm">
+                      {pricedOffer.time_limits?.payment_deadline ? new Date(pricedOffer.time_limits.payment_deadline).toLocaleString() : "Not specified"}
+                    </span>
+                  </div>
+                </div>
+                
               </div>
             </div>
           </div>

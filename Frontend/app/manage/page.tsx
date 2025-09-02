@@ -6,13 +6,12 @@ import { useUser } from "@clerk/nextjs"
 import Image from "next/image"
 import { Filter, Search, SlidersHorizontal } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { MainNav } from "@/components/main-nav"
-import { UserNav } from "@/components/user-nav"
+import { MainNav } from "@/components/organisms"
+import { UserNav } from "@/components/organisms"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { BookingsList } from "@/components/manage/bookings-list"
-import { LoadingSpinner } from "@/components/loading-spinner"
-import { EmptyBookings } from "@/components/manage/empty-bookings"
+import { BookingsList, EmptyBookings } from "@/components/organisms"
+import { LoadingSpinner } from "@/components/atoms"
 
 export default function ManageBookingsPage() {
   const router = useRouter()

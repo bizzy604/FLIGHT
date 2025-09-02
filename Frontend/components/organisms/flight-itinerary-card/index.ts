@@ -1,0 +1,1 @@
+export { FlightItineraryCard } from "./flight-itinerary-card"

@@ -1,0 +1,77 @@
+---
+alwaysApply: true
+include:
+  - ../shared-rules/.cursorrules-api
+  - ../shared-rules/.cursorrules-dev
+  - ../shared-rules/.cursorrules-documentation
+  - ../shared-rules/.cursorrules-methodology
+  - ../shared-rules/.cursorrules-security
+  - ../shared-rules/.cursorrules-frontend
+---
+
+# Frontend-Specific Flight Booking Development Rules
+
+## Frontend Architecture Overview
+- Next.js 14+ with TypeScript for type-safe flight booking interfaces
+- React components for flight search, booking forms, and payment processing
+- Tailwind CSS with shadcn/ui for consistent booking interface styling
+- Client-side integration with backend flight APIs for search and booking
+
+## Frontend Technology Stack
+- **Next.js 14+** with App Router for modern React architecture
+- **TypeScript** for type-safe flight data handling and API integration
+- **Tailwind CSS** for responsive booking interface styling
+- **Prisma** for frontend database operations (bookings, user data)
+- **Clerk** for user authentication and traveler profile management
+- **shadcn/ui** for consistent UI components across booking flows
+
+## Frontend-Specific Best Practices
+- Use TypeScript interfaces for all flight data structures and API responses
+- Implement proper loading states for flight search and booking operations
+- Handle airline API errors gracefully with user-friendly error messages
+- Optimize flight search result rendering with proper pagination
+- Implement secure payment form handling with PCI-compliant practices
+- Cache flight search results client-side with appropriate cache invalidation
+
+## Frontend Component Architecture
+- **Flight Search Components**: Search forms, filters, and result displays
+- **Booking Components**: Multi-step booking flows with state management
+- **Payment Components**: Secure payment forms and confirmation screens
+- **User Management**: Traveler profiles, booking history, and preferences
+- **Admin Components**: Booking management and analytics dashboards
+
+## Frontend API Integration
+- Use typed API clients for backend flight service integration
+- Implement proper error boundaries for flight search and booking failures
+- Handle authentication state for booking operations and user sessions
+- Cache API responses appropriately for flight data and user preferences
+- Implement real-time updates for booking status and payment processing
+
+## Frontend Development Workflow
+- Follow established component patterns in `/components` directory
+- Use proper TypeScript types defined in `/types` directory
+- Test booking flows across different browsers and devices
+- Validate accessibility compliance for all booking interfaces
+- Maintain responsive design for mobile flight booking experiences
+
+## Frontend File Structure Reference
+- `app/`: Next.js app router pages and API routes
+- `components/`: Reusable React components for booking interfaces
+- `types/`: TypeScript type definitions for flight data and APIs
+- `lib/`: Utility functions and API clients
+- `utils/`: Helper functions for data transformation and validation
+- `public/`: Static assets including airline logos and destination images
+
+## Frontend Environment Variables
+- Backend API endpoint configuration
+- Authentication service integration keys
+- Payment processor public keys (client-side safe)
+- Analytics and monitoring service configuration
+- Feature flags for booking flow variations
+
+## Frontend Testing Requirements
+- Component testing for flight search and booking interfaces
+- Integration testing for API communication with backend services
+- End-to-end testing for complete booking flows
+- Cross-browser compatibility testing for booking processes
+- Mobile responsiveness testing for flight search and booking

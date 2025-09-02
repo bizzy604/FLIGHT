@@ -1,0 +1,212 @@
+{
+  "DataLists": {
+    "FareGroup": [
+      {
+        "ListKey": "QR-FG-279400385079794",
+        "FareBasisCode": {
+          "Code": "SJR4I1SI"
+        }
+      }
+    ],
+    "AnonymousTravelerList": {
+      "AnonymousTraveler": [
+        {
+          "ObjectKey": "QR-PAX1",
+          "PTC": {
+            "value": "ADT"
+          }
+        }
+      ]
+    }
+  },
+  "Query": {
+    "OriginDestination": [
+      {
+        "Flight": [
+          {
+            "SegmentKey": "QR-SEG2",
+            "Departure": {
+              "AirportCode": {
+                "value": "BOM"
+              },
+              "Date": "2025-08-17T04:20:00.000",
+              "Time": "04:20",
+              "Terminal": {
+                "Name": "2"
+              }
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "DOH"
+              },
+              "Date": "2025-08-17T05:20:00.000",
+              "Time": "05:20"
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "QR"
+              },
+              "Name": "Qatar Airways",
+              "FlightNumber": {
+                "value": "4791"
+              }
+            },
+            "OperatingCarrier": {
+              "AirlineID": {
+                "value": "6E"
+              },
+              "Name": "IndiGo"
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT3H30M"
+              }
+            }
+          },
+          {
+            "SegmentKey": "QR-SEG5",
+            "Departure": {
+              "AirportCode": {
+                "value": "DOH"
+              },
+              "Date": "2025-08-17T08:50:00.000",
+              "Time": "08:50"
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "LHR"
+              },
+              "Date": "2025-08-17T14:05:00.000",
+              "Time": "14:05",
+              "Terminal": {
+                "Name": "4"
+              }
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "QR"
+              },
+              "Name": "Qatar Airways",
+              "FlightNumber": {
+                "value": "109"
+              }
+            },
+            "OperatingCarrier": {
+              "AirlineID": {
+                "value": "QR"
+              },
+              "Name": "Qatar Airways"
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT7H15M"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "Offers": {
+      "Offer": [
+        {
+          "OfferID": {
+            "value": "1H1QRZ_8R3DV7PKM2X5WKONAZCLRI21MC8O",
+            "Owner": "QR",
+            "Channel": "NDC"
+          },
+          "OfferItemIDs": {
+            "OfferItemID": [
+              {
+                "value": "1H1QRZ_8R3DV7PKM2X5WKONAZCLRI21MC8O-1",
+                "refs": [
+                  "QR-PAX1"
+                ]
+              }
+            ]
+          },
+          "refs": [
+            {
+              "Ref": "VDC-CARRY_ON_ALLOWANCE-1H1QRZ_8R3DV7PKM2X5WKONAZCLRI21MC8O"
+            },
+            {
+              "Ref": "VDC-AIRLINE-SRID"
+            },
+            {
+              "Ref": "VDC-PR-UjwIF1DWwgWEIxYGanKC"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "ShoppingResponseID": {
+    "Owner": "QR",
+    "ResponseID": {
+      "value": "05uZVQ--RrjkD5NXVzf6e-eGw5gN0fS-U4xNxBC33lA-QR"
+    }
+  },
+  "Travelers": {
+    "Traveler": [
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "Metadata": {
+    "Other": {
+      "OtherMetadata": [
+        {
+          "PriceMetadatas": {
+            "PriceMetadata": [
+              {
+                "MetadataKey": "VDC-CARRY_ON_ALLOWANCE-1H1QRZ_8R3DV7PKM2X5WKONAZCLRI21MC8O",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "java.util.HashMap",
+                        "value": "{\"ADT\":[{\"ListKey\":\"ADT-BAGGAGEALLOWANCE_CARRYON-1piece,7kgtotal\",\"AllowanceDescription\":{\"ApplicableParty\":\"Traveler\",\"Descriptions\":{\"Description\":[{\"Text\":{\"value\":\"1 piece, 7kg total\"}}]}},\"PieceAllowance\":[{\"ApplicableParty\":\"Traveler\",\"TotalQuantity\":1,\"PieceMeasurements\":[{\"Quantity\":1}]}],\"WeightAllowance\":{\"ApplicableParty\":\"Traveler\",\"MaximumWeight\":[{\"Value\":7,\"UOM\":\"Kilogram\"}]},\"refs\":[\"BOM|DOH|2025-08-17|04:20\",\"DOH|LHR|2025-08-17|08:50\"]}]}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-AIRLINE-SRID",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "value": "eyJRUiI6IjFIMVFSWl9QUFo5SkU1MlNJS0pKSTVONE0zSUZYVk9USk1TIn0=",
+                        "type": "java.util.HashMap"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-PR-UjwIF1DWwgWEIxYGanKC",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
+                        "value": "B91GQeG9F/odseQCvQcmhxo+vX8ud/grdnF0BGVIOCHp0vwcm1kGew3QAqjHuxbh1VLl2WGt7xQwsVEpkeHEk8fpLJ7qNTWMvr0QvQe4xFB3XHKjs+WDSCOqVfbwkXM7AC2h2Z1gH3musqlT0QTgAVrJw+zKFjmyHZDsZn7rVA9bsoOU3/A0FLzzejtXm6obSGU4+EF9RHFOCPDMNTbZgL9Qs5DqMlkrWn+aqBdBrWp0b7YWrKH0wAgOq+qkSP9pAKRUvYK9NJOGAOav0psUHkpsBqZRV6x6xidGNEbQ5AcQT4QdCvr6qVeQkc3hCNzAcycJvvWcIkHMCtH2NXfjOptMscJDxtdkwJEsA4fUiSMeXwQ8lm6LLc0DPJOUFH90mHYiXig="
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,78 @@
+---
+alwaysApply: true
+---
+
+# Security & Compliance Requirements
+
+## Travel Industry Data Protection
+- All passenger personal information (PII) must be encrypted at rest and in transit
+- Implement PNR data minimization principles - only collect necessary booking information  
+- Provide traveler consent management for marketing communications and data sharing
+- Support individual rights: booking access, profile correction, data deletion, booking history portability
+- Maintain comprehensive audit trails for all passenger data access and booking modifications
+- Implement booking data retention policies with automatic purging after travel completion + regulatory period
+
+## Payment Card Industry (PCI) Compliance
+- **PCI DSS Level 1 Compliance**: Required for direct card processing
+- Secure payment data handling with tokenization
+- Never store full credit card numbers, CVV codes, or PIN data
+- Implement strong cryptography for payment data transmission
+- Regular security scans and vulnerability assessments for payment infrastructure
+- Maintain secure network architecture with proper segmentation
+
+## Aviation Security Standards
+- **TSA/IATA Security Requirements**: Compliance with international aviation security protocols
+- **APIS Data Handling**: Advanced Passenger Information System data protection
+- **No-Fly List Integration**: Secure passenger screening without data exposure
+- Multi-factor authentication required for all airline partner API access
+- Role-based access control with principle of least privilege for booking agents
+- End-to-end encryption for all sensitive passenger communications
+
+## International Travel Regulations Compliance
+- **GDPR Compliance**: European passenger data protection for EU destinations
+- **Privacy Shield/Data Transfer Frameworks**: Cross-border booking data transfers
+- **Local Aviation Authorities**: Compliance with destination country aviation regulations
+- **Customs Data Protection**: Secure handling of passenger declaration information
+
+## NDC API Security Requirements
+- **OAuth 2.0 + JWT**: Centralized TokenManager with secure token lifecycle management
+- **Airline Partner Authentication**: Mutual TLS for sensitive airline integrations
+- **Rate limiting**: Protect airline APIs from abuse and ensure SLA compliance
+- **Input validation**: Sanitize all flight search criteria and booking data
+- **API versioning**: Maintain backward compatibility for airline partner integrations
+- **Request/Response Logging**: Comprehensive logging without exposing passenger PII or payment data
+
+## Booking Data Classification & Protection
+- **Public**: Flight schedules, airport information, general fare rules
+- **Internal**: Search analytics, operational metrics, airline performance data
+- **Confidential**: Passenger personal information, booking details, payment references
+- **Restricted**: Airline API credentials, payment processor keys, encryption keys, PNR access tokens
+
+## Travel-Specific Audit and Monitoring
+- **24/7 Booking System Monitoring**: Real-time flight availability and pricing alerts
+- **Immutable Booking Audit Logs**: Tamper-proof records of all reservation changes and cancellations
+- **Fraud Detection**: Real-time analysis of suspicious booking patterns and payment activities
+- **Airline Partner SLA Monitoring**: Track API response times and availability for each airline
+- **Payment Security Monitoring**: Continuous monitoring for payment fraud and chargebacks
+- **Regulatory Compliance Reporting**: Automated generation of aviation authority required reports
+
+## Passenger Privacy Protection
+- **Data Anonymization**: Remove or mask PII in analytics and reporting systems
+- **Consent Management**: Granular controls for marketing, data sharing, and communication preferences
+- **Right to be Forgotten**: Secure deletion of passenger data while maintaining regulatory compliance
+- **Cross-Border Data Transfer**: Ensure lawful basis for international booking data transfers
+- **Third-Party Sharing**: Strict controls on passenger data sharing with airlines, hotels, and partners
+
+## Business Continuity for Travel Operations
+- **Disaster Recovery**: Multi-region backup systems for critical booking data
+- **Airline API Failover**: Circuit breakers and backup airline providers for search and booking
+- **Payment Processing Redundancy**: Multiple payment gateways to ensure booking completion
+- **Emergency Booking Access**: Secure emergency procedures for critical travel disruptions
+- **Data Backup**: Regular encrypted backups of booking and passenger data with offsite storage
+
+## Incident Response for Travel Systems
+- **Booking System Outages**: Rapid response procedures for flight search and booking failures
+- **Payment Fraud Detection**: Immediate response protocols for fraudulent transactions
+- **Data Breach Notification**: Passenger notification procedures meeting aviation industry standards
+- **Airline Partner Incidents**: Coordinated response for partner system failures or security issues
+- **Regulatory Reporting**: Automated incident reporting to relevant aviation and payment authorities

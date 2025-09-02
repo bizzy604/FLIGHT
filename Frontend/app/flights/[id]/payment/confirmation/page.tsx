@@ -8,10 +8,9 @@ import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 
 
-import { MainNav } from "@/components/main-nav"
-import { UserNav } from "@/components/user-nav"
-import { PaymentConfirmation } from "@/components/payment-confirmation"
-import { LoadingSpinner } from "@/components/loading-spinner"
+import { MainNav, UserNav } from "@/components/organisms"
+import { PaymentConfirmation } from "@/components/molecules"
+import { LoadingSpinner } from "@/components/atoms"
 import { toast } from "@/components/ui/use-toast"
 import { getBookingData, getStorageInfo } from "@/utils/booking-storage"
 import { flightStorageManager } from "@/utils/flight-storage-manager"

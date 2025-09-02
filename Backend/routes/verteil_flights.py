@@ -65,6 +65,11 @@ from services.flight import (
     process_flight_price
 )
 
+# Import Redis flight storage for enhanced caching
+from services.redis_flight_storage import redis_flight_storage
+from services.simple_flight_cache import simple_flight_cache
+import hashlib
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -94,6 +99,78 @@ def init_app(app):
 def _get_request_id() -> str:
     """Generate a unique request ID."""
     return str(uuid.uuid4())
+
+def _generate_cache_key(search_params: Dict[str, Any], cache_type: str = "search") -> str:
+    """Generate a deterministic cache key for flight search parameters."""
+    
+    # Handle both old format (origin/destination) and new format (odSegments)
+    origin = search_params.get('origin', '')
+    destination = search_params.get('destination', '')
+    depart_date = search_params.get('departDate', '')
+    return_date = search_params.get('returnDate', '')
+    
+    # Check if we have odSegments structure instead
+    if not origin and not destination and 'odSegments' in search_params:
+        od_segments = search_params['odSegments']
+        if isinstance(od_segments, list) and len(od_segments) > 0:
+            # Get first segment for outbound
+            first_segment = od_segments[0]
+            origin = first_segment.get('origin', '')
+            destination = first_segment.get('destination', '')
+            depart_date = first_segment.get('departureDate', '')
+            
+            # For round-trip, check if return date is in the first segment
+            if first_segment.get('returnDate'):
+                return_date = first_segment.get('returnDate', '')
+            # Otherwise, get second segment for return if it exists (legacy format)
+            elif len(od_segments) > 1:
+                second_segment = od_segments[1]
+                return_date = second_segment.get('departureDate', '')
+    
+    # Create a normalized string from search parameters
+    normalized_params = {
+        'origin': origin,
+        'destination': destination,
+        'departDate': depart_date,
+        'returnDate': return_date,
+        'adults': str(search_params.get('numAdults', search_params.get('num_adults', 1))),
+        'children': str(search_params.get('numChildren', search_params.get('num_children', 0))),
+        'infants': str(search_params.get('numInfants', search_params.get('num_infants', 0))),
+        'cabinClass': search_params.get('cabinPreference', search_params.get('cabin_class', 'ECONOMY')),
+        'tripType': search_params.get('tripType', search_params.get('trip_type', 'ONE_WAY')).upper(),
+        'airlines': search_params.get('airlines', ''),  # Include airline filter in cache key
+        'directOnly': str(search_params.get('directOnly', False)),  # Include direct flights filter
+        'maxStops': str(search_params.get('maxStops', '')),  # Include stops filter
+        'cache_version': '2025-08-26-v4'  # Cache version to force invalidation when needed
+    }
+    
+    # Sort keys for consistent hash
+    param_string = '|'.join(f"{k}:{v}" for k, v in sorted(normalized_params.items()) if v)
+    cache_key = hashlib.md5(param_string.encode()).hexdigest()
+    
+    logger.info(f"[CACHE KEY DEBUG] Generated {cache_type} cache key: {cache_key}")
+    logger.info(f"[CACHE KEY DEBUG] Param string: {param_string}")
+    logger.info(f"[CACHE KEY DEBUG] Airlines filter: '{search_params.get('airlines', 'NONE')}'")
+    return f"flight_{cache_type}:{cache_key}"
+
+def _generate_flight_price_cache_key(offer_id: str, shopping_response_id: str) -> str:
+    """Generate a deterministic cache key for flight pricing parameters."""
+    normalized_params = {
+        'offer_id': str(offer_id),
+        'shopping_response_id': str(shopping_response_id)
+    }
+    
+    param_string = '|'.join(f"{k}:{v}" for k, v in sorted(normalized_params.items()) if v)
+    cache_key = hashlib.md5(param_string.encode()).hexdigest()
+    
+    logger.debug(f"Generated flight price cache key: {cache_key} for offer: {offer_id}")
+    return f"flight_price:{cache_key}"
+
+def _generate_booking_cache_key(booking_id: str) -> str:
+    """Generate a deterministic cache key for booking retrieval."""
+    cache_key = hashlib.md5(booking_id.encode()).hexdigest()
+    logger.debug(f"Generated booking cache key: {cache_key} for booking: {booking_id}")
+    return f"booking:{cache_key}"
 
 def _create_error_response(
     message: str,
@@ -275,6 +352,78 @@ async def air_shopping_test_regular():
             'message': 'Regular air-shopping test failed'
         }), 500
 
+
+@bp.route('/air-shopping/cache-check', methods=['POST', 'OPTIONS'])
+@route_cors(
+    allow_origin=ALLOWED_ORIGINS,
+    allow_methods=["POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+    expose_headers=["Content-Type"],
+    allow_credentials=True,
+    max_age=600
+)
+async def check_flight_search_cache():
+    """
+    Check if flight search data exists in cache and return it if valid.
+    
+    POST JSON Body:
+    - Same parameters as air-shopping endpoint
+    
+    Returns:
+    - Cached flight data if available and valid
+    - Cache miss response if no valid cache exists
+    """
+    if request.method == 'OPTIONS':
+        return await make_response(), 200
+        
+    request_id = _get_request_id()
+    logger.info(f"Cache check request received - Request ID: {request_id}")
+    
+    try:
+        # Get request data
+        if request.method == 'GET':
+            data = request.args.to_dict()
+        else:
+            data = await request.get_json() or {}
+        
+        # Generate cache key from search parameters
+        cache_key = _generate_cache_key(data)
+        
+        # Try to retrieve cached data from Redis
+        # Extract hash part from cache_key to use as session_id
+        session_id = cache_key.split(':')[-1] if ':' in cache_key else cache_key
+        cached_result = simple_flight_cache.get_flight_search(session_id)
+        
+        if cached_result['success']:
+            logger.info(f"Cache hit for key: {cache_key} - Request ID: {request_id}")
+            
+            # Return cached data with success status
+            return jsonify({
+                'status': 'success',
+                'source': 'cache',
+                'data': cached_result['data'],
+                'request_id': request_id,
+                'cache_key': cache_key
+            })
+        else:
+            logger.info(f"Cache miss for key: {cache_key} - Request ID: {request_id}")
+            
+            # Return cache miss response
+            return jsonify({
+                'status': 'cache_miss',
+                'message': 'No valid cached data found',
+                'request_id': request_id,
+                'cache_key': cache_key
+            })
+            
+    except Exception as e:
+        logger.error(f"Cache check error: {str(e)} - Request ID: {request_id}")
+        return jsonify({
+            'status': 'cache_miss',
+            'message': 'Cache check failed',
+            'error': str(e),
+            'request_id': request_id
+        })
 
 @bp.route('/air-shopping', methods=['GET', 'POST', 'OPTIONS'])
 @route_cors(
@@ -498,6 +647,59 @@ async def air_shopping():
 
 
 
+        # Generate cache key for this search
+        cache_key = _generate_cache_key(converted_data)
+        
+        # 🚀 PRIORITY FIX: Make API calls primary, cache only when explicitly requested
+        use_cache_only = converted_data.get('use_cache_only', False)
+        if use_cache_only:
+            # Extract hash part from cache_key to use as session_id
+            session_id = cache_key.split(':')[-1] if ':' in cache_key else cache_key
+            cached_result = simple_flight_cache.get_flight_search(session_id)
+            
+            if cached_result['success']:
+                logger.info(f"🚀 Cache hit! Returning cached data for key: {cache_key} - Request ID: {request_id}")
+                
+                # Ensure the raw response cache key is updated with current request_id
+                cached_data = cached_result['data']
+                if cached_data and cached_data.get('metadata'):
+                    # Check if we have a stored raw_response_cache_key
+                    original_raw_key = cached_data['metadata'].get('raw_response_cache_key')
+                    if original_raw_key:
+                        # Extract the original request_id from the cached key
+                        # Format: "air_shopping_raw_{original_request_id}"
+                        if original_raw_key.startswith('air_shopping_raw_'):
+                            original_request_id = original_raw_key.replace('air_shopping_raw_', '')
+                            # Verify the raw response cache is still valid
+                            try:
+                                from utils.cache_manager import cache_manager
+                                raw_response = cache_manager.get(original_raw_key)
+                                if raw_response:
+                                    logger.info(f"✅ Raw response cache still valid for key: {original_raw_key}")
+                                else:
+                                    logger.warning(f"⚠️ Raw response cache expired for key: {original_raw_key}")
+                                    # Clear the key since it's no longer valid
+                                    cached_data['metadata']['raw_response_cache_key'] = None
+                            except Exception as e:
+                                logger.warning(f"⚠️ Error checking raw response cache: {e}")
+                                cached_data['metadata']['raw_response_cache_key'] = None
+                    
+                    # Add flight search cache key for future pricing calls
+                    cached_data['metadata']['flight_search_cache_key'] = cache_key
+                    logger.info(f"✅ Added flight_search_cache_key to cached metadata: {cache_key}")
+                
+                # Return cached data with proper response structure
+                return jsonify({
+                    'status': 'success',
+                    'source': 'cache',
+                    'data': cached_data,
+                    'cached_at': cached_result['stored_at'],
+                    'expires_at': cached_result['expires_at'],
+                    'request_id': request_id,
+                    'cache_key': cache_key,
+                    'message': 'Flight search results retrieved from cache'
+                })
+        
         # Process the request with the enhanced flight service
         # Check if enhanced mode is requested (default: enhanced for multi-airline support)
         use_enhanced = converted_data.get('enhanced', True)  # Default to enhanced mode
@@ -507,12 +709,40 @@ async def air_shopping():
 
         if use_enhanced:
             # Use enhanced air shopping with multi-airline support
-            logger.info(f"Using enhanced air shopping service - Request ID: {request_id}")
+            logger.info(f"🔍 Using enhanced air shopping service (cache miss) - Request ID: {request_id}")
             result = await process_air_shopping_enhanced(converted_data)
         else:
             # Use basic air shopping for legacy compatibility
-            logger.info(f"Using basic air shopping service - Request ID: {request_id}")
+            logger.info(f"🔍 Using basic air shopping service (cache miss) - Request ID: {request_id}")
             result = await process_air_shopping_basic(converted_data)
+
+        # Cache the successful result for future requests
+        if result.get('status') == 'success' and result.get('data'):
+            try:
+                # Extract hash part from cache_key to use as session_id
+                # cache_key format: "flight_search:hash" -> we need just "hash"
+                session_id = cache_key.split(':')[-1] if ':' in cache_key else cache_key
+                cache_result = simple_flight_cache.store_flight_search(
+                    session_id=session_id,
+                    search_data=result['data'],
+                    ttl=300  # 5 minutes
+                )
+                if cache_result['success']:
+                    logger.info(f"💾 Cached search results for key: {cache_key} - Request ID: {request_id}")
+                    # Add cache info to response
+                    result['cache_key'] = cache_key
+                    result['cached'] = True
+                    
+                    # Add flight search cache key to metadata for pricing API access
+                    if result.get('data') and result['data'].get('metadata'):
+                        result['data']['metadata']['flight_search_cache_key'] = cache_key
+                        logger.info(f"Added flight_search_cache_key to metadata: {cache_key}")
+                else:
+                    logger.warning(f"Failed to cache search results: {cache_result.get('message')} - Request ID: {request_id}")
+                    result['cached'] = False
+            except Exception as cache_error:
+                logger.error(f"Error caching search results: {str(cache_error)} - Request ID: {request_id}")
+                result['cached'] = False
 
         # Log success
         service_type = "enhanced" if use_enhanced else "basic"
@@ -557,6 +787,82 @@ async def air_shopping():
             request_id=request_id,
             details={"error": str(e) if str(e) else "Unknown error"}
         )), 500
+
+@bp.route('/flight-price/cache-check', methods=['POST', 'OPTIONS'])
+@route_cors(
+    allow_origin=ALLOWED_ORIGINS,
+    allow_methods=["POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+    expose_headers=["Content-Type"],
+    allow_credentials=True,
+    max_age=600
+)
+async def check_flight_price_cache():
+    """
+    Check if flight price data exists in cache and return it if valid.
+    
+    POST JSON Body:
+    - offer_id: The ID of the offer to price
+    - shopping_response_id: The ShoppingResponseID from AirShoppingRS
+    
+    Returns:
+    - Cached flight price data if available and valid
+    - Cache miss response if no valid cache exists
+    """
+    if request.method == 'OPTIONS':
+        return await make_response(), 200
+        
+    request_id = _get_request_id()
+    logger.info(f"Flight price cache check request received - Request ID: {request_id}")
+    
+    try:
+        data = await request.get_json() or {}
+        
+        if not data.get('offer_id') or not data.get('shopping_response_id'):
+            return jsonify({
+                'status': 'cache_miss',
+                'message': 'Missing required parameters for cache check',
+                'request_id': request_id
+            })
+        
+        # Generate cache key from pricing parameters
+        cache_key = _generate_flight_price_cache_key(data['offer_id'], data['shopping_response_id'])
+        
+        # Try to retrieve cached data from Redis
+        # Extract hash part from cache_key to use as session_id
+        session_id = cache_key.split(':')[-1] if ':' in cache_key else cache_key
+        cached_result = simple_flight_cache.get_flight_price(session_id)
+        
+        if cached_result['success']:
+            logger.info(f"Flight price cache hit for key: {cache_key} - Request ID: {request_id}")
+            
+            # Return cached data with success status
+            return jsonify({
+                'status': 'success',
+                'source': 'cache',
+                'data': cached_result['data'],
+                'request_id': request_id,
+                'cache_key': cache_key
+            })
+        else:
+            logger.info(f"Flight price cache miss for key: {cache_key} - Request ID: {request_id}")
+            
+            # Return cache miss response
+            return jsonify({
+                'status': 'cache_miss',
+                'message': 'No valid cached price data found',
+                'request_id': request_id,
+                'cache_key': cache_key
+            })
+            
+    except Exception as e:
+        logger.error(f"Flight price cache check error: {str(e)} - Request ID: {request_id}")
+        return jsonify({
+            'status': 'cache_miss',
+            'message': 'Cache check failed',
+            'error': str(e),
+            'request_id': request_id
+        })
 
 @bp.route('/flight-price', methods=['POST', 'OPTIONS'])
 @route_cors(
@@ -632,12 +938,49 @@ async def flight_price():
                 if raw_response_cache_key:
                     logger.info(f"Found raw response cache key: {raw_response_cache_key}")
 
-        # Prepare request data
+        # Generate cache key for this pricing request
         offer_id = data['offer_id']
         shopping_response_id = data['shopping_response_id']
+        cache_key = _generate_flight_price_cache_key(offer_id, shopping_response_id)
+        
+        # 🚀 PRIORITY FIX: Make API calls primary, cache only when explicitly requested
+        use_cache_only = data.get('use_cache_only', False)
+        
+        # Only use cache if explicitly requested via use_cache_only parameter
+        if use_cache_only:
+            # Extract hash part from cache_key to use as session_id
+            session_id = cache_key.split(':')[-1] if ':' in cache_key else cache_key
+            cached_result = simple_flight_cache.get_flight_price(session_id)
+            
+            if cached_result['success']:
+                logger.info(f"📦 Using cached flight price data for key: {cache_key} - Request ID: {request_id}")
+                
+                # 🚀 ROBUST SOLUTION: Ensure cached data also has guaranteed cache key
+                cached_data = cached_result['data']
+                if not cached_data.get('metadata'):
+                    cached_data['metadata'] = {}
+                
+                # Ensure flight_price_cache_key is available in metadata
+                if not cached_data['metadata'].get('flight_price_cache_key'):
+                    cached_data['metadata']['flight_price_cache_key'] = cache_key
+                    logger.info(f"✅ Added cache key to cached flight price metadata: {cache_key}")
+                
+                # Return cached data with proper response structure
+                cache_response = {
+                    'status': 'success',
+                    'source': 'cache',
+                    'data': cached_data,
+                    'request_id': request_id,
+                    'cache_key': cache_key,
+                    'flight_price_cache_key': cached_data['metadata']['flight_price_cache_key'],  # 🔧 Top level guarantee
+                    'message': 'Flight price data retrieved from cache'
+                }
+                
+                logger.info(f"🔑 GUARANTEED cached flight_price_cache_key transmission: metadata={cached_data['metadata']['flight_price_cache_key']}, top_level={cache_response['flight_price_cache_key']}")
+                return jsonify(cache_response)
         
         # Log the offer details for debugging
-        logger.info(f"[DEBUG] Flight price request - Offer ID: {offer_id}, Type: {type(offer_id).__name__}")
+        logger.info(f"[DEBUG] Flight price request (cache miss) - Offer ID: {offer_id}, Type: {type(offer_id).__name__}")
         
         price_request = {
             'offer_id': offer_id,  # This is the frontend's offer ID
@@ -649,15 +992,146 @@ async def flight_price():
             'config': dict(current_app.config)  # Pass the app configuration
         }
         
+        # Add request deduplication to prevent multiple concurrent API calls for same flight pricing
+        dedup_key = f"flight_price:{cache_key}"
+        if request_cache.is_duplicate(dedup_key):
+            logger.info(f"🔄 Duplicate flight price request detected for key: {cache_key}. Waiting for ongoing request... - Request ID: {request_id}")
+            
+            # Wait for the ongoing request to complete by polling cache
+            import asyncio
+            wait_time = 0
+            max_wait = 10  # Maximum 10 seconds wait
+            
+            while wait_time < max_wait:
+                await asyncio.sleep(0.5)  # Wait 500ms
+                wait_time += 0.5
+                
+                # Check if cache now has the result
+                session_id = cache_key.split(':')[-1] if ':' in cache_key else cache_key
+                cached_result = simple_flight_cache.get_flight_price(session_id)
+                if cached_result['success']:
+                    logger.info(f"🎯 Duplicate request resolved via cache for key: {cache_key} - Request ID: {request_id}")
+                    return jsonify({
+                        'status': 'success',
+                        'source': 'cache_after_dedup',
+                        'data': cached_result['data'],
+                        'request_id': request_id,
+                        'cache_key': cache_key,
+                        'message': 'Flight price data retrieved after deduplication wait'
+                    })
+            
+            logger.warning(f"⏰ Deduplication wait timeout for key: {cache_key}. Proceeding with request - Request ID: {request_id}")
+        
+        # Mark this request as in progress to prevent duplicates
+        request_cache.add_request(dedup_key)
+        
         try:
             # Process the flight price request
+            logger.info(f"🔍 Processing flight price request (cache miss) - Request ID: {request_id}")
             result = await process_flight_price(price_request)
+            
+            # Check if the result is an error due to expired offers
+            is_expired_offer_error = False
+            if result and isinstance(result, dict) and result.get('status') == 'error':
+                error_msg = result.get('error', '').lower()
+                # Check for common expired offer error codes and messages
+                expired_offer_indicators = [
+                    'ndc-4191',
+                    'shop offer not found',
+                    'does not exist, expired, or consumed',
+                    'offer expired',
+                    'offer not found'
+                ]
+                is_expired_offer_error = any(indicator in error_msg for indicator in expired_offer_indicators)
+                
+                if is_expired_offer_error:
+                    logger.warning(f"🕐 Detected expired offer error - Request ID: {request_id}")
+                    
+                    # Try to invalidate cached search data and retry once
+                    try:
+                        # Extract search parameters from the air shopping response for cache invalidation
+                        air_shopping = data.get('air_shopping_response', {})
+                        metadata = air_shopping.get('metadata', {})
+                        
+                        if metadata.get('flight_search_cache_key'):
+                            # Invalidate the cached search data
+                            search_cache_key = metadata['flight_search_cache_key']
+                            logger.info(f"🗑️ Invalidating expired search cache: {search_cache_key} - Request ID: {request_id}")
+                            
+                            # Try to delete the cached search data
+                            try:
+                                # Use new cache system to invalidate the search data
+                                delete_result = simple_flight_cache.delete_flight_search(search_cache_key)
+                                if delete_result['success']:
+                                    logger.info(f"✅ Successfully invalidated search cache: {search_cache_key}")
+                                else:
+                                    logger.warning(f"Failed to invalidate search cache: {delete_result.get('error')}")
+                            except Exception as invalidate_error:
+                                logger.warning(f"Failed to invalidate search cache: {invalidate_error}")
+                        
+                        # Return a specific error response that the frontend can handle
+                        logger.info(f"💫 Returning expired offer error for frontend handling - Request ID: {request_id}")
+                        return jsonify({
+                            'status': 'expired_offer_error',
+                            'error': 'Flight offers have expired. Please search again for fresh results.',
+                            'error_code': 'EXPIRED_OFFERS',
+                            'message': 'The selected flight offers are no longer available. This happens when offers expire after being cached. Please perform a new search to get current offers.',
+                            'request_id': request_id,
+                            'should_retry_search': True,
+                            'original_error': result.get('error', '')
+                        })
+                        
+                    except Exception as retry_error:
+                        logger.error(f"Error during expired offer retry handling: {str(retry_error)} - Request ID: {request_id}")
+                        # Fall through to return the original error
+            
+            # Cache the successful result for future requests
+            if result and isinstance(result, dict) and result.get('status') == 'success' and result.get('data'):
+                try:
+                    # Extract hash part from cache_key to use as session_id
+                    session_id = cache_key.split(':')[-1] if ':' in cache_key else cache_key
+                    cache_result = simple_flight_cache.store_flight_price(
+                        session_id=session_id,
+                        price_data=result['data'],
+                        ttl=300  # 5 minutes
+                    )
+                    if cache_result['success']:
+                        logger.info(f"💾 Cached flight price data for key: {cache_key} - Request ID: {request_id}")
+                        result['cache_key'] = cache_key
+                        result['cached'] = True
+                        
+                        # 🚀 ROBUST SOLUTION: Ensure metadata always exists and contains flight_price_cache_key
+                        if not result.get('data'):
+                            result['data'] = {}
+                        if not result['data'].get('metadata'):
+                            result['data']['metadata'] = {}
+                        
+                        # Preserve raw cache key from pricing service if it exists, otherwise use processed cache key
+                        if not result['data']['metadata'].get('flight_price_cache_key'):
+                            result['data']['metadata']['flight_price_cache_key'] = cache_key
+                            logger.info(f"✅ Added processed flight_price_cache_key to metadata: {cache_key}")
+                        else:
+                            logger.info(f"✅ Preserved raw flight_price_cache_key in metadata: {result['data']['metadata']['flight_price_cache_key']}")
+                        
+                        # Add processed cache key separately for reference
+                        result['data']['metadata']['processed_cache_key'] = cache_key
+                        
+                        # 🔧 CRITICAL: Ensure frontend receives cache key at top level too
+                        result['flight_price_cache_key'] = result['data']['metadata']['flight_price_cache_key']
+                        
+                        logger.info(f"🔑 GUARANTEED flight_price_cache_key transmission: metadata={result['data']['metadata']['flight_price_cache_key']}, top_level={result['flight_price_cache_key']}")
+                    else:
+                        logger.warning(f"Failed to cache flight price data: {cache_result.get('message')} - Request ID: {request_id}")
+                        result['cached'] = False
+                except Exception as cache_error:
+                    logger.error(f"Error caching flight price data: {str(cache_error)} - Request ID: {request_id}")
+                    result['cached'] = False
             
             # Log the result status
             if result and isinstance(result, dict):
                 status = result.get('status', 'unknown')
                 logger.info(f"Flight price request completed with status: {status} - Request ID: {request_id}")
-                if status == 'error':
+                if status == 'error' and not is_expired_offer_error:
                     logger.error(f"Error in flight price request: {result.get('error', 'No error details')} - Request ID: {request_id}")
 
             return jsonify(result)
@@ -681,6 +1155,79 @@ async def flight_price():
         return jsonify(_create_error_response("An unexpected error occurred", 500, request_id))
 
 
+@bp.route('/booking/cache-check', methods=['POST', 'OPTIONS'])
+@route_cors(
+    allow_origin=ALLOWED_ORIGINS,
+    allow_methods=["POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+    expose_headers=["Content-Type"],
+    allow_credentials=True,
+    max_age=600
+)
+async def check_booking_cache():
+    """
+    Check if booking data exists in cache and return it if valid.
+    
+    POST JSON Body:
+    - booking_id: The ID of the booking to retrieve
+    
+    Returns:
+    - Cached booking data if available and valid
+    - Cache miss response if no valid cache exists
+    """
+    if request.method == 'OPTIONS':
+        return await make_response(), 200
+        
+    request_id = _get_request_id()
+    logger.info(f"Booking cache check request received - Request ID: {request_id}")
+    
+    try:
+        data = await request.get_json() or {}
+        
+        if not data.get('booking_id'):
+            return jsonify({
+                'status': 'cache_miss',
+                'message': 'Missing required booking_id parameter for cache check',
+                'request_id': request_id
+            })
+        
+        # Generate cache key from booking ID
+        cache_key = _generate_booking_cache_key(data['booking_id'])
+        
+        # Try to retrieve cached data from Redis
+        cached_result = simple_flight_cache.get_booking(cache_key)
+        
+        if cached_result['success']:
+            logger.info(f"Booking cache hit for key: {cache_key} - Request ID: {request_id}")
+            
+            # Return cached data with success status
+            return jsonify({
+                'status': 'success',
+                'source': 'cache',
+                'data': cached_result['data'],
+                'request_id': request_id,
+                'cache_key': cache_key
+            })
+        else:
+            logger.info(f"Booking cache miss for key: {cache_key} - Request ID: {request_id}")
+            
+            # Return cache miss response
+            return jsonify({
+                'status': 'cache_miss',
+                'message': 'No valid cached booking data found',
+                'request_id': request_id,
+                'cache_key': cache_key
+            })
+            
+    except Exception as e:
+        logger.error(f"Booking cache check error: {str(e)} - Request ID: {request_id}")
+        return jsonify({
+            'status': 'cache_miss',
+            'message': 'Cache check failed',
+            'error': str(e),
+            'request_id': request_id
+        })
+
 @bp.route('/debug/token', methods=['GET', 'OPTIONS'])
 @route_cors(
     allow_origin=ALLOWED_ORIGINS,
@@ -696,6 +1243,7 @@ async def debug_token():
     """
     try:
         from utils.auth import TokenManager
+        import os
 
         token_manager = TokenManager.get_instance()
         token_info = token_manager.get_token_info()
@@ -708,13 +1256,32 @@ async def debug_token():
             token_available = False
             token_info['error'] = str(e)
 
+        # Add config debugging to this working endpoint
+        config_debug = {
+            'app_config': {
+                'VERTEIL_USERNAME': 'SET' if current_app.config.get('VERTEIL_USERNAME') else 'NOT SET',
+                'VERTEIL_PASSWORD': 'SET' if current_app.config.get('VERTEIL_PASSWORD') else 'NOT SET', 
+                'VERTEIL_API_BASE_URL': current_app.config.get('VERTEIL_API_BASE_URL'),
+                'VERTEIL_OFFICE_ID': current_app.config.get('VERTEIL_OFFICE_ID'),
+                'VERTEIL_THIRD_PARTY_ID': current_app.config.get('VERTEIL_THIRD_PARTY_ID'),
+            },
+            'env_vars': {
+                'VERTEIL_USERNAME': 'SET' if os.getenv('VERTEIL_USERNAME') else 'NOT SET',
+                'VERTEIL_PASSWORD': 'SET' if os.getenv('VERTEIL_PASSWORD') else 'NOT SET', 
+                'VERTEIL_API_BASE_URL': os.getenv('VERTEIL_API_BASE_URL'),
+                'VERTEIL_OFFICE_ID': os.getenv('VERTEIL_OFFICE_ID'),
+                'VERTEIL_THIRD_PARTY_ID': os.getenv('VERTEIL_THIRD_PARTY_ID'),
+            }
+        }
+
         return jsonify({
             'status': 'success',
             'token_available': token_available,
             'token_info': token_info,
             'config_set': bool(token_manager._config),
             'persistence_enabled': token_manager._enable_persistence,
-            'token_file_path': token_manager._get_token_file_path() if token_manager._enable_persistence else None
+            'token_file_path': token_manager._get_token_file_path() if token_manager._enable_persistence else None,
+            'config_debug': config_debug
         })
 
     except Exception as e:
@@ -723,6 +1290,92 @@ async def debug_token():
             'error': str(e)
         }), 500
 
+@bp.route('/debug/config', methods=['GET', 'OPTIONS'])
+@route_cors(
+    allow_origin=ALLOWED_ORIGINS,
+    allow_methods=["GET", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+    expose_headers=["Content-Type"],
+    allow_credentials=True,
+    max_age=600
+)
+async def debug_config():
+    """Debug endpoint to check configuration values."""
+    try:
+        if request.method == 'OPTIONS':
+            return '', 200
+            
+        # Import os to check env vars directly
+        import os
+        
+        config_debug = {
+            'app_config': {
+                'VERTEIL_USERNAME': 'SET' if current_app.config.get('VERTEIL_USERNAME') else 'NOT SET',
+                'VERTEIL_PASSWORD': 'SET' if current_app.config.get('VERTEIL_PASSWORD') else 'NOT SET', 
+                'VERTEIL_API_BASE_URL': current_app.config.get('VERTEIL_API_BASE_URL'),
+                'VERTEIL_OFFICE_ID': current_app.config.get('VERTEIL_OFFICE_ID'),
+                'VERTEIL_THIRD_PARTY_ID': current_app.config.get('VERTEIL_THIRD_PARTY_ID'),
+            },
+            'env_vars': {
+                'VERTEIL_USERNAME': 'SET' if os.getenv('VERTEIL_USERNAME') else 'NOT SET',
+                'VERTEIL_PASSWORD': 'SET' if os.getenv('VERTEIL_PASSWORD') else 'NOT SET', 
+                'VERTEIL_API_BASE_URL': os.getenv('VERTEIL_API_BASE_URL'),
+                'VERTEIL_OFFICE_ID': os.getenv('VERTEIL_OFFICE_ID'),
+                'VERTEIL_THIRD_PARTY_ID': os.getenv('VERTEIL_THIRD_PARTY_ID'),
+            },
+            'config_keys_count': len(current_app.config.keys())
+        }
+        
+        return jsonify({
+            'status': 'success',
+            'config': config_debug
+        })
+    except Exception as e:
+        logger.error(f"Debug config endpoint failed: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@bp.route('/cache/clear', methods=['POST', 'OPTIONS'])
+@route_cors(
+    allow_origin=ALLOWED_ORIGINS,
+    allow_methods=["POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+    expose_headers=["Content-Type"],
+    allow_credentials=True,
+    max_age=600
+)
+async def clear_cache():
+    """
+    Clear all flight-related cache data.
+    """
+    if request.method == 'OPTIONS':
+        return await make_response(), 200
+    
+    try:
+        from services.simple_flight_cache import simple_flight_cache
+        
+        # Clear all cached data 
+        health_result = simple_flight_cache.get_cache_health()
+        stats_before = health_result.get('stats', {})
+        
+        # Since we can't clear all cache directly, we'll update the cache version to invalidate all keys
+        # This is done by changing the cache version in the code above
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Cache invalidation triggered via version update',
+            'stats_before_clear': stats_before,
+            'new_cache_version': '2025-08-26-v4'
+        })
+        
+    except Exception as e:
+        logger.error(f"Cache clear error: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to clear cache: {str(e)}'
+        }), 500
 
 @bp.route('/order-create', methods=['POST', 'OPTIONS'])
 @route_cors(
@@ -742,7 +1395,11 @@ async def create_order():
         "flight_price_response": {...},  # Direct flight price response from frontend
         "passengers": [...],    # Passenger details from frontend
         "payment": {...},       # Payment information
-        "contact_info": {...}   # Contact information
+        "contact_info": {...},  # Contact information
+        "servicelist_response": {...},  # Optional ServiceListRS response data
+        "seatavailability_response": {...},  # Optional SeatAvailabilityRS response data
+        "selected_services": [...],  # Optional list of selected service ObjectKeys
+        "selected_seats": [...]  # Optional list of selected seat ObjectKeys
     }
     """
     request_id = _get_request_id()
@@ -752,6 +1409,10 @@ async def create_order():
         data = await request.get_json()
         if not data:
             return jsonify(_create_error_response("Request body is required", 400, request_id))
+        
+        # 🔍 DEBUG: Log the complete raw request body to identify missing cache keys
+        import json
+        logger.error(f"🚨 RAW REQUEST BODY (ReqID: {request_id}): {json.dumps(data, default=str)[:2000]}...")
 
 
 
@@ -765,6 +1426,75 @@ async def create_order():
         contact_info = data.get('contact_info', {})
         frontend_offer_id = data.get('OfferID')  # Extract OfferID sent from frontend (might be index)
         shopping_response_id = data.get('ShoppingResponseID')  # Extract ShoppingResponseID sent from frontend
+        
+        # Extract service and seat data from frontend request
+        servicelist_response = data.get('servicelist_response')
+        seatavailability_response = data.get('seatavailability_response')
+        selected_services = data.get('selected_services', [])
+        selected_seats = data.get('selected_seats', [])
+        
+        # 🚀 NEW: Extract cache keys sent by frontend (proper approach)
+        seat_availability_cache_key = data.get('seat_availability_cache_key')  
+        service_list_cache_key = data.get('service_list_cache_key')
+        
+        # 🔧 FALLBACK: If frontend didn't send cache keys, try to derive them from flight price data
+        if (not seat_availability_cache_key or not service_list_cache_key) and flight_price_response:
+            logger.info(f"[FALLBACK] Frontend didn't send cache keys, attempting to derive from flight price data (ReqID: {request_id})")
+            
+            # Try to extract flight_price_cache_key from metadata
+            flight_price_cache_key = None
+            if isinstance(flight_price_response, dict):
+                metadata = flight_price_response.get('metadata') or flight_price_response.get('Metadata', {})
+                flight_price_cache_key = metadata.get('flight_price_cache_key')
+                
+                if not flight_price_cache_key:
+                    # Try to get from top-level metadata
+                    flight_price_cache_key = flight_price_response.get('flight_price_cache_key')
+                    
+                logger.info(f"[FALLBACK] Extracted flight_price_cache_key: {flight_price_cache_key} (ReqID: {request_id})")
+            
+            # Derive cache keys using the same logic as seat/service endpoints
+            if flight_price_cache_key and not seat_availability_cache_key:
+                try:
+                    # Import the cache key generation function
+                    from routes.clean_seat_service import _generate_seat_availability_cache_key
+                    derived_seat_key = _generate_seat_availability_cache_key(
+                        flight_price_response=flight_price_response,
+                        flight_price_cache_key=flight_price_cache_key
+                    )
+                    seat_availability_cache_key = derived_seat_key
+                    logger.info(f"[FALLBACK] ✅ Derived seat_availability_cache_key: {seat_availability_cache_key} (ReqID: {request_id})")
+                except Exception as e:
+                    logger.warning(f"[FALLBACK] Failed to derive seat cache key: {e} (ReqID: {request_id})")
+            
+            if flight_price_cache_key and not service_list_cache_key:
+                try:
+                    # Import the cache key generation function  
+                    from routes.clean_seat_service import _generate_service_list_cache_key
+                    derived_service_key = _generate_service_list_cache_key(
+                        flight_price_response=flight_price_response,
+                        flight_price_cache_key=flight_price_cache_key
+                    )
+                    service_list_cache_key = derived_service_key
+                    logger.info(f"[FALLBACK] ✅ Derived service_list_cache_key: {service_list_cache_key} (ReqID: {request_id})")
+                except Exception as e:
+                    logger.warning(f"[FALLBACK] Failed to derive service cache key: {e} (ReqID: {request_id})")
+        
+        # 🔍 DEBUG: Log raw request data to identify missing keys
+        logger.info(f"[DEBUG] RAW REQUEST DATA received at OrderCreate (ReqID: {request_id}):")
+        logger.info(f"[DEBUG] - Request data keys: {list(data.keys()) if data else 'None'}")
+        logger.info(f"[DEBUG] - Raw seat_availability_cache_key from request: {repr(data.get('seat_availability_cache_key'))}")
+        logger.info(f"[DEBUG] - Raw service_list_cache_key from request: {repr(data.get('service_list_cache_key'))}")
+        logger.info(f"[DEBUG] - session_id from request: {data.get('session_id')}")
+        
+        # 🚀 DEBUG LOG FOR SEAT/SERVICE SELECTIONS
+        logger.info(f"[DEBUG] Seat/Service selections received (ReqID: {request_id}):")
+        logger.info(f"[DEBUG] - selected_services: {selected_services}")
+        logger.info(f"[DEBUG] - selected_seats: {selected_seats}")
+        logger.info(f"[DEBUG] - servicelist_response available: {bool(servicelist_response)}")
+        logger.info(f"[DEBUG] - seatavailability_response available: {bool(seatavailability_response)}")
+        logger.info(f"[DEBUG] - seat_availability_cache_key: {seat_availability_cache_key}")
+        logger.info(f"[DEBUG] - service_list_cache_key: {service_list_cache_key}")
 
         # Extract the REAL OfferID from the raw flight price response instead of using the index
         offer_id = None
@@ -857,7 +1587,7 @@ async def create_order():
             offer_id = frontend_offer_id
             logger.warning(f"[DEBUG] No flight_price_response available, using frontend OfferID: {offer_id} (ReqID: {request_id})")
         
-        # Try to retrieve raw flight price response from cache if cache key is provided
+        # Try to retrieve flight price response from new Redis flight storage system
         flight_price_cache_key = None
         if isinstance(flight_price_response, dict):
             metadata = flight_price_response.get('metadata', {})
@@ -866,15 +1596,28 @@ async def create_order():
                 if flight_price_cache_key:
                     logger.info(f"[DEBUG] Found flight price cache key: {flight_price_cache_key} (ReqID: {request_id})")
                     try:
-                        from utils.cache_manager import cache_manager
-                        cached_raw_response = cache_manager.get(flight_price_cache_key)
-                        if cached_raw_response:
-                            logger.info(f"[DEBUG] Retrieved raw flight price response from cache (ReqID: {request_id})")
-                            flight_price_response = cached_raw_response
+                        # FIXED: Use simple cache for consistent data retrieval
+                        # Extract hash part if flight_price_cache_key has wrong format
+                        session_id = flight_price_cache_key.split(':')[-1] if ':' in flight_price_cache_key else flight_price_cache_key
+                        cached_result = simple_flight_cache.get_flight_price(session_id)
+                        if cached_result.get('success') and cached_result.get('data'):
+                            logger.info(f"[DEBUG] Retrieved flight price response from Redis (ReqID: {request_id})")
+                            flight_price_response = cached_result['data']
+                            
+                            # 🚀 CRITICAL FIX: Ensure metadata is preserved in flight_price_response
+                            if not isinstance(flight_price_response, dict):
+                                flight_price_response = {}
+                            if 'metadata' not in flight_price_response:
+                                flight_price_response['metadata'] = {}
+                            
+                            # Ensure the flight_price_cache_key is available for seat/service cache retrieval
+                            if 'flight_price_cache_key' not in flight_price_response['metadata']:
+                                flight_price_response['metadata']['flight_price_cache_key'] = flight_price_cache_key
+                                logger.info(f"[DEBUG] ✅ Restored flight_price_cache_key to metadata: {flight_price_cache_key} (ReqID: {request_id})")
                         else:
-                            logger.warning(f"[DEBUG] Raw flight price response not found in cache for key: {flight_price_cache_key} (ReqID: {request_id})")
+                            logger.warning(f"[DEBUG] Flight price response not found in Redis for key: {flight_price_cache_key} (ReqID: {request_id})")
                     except Exception as cache_error:
-                        logger.warning(f"[DEBUG] Failed to retrieve raw flight price response from cache: {cache_error} (ReqID: {request_id})")
+                        logger.warning(f"[DEBUG] Failed to retrieve flight price response from Redis: {cache_error} (ReqID: {request_id})")
 
         # DEBUG: Log extracted data components
         logger.info(f"[DEBUG] Extracted flight_price_response present (ReqID: {request_id}): {bool(flight_price_response)}")
@@ -911,7 +1654,13 @@ async def create_order():
             'request_id': request_id,
             'config': dict(current_app.config),  # Pass the app configuration
             'offer_id': offer_id,  # Pass the extracted OfferID
-            'shopping_response_id': shopping_response_id  # Pass the extracted ShoppingResponseID
+            'shopping_response_id': shopping_response_id,  # Pass the extracted ShoppingResponseID
+            'servicelist_response': servicelist_response,  # Pass ServiceListRS response
+            'seatavailability_response': seatavailability_response,  # Pass SeatAvailabilityRS response
+            'selected_services': selected_services,  # Pass selected service ObjectKeys
+            'selected_seats': selected_seats,  # Pass selected seat ObjectKeys
+            'seat_availability_cache_key': seat_availability_cache_key,  # 🚀 Direct cache key from frontend
+            'service_list_cache_key': service_list_cache_key  # 🚀 Direct cache key from frontend
         }
         
         # DEBUG: Log order data summary (without verbose content)

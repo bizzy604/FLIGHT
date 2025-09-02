@@ -3,7 +3,7 @@
 import type React from "react"
 import { useAuth } from "@clerk/nextjs"
 import { useRouter, usePathname } from "next/navigation"
-import { LoadingSpinner } from "@/components/loading-spinner"
+import { LoadingSpinner } from "@/components/atoms"
 
 export default function PaymentLayout({
   children,

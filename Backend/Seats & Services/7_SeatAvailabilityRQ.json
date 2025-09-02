@@ -1,0 +1,152 @@
+{
+  "Travelers": {
+    "Traveler": [
+      {
+        "AnonymousTraveler": [
+          {
+            "ObjectKey": "PAX1",
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "Query": {
+    "OriginDestination": [
+      {
+        "FlightSegmentReference": [
+          {
+            "ref": "SEG2"
+          },
+          {
+            "ref": "SEG5"
+          }
+        ]
+      }
+    ],
+    "Offers": {
+      "Offer": [
+        {
+          "OfferID": {
+            "value": "1H1QRZ_8R3DV7PKM2X5WKONAZCLRI21MC8O",
+            "Owner": "QR",
+            "Channel": "NDC"
+          },
+          "OfferItemIDs": {
+            "OfferItemID": [
+              {
+                "value": "1H1QRZ_8R3DV7PKM2X5WKONAZCLRI21MC8O-1-1"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "DataLists": {
+    "FlightSegmentList": {
+      "FlightSegment": [
+        {
+          "SegmentKey": "SEG2",
+          "Departure": {
+            "AirportCode": {
+              "value": "BOM"
+            },
+            "Date": "2025-08-17T04:20:00.000",
+            "Time": "04:20",
+            "Terminal": {
+              "Name": "2"
+            }
+          },
+          "Arrival": {
+            "AirportCode": {
+              "value": "DOH"
+            },
+            "Date": "2025-08-17T05:20:00.000",
+            "Time": "05:20"
+          },
+          "MarketingCarrier": {
+            "AirlineID": {
+              "value": "QR"
+            },
+            "Name": "Qatar Airways",
+            "FlightNumber": {
+              "value": "4791"
+            }
+          },
+          "Equipment": {
+            "AircraftCode": {
+              "value": "320"
+            }
+          },
+          "FlightDetail": {
+            "FlightDuration": {
+              "Value": "PT3H30M"
+            }
+          }
+        },
+        {
+          "SegmentKey": "SEG5",
+          "Departure": {
+            "AirportCode": {
+              "value": "DOH"
+            },
+            "Date": "2025-08-17T08:50:00.000",
+            "Time": "08:50"
+          },
+          "Arrival": {
+            "AirportCode": {
+              "value": "LHR"
+            },
+            "Date": "2025-08-17T14:05:00.000",
+            "Time": "14:05",
+            "Terminal": {
+              "Name": "4"
+            }
+          },
+          "MarketingCarrier": {
+            "AirlineID": {
+              "value": "QR"
+            },
+            "Name": "Qatar Airways",
+            "FlightNumber": {
+              "value": "109"
+            }
+          },
+          "Equipment": {
+            "AircraftCode": {
+              "value": "359"
+            }
+          },
+          "FlightDetail": {
+            "FlightDuration": {
+              "Value": "PT7H15M"
+            }
+          }
+        }
+      ]
+    },
+    "FareList": {
+      "FareGroup": [
+        {
+          "ListKey": "FG-279451045860650",
+          "Fare": {
+            "FareCode": {
+              "Code": "70J"
+            }
+          },
+          "FareBasisCode": {
+            "Code": "SJR4I1SI"
+          }
+        }
+      ]
+    }
+  },
+  "ShoppingResponseID": {
+    "ResponseID": {
+      "value": "05uZVQ--RrjkD5NXVzf6e-eGw5gN0fS-U4xNxBC33lA-QR"
+    }
+  }
+}

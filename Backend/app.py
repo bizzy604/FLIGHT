@@ -25,7 +25,7 @@ def create_app(test_config=None):
     load_dotenv()
     
     # Load configuration
-    from Backend.config import get_config
+    from config import get_config
     env = os.environ.get('QUART_ENV', 'development')
     config = get_config(env)
     app.config.from_object(config)
@@ -91,6 +91,18 @@ def create_app(test_config=None):
     app.register_blueprint(airport_bp)  # Register the airport blueprint (prefix is in blueprint definition)
     app.register_blueprint(itinerary_bp)  # Register the itinerary blueprint
     app.register_blueprint(flight_storage_bp)  # Register the flight storage blueprint
+    
+    # Register clean seat and service routes
+    from routes import clean_seat_service
+    app.register_blueprint(clean_seat_service.bp)
+    
+    # Register cache health monitoring routes
+    from routes.cache_health import cache_health_bp
+    app.register_blueprint(cache_health_bp)
+    
+    # Register cache test routes
+    from routes.cache_test_routes import cache_test_bp
+    app.register_blueprint(cache_test_bp)
 
     # Initialize centralized authentication
     @app.before_serving

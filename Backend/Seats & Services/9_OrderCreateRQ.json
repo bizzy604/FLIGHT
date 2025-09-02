@@ -1,0 +1,516 @@
+{
+	"Query": {
+		"Passengers": {
+			"Passenger": [
+				{
+					"ObjectKey": "PAX1",
+					"PTC": {
+						"value": "ADT"
+					},
+					"Name": {
+						"Surname": {
+							"value": "DOE"
+						},
+						"Given": [
+							{
+								"value": "JAN"
+							}
+						],
+						"Title": "Mr"
+					},
+					"AdditionalRoles": {
+						"PaymentContactInd": true
+					},
+					"Contacts": {
+						"Contact": [
+							{
+								"AddressContact": {
+									"Street": [
+										"Thapasya Building, 3rd ",
+										"Floor, Infopark Campus"
+									],
+									"CityName": "Cochin",
+									"CountrySubDivisionCode": "",
+									"PostalCode": "673328",
+									"CountryCode": {
+										"value": "IN"
+									}
+								},
+								"EmailContact": {
+									"Address": {
+										"value": "ABC.XYZ@CC.COM"
+									}
+								},
+								"PhoneContact": {
+									"Application": "Home",
+									"Number": [
+										{
+											"value": "9987655232",
+											"CountryCode": "91"
+										}
+									]
+								}
+							}
+						]
+					},
+					"Age": {
+						"BirthDate": {
+							"value": "1992-06-10"
+						}
+					},
+					"Gender": {
+						"value": "Male"
+					}
+				}
+			]
+		},
+		"OrderItems": {
+			"ShoppingResponse": {
+				"Owner": "26",
+				"Offers": {
+					"Offer": [
+						{
+							"OfferID": {
+								"ObjectKey": "1H026Z_6H2QTPKN9LZ3U31LWRIYC9BG73B7",
+								"value": "1H026Z_6H2QTPKN9LZ3U31LWRIYC9BG73B7",
+								"Owner": "26",
+								"Channel": "NDC"
+							},
+							"OfferItems": {
+								"OfferItem": [
+									{
+										"OfferItemID": {
+											"value": "1H026Z_6H2QTPKN9LZ3U31LWRIYC9BG73B7-1-1",
+											"Owner": "26",
+											"Channel": "NDC"
+										}
+									}
+								]
+							}
+						}
+					]
+				},
+				"ResponseID": {
+					"value": "5YiZCzyv2bHyx3am5-w7Ut0juOuEIRTN6AfZM3w7pa8-26"
+				}
+			},
+			"OfferItem": [
+				{
+					"OfferItemID": {
+						"value": "1H026Z_6H2QTPKN9LZ3U31LWRIYC9BG73B7-1-1",
+						"Owner": "26",
+						"Channel": "NDC"
+					},
+					"OfferItemType": {
+						"DetailedFlightItem": [
+							{
+								"Price": {
+									"BaseAmount": {
+										"value": 99720,
+										"Code": "INR"
+									},
+									"Taxes": {
+										"Total": {
+											"value": 16328,
+											"Code": "INR"
+										}
+									}
+								},
+								"FareDetail": {
+									"FareComponent": [
+										{
+											"FareBasis": {
+												"FareBasisCode": {
+													"Code": "E12GBOLPO"
+												},
+												"RBD": "E"
+											},
+											"FareRules": {
+												"Penalty": {
+													"refs": [
+														"Penalty-FLAG4: Change_MAX_0_INR_MIN_0_INR",
+														"Penalty-FLAG10: Change_MAX_116048_INR_MIN_116048_INR",
+														"Penalty-FLAG13: Change-NoShow_MAX_116048_INR_MIN_116048_INR",
+														"Penalty-FLAG17: Cancel_MAX_116048_INR_MIN_116048_INR",
+														"Penalty-FLAG7: Change-NoShow_MAX_8550_INR_MIN_0_INR",
+														"Penalty-FLAG15: Cancel_MAX_8550_INR_MIN_8550_INR",
+														"Penalty-FLAG16: Cancel-NoShow_MAX_17095_INR_MIN_17095_INR",
+														"Penalty-FLAG18: Cancel-NoShow_MAX_116048_INR_MIN_116048_INR"
+													]
+												}
+											},
+											"refs": [
+												"SEG2"
+											]
+										}
+									]
+								},
+								"OriginDestination": [
+									{
+										"Flight": [
+											{
+												"Departure": {
+													"Time": "09:25",
+													"AirportCode": {
+														"value": "LHR"
+													},
+													"Date": "2025-05-13",
+													"Terminal": {
+														"Name": "2"
+													}
+												},
+												"Arrival": {
+													"Time": "05:30",
+													"AirportCode": {
+														"value": "SIN"
+													},
+													"Date": "2025-05-14",
+													"Terminal": {
+														"Name": "0"
+													}
+												},
+												"MarketingCarrier": {
+													"AirlineID": {
+														"value": "26"
+													},
+													"Name": "26",
+													"FlightNumber": {
+														"value": "305"
+													}
+												},
+												"Equipment": {
+													"AircraftCode": {
+														"value": "77W"
+													}
+												},
+												"Details": {
+													"FlightDuration": {
+														"Value": "PT13H5M"
+													}
+												},
+												"ClassOfService": {
+													"Code": {
+														"value": "E"
+													},
+													"MarketingName": {
+														"value": "ECO",
+														"CabinDesignator": "Y"
+													},
+													"refs": [
+														"FG-57844841249837"
+													]
+												},
+												"SegmentKey": "SEG2"
+											}
+										],
+										"OriginDestinationKey": "OD1"
+									}
+								],
+								"refs": [
+									"PAX1"
+								]
+							}
+						]
+					}
+				},
+				{
+					"OfferItemID": {
+						"value": "PRICE1-SEG2",
+						"refs": [
+							"PRICE",
+							"5YiZCzyv2bHyx3am5-w7Ut0juOuEIRTN6AfZM3w7pa8-26"
+						],
+						"Channel": "NDC"
+					},
+					"OfferItemType": {
+						"SeatItem": [
+							{
+								"Price": {
+									"Total": {
+										"value": 0,
+										"Code": "INR"
+									}
+								},
+								"Descriptions": {
+									"Description": [
+										{
+											"Text": {
+												"value": "Service not refundable but value of EMD can be applied on future purchase"
+											}
+										},
+										{
+											"Text": {
+												"value": "Service is not Commissionable"
+											}
+										}
+									]
+								},
+								"Location": {
+									"Column": "K",
+									"Row": {
+										"Number": {
+											"value": "44"
+										}
+									},
+									"Characteristics": {
+										"Characteristic": [
+											{
+												"Code": "CH"
+											},
+											{
+												"Code": "FC"
+											},
+											{
+												"Code": "W"
+											},
+											{
+												"Remarks": {
+													"Remark": [
+														{
+															"value": "A"
+														}
+													]
+												}
+											}
+										]
+									}
+								},
+								"SeatAssociation": [
+									{
+										"SegmentReferences": {
+											"value": [
+												"SEG2"
+											]
+										},
+										"TravelerReference": "PAX1"
+									}
+								]
+							}
+						]
+					}
+				},
+				{
+					"OfferItemID": {
+						"value": "1H026Z_6H2QTPKN9LZ3U31LWRIYC9BG73B7-25",
+						"Owner": "26",
+						"refs": [
+							"1H026Z_6H2QTPKN9LZ3U31LWRIYC9BG73B7",
+							"5YiZCzyv2bHyx3am5-w7Ut0juOuEIRTN6AfZM3w7pa8-26"
+						],
+						"Channel": "NDC"
+					},
+					"OfferItemType": {
+						"OtherItem": [
+							{
+								"refs": [
+									"PAX1",
+									"1-ServiceId26-17"
+								],
+								"Price": {
+									"SimpleCurrencyPrice": {
+										"value": 0,
+										"Code": "INR"
+									}
+								}
+							}
+						]
+					}
+				}
+			]
+		},
+		"DataLists": {
+			"FareList": {
+				"FareGroup": [
+					{
+						"ListKey": "FG-57844841249837",
+						"Fare": {
+							"FareCode": {
+								"Code": "749"
+							},
+							"FareDetail": {
+								"Remarks": {
+									"Remark": [
+										{
+											"value": "PVT"
+										}
+									]
+								}
+							}
+						},
+						"FareBasisCode": {
+							"Code": "E12GBOLPO"
+						}
+					}
+				]
+			},
+			"ServiceList": {
+				"Service": [
+					{
+						"ObjectKey": "PRICE1-SEG2",
+						"ServiceID": {
+							"value": "SERVICE-1"
+						},
+						"Name": {
+							"value": "FORWARD ZONE"
+						},
+						"Descriptions": {
+							"Description": [
+								{
+									"Text": {
+										"value": "Service not refundable but value of EMD can be applied on future purchase"
+									}
+								},
+								{
+									"Text": {
+										"value": "Service is not Commissionable"
+									}
+								}
+							]
+						},
+						"Price": [
+							{
+								"Total": {
+									"value": 0,
+									"Code": "INR"
+								}
+							}
+						],
+						"Associations": [
+							{
+								"Traveler": {
+									"TravelerReferences": [
+										"PAX1"
+									]
+								},
+								"Flight": {
+									"originDestinationReferencesOrSegmentReferences": [
+										{
+											"SegmentReferences": {
+												"value": [
+													"SEG2"
+												]
+											}
+										}
+									]
+								},
+								"Offer": {
+									"OfferReferences": [
+										"PRICE"
+									]
+								}
+							}
+						],
+						"PricedInd": true
+					},
+					{
+						"ObjectKey": "1-ServiceId26-17",
+						"ServiceID": {
+							"ObjectKey": "1H026Z_6H2QTPKN9LZ3U31LWRIYC9BG73B7-25",
+							"value": "SRV17",
+							"Owner": "26"
+						},
+						"Name": {
+							"value": "MEAL:LOW FAT MEAL"
+						},
+						"Descriptions": {
+							"Description": [
+								{
+									"Text": {
+										"value": "LOW FAT MEAL"
+									}
+								},
+								{
+									"Text": {
+										"value": "Free"
+									}
+								},
+								{
+									"Text": {
+										"value": "MEAL"
+									}
+								}
+							]
+						},
+						"Price": [
+							{
+								"Total": {
+									"value": 0,
+									"Code": "INR"
+								}
+							}
+						],
+						"BookingInstructions": {
+							"SSRCode": [
+								"LFML"
+							],
+							"Method": "SSR"
+						},
+						"Associations": [
+							{
+								"Traveler": {
+									"TravelerReferences": [
+										"PAX1"
+									]
+								},
+								"Flight": {
+									"originDestinationReferencesOrSegmentReferences": [
+										{
+											"SegmentReferences": {
+												"value": [
+													"SEG2"
+												]
+											}
+										}
+									]
+								}
+							}
+						],
+						"PricedInd": true
+					}
+				]
+			}
+		},
+		"Metadata": {
+			"PassengerMetadata": [
+				{
+					"AugmentationPoint": {
+						"AugPoint": [
+							{
+								"any": {
+									"VdcAugPoint": {
+										"Value": "TRApprovalDate=11/4/2025"
+									}
+								}
+							},
+							{
+								"any": {
+									"VdcAugPoint": {
+										"Value": "TRCreationDate=11/4/2025"
+									}
+								}
+							}
+						]
+					},
+					"refs": [
+						"PAX1"
+					]
+				}
+			]
+		},
+		"Payments": {
+			"Payment": [
+				{
+					"Method": {
+						"Cash": {
+							"CashInd": "true"
+						}
+					},
+					"Amount": {
+						"Code": "INR",
+						"value": 116048
+					}
+				}
+			]
+		}
+	}
+}

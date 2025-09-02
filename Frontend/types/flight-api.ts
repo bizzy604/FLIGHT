@@ -441,7 +441,13 @@ export interface Penalty {
 // Flight offer interface
 export interface FlightOffer {
   id: string;
+  offer_index?: number;
+  original_offer_id?: string;
   airline: AirlineDetails;
+  airline_context?: {
+    shopping_response_id?: string;
+    third_party_id?: string;
+  };
   departure: { 
     airport: string; 
     datetime: string;
@@ -461,7 +467,7 @@ export interface FlightOffer {
   stopDetails: string[];
   price: number;
   currency: string;
-  baggage: BaggageAllowance;
+  baggage?: BaggageAllowance;
   fare?: FareDetails;
   aircraft?: AircraftDetails;
   segments?: FlightSegmentDetails[];
@@ -494,9 +500,7 @@ export interface FlightOffer {
 export interface FlightSearchResponse {
   status: string;
   data: {
-    data: any;
     offers: FlightOffer[];
-    total_offers: number;
     metadata?: any;
   };
   request_id: string;

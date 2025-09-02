@@ -1,0 +1,128 @@
+---
+alwaysApply: true
+---
+
+# Development Methodology & Constraints for Flight Booking Portal
+
+## Current Development Mode
+- **Planning Phase**: Create detailed implementation plans for flight booking features without making direct code changes
+- Write comprehensive documentation including booking flow specifications, airline integration plans, and payment processing requirements
+- Focus on architectural decisions for NDC API integrations, multi-airline support, and booking system scalability
+- Developers will implement actual booking logic, payment flows, and airline integrations based on these specifications
+
+## Error Handling Philosophy for Travel Systems
+- When debugging booking issues, even if you notice other airline integration errors, unless explicitly asked to fix them, **only fix the specific booking error requested**
+- Never try simpler booking implementations when running into airline API issues
+- Always work to fix existing flight search and booking functionality rather than simplifying booking flows
+- Maintain the complexity required for airline-grade booking systems and PCI compliance
+- Preserve existing TokenManager singleton patterns and centralized authentication
+- Keep multi-airline support complexity intact even when debugging single-airline issues
+
+## File Operations Guidelines for Flight Booking Codebase
+- **To read booking files**: ALWAYS use the inbuilt Read File tool for flight services, booking routes, and configuration files
+- **To list flight directories**: ALWAYS use the inbuilt List Directory tool for services/flight/, routes/, utils/ directories
+- **For airline integration searching**: Use Codebase tool for indexing flight services and search tool for finding airline-specific code
+- **For booking flow searches**: Use Search Files tool to find booking confirmation, payment processing, and PNR handling code
+- **For flight service modifications**: Use Edit & Reapply tool for updating airline integrations and booking logic
+
+## Timestamp Requirements for Travel Systems
+- Always use timezone-aware functions for flight departure/arrival times
+- Current year is 2025 - ensure all flight searches default to current/future dates
+- Handle international time zones for flight schedules and booking confirmations
+- Use ISO 8601 format for all flight times and booking timestamps
+- Consider daylight saving time transitions for flight scheduling
+
+## Booking System Environment Constraints
+- Never install airline API dependencies globally - always use virtual environments for flight service development
+- Test thoroughly with airline sandbox APIs before any production booking changes
+- Follow international time zone requirements for global flight bookings
+- Consider airline maintenance windows and booking system downtime schedules
+- Respect airline partner API rate limits and SLA requirements during development
+
+## Flight Booking Development Standards
+
+### Booking Flow Integrity
+- **Never break existing booking flows** - Maintain backward compatibility for active bookings
+- **Preserve PNR generation logic** - Don't simplify booking confirmation processes
+- **Maintain fare calculation accuracy** - Keep complex fare rule processing intact
+- **Protect payment processing flows** - Never compromise PCI-compliant payment handling
+
+### Airline Integration Constraints
+- **Respect TokenManager singleton pattern** - Never create duplicate authentication instances
+- **Maintain multi-airline architecture** - Don't simplify to single-airline solutions
+- **Preserve airline-specific transformers** - Keep airline data transformation logic intact
+- **Honor airline API contracts** - Maintain compliance with NDC and GDS standards
+
+### Testing Requirements for Travel Systems
+- **Test with airline sandbox environments** - Never test directly against production airline APIs
+- **Validate booking confirmation flows** - Ensure complete booking lifecycle testing
+- **Test payment processing scenarios** - Include successful payments, failures, and refunds
+- **Verify schedule change handling** - Test airline schedule change notification processing
+- **Test multi-currency scenarios** - Ensure proper currency conversion and display
+
+### Performance and Reliability Standards
+- **Maintain booking system uptime** - Consider 24/7 global booking requirements
+- **Preserve caching strategies** - Don't remove flight data caching optimizations
+- **Keep circuit breaker patterns** - Maintain airline API resilience mechanisms
+- **Honor rate limiting logic** - Respect airline partner API quotas and limits
+
+### Security and Compliance Requirements
+- **Maintain PCI compliance** - Never compromise payment data security measures
+- **Preserve passenger data protection** - Keep PII handling and encryption intact
+- **Honor audit trail requirements** - Maintain comprehensive booking operation logging
+- **Respect airline security standards** - Follow aviation industry security protocols
+
+## Development Workflow for Flight Booking Features
+
+### Feature Planning Phase
+1. **Airline Requirements Analysis** - Document specific airline partner requirements and constraints
+2. **Booking Flow Design** - Map out complete user booking journey with error scenarios
+3. **Payment Integration Planning** - Design secure payment processing with fraud protection
+4. **Performance Impact Assessment** - Evaluate impact on flight search and booking response times
+5. **Testing Strategy Definition** - Plan comprehensive testing including airline API mocking
+
+### Implementation Constraints
+- **Incremental Development** - Build booking features incrementally to avoid breaking existing flows
+- **Feature Flags** - Use feature flags for new airline integrations and booking capabilities
+- **Rollback Preparation** - Always prepare rollback plans for booking system changes
+- **Monitoring Integration** - Include comprehensive monitoring for new booking features
+- **Documentation Updates** - Update API documentation and integration guides for new features
+
+### Quality Assurance for Travel Systems
+- **Booking End-to-End Testing** - Test complete booking flows from search to confirmation
+- **Multi-Airline Validation** - Verify features work across different airline partners
+- **Cross-Browser Compatibility** - Ensure booking flows work across all supported browsers
+- **Mobile Responsiveness** - Validate booking experience on mobile devices
+- **Accessibility Compliance** - Ensure booking interfaces meet accessibility standards
+
+## Error Recovery and Debugging for Flight Systems
+
+### Booking System Error Handling
+- **Preserve Booking State** - Never lose booking progress during error recovery
+- **Graceful Degradation** - Provide alternative booking options when primary systems fail
+- **User Communication** - Clear error messages for booking failures and payment issues
+- **Automatic Retry Logic** - Implement appropriate retry mechanisms for transient airline API errors
+- **Fallback Mechanisms** - Maintain backup booking paths for critical business routes
+
+### Airline Integration Debugging
+- **API Request/Response Logging** - Use centralized API logging for debugging airline integration issues
+- **Token Lifecycle Monitoring** - Track OAuth token refresh and authentication issues
+- **Rate Limit Management** - Monitor and handle airline API rate limiting gracefully
+- **Circuit Breaker Monitoring** - Track airline service health and circuit breaker states
+- **Performance Monitoring** - Monitor airline API response times and booking completion rates
+
+## Production Deployment Standards
+
+### Booking System Deployment
+- **Blue-Green Deployments** - Use blue-green deployment for booking system updates
+- **Database Migration Safety** - Ensure booking data migrations are reversible and tested
+- **Cache Warming** - Pre-populate flight search caches before production deployment
+- **Health Check Validation** - Verify all booking system health checks pass before deployment
+- **Rollback Procedures** - Maintain tested rollback procedures for booking system failures
+
+### Monitoring and Alerting
+- **Booking Success Rate Monitoring** - Alert on drops in booking completion rates
+- **Payment Processing Alerts** - Monitor payment authorization and capture success rates
+- **Airline API Health Monitoring** - Track individual airline partner API availability
+- **Performance Threshold Alerts** - Alert on booking system response time degradation
+- **Error Rate Monitoring** - Monitor and alert on increases in booking error rates

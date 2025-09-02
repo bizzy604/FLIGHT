@@ -1,0 +1,53 @@
+---
+alwaysApply: true
+include: 
+  - ../shared-rules/.cursorrules-api
+  - ../shared-rules/.cursorrules-database
+  - ../shared-rules/.cursorrules-dev
+  - ../shared-rules/.cursorrules-documentation
+  - ../shared-rules/.cursorrules-methodology
+  - ../shared-rules/.cursorrules-security
+---
+
+# Backend-Specific Flight Booking Development Rules
+
+## Backend Service Architecture
+- This backend service handles all flight search, booking, and payment processing operations
+- Uses Quart async framework with Redis for caching and session management
+- Integrates with Verteil NDC APIs for multi-airline flight data
+- Implements centralized TokenManager for OAuth2 authentication across all airline APIs
+
+## Current Backend Configuration
+- **Python 3.8+** with async/await patterns throughout
+- **Quart framework** for high-performance async web APIs
+- **Redis** for flight data caching and session management
+- **NDC API integration** via centralized TokenManager singleton
+- **Multi-airline support** configured via environment variables
+
+## Backend-Specific Best Practices
+- All flight services inherit from `FlightService` base class in `services/flight/core.py`
+- Use async context managers for proper resource cleanup in flight operations
+- Implement proper error handling for airline API failures and timeouts
+- Cache flight search results with appropriate TTL values in Redis
+- Log all airline API requests/responses when `API_DEBUG_LOGGING=true`
+
+## Backend Development Workflow
+- Test with airline sandbox APIs before any production changes
+- Use virtual environments for all dependency management
+- Follow the established service patterns in `services/flight/` directory
+- Maintain backward compatibility for active booking integrations
+- Document any airline-specific integration requirements
+
+## Environment Variables Required
+- `VERTEIL_API_BASE_URL`: NDC API endpoint
+- `VERTEIL_USERNAME`, `VERTEIL_PASSWORD`: Authentication credentials  
+- `VERTEIL_CLIENT_ID`, `VERTEIL_CLIENT_SECRET`: OAuth2 credentials
+- `REDIS_URL`: Redis connection string for caching
+- `API_DEBUG_LOGGING`: Enable detailed API logging for debugging
+
+## Backend File Structure Reference
+- `services/flight/`: Core flight service implementations
+- `routes/`: API endpoint definitions and request handling
+- `utils/`: Airline data transformers and utility functions
+- `transformers/`: Response transformation for airline data
+- `tests/`: Comprehensive test suite for flight operations

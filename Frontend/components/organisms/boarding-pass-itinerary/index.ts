@@ -1,0 +1,1 @@
+export { BoardingPassItinerary } from './boarding-pass-itinerary'

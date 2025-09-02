@@ -1,0 +1,1 @@
+export { SeatServiceIntegration } from './seat-service-integration'

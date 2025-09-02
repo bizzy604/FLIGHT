@@ -38,7 +38,7 @@ import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { transformOrderCreateToItinerary, type ItineraryData } from "@/utils/itinerary-data-transformer"
 import { generatePDFFromComponent } from "@/utils/download-utils"
-import OfficialItinerary from "@/components/itinerary/OfficialItinerary"
+import { OfficialItinerary } from "@/components/organisms"
 
 interface Booking {
   id: number
@@ -1111,7 +1111,27 @@ export default function BookingDetailsPage() {
                       {itineraryData && passenger.phone && (
                         <div className="mt-2">
                           <p className="text-sm text-muted-foreground">Phone</p>
-                          <p className="font-semibold text-xs">{passenger.phone}</p>
+                          <p className="font-semibold text-xs">
+                            {(() => {
+                              const phone = passenger.phone;
+                              if (!phone) return 'N/A';
+                              
+                              if (typeof phone === 'object' && phone !== null) {
+                                if (phone.formatted) {
+                                  return phone.formatted;
+                                }
+                                if (phone.countryCode && phone.number) {
+                                  return `${phone.countryCode} ${phone.number}`;
+                                }
+                                if (phone.number) {
+                                  return phone.number;
+                                }
+                                return 'N/A';
+                              }
+                              
+                              return phone;
+                            })()} 
+                          </p>
                         </div>
                       )}
                     </div>
@@ -1360,7 +1380,32 @@ export default function BookingDetailsPage() {
                   <Phone className="w-4 h-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm text-muted-foreground">Phone</p>
-                    <p className="font-semibold">{booking.contactInfo?.phone || 'Not provided'}</p>
+                    <p className="font-semibold">
+                      {(() => {
+                        const phone = booking.contactInfo?.phone;
+                        if (!phone) return 'Not provided';
+                        
+                        if (typeof phone === 'string') {
+                          return phone;
+                        }
+                        
+                        if (typeof phone === 'object' && phone !== null) {
+                          const phoneObj = phone as any;
+                          if (phoneObj.formatted) {
+                            return phoneObj.formatted;
+                          }
+                          if (phoneObj.countryCode && phoneObj.number) {
+                            return `${phoneObj.countryCode} ${phoneObj.number}`;
+                          }
+                          if (phoneObj.number) {
+                            return phoneObj.number;
+                          }
+                          return 'Not provided';
+                        }
+                        
+                        return phone;
+                      })()} 
+                    </p>
                   </div>
                 </div>
               </div>

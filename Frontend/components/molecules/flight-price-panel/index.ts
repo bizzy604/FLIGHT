@@ -1,0 +1,1 @@
+export { FlightPricePanel } from "./flight-price-panel"

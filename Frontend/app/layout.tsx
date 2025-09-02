@@ -1,8 +1,8 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Poppins } from "next/font/google"
-import { ConditionalFooter } from "@/components/conditional-footer"
-import { Providers } from "@/components/providers"
+import { ConditionalFooter } from "@/components/organisms"
+import { Providers } from "@/components/atoms"
 import "./globals.css"
 
 const poppins = Poppins({

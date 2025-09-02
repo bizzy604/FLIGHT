@@ -7,13 +7,12 @@ import Image from "next/image"
 import Link from "next/link"
 import { ChevronLeft, Download, Mail, Printer } from "lucide-react"
 
-import { MainNav } from "@/components/main-nav"
-import { UserNav } from "@/components/user-nav"
-import { LoadingSpinner } from "@/components/loading-spinner"
+import { MainNav } from "@/components/organisms"
+import { UserNav } from "@/components/organisms"
+import { LoadingSpinner } from "@/components/atoms"
 import { LoadingButton } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
-import OfficialItinerary from "@/components/itinerary/OfficialItinerary"
-import BoardingPassItinerary from "@/components/itinerary/BoardingPassItinerary"
+import { OfficialItinerary } from "@/components/organisms"
 import { transformOrderCreateToItinerary, ItineraryData } from "@/utils/itinerary-data-transformer"
 import { generatePDFFromComponent } from "@/utils/download-utils"
 
@@ -310,10 +309,10 @@ export default function BookingItineraryPage() {
             </div>
           </div>
 
-          {/* Boarding Pass Itinerary Display */}
+          {/* Official Itinerary Display */}
           <div className="mb-8">
             <div id="booking-itinerary">
-              <BoardingPassItinerary data={itineraryData} />
+              <OfficialItinerary data={itineraryData} />
             </div>
           </div>
         </div>

@@ -1,0 +1,694 @@
+---
+globs: "*.tsx,*.ts,*.js,*.jsx,*.css,*.json,package*.json,next.config.*,tailwind.config.*,tsconfig.json,*.d.ts"
+---
+
+# Frontend Development Rules for Flight Booking Portal
+
+## React Architecture Principles for Flight Booking
+
+### Component Design Philosophy
+- **Functional Components Only** - Use hooks instead of class components for all flight booking components
+- **Single Responsibility Principle** - Each component has one clear purpose (flight search, booking form, payment)
+- **Composition over Inheritance** - Build complex booking UIs from simple, reusable components
+- **Props Interface Design** - Use TypeScript interfaces for all flight data props
+- **Controlled Components** - Manage flight search and booking form state through React state
+- **Pure Components** - Avoid side effects in flight display components
+
+### Current Frontend Architecture Overview
+- **Next.js 14+** with App Router for modern React patterns and file-based routing
+- **TypeScript** throughout for type-safe flight data handling and API integration
+- **Tailwind CSS + shadcn/ui** for consistent booking interface styling
+- **Clerk Authentication** for user management and traveler profile handling
+- **Prisma + PostgreSQL** for frontend database operations (bookings, user data)
+- **Axios** for backend API communication with proper error handling
+- **React Hook Form** for form management in booking flows
+
+## Project Structure Standards
+
+### Component Organization (Next.js App Router)
+- **Feature-Based Structure** - Group by flight booking domain, not technical layer
+- **Shared Components** - Reusable UI components in components/ui directory
+- **Page Components** - Top-level route components in app/ directory
+- **Container Components** - Data fetching and state management for flight operations
+- **Presentation Components** - Pure UI components for flight display with props only
+- **Hook Components** - Custom hooks for reusable flight booking logic
+
+### App Router Architecture (Next.js 14+)
+```
+app/                     # Next.js App Router structure
+├── (routes)/           # Route groups
+│   ├── flights/        # Flight search and booking routes
+│   ├── bookings/       # Booking management routes
+│   ├── admin/          # Administrative routes
+│   └── manage/         # User booking management
+├── api/                # API routes
+│   ├── flights/        # Flight search API endpoints
+│   ├── bookings/       # Booking management endpoints
+│   ├── payments/       # Payment processing endpoints
+│   └── verteil/        # Verteil NDC API proxy endpoints
+├── globals.css         # Global styles
+└── layout.tsx          # Root layout component
+
+components/              # Reusable React components
+├── ui/                 # shadcn/ui basic components (Button, Input, Dialog)
+├── forms/              # Flight booking form components
+├── flight/             # Flight-specific components (search, results, cards)
+├── booking/            # Booking flow components
+├── payment/            # Payment processing components
+├── admin/              # Administrative dashboard components
+├── itinerary/          # Booking itinerary and confirmation components
+└── sections/           # Landing page sections
+
+types/                  # TypeScript definitions
+├── flight-api.ts       # Flight and booking API types
+├── global.d.ts         # Global type declarations
+└── custom.d.ts         # Custom component types
+
+utils/                  # Utility functions
+├── api-client.ts       # Axios API client configuration
+├── flight-data-validator.ts  # Flight data validation
+├── booking-storage.ts  # Booking data management
+└── cn.ts               # Tailwind class name utility
+
+lib/                    # Core libraries
+├── prisma.ts           # Prisma client configuration
+├── flight-api.ts       # Flight API integration
+└── logger.ts           # Application logging
+
+hooks/                  # Custom React hooks
+├── use-mobile.tsx      # Mobile responsiveness hook
+├── use-navigation-cache.ts  # Navigation caching
+└── use-toast.ts        # Toast notification hook
+```
+
+### Component Organization Principles
+- **Domain-Based Structure** - Group related components (flight/, admin/, booking/)
+- **Feature-Based Components** - Components that handle complete user flows
+- **Atomic Design System** - Structured component hierarchy for consistent UI development
+- **Shared Components** - Reusable UI elements in components/ui/ directory
+- **Layout Components** - Navigation, headers, footers, and page structure components
+
+## Atomic Design System for Flight Booking Portal
+
+### Atomic Design Hierarchy
+
+#### **Atoms** - Basic UI Elements (`components/ui/`)
+- **Purpose**: Smallest functional components that cant be broken down further
+- **Examples**: Button, Input, Label, Badge, Avatar, Icon, Separator
+- **Rules**:
+  - Single responsibility principle - one clear function
+  - No business logic - pure presentation components
+  - Highly reusable across different contexts
+  - Accept props for customization but remain generic
+  - Use shadcn/ui components as atoms foundation
+  - Include all necessary accessibility attributes
+
+**Flight Booking Atoms Structure:**
+```
+components/ui/               # Atomic components (shadcn/ui based)
+├── button.tsx              # All button variants (primary, secondary, ghost)
+├── input.tsx               # Form input components
+├── label.tsx               # Form labels with proper accessibility
+├── badge.tsx               # Status badges (confirmed, pending, cancelled)
+├── avatar.tsx              # User profile pictures
+├── card.tsx                # Basic card container
+├── separator.tsx           # Visual separators
+├── skeleton.tsx            # Loading placeholders
+├── alert.tsx               # Alert messages (error, success, info)
+└── progress.tsx            # Progress indicators
+```
+
+#### **Molecules** - Component Combinations (`components/molecules/`)
+- **Purpose**: Groups of atoms functioning together as a unit
+- **Examples**: SearchField, PriceTag, FlightTime, AirlineInfo, PassengerCount
+- **Rules**:
+  - Combine 2-5 atoms to create meaningful UI units
+  - Have a specific purpose within flight booking context
+  - Reusable across different templates/pages
+  - Manage internal state only if necessary for functionality
+  - Accept data via props, not direct API calls
+
+**Flight Booking Molecules Structure:**
+```
+components/molecules/
+├── search-field/           # Airport search with autocomplete
+│   ├── search-field.tsx
+│   └── search-field.stories.tsx
+├── price-display/          # Price with currency and formatting
+│   ├── price-display.tsx
+│   └── price-display.types.ts
+├── flight-time/            # Departure/arrival time display
+│   ├── flight-time.tsx
+│   └── flight-time.utils.ts
+├── airline-info/           # Airline logo + name + flight number
+├── passenger-selector/     # Passenger count with +/- controls
+├── date-picker/           # Flight date selection with calendar
+├── duration-display/      # Flight duration with stops info
+├── baggage-info/          # Baggage allowance display
+├── fare-badge/            # Fare type with refund/change info
+└── booking-status/        # Booking status with progress indicator
+```
+
+#### **Organisms** - Complex Components (`components/organisms/`)
+- **Purpose**: Groups of molecules and atoms forming distinct sections
+- **Examples**: FlightCard, BookingForm, SearchForm, PaymentForm, FlightResults
+- **Rules**:
+  - Combine molecules and atoms into complex UI sections
+  - Can manage complex state and side effects
+  - Represent major sections of the flight booking interface
+  - May include API calls and business logic
+  - Specific to flight booking domain
+
+**Flight Booking Organisms Structure:**
+```
+components/organisms/
+├── flight-search-form/     # Complete flight search interface
+│   ├── flight-search-form.tsx
+│   ├── flight-search-form.types.ts
+│   ├── flight-search-form.hooks.ts
+│   └── flight-search-form.test.tsx
+├── flight-card/            # Complete flight display card
+│   ├── enhanced-flight-card.tsx
+│   ├── flight-card.variants.ts
+│   └── flight-card.stories.tsx
+├── booking-form/           # Multi-step booking process
+│   ├── booking-form.tsx
+│   ├── booking-form-steps.tsx
+│   └── booking-form.context.tsx
+├── payment-form/           # Payment processing interface
+├── flight-results/         # Flight search results list
+├── passenger-form/         # Passenger details collection
+├── itinerary-display/      # Complete booking itinerary
+├── admin-dashboard/        # Admin overview with metrics
+└── booking-confirmation/   # Booking success display
+```
+
+#### **Templates** - Page Layouts (`components/templates/`)
+- **Purpose**: Page-level object composition with layout structure
+- **Examples**: FlightSearchTemplate, BookingTemplate, PaymentTemplate
+- **Rules**:
+  - Define page layout and component positioning
+  - No actual content - use placeholder data
+  - Focus on layout, spacing, and component arrangement
+  - Responsive design implementation
+  - Reusable across similar page types
+
+**Flight Booking Templates Structure:**
+```
+components/templates/
+├── flight-search-template/  # Search page layout
+├── flight-results-template/ # Results page layout
+├── booking-template/        # Booking flow layout
+├── payment-template/        # Payment page layout
+├── confirmation-template/   # Success page layout
+├── admin-template/          # Admin dashboard layout
+└── error-template/          # Error page layout
+```
+
+#### **Pages** - Complete Views (`app/`)
+- **Purpose**: Specific instances of templates with real data
+- **Examples**: Flight search page, booking confirmation page
+- **Rules**:
+  - Use Next.js App Router file structure
+  - Combine templates with actual data
+  - Handle route-specific logic and data fetching
+  - Implement SEO and meta data
+  - Connect to APIs and manage page-level state
+
+### Atomic Design Implementation Rules for Flight Booking
+
+#### **Component Naming Conventions**
+- **Atoms**: Descriptive nouns (Button, Input, Badge)
+- **Molecules**: Function-based names (SearchField, PriceDisplay, FlightTime)
+- **Organisms**: Domain-specific names (FlightCard, BookingForm, PaymentForm)
+- **Templates**: Layout-focused names (FlightSearchTemplate, BookingTemplate)
+- **Pages**: Route-based names following Next.js conventions
+
+#### **Props and State Management by Level**
+- **Atoms**: Props only, no internal state except UI state (hover, focus)
+- **Molecules**: Props + minimal internal UI state, no API calls
+- **Organisms**: Props + complex state + API calls + business logic
+- **Templates**: Layout props only, no business logic
+- **Pages**: Full state management, data fetching, route logic
+
+#### **File Organization Standards**
+```
+components/
+├── ui/                     # Atoms (shadcn/ui components)
+├── molecules/              # Molecule components
+│   └── [component-name]/   
+│       ├── index.ts        # Export file
+│       ├── component.tsx   # Main component
+│       ├── component.types.ts # TypeScript types
+│       ├── component.stories.tsx # Storybook stories
+│       ├── component.test.tsx # Unit tests
+│       └── component.utils.ts # Utility functions
+├── organisms/              # Organism components
+├── templates/              # Template components  
+└── layout/                 # Layout-specific components
+```
+
+#### **TypeScript Integration with Atomic Design**
+- **Atoms**: Simple prop interfaces, focus on visual variants
+- **Molecules**: Combine atom prop types, add specific flight data types
+- **Organisms**: Complex interfaces with flight booking business logic
+- **Templates**: Layout and spacing prop types
+- **Pages**: Full API response types and route parameter types
+
+#### **Testing Strategy by Component Level**
+- **Atoms**: Visual rendering, prop variations, accessibility
+- **Molecules**: User interactions, prop combinations, edge cases
+- **Organisms**: User workflows, API integrations, state management
+- **Templates**: Layout responsiveness, component positioning
+- **Pages**: End-to-end user journeys, route behavior
+
+#### **Storybook Integration for Flight Components**
+- **Document all atoms and molecules** in Storybook
+- **Include all visual variants** (success, error, loading states)
+- **Flight-specific stories** with realistic booking data
+- **Accessibility documentation** for each component level
+- **Interactive controls** for testing different prop combinations
+
+### Atomic Design Anti-Patterns to Avoid
+
+#### **Component Level Violations**
+- **Atoms with business logic** - Keep atoms purely presentational
+- **Molecules making API calls** - API logic belongs in organisms or pages
+- **Organisms as page layouts** - Use templates for layout structure
+- **Templates with hardcoded content** - Keep templates generic and reusable
+- **Pages with complex UI logic** - Move UI complexity to organisms
+
+#### **Cross-Level Dependencies**
+- **Atoms importing organisms** - Maintain proper dependency hierarchy
+- **Molecules directly importing other molecules** - Consider if it should be an organism
+- **Circular dependencies** - Clear unidirectional component relationships
+- **Business logic in presentation layers** - Separate concerns appropriately
+
+### Migration Strategy for Existing Components
+
+#### **Current Component Analysis**
+Based on your existing `components/` directory, heres how to categorize current components:
+
+**Already Atomic (shadcn/ui components):**
+- `components/ui/*` → Keep as **Atoms**
+
+**Components to Refactor into Molecules:**
+- `passenger-count-selector.tsx` → **Molecule** (combines buttons + counter)
+- `flight-search-summary.tsx` → **Molecule** (displays search criteria)
+- `baggage-info.tsx` → **Molecule** (icon + text + details)
+- `price-breakdown.tsx` → **Molecule** (price formatting + breakdown)
+- `flight-details-header.tsx` → **Molecule** (airline info + flight number)
+
+**Components to Refactor into Organisms:**
+- `flight-search-form.tsx` → **Organism** (complex form with validation)
+- `enhanced-flight-card.tsx` → **Organism** (complete flight display)
+- `booking-form.tsx` → **Organism** (multi-step booking process)
+- `payment-form.tsx` → **Organism** (payment processing)
+- `card-payment-form.tsx` → **Organism** (specific payment type)
+
+**Components to Refactor into Templates:**
+- Create new templates based on page layouts
+- Extract layout logic from current page components
+
+#### **Refactoring Guidelines**
+
+**Step 1: Identify and Extract Atoms**
+- Look for repeated UI patterns across components
+- Extract pure presentational elements
+- Ensure atoms have no business logic
+
+**Step 2: Create Molecules from Atom Combinations**
+- Group atoms that commonly appear together
+- Add flight-booking specific logic to molecules
+- Keep molecules focused on single UI purposes
+
+**Step 3: Simplify Organisms**
+- Move layout concerns to templates
+- Focus organisms on user interaction and state management
+- Break down overly complex organisms into smaller ones
+
+**Step 4: Create Templates**
+- Extract common page layouts
+- Make templates responsive and reusable
+- Remove business logic from templates
+
+#### **Implementation Phases**
+
+**Phase 1: Foundation (Atoms)**
+- Audit existing `components/ui/` directory
+- Add missing atomic components needed for flight booking
+- Ensure all atoms follow accessibility standards
+- Create comprehensive Storybook documentation
+
+**Phase 2: Building Blocks (Molecules)**
+- Refactor existing components into molecules
+- Create new molecules for common flight UI patterns
+- Establish naming conventions and folder structure
+- Add unit tests for all molecules
+
+**Phase 3: Complex Components (Organisms)**
+- Refactor major components like FlightCard and BookingForm
+- Ensure organisms use molecules and atoms exclusively
+- Implement proper state management and API integration
+- Add integration tests for user workflows
+
+**Phase 4: Layout Structure (Templates)**
+- Create templates for each major page type
+- Ensure templates are responsive and accessible
+- Test templates with different content variations
+- Implement SEO and meta tag handling
+
+**Phase 5: Pages Integration**
+- Migrate existing pages to use templates
+- Implement proper data fetching patterns
+- Add proper error handling and loading states
+- Optimize for performance and Core Web Vitals
+
+This Atomic Design system will provide a clear structure for building consistent, reusable, and maintainable flight booking interfaces while leveraging your existing shadcn/ui foundation and Next.js architecture.
+
+## State Management for Flight Booking (No Redux)
+
+### React State Patterns
+- **Local Component State** - Use useState for component-specific flight display state
+- **Server State Management** - Use API calls with proper caching for flight data
+- **Form State** - React Hook Form for flight search and booking forms
+- **Global UI State** - React Context for theme, user preferences, navigation cache
+- **Authentication State** - Clerk handles user session and authentication state
+- **Loading States** - Local loading states for flight search and booking operations
+
+### State Organization Principles
+- **Server State vs Client State** - Separate flight data (server) from UI state (client)
+- **Component State First** - Use local state before considering global state
+- **Context for Shared UI State** - Theme, modals, notifications, navigation cache
+- **Avoid Prop Drilling** - Use React Context for deeply nested shared state
+- **Cache Flight Data** - Client-side caching for flight search results
+- **Optimistic Updates** - Update booking UI before server confirmation
+
+### Data Fetching Patterns
+- **Custom Hooks for API Calls** - Encapsulate flight API logic in custom hooks
+- **Loading and Error States** - Handle all async states properly
+- **Request Deduplication** - Prevent duplicate flight search requests
+- **Background Refetch** - Update flight prices without blocking UI
+- **Offline Handling** - Queue booking operations when offline
+- **Error Recovery** - Retry failed flight searches with exponential backoff
+
+## TypeScript Standards for Flight Booking
+
+### Type Definitions for Aviation Data
+- **Comprehensive flight types** in `types/flight-api.ts` covering:
+  - Flight search requests and responses
+  - Airline, airport, and aircraft information
+  - Booking details, passenger information, payment data
+  - Fare rules, baggage allowances, and service offerings
+- **Database types** generated from Prisma schema for booking operations
+- **API response types** matching backend flight service responses
+- **Form validation types** using React Hook Form with TypeScript
+
+### Type Safety Requirements
+- **No any types** - Use proper TypeScript types for all flight data
+- **Strict null checks** - Handle undefined/null values explicitly
+- **Generic types** - Use generics for reusable API response patterns
+- **Type guards** - Implement runtime type checking for external API data
+- **Union types** - Use for flight status, payment states, booking statuses
+
+## Flight Booking Component Patterns
+
+### Flight Search Components
+- **FlightSearchForm** - Multi-step flight search with validation
+- **PassengersSelector** - Dynamic passenger count and type selection
+- **FlightFilters** - Advanced filtering for flight results
+- **FlightSortOptions** - Sort flight results by price, duration, stops
+- **FlightSearchSummary** - Display search criteria and modify options
+
+### Booking Flow Components
+- **EnhancedFlightCard** - Detailed flight information display
+- **BookingForm** - Multi-step booking process with passenger details
+- **PassengerForm** - Individual passenger information collection
+- **PaymentForm** - Secure payment processing with validation
+- **PaymentConfirmation** - Booking confirmation and receipt display
+
+### Administrative Components
+- **Admin Dashboard** - Analytics and system overview
+- **BookingsTable** - Admin booking management interface
+- **AdminUserManagement** - User account administration
+- **SystemStatus** - Real-time system health monitoring
+
+## API Integration Patterns
+
+### Backend Communication Standards
+- **Centralized API Client** - Single axios instance with interceptors
+- **Type-Safe API Calls** - All API responses properly typed
+- **Error Boundary Handling** - Graceful error handling for flight operations
+- **Request Debouncing** - Prevent excessive flight search API calls
+- **Loading State Management** - Consistent loading indicators across booking flows
+
+### Flight API Integration
+- **Verteil NDC API** - Backend proxy for airline flight data
+- **Flight Search Caching** - Client-side caching of search results
+- **Real-time Updates** - WebSocket or polling for booking status updates
+- **Offline Handling** - Graceful degradation when backend unavailable
+
+## Authentication and Security
+
+### Clerk Integration Standards
+- **User Authentication** - Secure sign-up/sign-in flows for travelers
+- **Role-Based Access** - Admin vs regular user permissions
+- **Profile Management** - Traveler profile and preference handling
+- **Session Management** - Secure session handling with automatic renewal
+
+### Payment Security (PCI Compliance)
+- **No Credit Card Storage** - Never store payment information client-side
+- **Secure Form Handling** - PCI-compliant payment form practices
+- **Token-Based Processing** - Use payment processor tokens only
+- **HTTPS Enforcement** - All payment flows over secure connections
+
+## UI/UX Standards for Flight Booking
+
+### Tailwind CSS + shadcn/ui Implementation
+- **Design System Consistency** - Use shadcn/ui component library throughout booking flows
+- **Custom Theme Configuration** - Aviation-appropriate color scheme and typography
+- **Responsive Design** - Mobile-first approach with Tailwind breakpoints
+- **Accessibility Compliance** - WCAG 2.1 AA standards for all booking interfaces
+- **Component Customization** - Extend shadcn/ui components for flight-specific needs
+- **Icon Standards** - Consistent Lucide React icon usage across flight interfaces
+
+### Form Management Standards
+- **React Hook Form Integration** - Use for all flight search and booking forms
+- **Zod Validation** - Type-safe form validation schemas for passenger data
+- **Error Handling** - Consistent error message display across booking flows
+- **Loading States** - Show loading indicators during flight search and booking submission
+- **Field Validation** - Real-time validation with clear feedback for flight criteria
+- **Accessibility** - Proper labeling and keyboard navigation for booking forms
+
+### Data Display Standards for Flight Booking
+- **Flight Card Components** - Consistent flight result display with airline logos
+- **Table Components** - Sortable, filterable booking tables in admin sections
+- **Loading Skeletons** - Skeleton screens for flight search results
+- **Empty States** - Meaningful empty state messages for flight searches
+- **Error Boundaries** - Graceful error handling with recovery options for flight operations
+- **Price Display** - Consistent currency formatting and price breakdown displays
+
+### Component Styling Patterns
+- **Tailwind-First Approach** - Use Tailwind utility classes instead of custom CSS
+- **shadcn/ui Base Components** - Build flight components on shadcn/ui primitives
+- **Custom CSS Minimal** - Only for complex flight timeline and itinerary layouts
+- **Theme Variables** - Use CSS custom properties for flight booking brand colors
+- **Component Variants** - Use class-variance-authority (cva) for flight card and button variations
+- **Dark Mode Support** - Complete dark mode implementation with next-themes
+
+## Performance Optimization
+
+### Flight Data Optimization
+- **React.memo** - Memoize expensive flight list components
+- **useMemo/useCallback** - Optimize flight search and filter functions
+- **Virtual Scrolling** - For large flight result sets
+- **Image Optimization** - Next.js Image component for airline logos
+- **Code Splitting** - Dynamic imports for admin and specialized components
+
+### Bundle Optimization
+- **Tree Shaking** - Remove unused dependencies and code
+- **Module Federation** - Consider for micro-frontend architecture
+- **Webpack Optimization** - Custom webpack config for flight data processing
+- **Static Generation** - ISG for airport data and airline information
+
+## Form Handling and Validation
+
+### React Hook Form Integration
+- **Type-Safe Forms** - Use TypeScript with React Hook Form
+- **Flight Search Validation** - Validate dates, passenger counts, routes
+- **Passenger Data Validation** - Validate names, documents, contact info
+- **Real-time Validation** - Immediate feedback for booking forms
+- **Multi-Step Forms** - Handle complex booking flows with form state
+
+### Validation Patterns
+- **Schema Validation** - Use zod or yup for form validation
+- **Custom Validators** - Aviation-specific validation (passport, phone numbers)
+- **Async Validation** - Validate flight availability and pricing
+- **Error Message Standards** - User-friendly error messages for booking failures
+
+## Testing Strategy for Flight Booking Components
+
+### Unit Testing Standards
+- **Jest + React Testing Library** - Component unit testing with jsdom environment
+- **Flight Component Testing** - Test flight search forms, result cards, and booking flows
+- **Hook Testing** - Test custom hooks for flight data fetching and state management
+- **Utility Function Testing** - Test flight data validators, formatters, and transformers
+- **Mock Implementation** - Mock Clerk authentication and backend API responses
+- **Snapshot Testing** - Limited use for stable flight display components
+- **Coverage Requirements** - 80% minimum coverage for critical booking components
+
+### Integration Testing for Flight Operations
+- **User Flow Testing** - Test complete flight booking workflows
+- **API Integration Testing** - Test component interaction with backend flight APIs
+- **Form Validation Testing** - Test flight search and passenger form validation
+- **Navigation Testing** - Test Next.js routing and flight booking navigation flows
+- **Error Scenario Testing** - Test error handling for failed flight searches and bookings
+- **Authentication Integration** - Test Clerk authentication flows in booking components
+
+### End-to-End Testing for Flight Booking
+- **Critical Flight Path Testing** - Test main user booking journeys with Playwright/Cypress
+- **Cross-Browser Testing** - Ensure compatibility across Chrome, Firefox, Safari
+- **Responsive Testing** - Test booking flows on different screen sizes and devices
+- **Accessibility Testing** - Test keyboard navigation and screen reader compatibility
+- **Performance Testing** - Test flight search loading times and booking responsiveness
+- **Visual Regression Testing** - Prevent unintended UI changes in flight displays
+
+### Testing Configuration (Jest + Next.js)
+- **Jest Configuration** - Configured with Next.js testing environment
+- **Test Setup** - Global test setup with jest-dom matchers
+- **Mock Strategies** - Mock Next.js router, Clerk authentication, and API calls
+- **Test Data** - Flight and booking test data fixtures for consistent testing
+- **Environment Variables** - Test-specific environment configuration
+- **CI Integration** - Automated testing in GitHub Actions or similar CI/CD pipeline
+
+## Database Integration (Frontend)
+
+### Prisma Integration
+- **Type-Safe Database Operations** - Generated Prisma client types
+- **Booking Data Models** - Comprehensive booking and payment schemas
+- **Migration Management** - Handle schema changes for booking system
+- **Query Optimization** - Efficient queries for booking history and user data
+
+### Data Synchronization
+- **Real-time Updates** - Sync booking status changes with backend
+- **Optimistic Updates** - Immediate UI updates with rollback capability
+- **Cache Invalidation** - Refresh cached data when bookings change
+- **Offline Support** - Queue booking operations when offline
+
+## Development Workflow Standards
+
+### Code Quality Requirements
+- **ESLint Configuration** - Strict linting rules for TypeScript/React
+- **Prettier Integration** - Consistent code formatting
+- **Pre-commit Hooks** - Lint and test before commits
+- **Type Checking** - Strict TypeScript compilation
+- **Bundle Analysis** - Regular bundle size monitoring
+
+### Environment Management
+- **Environment Variables** - Secure configuration for API endpoints
+- **Feature Flags** - Toggle new booking features during development
+- **Multi-Environment Support** - Development, staging, production configs
+- **Local Development** - Hot reload and fast refresh for booking components
+
+## Accessibility Standards for Travel Interfaces
+
+### WCAG 2.1 Compliance
+- **Screen Reader Support** - Proper ARIA labels for flight information
+- **Keyboard Navigation** - Full keyboard support for booking flows
+- **Color Contrast** - Ensure readability for fare and flight information
+- **Focus Management** - Logical tab order in booking forms
+- **Alternative Text** - Descriptive alt text for airline logos and icons
+
+### Travel-Specific Accessibility
+- **Date Picker Accessibility** - Screen reader friendly date selection
+- **Flight Time Display** - Clear time zone and duration information
+- **Payment Form Accessibility** - Secure and accessible payment processing
+- **Error Announcements** - Screen reader announcements for booking errors
+
+## Deployment and Production Standards
+
+## Development Workflow Standards
+
+### Code Quality Requirements
+- **ESLint Configuration** - Strict linting rules for TypeScript/React consistency
+- **Prettier Integration** - Automated code formatting for consistent style
+- **Pre-commit Hooks** - Run linting and tests before commits
+- **TypeScript Strict Mode** - Enable all strict mode options for type safety
+- **Import Organization** - Consistent import ordering and grouping with path mapping
+- **Component Documentation** - JSDoc comments for complex flight booking components
+
+### Development Tools for Flight Booking
+- **React DevTools** - Debug flight component state and props
+- **Next.js DevTools** - Performance profiling and route debugging  
+- **Browser DevTools** - Performance profiling for flight search operations
+- **Storybook Integration** - Component development and flight UI documentation
+- **Hot Module Replacement** - Fast development feedback loop in Next.js
+- **Error Boundaries** - Development error reporting for flight operations
+
+### Build and Deployment (Next.js)
+- **Next.js Build System** - Optimized production builds with automatic optimizations
+- **Environment Configuration** - Different configs for dev/staging/production flight APIs
+- **Asset Optimization** - Automatic image optimization and bundle compression
+- **Progressive Web App** - PWA configuration for offline booking support
+- **Edge Functions** - Use Vercel Edge Functions for real-time flight data processing
+- **Bundle Analysis** - Regular monitoring with @next/bundle-analyzer
+
+### Next.js Production Optimization
+- **Static Site Generation (SSG)** - Pre-render airport and airline data pages
+- **Incremental Static Regeneration (ISR)** - Update flight schedules and pricing data
+- **Server-Side Rendering (SSR)** - Dynamic flight search results with SSR
+- **Edge Runtime** - Use edge functions for real-time flight availability checks
+- **Image Optimization** - Next.js Image component for airline logos and destination images
+- **Automatic Code Splitting** - Route-based and dynamic imports for flight components
+
+### Performance Monitoring
+- **Core Web Vitals** - Monitor LCP, FID, CLS for booking pages
+- **User Experience Metrics** - Track booking completion rates
+- **Error Tracking** - Monitor and alert on booking flow errors
+- **Performance Budgets** - Set limits for booking page load times
+
+## Frontend Anti-Patterns to Avoid
+
+### React/Next.js Anti-Patterns
+- **Prop Drilling** - Use React Context for deeply nested flight data
+- **Uncontrolled Components** - Use controlled components for booking forms
+- **Memory Leaks** - Properly cleanup useEffect hooks in flight components
+- **Large Bundle Sizes** - Avoid importing entire utility libraries
+- **Client-Side Navigation Issues** - Proper routing for booking flows
+
+### Flight Booking Specific Anti-Patterns
+- **Client-Side Flight Pricing** - Always verify pricing with backend
+- **Insecure Payment Handling** - Never handle payment data client-side
+- **Poor Error Handling** - Always handle airline API failures gracefully
+- **Inconsistent Date Handling** - Use proper timezone handling for flights
+- **Accessibility Violations** - Ensure booking interfaces are fully accessible
+
+## Integration with Shared Rules
+
+This frontend-specific rules file works in conjunction with the shared rules:
+- **API Standards** - Follows shared RESTful API design principles
+- **Security Requirements** - Implements shared security and compliance standards  
+- **Documentation** - Maintains shared documentation standards
+- **Development Methodology** - Follows shared development workflow
+- **Database Integration** - Coordinates with shared database best practices
+
+## Frontend Technology Stack Summary
+
+### Core Technologies
+- **Next.js 14+** with App Router for modern React development
+- **TypeScript 5+** for type safety throughout the application
+- **Tailwind CSS** with shadcn/ui for consistent, accessible styling
+- **React 18** with concurrent features for better user experience
+- **Clerk** for authentication and user management
+
+### Data & API Layer
+- **Prisma** for type-safe database operations
+- **Axios** for HTTP client with interceptors and error handling
+- **React Hook Form** for form state management and validation
+- **PostgreSQL** for relational booking and user data storage
+
+### Development & Testing
+- **Jest** with React Testing Library for component testing
+- **ESLint** and **Prettier** for code quality and formatting
+- **TypeScript strict mode** for comprehensive type checking
+- **Vercel** deployment platform with edge functions support

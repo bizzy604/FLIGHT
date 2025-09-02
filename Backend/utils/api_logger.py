@@ -38,7 +38,9 @@ class APILogger:
             self.base_dir,
             self.base_dir / "air_shopping",
             self.base_dir / "flight_price", 
-            self.base_dir / "booking"
+            self.base_dir / "booking",
+            self.base_dir / "service_list",
+            self.base_dir / "seat_availability"
         ]
         
         for directory in directories:
@@ -49,7 +51,9 @@ class APILogger:
         service_mapping = {
             'AirShopping': 'air_shopping',
             'FlightPrice': 'flight_price',
-            'OrderCreate': 'booking'
+            'OrderCreate': 'booking',
+            'ServiceList': 'service_list',
+            'SeatAvailability': 'seat_availability'
         }
         
         service_dir = service_mapping.get(service_name, service_name.lower())
@@ -66,7 +70,7 @@ class APILogger:
         Log API request data.
         
         Args:
-            service_name: Name of the service (AirShopping, FlightPrice, OrderCreate)
+            service_name: Name of the service (AirShopping, FlightPrice, OrderCreate, ServiceList, SeatAvailability)
             request_id: Unique request identifier
             payload: Request payload
             endpoint: API endpoint

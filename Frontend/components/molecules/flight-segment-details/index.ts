@@ -1,0 +1,1 @@
+export { FlightSegmentDetails } from "./flight-segment-details"

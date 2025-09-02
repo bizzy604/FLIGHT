@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoadingSpinner } from '@/components/loading-spinner';
+import { LoadingSpinner } from '@/components/atoms';
 import { Plane, Ticket, Calendar, Clock, MapPin, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -110,7 +110,7 @@ export default function BookingsPage() {
               status: booking.status,
               createdAt: booking.createdAt,
               totalAmount: booking.totalAmount,
-              currency: 'USD', // Default currency
+              currency: '', // Default currency
               airlineCode: outbound.airline?.code || 'Unknown'
             };
           });

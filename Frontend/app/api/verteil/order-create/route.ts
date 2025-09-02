@@ -217,6 +217,33 @@ export async function POST(request: NextRequest) {
     const payment = body.payment;
     const contact_info = body.contact_info;
     const sessionId = body.session_id;
+    
+    // 🚀 EXTRACT SEAT/SERVICE SELECTIONS FROM FRONTEND
+    // The booking form sends this as extras.seats and extras.services
+    const extras = body.extras || {};
+    const selectedSeats = extras.seats || {};
+    const selectedServices = extras.services || [];
+    
+    // Transform seat selections from {outbound: string[], return: string[]} to flat array
+    let flatSelectedSeats: string[] = [];
+    if (selectedSeats.outbound && Array.isArray(selectedSeats.outbound)) {
+      flatSelectedSeats = flatSelectedSeats.concat(selectedSeats.outbound);
+    }
+    if (selectedSeats.return && Array.isArray(selectedSeats.return)) {
+      flatSelectedSeats = flatSelectedSeats.concat(selectedSeats.return);
+    }
+    
+    // 🚀 CRITICAL FIX: Convert seat positions to pricing ObjectKeys
+    // Frontend sends seat positions like ["47A", "47C"] but backend needs pricing ObjectKeys like ["PRICE3-SEG2"]
+    // We'll let the backend handle this mapping using cached seat availability data
+    
+    console.log('🎯 Extracted seat/service selections:', {
+      selectedSeats: selectedSeats,
+      flatSelectedSeats: flatSelectedSeats,
+      selectedServices: selectedServices,
+      hasExtras: !!extras,
+      note: 'Backend will map seat positions to pricing ObjectKeys using cached data'
+    });
 
     // Prepare backend request body with raw frontend data
     const backendRequestBody: {
@@ -227,11 +254,16 @@ export async function POST(request: NextRequest) {
       ShoppingResponseID?: string;
       OfferID?: string;
       session_id?: string;
+      selected_services?: string[];
+      selected_seats?: string[];
     } = {
       passengers: passengers,
       payment: payment,
       contact_info: contact_info,
-      session_id: sessionId
+      session_id: sessionId,
+      // 🚀 ADD SEAT/SERVICE SELECTIONS FOR BACKEND
+      selected_services: selectedServices,
+      selected_seats: flatSelectedSeats
     };
     
     // Simple approach: Send what we have to the backend, let it handle cache retrieval
@@ -401,7 +433,8 @@ export async function POST(request: NextRequest) {
           bookingReference: finalBookingReference,
           hasOrderCreateResponse: !!data.raw_order_create_response,
           orderCreateResponseType: typeof data.raw_order_create_response,
-          orderCreateResponseSize: data.raw_order_create_response ? JSON.stringify(data.raw_order_create_response).length : 0
+          orderCreateResponseSize: data.raw_order_create_response ? JSON.stringify(data.raw_order_create_response).length : 0,
+          orderCreateResponsePreview: data.raw_order_create_response ? JSON.stringify(data.raw_order_create_response).substring(0, 300) : 'null'
         });
 
         // Create booking record in database using the properly extracted data
@@ -453,7 +486,9 @@ export async function POST(request: NextRequest) {
           bookingReference: dbBooking.bookingReference,
           hasOrderCreateResponse: !!dbBooking.orderCreateResponse,
           hasFlightDetails: !!dbBooking.flightDetails,
-          orderCreateResponseType: typeof dbBooking.orderCreateResponse
+          orderCreateResponseType: typeof dbBooking.orderCreateResponse,
+          orderCreateResponseSize: dbBooking.orderCreateResponse ? JSON.stringify(dbBooking.orderCreateResponse).length : 0,
+          orderCreateResponsePreview: dbBooking.orderCreateResponse ? JSON.stringify(dbBooking.orderCreateResponse).substring(0, 200) : 'null'
         });
 
         console.log('🔍 Raw OrderCreate response availability:', {
@@ -498,11 +533,17 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Add debug info to response for frontend visibility
+    // 🚀 ITINERARY FIX: Ensure OrderCreate response is available for frontend itinerary display
     const responseWithDebug = {
       ...data,
       // Include raw OrderCreate response for frontend session storage
       raw_order_create_response: data.raw_order_create_response,
+      // 🚀 NEW: Add processed booking data with raw response embedded for immediate access
+      booking_with_raw_response: data.data ? {
+        ...data.data,
+        raw_order_create_response: data.raw_order_create_response,
+        orderCreateResponse: data.raw_order_create_response // Alias for component compatibility
+      } : null,
       debug_info: {
         nextjs_route_hit: true,
         flight_offer_received: !!body.flight_offer,
@@ -513,7 +554,8 @@ export async function POST(request: NextRequest) {
         backend_status: response.status,
         db_booking_stored: !!dbBookingId,
         db_booking_id: dbBookingId,
-        raw_order_create_response_available: !!data.raw_order_create_response
+        raw_order_create_response_available: !!data.raw_order_create_response,
+        booking_with_raw_response_created: !!(data.data && data.raw_order_create_response)
       }
     };
     
