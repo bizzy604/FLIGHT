@@ -1385,15 +1385,20 @@ export default function BookingDetailsPage() {
                         const phone = booking.contactInfo?.phone;
                         if (!phone) return 'Not provided';
                         
+                        if (typeof phone === 'string') {
+                          return phone;
+                        }
+                        
                         if (typeof phone === 'object' && phone !== null) {
-                          if (phone.formatted) {
-                            return phone.formatted;
+                          const phoneObj = phone as any;
+                          if (phoneObj.formatted) {
+                            return phoneObj.formatted;
                           }
-                          if (phone.countryCode && phone.number) {
-                            return `${phone.countryCode} ${phone.number}`;
+                          if (phoneObj.countryCode && phoneObj.number) {
+                            return `${phoneObj.countryCode} ${phoneObj.number}`;
                           }
-                          if (phone.number) {
-                            return phone.number;
+                          if (phoneObj.number) {
+                            return phoneObj.number;
                           }
                           return 'Not provided';
                         }

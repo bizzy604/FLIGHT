@@ -190,9 +190,9 @@ class UnifiedApiManager {
       
       // Store session data consistently - check multiple locations
       const cacheKeyToStore = response.metadata?.flight_price_cache_key ||
-                              response.flight_price_cache_key ||
-                              response.data?.metadata?.flight_price_cache_key ||
-                              response.data?.data?.metadata?.flight_price_cache_key;
+                              (response as any).flight_price_cache_key ||
+                              (response.data as any)?.metadata?.flight_price_cache_key ||
+                              (response.data as any)?.data?.metadata?.flight_price_cache_key;
       
       if (cacheKeyToStore) {
         sessionStorage.setItem('flight_price_cache_key', cacheKeyToStore);
