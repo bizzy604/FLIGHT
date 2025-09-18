@@ -6,9 +6,10 @@ export async function POST(request: NextRequest) {
 
 
 
-    // Forward the request to the backend
-    const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
-    const response = await fetch(`${backendUrl}/api/verteil/air-shopping`, {
+  // Forward the request to the backend. Normalize base and avoid double '/api'.
+  const rawBackend = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+  const backend = rawBackend.replace(/\/+$/, '');
+  const response = await fetch(`${backend}/verteil/air-shopping`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
