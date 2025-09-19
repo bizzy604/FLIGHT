@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { flightStorageManager } from "@/utils/flight-storage-manager"
 import Link from "next/link"
 import Image from "next/image"
@@ -19,8 +19,52 @@ interface PaymentConfirmationProps {
 export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
   const [isDownloading, setIsDownloading] = useState(false)
   const [isEmailing, setIsEmailing] = useState(false)
+  const [orderCreateResponse, setOrderCreateResponse] = useState<any>(null)
+  const [isLoadingOrderCreate, setIsLoadingOrderCreate] = useState(false)
 
+  // Fetch OrderCreate response from Redis if not available in booking data
+  useEffect(() => {
+    const fetchOrderCreateResponse = async () => {
+      if (!booking?.bookingReference || orderCreateResponse) return
 
+      // Check if OrderCreate response is already in booking data
+      if (booking?.rawData?.raw_order_create_response) {
+        setOrderCreateResponse(booking.rawData.raw_order_create_response)
+        return
+      }
+      if (booking?.orderCreateResponse) {
+        setOrderCreateResponse(booking.orderCreateResponse)
+        return
+      }
+      if (booking?.response) {
+        setOrderCreateResponse(booking.response)
+        return
+      }
+      if (booking?.rawData?.response) {
+        setOrderCreateResponse(booking.rawData.response)
+        return
+      }
+
+      // Try to fetch from Redis
+      setIsLoadingOrderCreate(true)
+      try {
+        const response = await fetch(`http://localhost:5000/api/flight-storage/booking?session_id=booking_${booking.bookingReference}`)
+        if (response.ok) {
+          const redisData = await response.json()
+          if (redisData.success && redisData.data?.raw_order_create_response) {
+            setOrderCreateResponse(redisData.data.raw_order_create_response)
+            console.log('✅ Found OrderCreate response in Redis storage')
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to retrieve OrderCreate response from Redis:', error)
+      } finally {
+        setIsLoadingOrderCreate(false)
+      }
+    }
+
+    fetchOrderCreateResponse()
+  }, [booking?.bookingReference, orderCreateResponse])
 
   // Debug function to log robust storage contents
   const debugRobustStorage = async () => {
@@ -1133,44 +1177,44 @@ export function PaymentConfirmation({ booking }: PaymentConfirmationProps) {
       {(() => {
         try {
           console.log('🔍 Looking for OrderCreate response for itinerary display in booking data:', booking);
+          console.log('🔍 Booking data structure analysis:', {
+            hasRawData: !!booking?.rawData,
+            rawDataKeys: booking?.rawData ? Object.keys(booking.rawData) : [],
+            hasOrderCreateResponse: !!booking?.orderCreateResponse,
+            hasResponse: !!booking?.response,
+            hasBookingWithRawResponse: !!booking?.booking_with_raw_response,
+            topLevelKeys: Object.keys(booking || {})
+          });
 
-          // Priority 1: Try to get OrderCreate response from rawData (confirmation page)
-          let orderCreateResponse = booking?.rawData?.raw_order_create_response;
+          // Use the OrderCreate response from state (fetched via useEffect)
+          console.log('🔍 Using OrderCreate response from state:', !!orderCreateResponse);
 
-          // Priority 2: Try to get from database orderCreateResponse column
-          if (!orderCreateResponse) {
-            orderCreateResponse = booking?.orderCreateResponse;
-          }
-          
-          // Priority 2.5: Try to get from booking_with_raw_response (new embedded field)
-          if (!orderCreateResponse && booking?.booking_with_raw_response?.raw_order_create_response) {
-            orderCreateResponse = booking.booking_with_raw_response.raw_order_create_response;
-            console.log('✅ Found OrderCreate response in booking_with_raw_response field');
-          }
-
-          // Priority 3: Fallback to session storage if not in booking data
-          if (!orderCreateResponse) {
-            // First try the dedicated orderCreateResponse key
-            const sessionData = sessionStorage.getItem('orderCreateResponse');
-            if (sessionData) {
-              orderCreateResponse = JSON.parse(sessionData);
-            } else {
-              // Then try the raw_order_create_response from dev_completedBooking
-              const completedBookingData = sessionStorage.getItem('dev_completedBooking');
-              if (completedBookingData) {
-                const parsedBooking = JSON.parse(completedBookingData);
-                if (parsedBooking.raw_order_create_response) {
-                  orderCreateResponse = parsedBooking.raw_order_create_response;
-                  console.log('✅ Found raw OrderCreate response in dev_completedBooking session storage for display');
-                }
-              }
-            }
+          if (isLoadingOrderCreate) {
+            return (
+              <div className="flex items-center justify-center p-8">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Loading itinerary data...</p>
+                </div>
+              </div>
+            );
           }
 
           if (orderCreateResponse) {
             console.log('📋 Rendering itinerary with OrderCreate response from:', booking?.rawData?.raw_order_create_response ? 'rawData' : booking?.orderCreateResponse ? 'database' : 'session storage');
             console.log('📋 OrderCreate response data:', orderCreateResponse);
-            const itineraryData = transformOrderCreateToItinerary(orderCreateResponse, booking?.originalFlightOffer);
+            
+            // Ensure we have the correct data structure for the transformer
+            let responseData = orderCreateResponse;
+            if (orderCreateResponse.response && orderCreateResponse.response.Response) {
+              responseData = orderCreateResponse.response.Response;
+              console.log('📋 Using nested response data structure');
+            } else if (orderCreateResponse.Response) {
+              responseData = orderCreateResponse.Response;
+              console.log('📋 Using direct Response data structure');
+            }
+            
+            const itineraryData = transformOrderCreateToItinerary(responseData, booking?.originalFlightOffer);
             console.log('📋 Transformed itinerary data:', itineraryData);
 
             return (

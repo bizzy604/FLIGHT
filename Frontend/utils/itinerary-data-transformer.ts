@@ -31,6 +31,11 @@ export interface FlightSegment {
   airlineLogo?: string;
   aircraft: string;
   aircraftCode: string;
+  aircraftType: string; // Enhanced: Full aircraft name
+  flightDistance: number; // Enhanced: Distance in miles
+  flightDuration: string; // Enhanced: Duration in ISO format
+  flightDurationFormatted: string; // Enhanced: Human readable duration
+  stops: number; // Enhanced: Number of stops
   departure: {
     airport: string;
     airportName: string;
@@ -98,6 +103,20 @@ export interface BaggageDetails {
   };
 }
 
+export interface ServiceDetails {
+  objectKey: string;
+  name: string;
+  description: string;
+  type: string;
+  rficCode: string;
+  subCode: string;
+  settlementMethod: string;
+  associations: Array<{
+    travelerReferences: string[];
+    segmentReferences: string[];
+  }>;
+}
+
 export interface FareRule {
   type: 'Cancel' | 'Change';
   application: string;
@@ -144,6 +163,67 @@ export interface ItineraryData {
   ticketNumbers?: string[];
   bookingReference?: string;
   additionalServices?: AdditionalService[];
+  serviceDetails?: ServiceDetails[]; // Enhanced: Detailed service information
+}
+
+// Helper function to format ISO 8601 duration to human readable format
+function formatDurationFromISO(isoDuration: string): string {
+  const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+  if (!match) return isoDuration;
+  
+  const hours = parseInt(match[1] || '0');
+  const minutes = parseInt(match[2] || '0');
+  
+  if (hours > 0 && minutes > 0) {
+    return `${hours}h ${minutes}m`;
+  } else if (hours > 0) {
+    return `${hours}h`;
+  } else if (minutes > 0) {
+    return `${minutes}m`;
+  }
+  
+  return isoDuration;
+}
+
+// Helper function to format distance
+function formatDistance(distance: number): string {
+  if (distance >= 1000) {
+    return `${(distance / 1000).toFixed(1)}k miles`;
+  }
+  return `${distance} miles`;
+}
+
+// Extract service details from ServiceList section
+function extractServiceDetails(response: any): ServiceDetails[] {
+  const serviceDetails: ServiceDetails[] = [];
+  
+  try {
+    const serviceList = response.DataLists?.ServiceList?.Service || [];
+    
+    serviceList.forEach((service: any) => {
+      const serviceDetail: ServiceDetails = {
+        objectKey: service.ObjectKey || '',
+        name: service.Name?.value || '',
+        description: service.Descriptions?.Description?.[0]?.Text?.value || '',
+        type: service.Descriptions?.Description?.find((d: any) => d.Application === 'Type')?.Text?.value || '',
+        rficCode: service.Encoding?.RFIC?.Code || '',
+        subCode: service.Encoding?.SubCode?.value || '',
+        settlementMethod: service.Settlement?.Method?.Code || '',
+        associations: service.Associations?.map((assoc: any) => ({
+          travelerReferences: assoc.Traveler?.TravelerReferences || [],
+          segmentReferences: assoc.Flight?.originDestinationReferencesOrSegmentReferences || []
+        })) || []
+      };
+      
+      serviceDetails.push(serviceDetail);
+    });
+    
+    console.log('🔍 Extracted service details:', serviceDetails.length, 'services');
+  } catch (error) {
+    console.warn('⚠️ Error extracting service details:', error);
+  }
+  
+  return serviceDetails;
 }
 
 // Airport code to name mapping (extend as needed)
@@ -804,6 +884,14 @@ function transformFromFrontendAPIResponse(data: any): ItineraryData {
         airlineLogo: outbound.airline?.logo || `/airlines/${outbound.airline?.code || 'default'}.svg`,
         aircraft: 'Unknown',
         aircraftCode: '',
+        // Enhanced: Aircraft information
+        aircraftType: 'Unknown',
+        // Enhanced: Flight distance and duration
+        flightDistance: 0,
+        flightDuration: '',
+        flightDurationFormatted: '',
+        // Enhanced: Number of stops
+        stops: 0,
         departure: {
           airport: outbound.departure?.code || '',
           airportName: outbound.departure?.airport || '',
@@ -839,6 +927,14 @@ function transformFromFrontendAPIResponse(data: any): ItineraryData {
         airlineLogo: returnSeg.airline?.logo || `/airlines/${returnSeg.airline?.code || 'default'}.svg`,
         aircraft: 'Unknown',
         aircraftCode: '',
+        // Enhanced: Aircraft information
+        aircraftType: 'Unknown',
+        // Enhanced: Flight distance and duration
+        flightDistance: 0,
+        flightDuration: '',
+        flightDurationFormatted: '',
+        // Enhanced: Number of stops
+        stops: 0,
         departure: {
           airport: returnSeg.departure?.code || '',
           airportName: returnSeg.departure?.airport || '',
@@ -959,6 +1055,14 @@ function transformFromOriginalFlightOffer(originalFlightOffer: any, basicBooking
     airlineLogo: `/airlines/${flight.airline_code || 'default'}.svg`,
     aircraft: 'TBD',
     aircraftCode: '',
+    // Enhanced: Aircraft information
+    aircraftType: 'TBD',
+    // Enhanced: Flight distance and duration
+    flightDistance: 0,
+    flightDuration: '',
+    flightDurationFormatted: '',
+    // Enhanced: Number of stops
+    stops: 0,
     departure: {
       airport: flight.departure_airport || 'Unknown',
       airportName: flight.departure_airport || 'Unknown',
@@ -1049,6 +1153,9 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
     hasTransformedData: !!orderCreateResponse.data,
     topLevelKeys: Object.keys(orderCreateResponse)
   });
+  
+  // Debug: Log the actual data structure we're working with
+  console.log('🔍 Full orderCreateResponse structure:', orderCreateResponse);
 
   // Check if this is already transformed data from the frontend API response
   if (orderCreateResponse.status === 'success' && orderCreateResponse.data) {
@@ -1110,6 +1217,14 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
     discountApplied: undefined
   };
 
+  console.log('🔍 Booking info extracted:', {
+    orderId: bookingInfo.orderId,
+    bookingReference: bookingInfo.bookingReference,
+    alternativeOrderId: bookingInfo.alternativeOrderId,
+    status: bookingInfo.status,
+    issueDate: bookingInfo.issueDate
+  });
+
   // Extract discount information if available
   const firstOrderItem = order?.OrderItems?.OrderItem?.[0];
   const discount = firstOrderItem?.FlightItem?.Price?.Discount?.[0];
@@ -1136,6 +1251,14 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
     paymentMethodLabel: PAYMENT_METHODS[payment?.Type?.Code || 'CA'] || 'Cash'
   };
 
+  console.log('🔍 Pricing info extracted:', {
+    totalAmount: pricing.totalAmount,
+    currency: pricing.currency,
+    formattedTotal: pricing.formattedTotal,
+    paymentMethod: pricing.paymentMethod,
+    paymentMethodLabel: pricing.paymentMethodLabel
+  });
+
   // Extract passenger information with ticket numbers using ObjectKey-based mapping
   const passengers: PassengerInfo[] = [];
   const passengersData = response.Passengers?.Passenger || [];
@@ -1160,6 +1283,13 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
   });
 
   passengersData.forEach((passenger: any, index: number) => {
+    console.log(`🔍 Processing passenger ${index + 1}:`, {
+      objectKey: passenger.ObjectKey,
+      name: passenger.Name,
+      contact: passenger.Contacts?.Contact?.[0],
+      document: passenger.PassengerIDInfo?.PassengerDocument?.[0]
+    });
+    
     const name = passenger.Name || {};
     const contact = passenger.Contacts?.Contact?.[0];
     const document = passenger.PassengerIDInfo?.PassengerDocument?.[0];
@@ -1168,6 +1298,12 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
     const passengerObjectKey = passenger.ObjectKey || `PAX${index + 1}`;
     const ticketInfo = ticketMapping[passengerObjectKey] || {};
     const ticketNumber = ticketInfo.ticketNumber || 'N/A';
+    
+    console.log(`🔍 Passenger ${index + 1} ticket mapping:`, {
+      passengerObjectKey,
+      ticketInfo,
+      ticketNumber
+    });
 
     const passengerInfo: PassengerInfo = {
       objectKey: passenger.ObjectKey || `PAX${index + 1}`,
@@ -1192,6 +1328,14 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
 
     passengers.push(passengerInfo);
   });
+
+  console.log('🔍 Passenger info extracted:', passengers.map(p => ({
+    fullName: p.fullName,
+    documentNumber: p.documentNumber,
+    ticketNumber: p.ticketNumber,
+    email: p.email,
+    phone: p.phone
+  })));
 
   // Extract contact information from primary passenger
   const primaryPassenger = passengers.find(p => p.email) || passengers[0];
@@ -1220,7 +1364,33 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
     }))
   });
 
+  // Extract class of service and fare basis from order items
+  const orderItems = order?.OrderItems?.OrderItem || [];
+  const flightItem = orderItems.find((item: any) => item.FlightItem)?.FlightItem;
+  const classOfService = flightItem?.ClassOfService?.MarketingName?.value || 'Economy';
+  const cabinClass = flightItem?.ClassOfService?.CabinDesignator || 'Y';
+  const fareBasisCode = flightItem?.FareDetail?.FareComponent?.[0]?.FareBasis?.FareBasisCode?.Code || '';
+
+  console.log('🔍 Flight item details:', {
+    classOfService,
+    cabinClass,
+    fareBasisCode
+  });
+
   flightSegments.forEach((flight: any, segmentIndex: number) => {
+    console.log(`🔍 Processing flight segment ${segmentIndex + 1}:`, {
+      segmentKey: flight.SegmentKey,
+      departure: flight.Departure?.AirportCode?.value,
+      arrival: flight.Arrival?.AirportCode?.value,
+      airline: flight.MarketingCarrier?.Name,
+      flightNumber: flight.MarketingCarrier?.FlightNumber?.value,
+      aircraft: flight.Equipment?.Name,
+      aircraftCode: flight.Equipment?.AircraftCode?.value,
+      distance: flight.Details?.FlightDistance?.Value,
+      duration: flight.Details?.FlightDuration?.Value,
+      stops: flight.Details?.Stops?.StopQuantity
+    });
+    
     const segment: FlightSegment = {
       segmentKey: `S${segmentIndex + 2}`, // Match API structure (S2, S3, etc.)
       flightNumber: `${flight.MarketingCarrier?.AirlineID?.value || ''}${flight.MarketingCarrier?.FlightNumber?.value || ''}`,
@@ -1242,6 +1412,14 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
       airlineLogo: `/airlines/${flight.MarketingCarrier?.AirlineID?.value || 'default'}.svg`,
       aircraft: flight.Equipment?.Name || 'Unknown',
       aircraftCode: flight.Equipment?.AircraftCode?.value || '',
+      // Enhanced: Aircraft information
+      aircraftType: flight.Equipment?.Name || 'Unknown',
+      // Enhanced: Flight distance and duration
+      flightDistance: flight.Details?.FlightDistance?.Value || 0,
+      flightDuration: flight.Details?.FlightDuration?.Value || '',
+      flightDurationFormatted: formatDurationFromISO(flight.Details?.FlightDuration?.Value || ''),
+      // Enhanced: Number of stops
+      stops: flight.Details?.Stops?.StopQuantity || 0,
       departure: {
         airport: flight.Departure?.AirportCode?.value || '',
         airportName: flight.Departure?.AirportName || getAirportName(flight.Departure?.AirportCode?.value || ''),
@@ -1258,11 +1436,11 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
         terminal: flight.Arrival?.Terminal?.Name || '',
         formattedDateTime: formatDateTimeFromISO(flight.Arrival?.Date || '')
       },
-      duration: flight.FlightDetail?.FlightDuration?.Value || '',
-      durationFormatted: formatDuration(flight.FlightDetail?.FlightDuration?.Value || ''),
-      classOfService: 'Economy', // Will be extracted from order items if needed
-      cabinClass: 'Y', // Default cabin class
-      fareBasisCode: '' // Will be extracted from fare details if needed
+      duration: flight.Details?.FlightDuration?.Value || '',
+      durationFormatted: formatDurationFromISO(flight.Details?.FlightDuration?.Value || ''),
+      classOfService: classOfService,
+      cabinClass: cabinClass,
+      fareBasisCode: fareBasisCode
     };
 
     // All segments from the API response are part of the outbound journey
@@ -1300,6 +1478,9 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
   // Extract additional services
   const additionalServices = extractAdditionalServices({ Response: response });
 
+  // Extract service details from ServiceList
+  const serviceDetails = extractServiceDetails(response);
+
   return {
     bookingInfo,
     passengers,
@@ -1311,6 +1492,7 @@ export function transformOrderCreateToItinerary(orderCreateResponse: any, origin
     fareRules,
     ticketNumbers,
     bookingReference: bookingInfo.bookingReference,
-    additionalServices
+    additionalServices,
+    serviceDetails
   };
 }

@@ -1690,6 +1690,41 @@ async def create_order():
         else:
             # Success case - result contains booking data directly
             logger.info(f"Order created successfully - Request ID: {request_id}")
+            
+            # Store the OrderCreate response in Redis for frontend access
+            try:
+                from services.simple_flight_cache import simple_flight_cache
+                
+                # Create a session ID for this booking using booking reference
+                booking_reference = result.get('data', {}).get('bookingReference', 'N/A')
+                booking_session_id = f"booking_{booking_reference}"
+                
+                # Store the complete booking data including OrderCreate response
+                booking_data = {
+                    'bookingReference': result.get('data', {}).get('bookingReference', 'N/A'),
+                    'orderId': result.get('data', {}).get('orderId', 'N/A'),
+                    'raw_order_create_response': result.get('raw_order_create_response'),
+                    'flightDetails': result.get('data', {}).get('flightDetails', {}),
+                    'passengers': result.get('data', {}).get('passengers', []),
+                    'contactInfo': result.get('data', {}).get('contactInfo', {}),
+                    'pricing': result.get('data', {}).get('pricing', {}),
+                    'extras': result.get('data', {}).get('extras', []),
+                    'status': 'confirmed',
+                    'createdAt': result.get('data', {}).get('createdAt', ''),
+                    'timestamp': result.get('data', {}).get('timestamp', '')
+                }
+                
+                # Store in Redis with 24 hour TTL
+                store_result = simple_flight_cache.store_booking_data(booking_session_id, booking_data, 86400)
+                
+                if store_result.get('success'):
+                    logger.info(f"✅ OrderCreate response stored in Redis for session: {booking_session_id}")
+                else:
+                    logger.warning(f"⚠️ Failed to store OrderCreate response in Redis: {store_result.get('error')}")
+                    
+            except Exception as storage_error:
+                logger.warning(f"⚠️ Error storing OrderCreate response in Redis: {storage_error}")
+            
             return jsonify({
                 'status': 'success',
                 'data': result,
