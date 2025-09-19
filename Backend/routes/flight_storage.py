@@ -152,6 +152,48 @@ async def get_flight_price(session_id: str):
             'message': 'Internal server error'
         }), 500
 
+@flight_storage_bp.route('/api/flight-storage/booking', methods=['GET'])
+async def get_booking_data():
+    """
+    Retrieve booking data from Redis.
+    
+    Query parameters:
+    - session_id: The session ID to retrieve booking data for
+    """
+    try:
+        session_id = request.args.get('session_id')
+        
+        if not session_id:
+            return jsonify({
+                'success': False,
+                'error': 'session_id is required'
+            }), 400
+        
+        # Use simple_flight_cache instead of redis_flight_storage for consistency
+        from services.simple_flight_cache import simple_flight_cache
+        result = simple_flight_cache.get_booking_data(session_id)
+        
+        if result.get('success'):
+            return jsonify({
+                'success': True,
+                'data': result.get('data'),
+                'session_id': session_id
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': result.get('error', 'Failed to retrieve booking data'),
+                'message': result.get('message', 'Booking data not found')
+            }), 404
+            
+    except Exception as e:
+        logger.error(f"Error retrieving booking data: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': 'Internal server error'
+        }), 500
+
 @flight_storage_bp.route('/api/flight-storage/booking', methods=['POST'])
 async def store_booking_data():
     """
@@ -196,29 +238,6 @@ async def store_booking_data():
             'message': 'Internal server error'
         }), 500
 
-@flight_storage_bp.route('/api/flight-storage/booking/<session_id>', methods=['GET'])
-async def get_booking_data(session_id: str):
-    """
-    Retrieve booking data from Redis.
-    
-    Args:
-        session_id: Session ID to retrieve data for
-    """
-    try:
-        result = redis_flight_storage.get_booking_data(session_id)
-        
-        if result['success']:
-            return jsonify(result), 200
-        else:
-            return jsonify(result), 404
-            
-    except Exception as e:
-        logger.error(f"Error retrieving booking data: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': str(e),
-            'message': 'Internal server error'
-        }), 500
 
 @flight_storage_bp.route('/api/flight-storage/session/<session_id>', methods=['DELETE'])
 async def delete_session_data(session_id: str):
