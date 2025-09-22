@@ -4,6 +4,18 @@ import { prisma } from "@/utils/prisma"
 import { handleApiError, createValidationError } from "@/utils/error-handler"
 import { logger } from "@/utils/logger"
 
+/**
+ * Captures card details for backend processing, creates a pending booking and linked payment record, and returns a minimal success payload containing payment and booking identifiers.
+ *
+ * Performs authentication (rejects unauthenticated requests in production), validates card and booking data (including basic PAN format and expiry checks), and persists a booking and a minimal payment record (masked last4 and derived card type only). Card PAN and CVV are not stored or returned.
+ *
+ * Returns a JSON NextResponse with payment and booking identifiers and payment status on success.
+ *
+ * Error behavior:
+ * - Returns 403 if the request is unauthenticated in production.
+ * - Throws structured validation errors for missing/invalid inputs (e.g., card details, booking data, invalid PAN format, expired card).
+ * - Unexpected failures produce a 500 Internal Server Error response.
+ */
 export async function POST(request: NextRequest) {
   try {
     // Get user ID from Clerk authentication
@@ -167,6 +179,23 @@ export async function POST(request: NextRequest) {
   }
 }
 
+/**
+ * Retrieve a payment by its `paymentId` query parameter and return basic payment and booking info.
+ *
+ * Requires an authenticated Clerk user; in non-production the handler falls back to a "dev-user-id" when no authenticated user is present.
+ *
+ * Behavior and responses:
+ * - Reads `paymentId` from the request query string.
+ * - 400 if `paymentId` is missing.
+ * - 403 if the request is unauthenticated (in production) or if the payment exists but has no associated booking.
+ * - 404 if no payment with the given `paymentId` is found.
+ * - 500 on unexpected server errors.
+ *
+ * The successful JSON response includes: `paymentId`, `amount`, `currency`, `status`, `bookingReference`, and `createdAt`.
+ *
+ * @param request - NextRequest whose query must include `paymentId`
+ * @returns JSON response with payment and linked booking reference or an error payload with an appropriate HTTP status.
+ */
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth()
