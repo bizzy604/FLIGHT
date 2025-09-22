@@ -4,8 +4,9 @@ import { logger } from './logger';
 import { simpleApiManager } from './simple-api-manager';
 import type { FlightSearchResponse } from '@/types/flight-api';
 
-// Get backend URL from environment
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+// Get backend URL from environment and normalize (no trailing slash)
+const RAW_BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+const BACKEND_URL = RAW_BACKEND_URL.replace(/\/+$/, '');
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -129,7 +130,9 @@ const debouncedSearchFlights = debounce(async (params: FlightSearchRequest, reso
         });
         console.log('[PASSENGER DEBUG] Full request payload:', JSON.stringify(params, null, 2));
 
-        const response = await apiClient.post<FlightSearchResponse>('/api/verteil/air-shopping', params);
+    // Post to the verteil path. apiClient.baseURL already contains the configured prefix
+    // (for browser builds this is typically "/api" when using nginx proxying).
+    const response = await apiClient.post<FlightSearchResponse>('/verteil/air-shopping', params);
         resolve(response);
     } catch (error) {
         reject(error);
@@ -140,7 +143,7 @@ export const api = {
     // Flight Search Cache Check
     checkFlightSearchCache: async (params: FlightSearchRequest): Promise<{ data: any }> => {
         try {
-            const response = await apiClient.post('/api/verteil/air-shopping/cache-check', params);
+            const response = await apiClient.post('/verteil/air-shopping/cache-check', params);
             logger.info('Flight search cache check response:', response.data);
             return response;
         } catch (error) {
@@ -152,7 +155,7 @@ export const api = {
     // Flight Price Cache Check
     checkFlightPriceCache: async (offerId: string, shoppingResponseId: string): Promise<{ data: any }> => {
         try {
-            const response = await apiClient.post('/api/verteil/flight-price/cache-check', {
+            const response = await apiClient.post('/verteil/flight-price/cache-check', {
                 offer_id: offerId,
                 shopping_response_id: shoppingResponseId
             });
@@ -167,7 +170,7 @@ export const api = {
     // Booking Cache Check
     checkBookingCache: async (bookingId: string): Promise<{ data: any }> => {
         try {
-            const response = await apiClient.post('/api/verteil/booking/cache-check', {
+            const response = await apiClient.post('/verteil/booking/cache-check', {
                 booking_id: bookingId
             });
             logger.info('Booking cache check response:', response.data);

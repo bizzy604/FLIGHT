@@ -5,7 +5,10 @@ python-dotenv>=1.0.0
 pyjwt>=2.8.0
 requests>=2.31.0
 python-multipart>=0.0.6
-psycopg2-binary>=2.9.9
+# Use psycopg (psycopg3) which supports newer Python versions and offers
+# improved compatibility over psycopg2-binary. The `[binary]` extra installs
+# the binary adapter for better performance where available.
+psycopg[binary]~=3.2
 SQLAlchemy>=2.0.20
 aiohttp>=3.8.6
 cryptography>=41.0.3
@@ -27,7 +30,8 @@ uvicorn[standard]==0.23.2  # Includes uvloop and watchfiles
 Werkzeug==2.3.7
 
 # Database
-psycopg2-binary==2.9.9
+# psycopg (psycopg3) replaces psycopg2-binary
+psycopg[binary]~=3.2
 SQLAlchemy==2.0.34
 alembic==1.14.1
 
