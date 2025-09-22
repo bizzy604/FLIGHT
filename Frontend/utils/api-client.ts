@@ -186,17 +186,32 @@ export const api = {
     },
 
     // Flight Pricing - Using unified manager to eliminate duplicates
+    /**
+     * getFlightPrice
+     *
+     * Why: The SimpleApiManager returns a normalized ApiResponse with { success, data, status? }.
+     *      Downstream UI (flight cards, booking form, payment page) relies on the legacy shape
+     *      where callers check response.data.status === 'success' and read the payload from response.data.data.
+     *      This adapter preserves backward compatibility so existing screens don't break.
+     *
+     * Assumptions:
+     * - simpleApiManager.getFlightPrice returns an object with a boolean `success` and `data` payload.
+     * - When the backend optimizes payload size, `raw_response` may be omitted; we rely on `metadata.flight_price_cache_key` instead.
+     *
+     * Edge cases:
+     * - Backend returns status !== 'success': we surface a generic error in response.data.error for consistent UI messaging.
+     * - `data` may be undefined on errors; callers should branch on response.data.status.
+     *
+     * Connections:
+     * - Used by Enhanced Flight Card hook and flight selection flows which store
+     *   `flightPriceResponseForBooking`, `flightPriceMetadata` (and optionally `rawFlightPriceResponse`) in sessionStorage.
+     */
     getFlightPrice: async (flightIndex: number, shoppingResponseId: string, airShoppingResponse: any) => {
         try {
-            logger.info('🚀 Using simple API manager for flight price request', {
+            // Delegate to SimpleApiManager which handles session and caching
+            const response = await simpleApiManager.getFlightPrice(
                 flightIndex,
                 shoppingResponseId,
-                hasAirShoppingResponse: !!airShoppingResponse
-            });
-
-            const response = await simpleApiManager.getFlightPrice(
-                flightIndex, 
-                shoppingResponseId, 
                 airShoppingResponse
             );
             
@@ -206,29 +221,19 @@ export const api = {
                 hasData: !!response.data
             });
             
-            // Response received from simple manager
-            logger.info('✅ Simple manager response processed', {
-                success: response.success,
-                status: response.status,
-                hasData: !!response.data
-            });
-            
             // Convert to expected format for backward compatibility
             // The existing code expects: response.data.status and response.data.data
-            
-            // Handle backend response format: { status: 'success'|'error', data: {...} }
             const isSuccess = response.success === true || response.status === 'success';
             
             const formattedResponse = { 
                 data: {
                     status: isSuccess ? 'success' : 'error',
-                    data: response.data,
+                    data: response.data, // payload consumed by UI components
                     error: isSuccess ? undefined : 'Flight pricing failed'
                 }, 
-                status: 200 
+                status: 200 // retained for callers that inspect HTTP-ish code
             };
             
-            // Response formatted for backward compatibility
             logger.info('✅ Response formatted for existing code', {
                 dataStatus: formattedResponse.data.status,
                 hasData: !!formattedResponse.data.data
@@ -246,10 +251,31 @@ export const api = {
     },
 
     // Booking - Using simple manager for consistent session handling
+    /**
+     * createBooking
+     *
+     * Why: Payment page and booking flows check response.data.status and consume response.data.data.
+     *      This function adapts SimpleApiManager's response to that legacy shape to prevent UI runtime errors
+     *      such as "can't access property 'status', o.data is undefined" in production.
+     *
+     * Assumptions:
+     * - `flightOffer` includes either optimized metadata with `metadata.flight_price_cache_key`,
+     *   or a fallback `raw_flight_price_response` and identifiers (shopping_response_id/order_id).
+     * - simpleApiManager.createBooking injects seat/service cache keys and handles session linkage.
+     *
+     * Edge cases:
+     * - If backend omits `raw_response` (common with optimized payloads), we rely solely on metadata cache key.
+     * - On errors, we keep a friendly message in response.data.error for UI to render.
+     *
+     * Connections:
+     * - Upstream: booking-form stores `selectedFlightOffer` in sessionStorage built from flight pricing output.
+     * - Downstream: payment page reads response.data.status to render success/failure and store booking result.
+     */
     createBooking: async (flightOffer: any, passengers: any[], payment: any, contactInfo: any, extras?: any) => {
         try {
             logger.info('🚀 Using simple API manager for booking creation');
             
+            // Delegates to SimpleApiManager which ensures required cache keys exist and attaches them
             const response = await simpleApiManager.createBooking(
                 flightOffer,
                 passengers,
@@ -263,7 +289,24 @@ export const api = {
                 hasData: !!response.data
             });
             
-            return { data: response.data };
+            // Format response to match expected structure for payment page
+            // The payment page expects: response.data.status and response.data.data
+            const isSuccess = response.success === true || response.status === 'success';
+            
+            const formattedResponse = {
+                data: {
+                    status: isSuccess ? 'success' : 'error',
+                    data: response.data, // booking payload used by payment confirmation & storage
+                    error: isSuccess ? undefined : 'Booking creation failed'
+                }
+            };
+            
+            logger.info('✅ Booking response formatted for payment page', {
+                dataStatus: formattedResponse.data.status,
+                hasData: !!formattedResponse.data.data
+            });
+            
+            return formattedResponse;
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             logger.error('❌ Error in simple createBooking', { error: errorMessage });

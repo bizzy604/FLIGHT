@@ -135,8 +135,8 @@ function OrderSummary({
 
   return (
     <div className="sticky top-6">
-      <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
-        <h2 className="text-lg font-bold text-gray-900 mb-5 pb-3 border-b-2 border-gray-200">Booking Summary</h2>
+      <div className="bg-white/95 dark:bg-background/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-primary-200 dark:border-primary-700">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-5 pb-3 border-b-2 border-primary-200 dark:border-primary-600">Booking Summary</h2>
         <div className="space-y-5">
           {/* Flight Details */}
           <div className="space-y-4">
@@ -192,13 +192,13 @@ function OrderSummary({
 
           {/* Passengers */}
           <div>
-            <div className="text-sm font-semibold text-gray-600 mb-2">PASSENGERS</div>
+            <div className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2">PASSENGERS</div>
             {booking.passengers?.map((passenger: any, index: number) => (
               <div key={index} className="flex justify-between items-center py-1">
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-gray-700 dark:text-gray-300">
                   {passenger.title} {passenger.firstName} {passenger.lastName}
                 </span>
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
                   {passenger.type === 'ADULT' ? 'ADT' : passenger.type.substring(0, 3)}
                 </span>
               </div>
@@ -213,38 +213,38 @@ function OrderSummary({
             
             {/* Selected Seats */}
             <div className="space-y-2">
-              <div className="text-sm font-medium text-gray-600">SELECTED SEATS</div>
+              <div className="text-sm font-medium text-gray-600 dark:text-gray-300">SELECTED SEATS</div>
               {(selectedSeats && (selectedSeats.outbound.length > 0 || selectedSeats.return.length > 0)) ? (
                 <div className="space-y-1">
                   {selectedSeats.outbound.length > 0 && (
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-700">Outbound: {selectedSeats.outbound.join(", ")}</span>
-                      <span className="font-medium">{formatCurrencyDisplay(seatPrices?.outbound || 0, currency)}</span>
+                      <span className="text-gray-700 dark:text-gray-300">Outbound: {selectedSeats.outbound.join(", ")}</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{formatCurrencyDisplay(seatPrices?.outbound || 0, currency)}</span>
                     </div>
                   )}
                   {selectedSeats.return.length > 0 && (
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-700">Return: {selectedSeats.return.join(", ")}</span>
-                      <span className="font-medium">{formatCurrencyDisplay(seatPrices?.return || 0, currency)}</span>
+                      <span className="text-gray-700 dark:text-gray-300">Return: {selectedSeats.return.join(", ")}</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{formatCurrencyDisplay(seatPrices?.return || 0, currency)}</span>
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="text-sm text-gray-500">No seat selected</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">No seat selected</div>
               )}
             </div>
 
             {/* Selected Services */}
             <div className="space-y-2">
-              <div className="text-sm font-medium text-gray-600">SELECTED SERVICES</div>
+              <div className="text-sm font-medium text-gray-600 dark:text-gray-300">SELECTED SERVICES</div>
               {serviceDetails.length > 0 ? (
                 <div className="space-y-1">
                   {serviceDetails.map((service) => (
                     <div key={service.objectKey} className="flex justify-between items-center text-sm">
-                      <span className="text-gray-700">{service.name}</span>
-                      <span className="font-medium">
+                      <span className="text-gray-700 dark:text-gray-300">{service.name}</span>
+                      <span className="font-medium text-gray-900 dark:text-white">
                         {service.isFree ? (
-                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded">FREE</span>
+                          <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-semibold rounded">FREE</span>
                         ) : (
                           formatCurrencyDisplay(service.price, service.currency)
                         )}
@@ -253,14 +253,14 @@ function OrderSummary({
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-gray-500">No services selected</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">No services selected</div>
               )}
             </div>
           </div>
 
           {/* Price Breakdown */}
           <div className="space-y-4">
-            <h3 className="font-medium">Price Breakdown</h3>
+            <h3 className="font-medium text-gray-900 dark:text-white">Price Breakdown</h3>
             <div className="space-y-2">
               {/* Show per-passenger pricing if available */}
               {pricedOffer.passengers && Array.isArray(pricedOffer.passengers) ? (
@@ -349,8 +349,8 @@ function OrderSummary({
 
               <Separator />
               <div className="flex justify-between font-bold text-lg">
-                <span>Total Amount</span>
-                <span className="text-purple-600">
+                <span className="text-gray-900 dark:text-white">Total Amount</span>
+                <span className="text-purple-600 dark:text-purple-400">
                   {formatCurrencyDisplay(
                     flightPricing.total > 0 ? flightPricing.total + pricingBreakdown.seatFees + pricingBreakdown.serviceFees : 
                     pricingBreakdown.total, 

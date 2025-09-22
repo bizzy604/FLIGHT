@@ -92,18 +92,18 @@ export function BaggageOptions({
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8"
+              className="h-8 w-8 border-primary-300 text-primary-600 hover:bg-primary-50 hover:border-primary-500"
               onClick={decrementBags}
               disabled={checkedBags === 0}
             >
               <Minus className="h-4 w-4" />
               <span className="sr-only">Decrease</span>
             </Button>
-            <span className="w-8 text-center">{checkedBags}</span>
+            <span className="w-8 text-center font-semibold text-primary-800">{checkedBags}</span>
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8"
+              className="h-8 w-8 border-primary-300 text-primary-600 hover:bg-primary-50 hover:border-primary-500"
               onClick={incrementBags}
               disabled={checkedBags === 5}
             >
@@ -115,7 +115,7 @@ export function BaggageOptions({
 
         {checkedBags > 0 && (
           <div className="mt-4 text-sm">
-            <p className="font-medium">
+            <p className="font-medium text-primary-700">
               Subtotal: {formatCurrency(baggageCost, currency)}
             </p>
           </div>
@@ -125,17 +125,17 @@ export function BaggageOptions({
       
       {/* Total Cost Summary */}
       {totalCost > 0 && (
-        <div className="rounded-md border p-4 bg-primary/10">
+        <div className="rounded-md border border-primary-200 p-4 bg-primary-50">
           <div className="flex justify-between items-center">
-            <span className="font-semibold text-primary">
+            <span className="font-semibold text-primary-800">
               Total Baggage Cost
             </span>
-            <span className="font-bold text-lg text-primary">
+            <span className="font-bold text-lg text-primary-800">
               {formatCurrency(totalCost, currency)}
             </span>
           </div>
           {baggageCost > 0 && (
-            <div className="text-sm text-primary/80 mt-1">
+            <div className="text-sm text-primary-600 mt-1">
               {checkedBags} bag{checkedBags > 1 ? 's' : ''}: {formatCurrency(baggageCost, currency)}
             </div>
           )}

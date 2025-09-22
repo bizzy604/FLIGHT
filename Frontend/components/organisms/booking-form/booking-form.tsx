@@ -17,6 +17,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { PassengerForm } from "@/components/molecules"
 import { ServiceSelection, SeatSelection } from "@/components/molecules"
+import { CountrySelector } from "@/components/molecules/country-selector/country-selector"
+import { PhoneCountrySelector } from "@/components/molecules/phone-country-selector/phone-country-selector"
 import { api } from "@/utils/api-client"
 import { seatServiceCache } from "@/utils/seat-service-cache-manager"
 import { logger } from "@/utils/logger"
@@ -536,7 +538,10 @@ export function BookingForm({
       contactInfo: contactInfo,
       extras: {
         seats: selectedSeats,
-        services: selectedServices
+        services: selectedServices,
+        seatPrices: seatPrices,
+        serviceData: serviceData,
+        selectedBaggage: selectedBaggage
       },
       paymentMethod: selectedPaymentMethod,
       pricing: pricingDetails
@@ -826,36 +831,14 @@ export function BookingForm({
                   <div className="space-y-2">
                     <Label className="text-sm">Phone Number *</Label>
                     <div className="flex gap-2">
-                      <Select
+                      <PhoneCountrySelector
                         value={contactInfo.phoneCountryCode || ''}
                         onValueChange={(value) => handleContactInfoSelectChange('phoneCountryCode', value)}
-                      >
-                        <SelectTrigger className="w-20 sm:w-24 text-sm">
-                          <SelectValue placeholder="+1" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">+1</SelectItem>
-                          <SelectItem value="44">+44</SelectItem>
-                          <SelectItem value="49">+49</SelectItem>
-                          <SelectItem value="33">+33</SelectItem>
-                          <SelectItem value="39">+39</SelectItem>
-                          <SelectItem value="34">+34</SelectItem>
-                          <SelectItem value="31">+31</SelectItem>
-                          <SelectItem value="46">+46</SelectItem>
-                          <SelectItem value="47">+47</SelectItem>
-                          <SelectItem value="45">+45</SelectItem>
-                          <SelectItem value="358">+358</SelectItem>
-                          <SelectItem value="254">+254</SelectItem>
-                          <SelectItem value="27">+27</SelectItem>
-                          <SelectItem value="234">+234</SelectItem>
-                          <SelectItem value="91">+91</SelectItem>
-                          <SelectItem value="86">+86</SelectItem>
-                          <SelectItem value="81">+81</SelectItem>
-                          <SelectItem value="82">+82</SelectItem>
-                          <SelectItem value="61">+61</SelectItem>
-                          <SelectItem value="64">+64</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        placeholder="+1"
+                        className="w-20 sm:w-24 text-sm"
+                        showMostCommon={true}
+                        maxCommonItems={15}
+                      />
                       <Input
                         id="phone"
                         type="tel"
@@ -890,7 +873,7 @@ export function BookingForm({
                         <Input
                           id="city"
                           type="text"
-                          placeholder="New York"
+                          placeholder="Nairobi"
                           value={contactInfo.city || ''}
                           onChange={handleContactInfoChange}
                           className="text-sm"
@@ -909,37 +892,12 @@ export function BookingForm({
                       </div>
                       <div className="space-y-2">
                         <Label className="text-sm">Country *</Label>
-                        <Select
+                        <CountrySelector
                           value={contactInfo.countryCode || ''}
                           onValueChange={(value) => handleContactInfoSelectChange('countryCode', value)}
-                        >
-                          <SelectTrigger className="text-sm">
-                            <SelectValue placeholder="Select country" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="US">United States</SelectItem>
-                            <SelectItem value="GB">United Kingdom</SelectItem>
-                            <SelectItem value="DE">Germany</SelectItem>
-                            <SelectItem value="FR">France</SelectItem>
-                            <SelectItem value="IT">Italy</SelectItem>
-                            <SelectItem value="ES">Spain</SelectItem>
-                            <SelectItem value="NL">Netherlands</SelectItem>
-                            <SelectItem value="SE">Sweden</SelectItem>
-                            <SelectItem value="NO">Norway</SelectItem>
-                            <SelectItem value="DK">Denmark</SelectItem>
-                            <SelectItem value="FI">Finland</SelectItem>
-                            <SelectItem value="KE">Kenya</SelectItem>
-                            <SelectItem value="ZA">South Africa</SelectItem>
-                            <SelectItem value="NG">Nigeria</SelectItem>
-                            <SelectItem value="IN">India</SelectItem>
-                            <SelectItem value="CN">China</SelectItem>
-                            <SelectItem value="JP">Japan</SelectItem>
-                            <SelectItem value="KR">South Korea</SelectItem>
-                            <SelectItem value="AU">Australia</SelectItem>
-                            <SelectItem value="NZ">New Zealand</SelectItem>
-                            <SelectItem value="CA">Canada</SelectItem>
-                          </SelectContent>
-                        </Select>
+                          placeholder="Select country"
+                          className="text-sm"
+                        />
                       </div>
                     </div>
                   </div>

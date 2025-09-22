@@ -451,14 +451,14 @@ export function ServiceSelection({
                         className={cn(
                           "border-2 rounded-xl p-4 cursor-pointer transition-all duration-300 relative overflow-hidden",
                           isSelected 
-                            ? "border-primary bg-gradient-to-r from-primary/10 to-primary/20" 
+                            ? "border-primary-500 bg-gradient-to-r from-primary-50 to-primary-100" 
                             : "border-gray-200 dark:border-gray-600 hover:border-primary/50 hover:shadow-md hover:-translate-y-1"
                         )}
                         onClick={() => handleServiceToggle(service.objectKey)}
                       >
                         {/* Selection checkmark */}
                         {isSelected && (
-                          <div className="absolute top-3 right-3 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                          <div className="absolute top-3 right-3 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center">
                             <Check className="h-4 w-4 text-white font-bold" />
                           </div>
                         )}
@@ -513,14 +513,14 @@ export function ServiceSelection({
                 className={cn(
                   "border-2 rounded-xl p-4 cursor-pointer transition-all duration-300 relative overflow-hidden",
                   isSelected 
-                    ? "border-primary bg-gradient-to-r from-primary/10 to-primary/20" 
+                    ? "border-primary-500 bg-gradient-to-r from-primary-50 to-primary-100" 
                     : "border-gray-200 dark:border-gray-600 hover:border-primary/50 hover:shadow-md hover:-translate-y-1"
                 )}
                 onClick={() => handleServiceToggle(service.objectKey)}
               >
                 {/* Selection checkmark */}
                 {isSelected && (
-                  <div className="absolute top-3 right-3 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                  <div className="absolute top-3 right-3 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center">
                     <Check className="h-4 w-4 text-white font-bold" />
                   </div>
                 )}
@@ -571,11 +571,11 @@ export function ServiceSelection({
 
       {/* Selected Services Summary */}
       {selectedServices.length > 0 && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+        <div className="bg-primary-50 border border-primary-200 rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-semibold text-green-800">Selected Services ({selectedServices.length})</h4>
-              <p className="text-sm text-green-600">
+              <h4 className="font-semibold text-primary-800">Selected Services ({selectedServices.length})</h4>
+              <p className="text-sm text-primary-600">
                 {selectedServices.map(serviceKey => {
                   const service = services.find(s => s.objectKey === serviceKey)
                   return service?.name?.value
@@ -583,8 +583,8 @@ export function ServiceSelection({
               </p>
             </div>
             <div className="text-right">
-              <div className="text-sm text-green-600">Total Additional Services</div>
-              <div className="font-bold text-xl text-green-800">
+              <div className="text-sm text-primary-600">Total Additional Services</div>
+              <div className="font-bold text-xl text-primary-800">
                 {formatCurrency(getTotalPrice(), getCurrency())}
               </div>
             </div>

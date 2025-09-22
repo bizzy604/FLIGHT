@@ -295,9 +295,9 @@ export default function PaymentPage() {
         }
 
         // Store raw OrderCreate response using robust storage for itinerary generation
-        if (response.data.raw_order_create_response) {
+        if ((response.data as any).raw_order_create_response) {
           const orderCreateData = {
-            orderCreateResponse: response.data.raw_order_create_response,
+            orderCreateResponse: (response.data as any).raw_order_create_response,
             timestamp: Date.now(),
             expiresAt: Date.now() + (30 * 60 * 1000) // 30 minutes
           }
@@ -307,7 +307,7 @@ export default function PaymentPage() {
           if (orderStoreResult.success) {
           } else {
             // Fallback to session storage
-            sessionStorage.setItem('orderCreateResponse', JSON.stringify(response.data.raw_order_create_response))
+            sessionStorage.setItem('orderCreateResponse', JSON.stringify((response.data as any).raw_order_create_response))
           }
         } else {
         }
@@ -318,7 +318,7 @@ export default function PaymentPage() {
 
         return bookingResult
       } else {
-        throw new Error(response.data.error || response.data.message || 'Booking creation failed')
+        throw new Error(response.data.error || (response.data as any).message || 'Booking creation failed')
       }
     } catch (error) {
       throw error
@@ -770,7 +770,13 @@ export default function PaymentPage() {
 
                 {/* Order Summary */}
                 <div>
-                  <OrderSummary booking={booking} />
+                  <OrderSummary 
+                    booking={booking}
+                    selectedSeats={booking.extras?.seats || { outbound: [], return: [] }}
+                    selectedServices={booking.extras?.services || []}
+                    seatPrices={booking.extras?.seatPrices || { outbound: 0, return: 0 }}
+                    services={booking.extras?.serviceData || []}
+                  />
                 </div>
               </div>
             )}

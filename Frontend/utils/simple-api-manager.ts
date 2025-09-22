@@ -227,7 +227,28 @@ class SimpleApiManager {
   }
 
   /**
-   * Create booking with proper data handling
+   * Create booking
+   *
+   * Why:
+   * - OrderCreate needs previously materialized SeatAvailability and ServiceList artifacts; we pass their storage keys so
+   *   the backend can reuse cached NDC data instead of recomputing, keeping payment flow fast and reliable.
+   * - In production, raw flight price response may be absent in sessionStorage; this method is designed to proceed using
+   *   stable cache keys derived during pricing/selection (see extractCacheKey for fallbacks).
+   *
+   * Assumptions:
+   * - The provided flightOffer (possibly transformed) contains enough identity to derive or relate to
+   *   flight_price_cache_key via prior steps, even if raw_response is missing.
+   * - Seat/service data may or may not exist; ensureCacheKeysExist will idempotently hydrate missing caches and persist
+   *   backend storage keys in this.cacheKeys for the current session.
+   *
+   * Edge cases:
+   * - Missing rawFlightPriceResponse: non-blocking. We fall back to metadata.flight_price_cache_key, then offer IDs, then
+   *   NDC ResponseID, finally sessionId.
+   * - Backend might return its own storage_key; we persist that to guarantee subsequent OrderCreate joins exact cache rows.
+   *
+   * Related components:
+   * - booking-form.tsx/payment page: prepares selected offer + metadata and triggers booking.
+   * - proactive loaders: populate seat/service cache and record backend storage keys used here.
    */
   async createBooking(
     flightOffer: any,
@@ -284,7 +305,22 @@ class SimpleApiManager {
   // UTILITY METHODS
 
   /**
-   * Extract cache key from flight price response
+   * Extract a stable cache key from any flight price response or transformed offer object.
+   *
+   * Why:
+   * - Seat availability, service list, and booking must reference the same cached artifacts in Redis/backend.
+   * - The raw NDC price response may not be available client-side; this function provides resilient fallbacks.
+   *
+   * Fallback order (strongest to weakest):
+   * 1) metadata.flight_price_cache_key
+   * 2) flight_price_cache_key (direct field)
+   * 3) original_offer_id → offer_id (transformed shapes)
+   * 4) NDC OfferID or ShoppingResponseID.ResponseID
+   * 5) Current sessionId (last resort)
+   *
+   * Edge cases:
+   * - If input lacks all identity fields, we log and return sessionId to keep flows unblocked.
+   * - Accepts both transformed frontend objects and raw NDC-like shapes.
    */
   private extractCacheKey(flightPriceResponse: any): string {
     // 🚀 PRIORITY: Check for flight_price_cache_key in metadata (stored after flight price API call)
@@ -337,7 +373,15 @@ class SimpleApiManager {
   }
 
   /**
-   * Proactively load seat and service data to prevent duplicate calls
+   * Proactively load seat and service data in the background to prevent duplicate synchronous calls later.
+   *
+   * Why:
+   * - Improves UX by warming the cache between pricing and payment. Prevents blocking calls in payment flow.
+   * - Persists backend storage keys that are later required by OrderCreate.
+   *
+   * Behavior:
+   * - Fire-and-forget concurrent loaders; logs results; never throws upstream.
+   * - Idempotent: loaders short-circuit if cached data already exists.
    */
   private proactivelyLoadSeatAndService(sessionId: string, flightPriceResponse: any): void {
     // 🚀 OPTIMIZATION: Use dedicated proactive loading methods that store in cache
@@ -365,7 +409,14 @@ class SimpleApiManager {
   }
 
   /**
-   * Proactive seat availability loading (stores in cache, doesn't return data)
+   * Proactive seat availability loading (stores in cache; does not return data to caller).
+   *
+   * Assumptions:
+   * - extractCacheKey can resolve a stable key even when raw flight price response is missing.
+   * - Backend may return a storage_key; if absent, we reuse the derived cacheKey.
+   *
+   * Edge cases:
+   * - If cache already exists for this session, we skip to avoid redundant network calls.
    */
   private async proactiveLoadSeatAvailability(sessionId: string, flightPriceResponse: any): Promise<void> {
     // Check if we already have cached data
@@ -399,7 +450,10 @@ class SimpleApiManager {
   }
 
   /**
-   * Proactive service list loading (stores in cache, doesn't return data)
+   * Proactive service list loading (stores in cache; does not return data to caller).
+   *
+   * Mirrors proactiveLoadSeatAvailability assumptions and behavior; uses the same cache key derivation and
+   * persists backend storage_key when provided so OrderCreate can reference the exact cache slot.
    */
   private async proactiveLoadServiceList(sessionId: string, flightPriceResponse: any): Promise<void> {
     // Check if we already have cached data
@@ -433,7 +487,14 @@ class SimpleApiManager {
   }
 
   /**
-   * Ensure cache keys exist before booking
+   * Ensure we have cached seat/service data AND the backend storage keys before booking.
+   *
+   * Why:
+   * - OrderCreate joins precomputed seat and service artifacts via storage keys. This step backfills cache when missing.
+   *
+   * Behavior:
+   * - Checks session-scoped presence; if missing, calls getSeatAvailability/getServiceList (which derive cache key from offer)
+   *   to hydrate cache and persist storage_key values into this.cacheKeys.
    */
   private async ensureCacheKeysExist(flightOffer: any): Promise<void> {
     const sessionId = this.getSessionId();

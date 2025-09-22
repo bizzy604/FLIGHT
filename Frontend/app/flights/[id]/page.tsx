@@ -695,6 +695,14 @@ function FlightDetailsPageContent() {
                     return (seatPrices?.outbound || 0) + (seatPrices?.return || 0);
                   };
                   
+                  // Debug logging for seat prices
+                  console.log('🔍 Price Summary Debug - Seat Prices:', {
+                    seatPrices,
+                    outbound: seatPrices?.outbound || 0,
+                    return: seatPrices?.return || 0,
+                    total: getSeatFees()
+                  });
+                  
                   // Get selected baggage services (weight-based options like 25KG, 30KG, etc.)
                   const getSelectedBaggageServices = () => {
                     return services.filter(service => {
@@ -706,14 +714,23 @@ function FlightDetailsPageContent() {
                     });
                   };
                   
-                  // Get price for basic baggage (+/- buttons) - use price from selected baggage services
+                  // Get price for basic baggage (+/- buttons) - use price from baggage services
                   const getBasicBaggagePrice = (): number => {
-                    const selectedBaggageServices = getSelectedBaggageServices();
-                    if (selectedBaggageServices.length > 0) {
-                      // Use the price from user's selected baggage service for +/- buttons
-                      return selectedBaggageServices[0]?.price?.[0]?.total?.value || 0;
-                    }
-                    return 0; // No fallback price - user must select a service first
+                    // Find the most appropriate baggage service price from actual API data
+                    const baggageServices = services.filter(service => {
+                      const serviceName = service.name?.value?.toLowerCase() || "";
+                      const serviceCode = service.serviceId?.value?.toLowerCase() || "";
+                      return (serviceName.includes("bag") || serviceName.includes("luggage") || serviceName.includes("weight") ||
+                             serviceCode.includes("bag") || serviceCode.includes("xwbg") || serviceCode.includes("wbg"));
+                    });
+                    
+                    const weightSystemService = baggageServices.find(s => s.name?.value?.toLowerCase().includes('weight system'));
+                    const bagService = baggageServices.find(s => s.name?.value?.toLowerCase().includes('bag'));
+                    const firstBaggageService = baggageServices[0];
+                    
+                    // Priority: weight system > bag > first service > 0 (no hardcoded fallback)
+                    const selectedService = weightSystemService || bagService || firstBaggageService;
+                    return selectedService?.price?.[0]?.total?.value || 0;
                   };
                   
                   // Calculate total baggage cost: basic bags + selected baggage services
@@ -745,6 +762,28 @@ function FlightDetailsPageContent() {
                     const baggageServiceKeys = getSelectedBaggageServices().map(s => s.objectKey);
                     return selectedServices.filter(serviceKey => !baggageServiceKeys.includes(serviceKey)).length;
                   };
+                  
+                  // Debug logging for services pricing
+                  console.log('🔍 Price Summary Debug - Services:', {
+                    selectedServices,
+                    services: services.length,
+                    directServicesPricing,
+                    getTotalServicesPrice: getTotalServicesPrice(),
+                    getNonBaggageServicesPrice: getNonBaggageServicesPrice(),
+                    getTotalBaggageCost: getTotalBaggageCost()
+                  });
+                  
+                  // Debug logging for baggage pricing
+                  console.log('🔍 Price Summary Debug - Baggage:', {
+                    selectedBaggage,
+                    getBasicBaggagePrice: getBasicBaggagePrice(),
+                    getTotalBaggageCost: getTotalBaggageCost(),
+                    getTotalBaggageCount: getTotalBaggageCount(),
+                    services: services.filter(s => {
+                      const name = s.name?.value?.toLowerCase() || "";
+                      return name.includes("bag") || name.includes("luggage") || name.includes("weight");
+                    }).map(s => ({ name: s.name?.value, price: s.price?.[0]?.total?.value }))
+                  });
                   
                   
                   return (
@@ -793,7 +832,11 @@ function FlightDetailsPageContent() {
                           <div className="flex justify-between">
                             <span>Seat selection</span>
                             <span className={getSeatFees() > 0 ? 'font-medium text-primary' : 'text-muted-foreground'}>
-                              {getSeatFees() > 0 ? `${getSeatFees().toFixed(2)} ${flightPricing.currency}` : 'Not selected'}
+                              {getSeatFees() > 0 ? 
+                                `${getSeatFees().toFixed(2)} ${flightPricing.currency}` : 
+                                (selectedSeats.outbound.length > 0 || selectedSeats.return.length > 0 ? 
+                                  'Free seats selected' : 'Not selected')
+                              }
                             </span>
                           </div>
                           <div className="flex justify-between">
@@ -806,11 +849,11 @@ function FlightDetailsPageContent() {
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Services ({directServicesPricing.servicesCount} selected)</span>
-                            <span className={directServicesPricing.totalPrice > 0 ? 'font-medium text-primary' : 'text-muted-foreground'}>
-                              {directServicesPricing.totalPrice > 0 ? 
-                                `${directServicesPricing.totalPrice.toFixed(2)} ${directServicesPricing.currency}` : 
-                                'Not selected'
+                            <span>Services ({getNonBaggageServicesCount()} selected)</span>
+                            <span className={getNonBaggageServicesPrice() > 0 ? 'font-medium text-primary' : 'text-muted-foreground'}>
+                              {getNonBaggageServicesPrice() > 0 ? 
+                                `${getNonBaggageServicesPrice().toFixed(2)} ${getCurrency()}` : 
+                                (selectedServices.length > 0 ? 'Free services selected' : 'Not selected')
                               }
                             </span>
                           </div>
@@ -822,13 +865,13 @@ function FlightDetailsPageContent() {
                       {/* Dynamic Total Price */}
                       <div className="flex justify-between text-base sm:text-lg font-bold">
                         <span>Total Price</span>
-                        <span className="text-primary">{(flightPricing.total + getSeatFees() + directServicesPricing.totalPrice).toFixed(2)} {flightPricing.currency}</span>
+                        <span className="text-primary">{(flightPricing.total + getSeatFees() + getTotalBaggageCost() + getNonBaggageServicesPrice()).toFixed(2)} {flightPricing.currency}</span>
                       </div>
                       
                       {/* Show additional costs if any */}
-                      {(getSeatFees() + directServicesPricing.totalPrice) > 0 && (
+                      {(getSeatFees() + getTotalBaggageCost() + getNonBaggageServicesPrice()) > 0 && (
                         <div className="text-xs text-muted-foreground bg-primary/10 p-2 rounded">
-                          Includes {(getSeatFees() + directServicesPricing.totalPrice).toFixed(2)} {flightPricing.currency} in additional services
+                          Includes {(getSeatFees() + getTotalBaggageCost() + getNonBaggageServicesPrice()).toFixed(2)} {flightPricing.currency} in additional services
                         </div>
                       )}
                     </>

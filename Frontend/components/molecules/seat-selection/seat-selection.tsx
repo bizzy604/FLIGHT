@@ -633,6 +633,16 @@ export function SeatSelection({
       logger.info('✅ Extracted data from status wrapper')
     }
     
+    // 🚀 NEW: Check for API errors that indicate no seats available
+    if (actualData?.Errors?.Error || actualData?.error) {
+      const errorMessage = actualData?.Errors?.Error?.[0]?.value || actualData?.error?.message || 'Seat availability error'
+      logger.warn('⚠️ API returned error - no seats available:', errorMessage)
+      setSeats([])
+      setSeatMap(null)
+      setInternalError(`Seat selection unavailable: ${errorMessage}`)
+      return
+    }
+    
     // Set seat display configuration from all cabin sections
     if (actualData?.flights?.[0]?.cabin) {
       const cabinSections = actualData.flights[0].cabin
@@ -733,28 +743,10 @@ export function SeatSelection({
         }))
       })
     } else {
-      logger.warn('⚠️ No seats found in response, using fallback')
-      // Create fallback data
+      logger.warn('⚠️ No seats found in response - seats not available')
+      // Set empty state - no fallback seat map
       setSeats([])
-      setSeatMap({
-        cabinSections: [{
-          index: 1,
-          seatDisplay: {
-            columns: [
-              {value: "A", position: "left"}, 
-              {value: "B", position: "center"}, 
-              {value: "C", position: "aisle"}, 
-              {value: "D", position: "aisle"}, 
-              {value: "E", position: "center"}, 
-              {value: "F", position: "right"}
-            ],
-            rows: { first: 1, last: 30, upperDeckInd: false },
-            component: []
-          },
-          code: 'Y',
-          cabinLayout: {}
-        }]
-      })
+      setSeatMap(null)
     }
   }
 
@@ -800,27 +792,9 @@ export function SeatSelection({
       
     } catch (err) {
       logger.error("❌ Error in seat availability fallback:", err)
-      setInternalError("Failed to load seat map. Using simplified layout.")
-      // Use fallback layout
-      setSeatMap({
-        cabinSections: [{
-          index: 1,
-          seatDisplay: {
-            columns: [
-              {value: "A", position: "left"}, 
-              {value: "B", position: "center"}, 
-              {value: "C", position: "aisle"}, 
-              {value: "D", position: "aisle"}, 
-              {value: "E", position: "center"}, 
-              {value: "F", position: "right"}
-            ],
-            rows: { first: 1, last: 30, upperDeckInd: false },
-            component: []
-          },
-          code: 'Y',
-          cabinLayout: {}
-        }]
-      })
+      setInternalError("Failed to load seat map. Seats may not be available for this flight.")
+      // Set empty state - no fallback seat map
+      setSeatMap(null)
       setSeats([])
     }
 
@@ -1009,9 +983,50 @@ export function SeatSelection({
     )
   }
 
-  if (!seatMap?.cabinSections) return null
+  // 🚀 NEW: Handle no seats available state (only when not loading and no error)
+  if (!isLoading && !displayError && (!seatMap?.cabinSections || seats.length === 0)) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle>Seat Selection - {flightType}</CardTitle>
+          <CardDescription>Seat availability information</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-12">
+            <div className="mb-6">
+              <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                No Seats Available
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-4 max-w-md mx-auto">
+                We're sorry, but seat selection is not available for this flight at the moment. 
+                This could be due to airline restrictions or technical limitations.
+              </p>
+              {displayError && (
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-3 mb-4 max-w-md mx-auto">
+                  <div className="flex items-center gap-2 text-sm text-yellow-800 dark:text-yellow-200">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {displayError}
+                  </div>
+                </div>
+              )}
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                You can still proceed with your booking and seats will be assigned by the airline.
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
-  const cabinSections = seatMap.cabinSections || []
+  const cabinSections = seatMap?.cabinSections || []
 
   // 🚀 DYNAMIC LAYOUT: Generate grid template and column layout for each cabin section
   const generateDynamicLayoutForCabin = (cabinColumns: string[]) => {
@@ -1124,17 +1139,17 @@ export function SeatSelection({
               <button
                 onClick={() => toggleSeatFilter('standard')}
                 className={cn(
-                  "w-10 h-10 border-2 border-green-500 rounded-lg flex items-center justify-center text-sm font-bold text-green-600 cursor-pointer hover:scale-110 transition-all duration-200",
+                  "w-10 h-10 border-2 border-primary-500 rounded-lg flex items-center justify-center text-sm font-bold text-primary-600 cursor-pointer hover:scale-110 transition-all duration-200",
                   activeFilter === 'standard' 
-                    ? "bg-green-500 text-white shadow-lg ring-2 ring-green-300" 
-                    : "bg-white dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+                    ? "bg-primary-500 text-white shadow-lg ring-2 ring-primary-300" 
+                    : "bg-white dark:bg-gray-700 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                 )}
               >
                 A
               </button>
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
                 <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
-                  <div className="font-semibold text-green-400">STANDARD</div>
+                  <div className="font-semibold text-primary-400">STANDARD</div>
                   <div>Free Economy Seats</div>
                   <div className="text-gray-300 dark:text-gray-600">Click to highlight on seat map</div>
                 </div>
@@ -1222,13 +1237,13 @@ export function SeatSelection({
             {/* Status Indicators */}
             <div className="group relative">
               <div className="flex gap-1">
-                <div className="w-5 h-5 bg-gradient-to-br from-green-400 to-green-600 border border-green-500 rounded text-xs text-white flex items-center justify-center">✓</div>
+                <div className="w-5 h-5 bg-gradient-to-br from-primary-500 to-primary-700 border border-primary-600 rounded text-xs text-white flex items-center justify-center">✓</div>
                 <div className="w-5 h-5 bg-gray-300 dark:bg-gray-600 border border-gray-400 dark:border-gray-500 rounded text-xs text-gray-600 flex items-center justify-center opacity-60">✕</div>
               </div>
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
                 <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
                   <div className="font-semibold">SEAT STATUS</div>
-                  <div>Green ✓ = Selected</div>
+                  <div>Blue ✓ = Selected</div>
                   <div className="text-gray-300 dark:text-gray-600">Gray ✕ = Unavailable/Taken</div>
                 </div>
               </div>
@@ -1320,7 +1335,7 @@ export function SeatSelection({
               <span className="text-blue-600"> L/FC/EC = Premium</span> • 
               <span className="text-amber-600"> CH = Preferred</span> • 
               <span className="text-red-600"> E = Emergency</span> • 
-              <span className="text-green-600"> Others = Standard</span>
+              <span className="text-primary-600"> Others = Standard</span>
             </p>
           </div>
         </div>
@@ -1447,7 +1462,7 @@ export function SeatSelection({
                             if (!isAvailable || !seatInfo) {
                               seatClasses += " bg-gray-300 dark:bg-gray-600 border-gray-400 dark:border-gray-500 cursor-not-allowed opacity-60"
                             } else if (isSelected) {
-                              seatClasses += " bg-gradient-to-br from-green-400 to-green-600 border-green-500 text-white shadow-lg scale-105"
+                              seatClasses += " bg-gradient-to-br from-primary-500 to-primary-700 border-primary-600 text-white shadow-lg scale-105"
                             } else {
                               switch (seatType) {
                                 case 'premium':
@@ -1460,7 +1475,7 @@ export function SeatSelection({
                                   seatClasses += " bg-white dark:bg-gray-700 border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                                   break
                                 default: // standard
-                                  seatClasses += " bg-white dark:bg-gray-700 border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
+                                  seatClasses += " bg-white dark:bg-gray-700 border-primary-500 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                               }
                             }
 
@@ -1532,16 +1547,16 @@ export function SeatSelection({
 
       {/* Selected seats summary with passenger assignments */}
       {selectedSeats.length > 0 && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+        <div className="bg-primary-50 border border-primary-200 rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h4 className="font-semibold text-green-800">
+              <h4 className="font-semibold text-primary-800">
                 Selected Seats ({selectedSeats.length}/{passengers.length})
               </h4>
             </div>
             <div className="text-right">
-              <div className="text-sm text-green-600">Total Seat Fees</div>
-              <div className="font-bold text-xl text-green-800">
+              <div className="text-sm text-primary-600">Total Seat Fees</div>
+              <div className="font-bold text-xl text-primary-800">
                 {formatCurrency(getTotalPrice(), getSeatCurrency())}
               </div>
             </div>
@@ -1554,18 +1569,18 @@ export function SeatSelection({
               const seatPrice = assignedSeat ? getSeatPrice(assignedSeat) : 0
               
               return (
-                <div key={passenger.objectKey} className="flex items-center justify-between bg-white rounded-lg p-2 text-sm">
+                <div key={passenger.objectKey} className="flex items-center justify-between bg-primary-50 border border-primary-200 rounded-lg p-2 text-sm">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                    <span className="font-medium text-gray-900">
+                    <div className="w-2 h-2 bg-primary-600 rounded-full"></div>
+                    <span className="font-medium text-primary-800">
                       {passenger.name || `Passenger ${index + 1}`}
                     </span>
                   </div>
                   <div className="text-right">
                     {assignedSeat ? (
                       <div>
-                        <div className="font-semibold text-green-700">Seat {assignedSeat}</div>
-                        <div className="text-xs text-green-600">
+                        <div className="font-semibold text-primary-700">Seat {assignedSeat}</div>
+                        <div className="text-xs text-primary-600">
                           {formatCurrencyForDisplay(seatPrice, getSeatCurrency())}
                         </div>
                       </div>
@@ -1580,7 +1595,7 @@ export function SeatSelection({
             {/* Selection Status */}
             <div className="flex items-center justify-center pt-2">
               {selectedSeats.length === passengers.length ? (
-                <div className="text-green-600 text-sm font-medium">All passengers have seats</div>
+                <div className="text-primary-600 text-sm font-medium">All passengers have seats</div>
               ) : (
                 <div className="text-amber-600 text-sm font-medium">
                   {passengers.length - selectedSeats.length} passenger(s) need seats

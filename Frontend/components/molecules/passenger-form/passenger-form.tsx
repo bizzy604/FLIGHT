@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { CountrySelector } from "@/components/molecules/country-selector/country-selector"
 
 interface PassengerFormProps {
   passengerNumber: number
@@ -55,6 +56,7 @@ export function PassengerForm({ passengerNumber, passengerLabel, passengerType, 
             <SelectItem value="mr">Mr.</SelectItem>
             <SelectItem value="mrs">Mrs.</SelectItem>
             <SelectItem value="ms">Ms.</SelectItem>
+            <SelectItem value="mstr">Mstr.</SelectItem>
             <SelectItem value="miss">Miss</SelectItem>
           </SelectContent>
         </Select>
@@ -164,7 +166,7 @@ export function PassengerForm({ passengerNumber, passengerLabel, passengerType, 
       <div className="space-y-2">
         <Label>Travel Document</Label>
         <RadioGroup 
-          value={passengerData?.documentType || "passport"} 
+          value={passengerData?.documentType} 
           onValueChange={(value) => handleInputChange('documentType', value)} 
           className="flex flex-wrap gap-4"
         >
@@ -191,29 +193,11 @@ export function PassengerForm({ passengerNumber, passengerLabel, passengerType, 
         </div>
         <div className="space-y-2">
           <Label htmlFor={`nationality-${passengerNumber}`}>Nationality</Label>
-          <Select 
-            value={passengerData?.nationality || ''} 
-            onValueChange={(value) => handleInputChange('nationality', value)} >
-            <SelectTrigger>
-              <SelectValue placeholder="Select country" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="US">United States</SelectItem>
-              <SelectItem value="CA">Canada</SelectItem>
-              <SelectItem value="UK">United Kingdom</SelectItem>
-              <SelectItem value="AU">Australia</SelectItem>
-              <SelectItem value="FR">France</SelectItem>
-              <SelectItem value="DE">Germany</SelectItem>
-              <SelectItem value="JP">Japan</SelectItem>
-              <SelectItem value="CN">China</SelectItem>
-              <SelectItem value="IN">India</SelectItem>
-              <SelectItem value="RU">Russia</SelectItem>
-              <SelectItem value="BR">Brazil</SelectItem>
-              <SelectItem value="KE">Kenya</SelectItem>
-              <SelectItem value="ZA">South Africa</SelectItem>
-              {/* Add more countries as needed */}
-            </SelectContent>
-          </Select>
+          <CountrySelector
+            value={passengerData?.nationality || ''}
+            onValueChange={(value) => handleInputChange('nationality', value)}
+            placeholder="Select nationality"
+          />
         </div>
       </div>
 
@@ -280,26 +264,11 @@ export function PassengerForm({ passengerNumber, passengerLabel, passengerType, 
         </div>
         <div className="space-y-2">
           <Label htmlFor={`issuing-country-${passengerNumber}`}>Issuing Country</Label>
-          <Select 
-            value={passengerData?.issuingCountry || ''} 
-            onValueChange={(value) => handleInputChange('issuingCountry', value)} >
-            <SelectTrigger>
-              <SelectValue placeholder="Select country" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="us">United States</SelectItem>
-              <SelectItem value="ca">Canada</SelectItem>
-              <SelectItem value="uk">United Kingdom</SelectItem>
-              <SelectItem value="au">Australia</SelectItem>
-              <SelectItem value="fr">France</SelectItem>
-              <SelectItem value="de">Germany</SelectItem>
-              <SelectItem value="jp">Japan</SelectItem>
-              <SelectItem value="cn">China</SelectItem>
-              <SelectItem value="in">India</SelectItem>
-              <SelectItem value="br">Brazil</SelectItem>
-              {/* Add more countries as needed */}
-            </SelectContent>
-          </Select>
+          <CountrySelector
+            value={passengerData?.issuingCountry || ''}
+            onValueChange={(value) => handleInputChange('issuingCountry', value)}
+            placeholder="Select issuing country"
+          />
         </div>
       </div>
     </div>
