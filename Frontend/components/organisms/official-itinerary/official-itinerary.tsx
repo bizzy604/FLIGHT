@@ -24,17 +24,17 @@ export function OfficialItinerary({ data }: OfficialItineraryProps) {
     <div className="max-w-4xl mx-auto bg-background print:bg-white" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Professional Header */}
       <div className="border-b-2 border-blue-600 pb-6 mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Image src="/logo1.png" alt="Rea Travel" width={60} height={60} />
+            <Image src="/logo1.png" alt="Rea Travel" width={60} height={60} className="flex-shrink-0" />
             <div>
-              <h1 className="text-3xl font-bold text-blue-600">REA TRAVEL</h1>
-              <p className="text-muted-foreground text-lg">Flight Itinerary & E-Ticket</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-blue-600">REA TRAVEL</h1>
+              <p className="text-muted-foreground text-base sm:text-lg">Flight Itinerary & E-Ticket</p>
             </div>
           </div>
-          <div className="text-right">
+          <div className="text-left sm:text-right">
             <p className="text-sm text-muted-foreground">Booking Reference</p>
-            <p className="text-2xl font-bold text-blue-600">
+            <p className="text-xl sm:text-2xl font-bold text-blue-600">
               {data.bookingInfo?.bookingReference || data.bookingReference || 'N/A'}
             </p>
           </div>
@@ -42,8 +42,8 @@ export function OfficialItinerary({ data }: OfficialItineraryProps) {
       </div>
 
       {/* Booking Summary Box */}
-      <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 sm:p-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <div>
             <h3 className="font-semibold text-foreground mb-2">BOOKING DETAILS</h3>
             <p className="text-sm text-foreground"><span className="font-medium">Order ID:</span> {data.bookingInfo?.orderId || 'N/A'}</p>
@@ -79,19 +79,38 @@ export function OfficialItinerary({ data }: OfficialItineraryProps) {
                 {/* Flight Header */}
                 <div className="bg-muted/50 px-6 py-3 border-b border-border">
                   <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-lg text-foreground">
-                      Flight {index + 1}: {flight.flightNumber || 'N/A'}
-                    </h3>
+                    <div>
+                      <h3 className="font-bold text-lg text-foreground">
+                        Flight {index + 1}: {flight.flightNumber || 'N/A'}
+                      </h3>
+                      {/* Enhanced: Aircraft information */}
+                      {flight.aircraftType && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {flight.aircraftType} {flight.aircraftCode && `(${flight.aircraftCode})`}
+                        </p>
+                      )}
+                    </div>
                     <div className="text-right">
                       <p className="text-sm text-muted-foreground">{flight.airline || 'N/A'}</p>
-                      <p className="text-xs text-muted-foreground">{flight.aircraft || 'N/A'}</p>
+                      {/* Enhanced: Flight distance and duration */}
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        {flight.flightDistance > 0 && (
+                          <p>{flight.flightDistance.toLocaleString()} miles</p>
+                        )}
+                        {flight.flightDurationFormatted && (
+                          <p>{flight.flightDurationFormatted}</p>
+                        )}
+                        {flight.stops > 0 && (
+                          <p>{flight.stops} stop{flight.stops > 1 ? 's' : ''}</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Flight Body */}
-                <div className="p-6 bg-card">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                <div className="p-4 md:p-6 bg-card">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-center">
                     {/* Departure */}
                     <div className="text-center">
                       <h4 className="text-sm font-semibold text-muted-foreground mb-3">DEPARTURE</h4>
@@ -121,10 +140,20 @@ export function OfficialItinerary({ data }: OfficialItineraryProps) {
                       <div className="flex flex-col items-center">
                         <Plane className="w-8 h-8 text-blue-500 mb-2" />
                         <div className="w-24 h-px bg-border mb-2"></div>
-                        {flight.durationFormatted && (
-                          <p className="text-sm font-medium text-muted-foreground">{flight.durationFormatted}</p>
+                        {flight.flightDurationFormatted && (
+                          <p className="text-sm font-medium text-muted-foreground">{flight.flightDurationFormatted}</p>
                         )}
                         <p className="text-xs text-muted-foreground mt-1">{flight.classOfService || 'Economy'}</p>
+                        {/* Enhanced: Aircraft and distance info */}
+                        {flight.aircraftType && (
+                          <p className="text-xs text-muted-foreground mt-1">{flight.aircraftType}</p>
+                        )}
+                        {flight.flightDistance > 0 && (
+                          <p className="text-xs text-muted-foreground mt-1">{flight.flightDistance.toLocaleString()} miles</p>
+                        )}
+                        {flight.stops > 0 && (
+                          <p className="text-xs text-muted-foreground mt-1">{flight.stops} stop{flight.stops > 1 ? 's' : ''}</p>
+                        )}
                       </div>
                     </div>
 
@@ -284,6 +313,65 @@ export function OfficialItinerary({ data }: OfficialItineraryProps) {
           </div>
         </div>
       </div>
+
+      {/* Service Details */}
+      {data.serviceDetails && data.serviceDetails.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-foreground mb-4 border-b border-border pb-2">SERVICE DETAILS</h2>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {data.serviceDetails.map((service: any, index: number) => (
+              <div key={index} className="border border-border rounded-lg p-4 bg-card hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="font-semibold text-foreground text-sm">{service.name}</h3>
+                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                    {service.type || 'Service'}
+                  </span>
+                </div>
+                
+                <p className="text-sm text-muted-foreground mb-3">{service.description}</p>
+                
+                <div className="space-y-1 text-xs text-muted-foreground">
+                  {service.rficCode && (
+                    <div className="flex justify-between">
+                      <span>RFIC Code:</span>
+                      <span className="font-mono">{service.rficCode}</span>
+                    </div>
+                  )}
+                  {service.subCode && (
+                    <div className="flex justify-between">
+                      <span>Sub Code:</span>
+                      <span className="font-mono">{service.subCode}</span>
+                    </div>
+                  )}
+                  {service.settlementMethod && (
+                    <div className="flex justify-between">
+                      <span>Method:</span>
+                      <span className="font-mono">{service.settlementMethod}</span>
+                    </div>
+                  )}
+                </div>
+                
+                {service.associations && service.associations.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <p className="text-xs text-muted-foreground mb-1">Associations:</p>
+                    {service.associations.map((assoc: any, assocIndex: number) => (
+                      <div key={assocIndex} className="text-xs text-muted-foreground">
+                        {assoc.travelerReferences.length > 0 && (
+                          <span>Travelers: {assoc.travelerReferences.join(', ')}</span>
+                        )}
+                        {assoc.segmentReferences.length > 0 && (
+                          <span className="ml-2">Segments: {assoc.segmentReferences.join(', ')}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Additional Services */}
       {data.additionalServices && data.additionalServices.length > 0 && (

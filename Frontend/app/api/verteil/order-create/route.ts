@@ -266,17 +266,29 @@ export async function POST(request: NextRequest) {
       selected_seats: flatSelectedSeats
     };
     
-    // Simple approach: Send what we have to the backend, let it handle cache retrieval
-    if (body.flight_offer && body.flight_offer.raw_flight_price_response) {
-      // If we have the raw response, use it directly
-      backendRequestBody.flight_price_response = body.flight_offer.raw_flight_price_response;
-      console.log('✅ Using raw flight price response for order creation');
-    } else if (body.flight_offer && body.flight_offer.metadata) {
-      // If we have metadata with cache key, send it to backend for cache retrieval
-      backendRequestBody.flight_price_response = { metadata: body.flight_offer.metadata };
-      console.log('✅ Using metadata for backend cache retrieval');
+    // 🚀 FIXED: Extract flight_price_response from flight_offer
+    if (body.flight_offer) {
+      // Try multiple ways to find the flight price response
+      if (body.flight_offer.raw_flight_price_response) {
+        backendRequestBody.flight_price_response = body.flight_offer.raw_flight_price_response;
+        console.log('✅ Using raw_flight_price_response for order creation');
+      } else if (body.flight_offer.flight_price_response) {
+        backendRequestBody.flight_price_response = body.flight_offer.flight_price_response;
+        console.log('✅ Using flight_price_response for order creation');
+      } else if (body.flight_offer.data && body.flight_offer.data.raw_response) {
+        backendRequestBody.flight_price_response = body.flight_offer.data.raw_response;
+        console.log('✅ Using nested data.raw_response for order creation');
+      } else if (body.flight_offer.metadata) {
+        // If we have metadata with cache key, send it to backend for cache retrieval
+        backendRequestBody.flight_price_response = { metadata: body.flight_offer.metadata };
+        console.log('✅ Using metadata for backend cache retrieval');
+      } else {
+        console.warn('⚠️ No flight price response found in flight offer. Available keys:', Object.keys(body.flight_offer));
+        // Send the entire flight offer as fallback
+        backendRequestBody.flight_price_response = body.flight_offer;
+      }
     } else {
-      console.warn('⚠️ No flight price response or metadata found in flight offer');
+      console.error('❌ No flight_offer found in request body');
     }
 
     // Add ShoppingResponseID if available

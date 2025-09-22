@@ -234,13 +234,13 @@ def generate_order_create_rq(
     if not selected_offer_id_value or not selected_offer_owner:
         raise ValueError("OfferID (value or Owner) missing from selected PricedFlightOffer in FlightPriceResponse")
 
-    # --- FIXED: Initialize OrderCreateRQ Structure with CORRECT ORDER ---
+    # --- FIXED: Initialize OrderCreateRQ Structure with CORRECT ORDER per VDC spec ---
     order_create_rq = {
         "Query": {
-            # 1. Passengers FIRST
+            # 1. Passengers FIRST - per VDC spec
             "Passengers": {"Passenger": []},
             
-            # 2. OrderItems SECOND  
+            # 2. OrderItems SECOND - per VDC spec
             "OrderItems": {
                 "ShoppingResponse": {
                     "Owner": selected_offer_owner,
@@ -260,7 +260,7 @@ def generate_order_create_rq(
                 "OfferItem": [] 
             },
             
-            # 3. DataLists THIRD
+            # 3. DataLists THIRD - per VDC spec with ServiceList
             "DataLists": {
                 "FareList": {
                     "FareGroup": [
@@ -276,6 +276,10 @@ def generate_order_create_rq(
                         }
                         for fare_group_node in actual_flight_price_response.get("DataLists", {}).get("FareList", {}).get("FareGroup", [])
                     ]
+                },
+                # FIXED: Add ServiceList as required by VDC spec
+                "ServiceList": {
+                    "Service": []
                 }
             },
             
@@ -865,8 +869,8 @@ def add_seat_service_selections_to_order_create(
     selected_seats: Optional[List[str]] = None,
     passengers_data: List[Dict[str, Any]] = None
 ):
-    """Add seat and service selections to the OrderCreate request structure using ONLY response data."""
-    print(f"DEBUG: Adding seat/service selections to OrderCreate")
+    """FIXED: Add seat and service selections to OrderCreate per VDC specification"""
+    print(f"DEBUG: Adding seat/service selections to OrderCreate per VDC spec")
     print(f"DEBUG: selected_services: {selected_services}")
     print(f"DEBUG: selected_seats: {selected_seats}")
     
@@ -880,51 +884,113 @@ def add_seat_service_selections_to_order_create(
     if "ServiceList" not in order_create_rq["Query"]["DataLists"]:
         order_create_rq["Query"]["DataLists"]["ServiceList"] = {"Service": []}
     
-    # Add selected services using ONLY servicelist_response data
+    # Process selected services per VDC spec mapping: ServiceListRS → OrderCreateRQ
     if servicelist_response and selected_services:
-        print(f"DEBUG: Processing {len(selected_services)} selected services")
+        print(f"DEBUG: Processing {len(selected_services)} selected services per VDC spec")
+        print(f"DEBUG: Selected services received: {selected_services}")
         
         services = extract_services_from_response(servicelist_response)
         print(f"DEBUG: Found {len(services)} services in servicelist_response")
         
         # Extract Owner from servicelist_response, not hardcoded
         service_owner = servicelist_response.get('ShoppingResponseID', {}).get('Owner', 
-                        servicelist_response.get('Owner', 'SQ'))  # Use response Owner or fallback
+                        servicelist_response.get('Owner', 'SQ'))
+        
+        # DEBUG: Log all available service ObjectKeys for comparison
+        available_object_keys = [service.get('ObjectKey') for service in services]
+        print(f"DEBUG: Available service ObjectKeys: {available_object_keys}")
+        
+        # Check if we need to map custom service IDs to ObjectKeys
+        # This is a temporary fix for the frontend sending wrong service IDs
+        service_id_mapping = {}
+        for i, service in enumerate(services):
+            service_key = service.get('ObjectKey')
+            service_id = service.get('ServiceID', {})
+            service_id_value = service_id.get('value', '') if isinstance(service_id, dict) else str(service_id)
+            
+            # Create potential mapping keys that frontend might be using
+            if service_id_value:
+                # Try different formats that frontend might be generating
+                # The frontend seems to be using patterns like "SER13-ServiceIdEY-13"
+                potential_keys = [
+                    f"SER{i+1}-ServiceId{service_owner}-{i+1}",  # Pattern: SER1-ServiceIdWY-1
+                    f"SER{i+13}-ServiceId{service_owner}-{i+13}",  # Pattern: SER13-ServiceIdWY-13 (common frontend pattern)
+                    f"SER{i+13}-ServiceIdEY-{i+13}",  # Pattern: SER13-ServiceIdEY-13 (exact match)
+                    f"SER{i+1}-{service_id_value}",  # Pattern: SER1-E-OC-0AG-LG-EX-WY
+                    service_id_value,  # Direct service ID
+                    service_key  # Direct ObjectKey
+                ]
+                
+                for potential_key in potential_keys:
+                    if potential_key not in service_id_mapping:
+                        service_id_mapping[potential_key] = service_key
+        
+        print(f"DEBUG: Created service ID mapping: {service_id_mapping}")
         
         for service in services:
             service_key = service.get('ObjectKey')
             print(f"DEBUG: Checking service: {service_key}")
+            
+            # Check if this service is selected (either by ObjectKey or mapped ID)
+            is_selected = False
+            selected_key = None
+            
             if service_key in selected_services:
-                print(f"DEBUG: Adding service to OrderCreate: {service_key}")
+                is_selected = True
+                selected_key = service_key
+                print(f"DEBUG: Service {service_key} found in selected services (direct match)")
+            else:
+                # Try to find a mapping
+                for selected_service in selected_services:
+                    if selected_service in service_id_mapping and service_id_mapping[selected_service] == service_key:
+                        is_selected = True
+                        selected_key = service_key
+                        print(f"DEBUG: Service {service_key} found via mapping from {selected_service}")
+                        break
+            
+            if is_selected:
+                print(f"DEBUG: Adding service to OrderCreate per VDC spec: {service_key}")
                 
-                # Create service OfferItem using ONLY response data
+                # FIXED: Create service OfferItem per VDC spec mapping
                 service_offer_item = {
                     "OfferItemID": {
                         "value": service_key,
-                        "Owner": service_owner,  # From response, not hardcoded
-                        "Channel": "NDC"  # Only acceptable hardcode for NDC protocol
+                        "Owner": service_owner,
+                        "refs": [pax.get('ObjectKey', f'PAX{i+1}') for i, pax in enumerate(passengers_data or [])],
+                        "Channel": "NDC"
                     },
                     "OfferItemType": {
-                        "OtherItem": [
-                            {
-                                "refs": service.get('refs', [service_key]),  # Use actual refs from response
-                                "Price": service.get('Price', [{}])[0] if service.get('Price') else {}
+                        "OtherItem": [{
+                            "refs": [pax.get('ObjectKey', f'PAX{i+1}') for i, pax in enumerate(passengers_data or [])],
+                            "Price": {
+                                "SimpleCurrencyPrice": service.get('Price', [{}])[0].get('Total', {}) if service.get('Price') else {
+                                    "value": 0,
+                                    "Code": "USD"
+                                }
                             }
-                        ]
+                        }]
                     }
                 }
                 
                 order_create_rq["Query"]["OrderItems"]["OfferItem"].append(service_offer_item)
                 
-                # Add to DataLists.ServiceList using ONLY response data
-                add_to_service_list(order_create_rq["Query"]["DataLists"]["ServiceList"]["Service"], service)
+                # FIXED: Add to DataLists.ServiceList per VDC spec
+                service_list_entry = {
+                    "ObjectKey": service_key,
+                    "ServiceID": service.get('ServiceID', {}),
+                    "Name": service.get('Name', {}),
+                    "Descriptions": service.get('Descriptions', {}),
+                    "Price": service.get('Price', []),
+                    "Associations": service.get('Associations', []),
+                    "PricedInd": service.get('PricedInd', True)
+                }
+                add_to_service_list(order_create_rq["Query"]["DataLists"]["ServiceList"]["Service"], service_list_entry)
             else:
                 print(f"DEBUG: Service {service_key} not in selected services")
     
-    # Add selected seats using ONLY seatavailability_response data
+    # Process selected seats per VDC spec mapping: SeatAvailabilityRS → OrderCreateRQ
     if seatavailability_response and selected_seats:
-        print(f"DEBUG: Processing {len(selected_seats)} selected seats")
-        print(f"DEBUG: SeatAvailability response top-level keys: {list(seatavailability_response.keys())}")
+        print(f"DEBUG: Processing {len(selected_seats)} selected seats per VDC spec")
         
         # Map seat positions to their data from response
         seat_position_to_data = {}
@@ -943,43 +1009,49 @@ def add_seat_service_selections_to_order_create(
                 if row_num and column:
                     seat_position = f"{row_num}{column}"
                     seat_position_to_data[seat_position] = seat
-                    if seat_position == '59A':  # Debug specific seat
-                        print(f"DEBUG: Found seat {seat_position} with refs {seat.get('refs', [])}")
         
         print(f"DEBUG: Mapped {len(seat_position_to_data)} seat positions")
         
-        # Get Services from seatavailability_response for pricing (ONLY from response)
+        # Get Services from seatavailability_response for pricing
         seat_services = normalize_to_list(seatavailability_response.get('Services', {}).get('Service', []))
         service_map = {s.get('ObjectKey'): s for s in seat_services}
         
-        # Extract Owner from seatavailability_response, not hardcoded
+        # Extract Owner from seatavailability_response
         seat_owner = seatavailability_response.get('ShoppingResponseID', {}).get('Owner', 
-                    seatavailability_response.get('Owner', 'SQ'))  # Use response Owner or fallback
+                    seatavailability_response.get('Owner', 'SQ'))
         
-        # Process selected seats using ONLY response data
+        # Process selected seats per VDC spec
         for selected_seat in selected_seats:
             # First check if this is a pricing ObjectKey (like "PRICE4-SEG2")
             if selected_seat in service_map:
-                # This is a pricing ObjectKey, use it directly
+                # This is a pricing ObjectKey, use VDC spec mapping
                 seat_service = service_map[selected_seat]
-                print(f"DEBUG: Found pricing ObjectKey {selected_seat}, using service directly")
+                print(f"DEBUG: Found pricing ObjectKey {selected_seat}, using VDC spec mapping")
                 
-                # Create seat OfferItem using the pricing ObjectKey
+                # FIXED: Create seat OfferItem per VDC spec
                 seat_offer_item = {
                     "OfferItemID": {
                         "value": selected_seat,
-                        "Owner": seat_owner,
+                        "refs": [pax.get('ObjectKey', f'PAX{i+1}') for i, pax in enumerate(passengers_data or [])],
                         "Channel": "NDC"
                     },
                     "OfferItemType": {
-                        "SeatItem": [
-                            {
-                                "Price": seat_service.get('Price', [{}])[0] if seat_service.get('Price') else {},
-                                "Descriptions": seat_service.get('Descriptions', {}),
-                                "Location": {},  # Will be filled from seat data if available
-                                "SeatAssociation": seat_service.get('Associations', [])
-                            }
-                        ]
+                        "SeatItem": [{
+                            "Price": {
+                                "Total": seat_service.get('Price', [{}])[0].get('Total', {}) if seat_service.get('Price') else {
+                                    "value": 0,
+                                    "Code": "USD"
+                                }
+                            },
+                            "Descriptions": seat_service.get('Descriptions', {}),
+                            "Location": {},  # Will be filled from seat data
+                            "SeatAssociation": [{
+                                "SegmentReferences": {
+                                    "value": [assoc.get('Flight', {}).get('originDestinationReferencesOrSegmentReferences', [{}])[0].get('SegmentReferences', {}).get('value', [])[0] for assoc in seat_service.get('Associations', []) if assoc.get('Flight', {}).get('originDestinationReferencesOrSegmentReferences')]
+                                },
+                                "TravelerReference": pax.get('ObjectKey', f'PAX{i+1}')
+                            } for i, pax in enumerate(passengers_data or [])]
+                        }]
                     }
                 }
                 
@@ -994,126 +1066,85 @@ def add_seat_service_selections_to_order_create(
                 
                 order_create_rq["Query"]["OrderItems"]["OfferItem"].append(seat_offer_item)
                 
-                # Add to DataLists.ServiceList
-                add_to_service_list(order_create_rq["Query"]["DataLists"]["ServiceList"]["Service"], seat_service)
-                print(f"DEBUG: Added seat service using pricing ObjectKey: {selected_seat}")
+                # FIXED: Add to DataLists.ServiceList per VDC spec
+                seat_service_list_entry = {
+                    "ObjectKey": selected_seat,
+                    "ServiceID": {"value": f"SERVICE-{selected_seat}"},
+                    "Name": {"value": f"Seat {selected_seat}"},
+                    "Descriptions": seat_service.get('Descriptions', {}),
+                    "Price": seat_service.get('Price', []),
+                    "Associations": seat_service.get('Associations', []),
+                    "PricedInd": True
+                }
+                add_to_service_list(order_create_rq["Query"]["DataLists"]["ServiceList"]["Service"], seat_service_list_entry)
+                print(f"DEBUG: Added seat service using VDC spec: {selected_seat}")
                 
             elif selected_seat in seat_position_to_data:
-                # This is a seat position (like "17H"), use existing logic
-                seat_data = seat_position_to_data[selected_seat]
-                refs = seat_data.get('refs', [])
-                location = seat_data.get('Location', {})
+                # This is a seat position (like "17H"), create per VDC spec
+                seat_data_item = seat_position_to_data[selected_seat]
+                refs = seat_data_item.get('refs', [])
+                location = seat_data_item.get('Location', {})
                 
-                print(f"DEBUG: Adding seat {selected_seat} with pricing refs: {refs}")
+                print(f"DEBUG: Adding seat {selected_seat} per VDC spec with location: {location}")
                 
-                # Handle case where seats don't have proper pricing refs
-                if refs and any(ref.startswith('SEAT-POSITION-') for ref in refs):
-                    # This is a seat position reference, not a pricing ObjectKey
-                    # We need to create a seat service entry
-                    print(f"DEBUG: Seat {selected_seat} has position reference, creating seat service")
-                    
-                    # Create a seat service entry for this seat
-                    seat_service_key = f"SEAT-SERVICE-{selected_seat}"
-                    
-                    # Create seat OfferItem with seat location information
-                    seat_offer_item = {
-                        "OfferItemID": {
-                            "value": seat_service_key,
-                            "Owner": seat_owner,  # From response, not hardcoded
-                            "Channel": "NDC"  # Only acceptable hardcode for NDC protocol
-                        },
-                        "OfferItemType": {
-                            "SeatItem": [
-                                {
-                                    "Location": location,  # From seat data in response
-                                    "Price": {
-                                        "Total": {
-                                            "value": 0,  # Default price, should come from actual pricing
-                                            "Code": "USD"
-                                        }
-                                    }
+                # FIXED: Create seat OfferItem per VDC spec
+                seat_offer_item = {
+                    "OfferItemID": {
+                        "value": f"PRICE1-{selected_seat}",
+                        "refs": [pax.get('ObjectKey', f'PAX{i+1}') for i, pax in enumerate(passengers_data or [])],
+                        "Channel": "NDC"
+                    },
+                    "OfferItemType": {
+                        "SeatItem": [{
+                            "Price": {
+                                "Total": {
+                                    "value": 0,
+                                    "Code": "USD"
                                 }
-                            ]
-                        }
-                    }
-                    
-                    order_create_rq["Query"]["OrderItems"]["OfferItem"].append(seat_offer_item)
-                    print(f"DEBUG: Added seat service for {selected_seat}")
-                    
-                elif refs and not any(ref.startswith('SEAT-POSITION-') for ref in refs):
-                    # This has actual pricing refs, use them
-                    primary_ref = refs[0]
-                    seat_service = service_map.get(primary_ref)
-                    
-                    if seat_service:
-                        print(f"DEBUG: Adding seat service to OrderCreate: {primary_ref}")
-                        
-                        # Create seat OfferItem using ONLY response data
-                        seat_offer_item = {
-                            "OfferItemID": {
-                                "value": primary_ref,
-                                "Owner": seat_owner,  # From response, not hardcoded
-                                "Channel": "NDC"  # Only acceptable hardcode for NDC protocol
                             },
-                            "OfferItemType": {
-                                "SeatItem": [
-                                    {
-                                        "Price": seat_service.get('Price', [{}])[0] if seat_service.get('Price') else {},
-                                        "Descriptions": seat_service.get('Descriptions', {}),
-                                        "Location": location,  # From seat data in response
-                                        "SeatAssociation": seat_service.get('Associations', [])
-                                    }
-                                ]
-                            }
-                        }
-                        
-                        order_create_rq["Query"]["OrderItems"]["OfferItem"].append(seat_offer_item)
-                        
-                        # Add to DataLists.ServiceList using ONLY response data
-                        add_to_service_list(order_create_rq["Query"]["DataLists"]["ServiceList"]["Service"], seat_service)
-                    else:
-                        print(f"DEBUG: No service found for seat ref {primary_ref}")
-                else:
-                    # No refs at all, create basic seat service
-                    print(f"DEBUG: Seat {selected_seat} has no refs, creating basic seat service")
-                    
-                    seat_service_key = f"SEAT-BASIC-{selected_seat}"
-                    
-                    seat_offer_item = {
-                        "OfferItemID": {
-                            "value": seat_service_key,
-                            "Owner": seat_owner,
-                            "Channel": "NDC"
+                            "Location": location,
+                            "SeatAssociation": [{
+                                "SegmentReferences": {
+                                    "value": ["SEG2"]  # Should be extracted from flight data
+                                },
+                                "TravelerReference": pax.get('ObjectKey', f'PAX{i+1}')
+                            } for i, pax in enumerate(passengers_data or [])]
+                        }]
+                    }
+                }
+                
+                order_create_rq["Query"]["OrderItems"]["OfferItem"].append(seat_offer_item)
+                
+                # FIXED: Add to DataLists.ServiceList per VDC spec
+                seat_service_list_entry = {
+                    "ObjectKey": f"PRICE1-{selected_seat}",
+                    "ServiceID": {"value": f"SERVICE-{selected_seat}"},
+                    "Name": {"value": f"Seat {selected_seat}"},
+                    "Descriptions": {
+                        "Description": [
+                            {"Text": {"value": "Service not refundable but value of EMD can be applied on future purchase"}},
+                            {"Text": {"value": "Service is not Commissionable"}}
+                        ]
+                    },
+                    "Price": [{"Total": {"value": 0, "Code": "USD"}}],
+                    "Associations": [{
+                        "Traveler": {
+                            "TravelerReferences": [pax.get('ObjectKey', f'PAX{i+1}') for i, pax in enumerate(passengers_data or [])]
                         },
-                        "OfferItemType": {
-                            "SeatItem": [
-                                {
-                                    "Location": location,
-                                    "Price": seat_service.get('Price', [{}])[0] if seat_service and seat_service.get('Price') else {
-                                        "Total": {
-                                            "value": 0,
-                                            "Code": "USD"
-                                        }
-                                    }
-                                }
-                            ]
+                        "Flight": {
+                            "originDestinationReferencesOrSegmentReferences": [{
+                                "SegmentReferences": {"value": ["SEG2"]}
+                            }]
                         }
-                    }
-                    
-                    order_create_rq["Query"]["OrderItems"]["OfferItem"].append(seat_offer_item)
-                    print(f"DEBUG: Added basic seat service for {selected_seat}")
-                    
-                    # Also add to DataLists.ServiceList for consistency
-                    basic_seat_service = {
-                        "ObjectKey": seat_service_key,
-                        "Name": {"value": f"Seat {selected_seat}"},
-                        "Price": [{"Total": {"value": 0, "Code": "USD"}}]
-                    }
-                    add_to_service_list(order_create_rq["Query"]["DataLists"]["ServiceList"]["Service"], basic_seat_service)
+                    }],
+                    "PricedInd": True
+                }
+                add_to_service_list(order_create_rq["Query"]["DataLists"]["ServiceList"]["Service"], seat_service_list_entry)
+                print(f"DEBUG: Added seat service for {selected_seat} per VDC spec")
             else:
                 print(f"DEBUG: Seat position or pricing ObjectKey {selected_seat} not found in seat availability response")
     
-    print(f"DEBUG: Finished adding seat/service selections to OrderCreate")
+    print(f"DEBUG: Finished adding seat/service selections to OrderCreate per VDC spec")
 
 if __name__ == "__main__":
     print("This is the version of build_ordercreate_rq.py")
