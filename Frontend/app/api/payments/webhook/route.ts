@@ -3,7 +3,25 @@ import { prisma } from "@/utils/db"
 import { handleApiError } from "@/utils/error-handler"
 import { logger } from "@/utils/logger"
 
-// This endpoint handles payment webhooks from the payment gateway
+/**
+ * Next.js API route handler for processing payment gateway webhooks.
+ *
+ * Validates an HMAC-SHA256 webhook signature (expects `x-webhook-signature` and
+ * `x-webhook-timestamp` headers and a `WEBHOOK_SECRET` environment variable),
+ * parses the verified JSON payload, and routes events to the appropriate
+ * handlers (e.g., `payment.succeeded`, `payment.failed`, `payment.canceled`).
+ *
+ * On successful processing returns a JSON response `{ received: true }`.
+ * If the webhook secret is not configured, responds with 500; if the signature
+ * is invalid, responds with 400. Any internal error is handled and returned via
+ * the project's `handleApiError`.
+ *
+ * Note: this function reads the raw request body for signature verification
+ * before parsing JSON and does not rethrow errors from individual event
+ * handlers to avoid unnecessary webhook retries.
+ *
+ * @returns A NextResponse indicating processing result (JSON).
+ */
 export async function POST(request: NextRequest) {
   try {
     // Read raw body for signature verification
@@ -57,6 +75,18 @@ export async function POST(request: NextRequest) {
   }
 }
 
+/**
+ * Verifies a hex-encoded HMAC-SHA256 signature for the given data using the provided secret.
+ *
+ * Computes an HMAC-SHA256 over `data` with `secret`, converts the result to hex, and performs
+ * a constant-time comparison against `signatureHex`. Returns `true` if the signature matches;
+ * returns `false` if it does not match or if verification fails (errors are caught and logged).
+ *
+ * @param secret - The HMAC secret key used to compute the MAC.
+ * @param data - The exact string that was signed (must match what the sender used).
+ * @param signatureHex - Expected signature encoded as a lowercase hex string.
+ * @returns `true` when the signature is valid, otherwise `false`.
+ */
 async function verifyHmacSignature(secret: string, data: string, signatureHex: string): Promise<boolean> {
   try {
     // Expect hex-encoded HMAC-SHA256 signature
@@ -81,6 +111,12 @@ async function verifyHmacSignature(secret: string, data: string, signatureHex: s
   }
 }
 
+/**
+ * Convert an ArrayBuffer into a lowercase hexadecimal string.
+ *
+ * @param buffer - Binary data to encode.
+ * @returns Hex-encoded string using two lowercase hex characters per byte (no `0x` prefix).
+ */
 function bufferToHex(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer)
   let hex = ''
@@ -91,6 +127,15 @@ function bufferToHex(buffer: ArrayBuffer): string {
   return hex
 }
 
+/**
+ * Performs a constant-time comparison of two strings to prevent timing attacks.
+ *
+ * Returns `true` if both strings have the same length and identical contents; otherwise returns `false`.
+ *
+ * @param a - First string to compare.
+ * @param b - Second string to compare.
+ * @returns Whether `a` and `b` are equal.
+ */
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false
   let result = 0
@@ -100,7 +145,16 @@ function timingSafeEqual(a: string, b: string): boolean {
   return result === 0
 }
 
-// Handle successful payment
+/**
+ * Process a successful payment webhook by marking the associated booking as paid and confirmed.
+ *
+ * Expects `paymentData` to include an `id` (payment identifier) and `metadata.bookingId`. If `bookingId`
+ * is missing the function logs a warning and returns. On success it updates the booking record (status,
+ * paymentStatus, paymentId, paymentDate) and logs the result. Errors are caught and logged and not rethrown
+ * to avoid triggering webhook retries.
+ *
+ * @param paymentData - Webhook payment object containing at minimum `id` and `metadata.bookingId`
+ */
 async function handlePaymentSucceeded(paymentData: any) {
   try {
     const { id: paymentId, metadata } = paymentData || {}
