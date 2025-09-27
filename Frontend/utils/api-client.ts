@@ -132,7 +132,7 @@ const debouncedSearchFlights = debounce(async (params: FlightSearchRequest, reso
 
     // Post to the verteil path. apiClient.baseURL already contains the configured prefix
     // (for browser builds this is typically "/api" when using nginx proxying).
-    const response = await apiClient.post<FlightSearchResponse>('/verteil/air-shopping', params);
+    const response = await apiClient.post<FlightSearchResponse>('/api/verteil/air-shopping', params);
         resolve(response);
     } catch (error) {
         reject(error);
@@ -143,7 +143,7 @@ export const api = {
     // Flight Search Cache Check
     checkFlightSearchCache: async (params: FlightSearchRequest): Promise<{ data: any }> => {
         try {
-            const response = await apiClient.post('/verteil/air-shopping/cache-check', params);
+            const response = await apiClient.post('/api/verteil/air-shopping/cache-check', params);
             logger.info('Flight search cache check response:', response.data);
             return response;
         } catch (error) {
@@ -155,7 +155,7 @@ export const api = {
     // Flight Price Cache Check
     checkFlightPriceCache: async (offerId: string, shoppingResponseId: string): Promise<{ data: any }> => {
         try {
-            const response = await apiClient.post('/verteil/flight-price/cache-check', {
+            const response = await apiClient.post('/api/verteil/flight-price/cache-check', {
                 offer_id: offerId,
                 shopping_response_id: shoppingResponseId
             });
@@ -170,7 +170,7 @@ export const api = {
     // Booking Cache Check
     checkBookingCache: async (bookingId: string): Promise<{ data: any }> => {
         try {
-            const response = await apiClient.post('/verteil/booking/cache-check', {
+            const response = await apiClient.post('/api/verteil/booking/cache-check', {
                 booking_id: bookingId
             });
             logger.info('Booking cache check response:', response.data);

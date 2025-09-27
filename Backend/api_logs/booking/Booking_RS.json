@@ -1,0 +1,31 @@
+{
+  "timestamp": "2025-09-27T12:26:11.806427",
+  "service": "OrderCreate",
+  "request_id": "f8933c11-9abc-40b0-92f7-9a53e83ff659",
+  "status_code": 200,
+  "response_time_ms": null,
+  "response": {
+    "status": "success",
+    "data": {
+      "error": {
+        "code": "VALIDATION_FAILURE",
+        "message": "FAILED_PRECONDITION: Payment authorization failed - Agent FOP Validation Failure - CASH is not allowed",
+        "timestamp": "2025-09-27T09:26:11.460820Z",
+        "requestId": "unknown"
+      }
+    },
+    "raw_order_create_response": {
+      "Errors": {
+        "Error": [
+          {
+            "value": "FAILED_PRECONDITION: Payment authorization failed - Agent FOP Validation Failure - CASH is not allowed",
+            "ShortText": "FAILED_PRECONDITION: Payment authorization failed - Agent FOP Validation Failure - CASH is not allowed",
+            "Code": "VALIDATION_FAILURE",
+            "Reason": "PAYMENT_ERROR"
+          }
+        ]
+      }
+    },
+    "request_id": "f8933c11-9abc-40b0-92f7-9a53e83ff659"
+  }
+}

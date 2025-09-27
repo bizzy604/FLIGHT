@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   const rawBackend = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
   const backend = rawBackend.replace(/\/+$/, '');
 
-  const response = await fetch(`${backend}/verteil/seat-availability`, {
+  const response = await fetch(`${backend}/api/verteil/seat-availability`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

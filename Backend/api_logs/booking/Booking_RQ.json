@@ -1,0 +1,734 @@
+{
+  "timestamp": "2025-09-27T12:26:09.351826",
+  "service": "OrderCreate",
+  "request_id": "f8933c11-9abc-40b0-92f7-9a53e83ff659",
+  "endpoint": "/entrygate/rest/request:orderCreate",
+  "headers": {
+    "Content-Type": "application/json",
+    "Accept": "*/*",
+    "Authorization": "Bearer ***k416yncA",
+    "OfficeId": "***F301",
+    "service": "OrderCreate",
+    "User-Agent": "PostmanRuntime/7.41",
+    "Cache-Control": "no-cache",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "ThirdpartyId": "***"
+  },
+  "payload": {
+    "Query": {
+      "Passengers": {
+        "Passenger": [
+          {
+            "ObjectKey": "PAX1",
+            "PTC": {
+              "value": "ADT"
+            },
+            "Name": {
+              "Surname": {
+                "value": "KEVIN"
+              },
+              "Given": [
+                {
+                  "value": "AMONI"
+                }
+              ],
+              "Title": "Mr"
+            },
+            "AdditionalRoles": {
+              "PaymentContactInd": true
+            },
+            "Gender": {
+              "value": "Male"
+            },
+            "Age": {
+              "BirthDate": {
+                "value": "2003-08-09"
+              }
+            },
+            "Contacts": {
+              "Contact": [
+                {
+                  "AddressContact": {
+                    "Street": [
+                      "190"
+                    ],
+                    "CityName": "LODWAR",
+                    "CountrySubDivisionCode": "",
+                    "PostalCode": "30500",
+                    "CountryCode": {
+                      "value": "KE"
+                    }
+                  },
+                  "EmailContact": {
+                    "Address": {
+                      "value": "kevinamoni20@gmail.com"
+                    }
+                  },
+                  "PhoneContact": {
+                    "Application": "Home",
+                    "Number": [
+                      {
+                        "value": "0796861525",
+                        "CountryCode": "+254"
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "PassengerIDInfo": {
+              "PassengerDocument": [
+                {
+                  "Type": "PT",
+                  "ID": "Q032893N",
+                  "DateOfExpiration": "2037-07-05",
+                  "CountryOfIssuance": "KE"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "OrderItems": {
+        "ShoppingResponse": {
+          "Owner": "KQ",
+          "ResponseID": {
+            "value": "RQ295nCRfbrvzRjC8m6QKnLLJegueo3Nuh9xeqvacr0-KQ"
+          },
+          "Offers": {
+            "Offer": [
+              {
+                "OfferID": {
+                  "ObjectKey": "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2",
+                  "value": "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2",
+                  "Owner": "KQ",
+                  "Channel": "NDC"
+                },
+                "OfferItems": {
+                  "OfferItem": [
+                    {
+                      "OfferItemID": {
+                        "Owner": "KQ",
+                        "value": "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2-1-1",
+                        "Channel": "NDC"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "OfferItem": [
+          {
+            "OfferItemID": {
+              "value": "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2-1-1",
+              "Owner": "KQ",
+              "Channel": "NDC"
+            },
+            "OfferItemType": {
+              "DetailedFlightItem": [
+                {
+                  "Price": {
+                    "BaseAmount": {
+                      "value": 146365,
+                      "Code": "KES"
+                    },
+                    "Taxes": {
+                      "Total": {
+                        "value": 48980,
+                        "Code": "KES"
+                      }
+                    }
+                  },
+                  "OriginDestination": [
+                    {
+                      "Flight": [
+                        {
+                          "Departure": {
+                            "AirportCode": {
+                              "value": "LHR"
+                            },
+                            "Date": "2025-10-03",
+                            "Time": "19:45",
+                            "Terminal": {
+                              "Name": "4"
+                            }
+                          },
+                          "Arrival": {
+                            "AirportCode": {
+                              "value": "CDG"
+                            },
+                            "Date": "2025-10-03",
+                            "Time": "22:00",
+                            "Terminal": {
+                              "Name": "2E"
+                            }
+                          },
+                          "ClassOfService": {
+                            "Code": {
+                              "value": "U"
+                            },
+                            "MarketingName": {
+                              "value": "ECO",
+                              "CabinDesignator": "Y"
+                            },
+                            "refs": [
+                              "FG-58909065483531"
+                            ]
+                          },
+                          "MarketingCarrier": {
+                            "AirlineID": {
+                              "value": "KQ"
+                            },
+                            "Name": "Kenya Airways",
+                            "FlightNumber": {
+                              "value": "3079"
+                            }
+                          },
+                          "Equipment": {
+                            "AircraftCode": {
+                              "value": "223"
+                            }
+                          },
+                          "Details": {
+                            "FlightDuration": {
+                              "Value": "PT1H15M"
+                            }
+                          },
+                          "SegmentKey": "SEG5"
+                        },
+                        {
+                          "Departure": {
+                            "AirportCode": {
+                              "value": "CDG"
+                            },
+                            "Date": "2025-10-04",
+                            "Time": "10:45",
+                            "Terminal": {
+                              "Name": "2E"
+                            }
+                          },
+                          "Arrival": {
+                            "AirportCode": {
+                              "value": "NBO"
+                            },
+                            "Date": "2025-10-04",
+                            "Time": "20:10",
+                            "Terminal": {
+                              "Name": "1A"
+                            }
+                          },
+                          "ClassOfService": {
+                            "Code": {
+                              "value": "U"
+                            },
+                            "MarketingName": {
+                              "value": "ECO",
+                              "CabinDesignator": "Y"
+                            },
+                            "refs": [
+                              "FG-58909065483531"
+                            ]
+                          },
+                          "MarketingCarrier": {
+                            "AirlineID": {
+                              "value": "KQ"
+                            },
+                            "Name": "Kenya Airways",
+                            "FlightNumber": {
+                              "value": "113"
+                            }
+                          },
+                          "Equipment": {
+                            "AircraftCode": {
+                              "value": "788"
+                            }
+                          },
+                          "Details": {
+                            "FlightDuration": {
+                              "Value": "PT8H25M"
+                            }
+                          },
+                          "SegmentKey": "SEG6"
+                        }
+                      ],
+                      "OriginDestinationKey": "LHRNBO"
+                    }
+                  ],
+                  "refs": [
+                    "PAX1"
+                  ],
+                  "FareDetail": {
+                    "FareComponent": [
+                      {
+                        "FareBasis": {
+                          "FareBasisCode": {
+                            "Code": "ULSFWGB"
+                          },
+                          "RBD": "U"
+                        },
+                        "refs": [
+                          "SEG5"
+                        ]
+                      },
+                      {
+                        "FareBasis": {
+                          "FareBasisCode": {
+                            "Code": "ULSFWGB"
+                          },
+                          "RBD": "U"
+                        },
+                        "refs": [
+                          "SEG6"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "OfferItemID": {
+              "value": "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2-2",
+              "Owner": "KQ",
+              "refs": [
+                "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2",
+                "RQ295nCRfbrvzRjC8m6QKnLLJegueo3Nuh9xeqvacr0-KQ"
+              ],
+              "Channel": "NDC"
+            },
+            "OfferItemType": {
+              "OtherItem": [
+                {
+                  "refs": [
+                    "PAX1",
+                    "1-ServiceIdKQ-1"
+                  ],
+                  "Price": {
+                    "SimpleCurrencyPrice": {
+                      "value": 26685,
+                      "Code": "KES"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "OfferItemID": {
+              "value": "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2-68",
+              "Owner": "KQ",
+              "refs": [
+                "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2",
+                "RQ295nCRfbrvzRjC8m6QKnLLJegueo3Nuh9xeqvacr0-KQ"
+              ],
+              "Channel": "NDC"
+            },
+            "OfferItemType": {
+              "OtherItem": [
+                {
+                  "refs": [
+                    "PAX1",
+                    "1-ServiceIdKQ-11"
+                  ],
+                  "Price": {
+                    "SimpleCurrencyPrice": {
+                      "value": 0,
+                      "Code": "KES"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "OfferItemID": {
+              "value": "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2-206",
+              "Owner": "KQ",
+              "refs": [
+                "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2",
+                "RQ295nCRfbrvzRjC8m6QKnLLJegueo3Nuh9xeqvacr0-KQ"
+              ],
+              "Channel": "NDC"
+            },
+            "OfferItemType": {
+              "OtherItem": [
+                {
+                  "refs": [
+                    "PAX1",
+                    "1-ServiceIdKQ-147"
+                  ],
+                  "Price": {
+                    "SimpleCurrencyPrice": {
+                      "value": 0,
+                      "Code": "KES"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "OfferItemID": {
+              "value": "PRICE4-SEG6",
+              "Owner": null,
+              "refs": [
+                "PRICE",
+                "RQ295nCRfbrvzRjC8m6QKnLLJegueo3Nuh9xeqvacr0-KQ"
+              ],
+              "Channel": "NDC"
+            },
+            "OfferItemType": {
+              "SeatItem": [
+                {
+                  "Price": {
+                    "Total": {
+                      "value": 0,
+                      "Code": "KES"
+                    }
+                  },
+                  "Descriptions": {},
+                  "Location": {},
+                  "SeatAssociation": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "SEG6"
+                        ]
+                      },
+                      "TravelerReference": "PAX1"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "DataLists": {
+        "FareList": {
+          "FareGroup": [
+            {
+              "ListKey": "FG-58909065483531",
+              "Fare": {
+                "FareCode": {
+                  "Code": "70J"
+                }
+              },
+              "FareBasisCode": {
+                "Code": "ULSFWGB"
+              }
+            }
+          ]
+        },
+        "ServiceList": {
+          "Service": [
+            {
+              "ObjectKey": "1-ServiceIdKQ-1",
+              "ServiceID": {
+                "ObjectKey": "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2-2",
+                "value": "SRV1",
+                "Owner": "KQ"
+              },
+              "Name": {
+                "value": "BAG:FIRST BAG"
+              },
+              "Descriptions": {
+                "Description": [
+                  {
+                    "Text": {
+                      "value": "FIRST BAG"
+                    }
+                  },
+                  {
+                    "Text": {
+                      "value": "Chargeable"
+                    }
+                  },
+                  {
+                    "Text": {
+                      "value": "F"
+                    }
+                  },
+                  {
+                    "Text": {
+                      "value": "01"
+                    }
+                  },
+                  {
+                    "Text": {
+                      "value": "BG"
+                    }
+                  },
+                  {
+                    "Text": {
+                      "value": "B1"
+                    }
+                  }
+                ]
+              },
+              "Price": [
+                {
+                  "Total": {
+                    "value": 26685,
+                    "Code": "KES"
+                  }
+                }
+              ],
+              "BookingInstructions": {
+                "SSRCode": [
+                  "ABAG"
+                ],
+                "Method": "SSR"
+              },
+              "ServiceDefinitionRef": {},
+              "Associations": [
+                {
+                  "Traveler": {
+                    "TravelerReferences": [
+                      "PAX1"
+                    ]
+                  },
+                  "Flight": {
+                    "originDestinationReferencesOrSegmentReferences": [
+                      {
+                        "SegmentReferences": {
+                          "value": [
+                            "SEG5",
+                            "SEG6"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "PricedInd": true
+            },
+            {
+              "ObjectKey": "1-ServiceIdKQ-11",
+              "ServiceID": {
+                "ObjectKey": "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2-68",
+                "value": "SRV11",
+                "Owner": "KQ"
+              },
+              "Name": {
+                "value": "MEAL:VEGETARIAN INDIAN MEAL"
+              },
+              "Descriptions": {
+                "Description": [
+                  {
+                    "Text": {
+                      "value": "VEGETARIAN INDIAN MEAL"
+                    }
+                  },
+                  {
+                    "Text": {
+                      "value": "Free"
+                    }
+                  },
+                  {
+                    "Text": {
+                      "value": "MEAL"
+                    }
+                  }
+                ]
+              },
+              "Price": [
+                {
+                  "Total": {
+                    "value": 0,
+                    "Code": "KES"
+                  }
+                }
+              ],
+              "BookingInstructions": {
+                "SSRCode": [
+                  "AVML"
+                ],
+                "Method": "SSR"
+              },
+              "ServiceDefinitionRef": {},
+              "Associations": [
+                {
+                  "Traveler": {
+                    "TravelerReferences": [
+                      "PAX1"
+                    ]
+                  },
+                  "Flight": {
+                    "originDestinationReferencesOrSegmentReferences": [
+                      {
+                        "SegmentReferences": {
+                          "value": [
+                            "SEG5"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "PricedInd": true
+            },
+            {
+              "ObjectKey": "1-ServiceIdKQ-147",
+              "ServiceID": {
+                "ObjectKey": "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2-206",
+                "value": "SRV149",
+                "Owner": "KQ"
+              },
+              "Name": {
+                "value": "DISABILITY:WHEELCHAIR TO SEAT REQUEST"
+              },
+              "Descriptions": {
+                "Description": [
+                  {
+                    "Text": {
+                      "value": "WHEELCHAIR TO SEAT REQUEST"
+                    }
+                  },
+                  {
+                    "Text": {
+                      "value": "Free"
+                    }
+                  },
+                  {
+                    "Text": {
+                      "value": "PAXINFO"
+                    }
+                  }
+                ]
+              },
+              "Price": [
+                {
+                  "Total": {
+                    "value": 0,
+                    "Code": "KES"
+                  }
+                }
+              ],
+              "BookingInstructions": {
+                "SSRCode": [
+                  "WCHC"
+                ],
+                "Method": "SSR"
+              },
+              "ServiceDefinitionRef": {},
+              "Associations": [
+                {
+                  "Traveler": {
+                    "TravelerReferences": [
+                      "PAX1"
+                    ]
+                  },
+                  "Flight": {
+                    "originDestinationReferencesOrSegmentReferences": [
+                      {
+                        "SegmentReferences": {
+                          "value": [
+                            "SEG5"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "PricedInd": true
+            },
+            {
+              "ObjectKey": "PRICE4-SEG6",
+              "ServiceID": {
+                "value": "SERVICE-PRICE4-SEG6"
+              },
+              "Name": {
+                "value": "Seat PRICE4-SEG6"
+              },
+              "Descriptions": {},
+              "Price": [
+                {
+                  "Total": {
+                    "value": 0,
+                    "Code": "KES"
+                  }
+                }
+              ],
+              "Associations": [
+                {
+                  "Traveler": {
+                    "TravelerReferences": [
+                      "PAX1"
+                    ]
+                  },
+                  "Flight": {
+                    "originDestinationReferencesOrSegmentReferences": [
+                      {
+                        "SegmentReferences": {
+                          "value": [
+                            "SEG6"
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  "Offer": {
+                    "OfferReferences": [
+                      "PRICE"
+                    ]
+                  }
+                }
+              ],
+              "PricedInd": true
+            }
+          ]
+        }
+      },
+      "Metadata": {
+        "PassengerMetadata": [
+          {
+            "AugmentationPoint": {
+              "AugPoint": [
+                {
+                  "any": {
+                    "VdcAugPoint": {
+                      "Value": "TRApprovalDate=09/27/2025"
+                    }
+                  }
+                },
+                {
+                  "any": {
+                    "VdcAugPoint": {
+                      "Value": "TRCreationDate=09/27/2025"
+                    }
+                  }
+                }
+              ]
+            },
+            "refs": [
+              "PAX1"
+            ]
+          }
+        ]
+      },
+      "Payments": {
+        "Payment": [
+          {
+            "Method": {
+              "Cash": {
+                "CashInd": "true"
+              }
+            },
+            "Amount": {
+              "Code": "KES",
+              "value": 222030
+            }
+          }
+        ]
+      }
+    }
+  }
+}

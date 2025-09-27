@@ -1,0 +1,157 @@
+{
+  "timestamp": "2025-09-27T12:24:16.948057",
+  "service": "ServiceList",
+  "request_id": "e22ec96b-4554-45f6-9cb6-4ee4ce49349c",
+  "endpoint": "/entrygate/rest/request:preServiceList",
+  "headers": {
+    "Content-Type": "application/json",
+    "Accept": "*/*",
+    "Authorization": "Bearer ***k416yncA",
+    "OfficeId": "***F301",
+    "service": "ServiceList",
+    "User-Agent": "PostmanRuntime/7.41",
+    "Cache-Control": "no-cache",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "ThirdpartyId": "***"
+  },
+  "payload": {
+    "Travelers": {
+      "Traveler": [
+        {
+          "AnonymousTraveler": [
+            {
+              "ObjectKey": "PAX1",
+              "PTC": {
+                "value": "ADT"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Query": {
+      "OriginDestination": [
+        {
+          "Flight": [
+            {
+              "SegmentKey": "SEG5",
+              "Departure": {
+                "AirportCode": {
+                  "value": "LHR"
+                },
+                "Date": "2025-10-03T19:45:00.000",
+                "Time": "19:45",
+                "AirportName": null,
+                "Terminal": {
+                  "Name": "4"
+                }
+              },
+              "Arrival": {
+                "AirportCode": {
+                  "value": "CDG"
+                },
+                "Date": "2025-10-03T22:00:00.000",
+                "Time": "22:00",
+                "AirportName": null,
+                "Terminal": {
+                  "Name": "2E"
+                }
+              },
+              "MarketingCarrier": {
+                "AirlineID": {
+                  "value": "KQ"
+                },
+                "Name": "Kenya Airways",
+                "FlightNumber": {
+                  "value": "3079"
+                }
+              },
+              "Equipment": {
+                "AircraftCode": {
+                  "value": "223"
+                }
+              },
+              "FlightDetail": {
+                "FlightDuration": {
+                  "Value": "PT1H15M"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "Flight": [
+            {
+              "SegmentKey": "SEG6",
+              "Departure": {
+                "AirportCode": {
+                  "value": "CDG"
+                },
+                "Date": "2025-10-04T10:45:00.000",
+                "Time": "10:45",
+                "AirportName": null,
+                "Terminal": {
+                  "Name": "2E"
+                }
+              },
+              "Arrival": {
+                "AirportCode": {
+                  "value": "NBO"
+                },
+                "Date": "2025-10-04T20:10:00.000",
+                "Time": "20:10",
+                "AirportName": null,
+                "Terminal": {
+                  "Name": "1A"
+                }
+              },
+              "MarketingCarrier": {
+                "AirlineID": {
+                  "value": "KQ"
+                },
+                "Name": "Kenya Airways",
+                "FlightNumber": {
+                  "value": "113"
+                }
+              },
+              "Equipment": {
+                "AircraftCode": {
+                  "value": "788"
+                }
+              },
+              "FlightDetail": {
+                "FlightDuration": {
+                  "Value": "PT8H25M"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "Offers": {
+        "Offer": [
+          {
+            "OfferID": {
+              "value": "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2",
+              "Owner": "KQ",
+              "Channel": "NDC"
+            },
+            "OfferItemIDs": {
+              "OfferItemID": [
+                {
+                  "value": "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2-1-1"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "ShoppingResponseID": {
+      "ResponseID": {
+        "value": "RQ295nCRfbrvzRjC8m6QKnLLJegueo3Nuh9xeqvacr0-KQ"
+      }
+    }
+  }
+}
