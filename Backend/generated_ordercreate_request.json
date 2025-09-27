@@ -1,0 +1,749 @@
+{
+  "Query": {
+    "Passengers": {
+      "Passenger": [
+        {
+          "ObjectKey": "PAX1",
+          "PTC": {
+            "value": "ADT"
+          },
+          "Name": {
+            "Surname": {
+              "value": "DOE"
+            },
+            "Given": [
+              {
+                "value": "JON"
+              }
+            ],
+            "Title": "Mr"
+          },
+          "AdditionalRoles": {
+            "PaymentContactInd": true
+          },
+          "Gender": {
+            "value": "Male"
+          },
+          "Age": {
+            "BirthDate": {
+              "value": "1990-01-01"
+            }
+          },
+          "Contacts": {
+            "Contact": [
+              {
+                "AddressContact": {
+                  "Street": [
+                    "123 Main St"
+                  ],
+                  "CityName": "Test City",
+                  "CountrySubDivisionCode": "TS",
+                  "PostalCode": "12345",
+                  "CountryCode": {
+                    "value": "US"
+                  }
+                },
+                "EmailContact": {
+                  "Address": {
+                    "value": "test@example.com"
+                  }
+                },
+                "PhoneContact": {
+                  "Application": "Home",
+                  "Number": [
+                    {
+                      "value": "1234567890",
+                      "CountryCode": "1"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "PassengerIDInfo": {
+            "PassengerDocument": [
+              {
+                "Type": "P",
+                "ID": "A1234567",
+                "DateOfExpiration": "2030-01-01",
+                "CountryOfIssuance": "US"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "OrderItems": {
+      "ShoppingResponse": {
+        "Owner": "26",
+        "ResponseID": {
+          "value": "duV1keHMCB9h0mXfaMZU34q6nikYue8CvOUdAbAYT40-26"
+        },
+        "Offers": {
+          "Offer": [
+            {
+              "OfferID": {
+                "ObjectKey": "c64e3841-13fb-48a2-8e38-4113fbd80001",
+                "value": "c64e3841-13fb-48a2-8e38-4113fbd80001",
+                "Owner": "26",
+                "Channel": "NDC"
+              },
+              "OfferItems": {
+                "OfferItem": [
+                  {
+                    "OfferItemID": {
+                      "Owner": "26",
+                      "value": "b9835319-ef48-46f5-8353-19ef48e6f5fc",
+                      "Channel": "NDC"
+                    }
+                  },
+                  {
+                    "OfferItemID": {
+                      "Owner": "26",
+                      "value": "cc9f5fc7-8ff2-44e1-9f5f-c78ff2d40002",
+                      "Channel": "NDC"
+                    }
+                  },
+                  {
+                    "OfferItemID": {
+                      "Owner": "26",
+                      "value": "e0b3f0c5-9c44-4450-b3f0-c59c44f40005",
+                      "Channel": "NDC"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "OfferItem": [
+        {
+          "OfferItemID": {
+            "value": "b9835319-ef48-46f5-8353-19ef48e6f5fc",
+            "Owner": "26",
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "DetailedFlightItem": [
+              {
+                "Price": {
+                  "BaseAmount": {
+                    "value": 8355.0,
+                    "Code": "INR"
+                  },
+                  "Taxes": {
+                    "Total": {
+                      "value": 4222.0,
+                      "Code": "INR"
+                    }
+                  }
+                },
+                "OriginDestination": [
+                  {
+                    "Flight": [
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "CDG"
+                          },
+                          "Date": "2025-05-12",
+                          "Time": "16:10",
+                          "Terminal": {
+                            "Name": "2E"
+                          }
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "LHR"
+                          },
+                          "Date": "2025-05-12",
+                          "Time": "16:35",
+                          "Terminal": {
+                            "Name": "4"
+                          }
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "V"
+                          },
+                          "MarketingName": {
+                            "value": "ECONOMY",
+                            "CabinDesignator": "Y"
+                          },
+                          "refs": [
+                            "FG-SEG1"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "26"
+                          },
+                          "FlightNumber": {
+                            "value": "1280"
+                          }
+                        },
+                        "Equipment": {
+                          "Aircr26tCode": {
+                            "value": "223"
+                          }
+                        },
+                        "Details": {
+                          "FlightDuration": {
+                            "Value": "PT1H25M"
+                          }
+                        },
+                        "SegmentKey": "SEG1"
+                      }
+                    ],
+                    "OriginDestinationKey": "OD1"
+                  }
+                ],
+                "refs": [
+                  "PAX1"
+                ],
+                "FareDetail": {
+                  "FareComponent": [
+                    {
+                      "FareBasis": {
+                        "FareBasisCode": {
+                          "Code": "VYSFBBSA"
+                        },
+                        "RBD": "V"
+                      },
+                      "refs": [
+                        "SEG1"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "cc9f5fc7-8ff2-44e1-9f5f-c78ff2d40002",
+            "Owner": "26",
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "DetailedFlightItem": [
+              {
+                "Price": {
+                  "BaseAmount": {
+                    "value": 4625.0,
+                    "Code": "INR"
+                  },
+                  "Taxes": {
+                    "Total": {
+                      "value": 0,
+                      "Code": "INR"
+                    }
+                  }
+                },
+                "OriginDestination": [
+                  {
+                    "Flight": [
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "CDG"
+                          },
+                          "Date": "2025-05-12",
+                          "Time": "16:10",
+                          "Terminal": {
+                            "Name": "2E"
+                          }
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "LHR"
+                          },
+                          "Date": "2025-05-12",
+                          "Time": "16:35",
+                          "Terminal": {
+                            "Name": "4"
+                          }
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "V"
+                          },
+                          "MarketingName": {
+                            "value": "ECONOMY",
+                            "CabinDesignator": "Y"
+                          },
+                          "refs": [
+                            "FG-SEG1"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "26"
+                          },
+                          "FlightNumber": {
+                            "value": "1280"
+                          }
+                        },
+                        "Equipment": {
+                          "Aircr26tCode": {
+                            "value": "223"
+                          }
+                        },
+                        "Details": {
+                          "FlightDuration": {
+                            "Value": "PT1H25M"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "refs": [
+                  "PAX1"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "e0b3f0c5-9c44-4450-b3f0-c59c44f40005",
+            "Owner": "26",
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "DetailedFlightItem": [
+              {
+                "Price": {
+                  "BaseAmount": {
+                    "value": 1703.0,
+                    "Code": "INR"
+                  },
+                  "Taxes": {
+                    "Total": {
+                      "value": 0,
+                      "Code": "INR"
+                    }
+                  }
+                },
+                "OriginDestination": [
+                  {
+                    "Flight": [
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "CDG"
+                          },
+                          "Date": "2025-05-12",
+                          "Time": "16:10",
+                          "Terminal": {
+                            "Name": "2E"
+                          }
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "LHR"
+                          },
+                          "Date": "2025-05-12",
+                          "Time": "16:35",
+                          "Terminal": {
+                            "Name": "4"
+                          }
+                        },
+                        "ClassOfService": null,
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "26"
+                          },
+                          "FlightNumber": {
+                            "value": "1280"
+                          }
+                        },
+                        "Equipment": {
+                          "Aircr26tCode": {
+                            "value": "223"
+                          }
+                        },
+                        "Details": {
+                          "FlightDuration": {
+                            "Value": "PT1H25M"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "refs": [
+                  "PAX1"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "cc9f5fc7-8ff2-44e1-9f5f-c78ff2d40001",
+            "Owner": "26",
+            "refs": [
+              "a587dc6f-3bc2-4522-87dc-6f3bc2050002",
+              "duV1keHMCB9h0mXfaMZU34q6nikYue8CvOUdAbAYT40-26"
+            ],
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "OtherItem": [
+              {
+                "refs": [
+                  "PAX1",
+                  "SEG2",
+                  "SRV1"
+                ],
+                "Price": {
+                  "SimpleCurrencyPrice": {
+                    "value": 6938.0,
+                    "Code": "INR"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "cc9f5fc7-8ff2-44e1-9f5f-c78ff2d40002",
+            "Owner": "26",
+            "refs": [
+              "a587dc6f-3bc2-4522-87dc-6f3bc2050002",
+              "duV1keHMCB9h0mXfaMZU34q6nikYue8CvOUdAbAYT40-26"
+            ],
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "OtherItem": [
+              {
+                "refs": [
+                  "PAX1",
+                  "SEG2",
+                  "SRV2"
+                ],
+                "Price": {
+                  "SimpleCurrencyPrice": {
+                    "value": 4625.0,
+                    "Code": "INR"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "e0b3f0c5-9c44-4450-b3f0-c59c44f40002",
+            "Owner": "26",
+            "refs": [
+              "PRICE",
+              "duV1keHMCB9h0mXfaMZU34q6nikYue8CvOUdAbAYT40-26"
+            ],
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "SeatItem": [
+              {
+                "Price": {
+                  "Total": {
+                    "value": 1903.0,
+                    "Code": "INR"
+                  }
+                },
+                "Descriptions": {
+                  "Description": [
+                    {
+                      "Text": {
+                        "value": "FRONT SECTION SEAT"
+                      }
+                    }
+                  ]
+                },
+                "Location": {
+                  "Column": "A",
+                  "Row": {
+                    "Number": {
+                      "value": "6"
+                    }
+                  },
+                  "Characteristics": {
+                    "Characteristic": [
+                      {
+                        "Code": "AM"
+                      },
+                      {
+                        "Code": "CH"
+                      },
+                      {
+                        "Code": "LS"
+                      },
+                      {
+                        "Code": "O"
+                      },
+                      {
+                        "Code": "W"
+                      },
+                      {
+                        "Remarks": {
+                          "Remark": [
+                            {
+                              "value": "A"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                "SeatAssociation": [
+                  {
+                    "SegmentReferences": {
+                      "value": [
+                        "SEG2"
+                      ]
+                    },
+                    "TravelerReference": "PAX1"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "DataLists": {
+      "FareList": {
+        "FareGroup": [
+          {
+            "ListKey": "FG-SEG1",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              }
+            },
+            "FareBasisCode": {
+              "Code": "VYSFBBSA"
+            }
+          }
+        ]
+      },
+      "ServiceList": {
+        "Service": [
+          {
+            "ObjectKey": "1-ServiceId26-1",
+            "ServiceID": {
+              "ObjectKey": "cc9f5fc7-8ff2-44e1-9f5f-c78ff2d40001",
+              "value": "SRV1",
+              "Owner": "26"
+            },
+            "Name": {
+              "value": "LOUNGE:LOUNGE - CDG 26 Terminal 2E"
+            },
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "LOUNGE"
+                  }
+                }
+              ]
+            },
+            "Price": [
+              {
+                "Total": {
+                  "value": 6938.0,
+                  "Code": "INR"
+                }
+              }
+            ],
+            "BookingInstructions": {
+              "SSRCode": [
+                "LOUNGE"
+              ],
+              "Method": "SSR"
+            },
+            "ServiceDefinitionRef": {},
+            "Associations": [
+              {
+                "Traveler": {
+                  "TravelerReferences": [
+                    "PAX1"
+                  ]
+                },
+                "Flight": {
+                  "originDestinationReferencesOrSegmentReferences": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "SEG2"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "PricedInd": false
+          },
+          {
+            "ObjectKey": "1-ServiceId26-2",
+            "ServiceID": {
+              "ObjectKey": "cc9f5fc7-8ff2-44e1-9f5f-c78ff2d40002",
+              "value": "SRV2",
+              "Owner": "26"
+            },
+            "Name": {
+              "value": "BAG:LUGGAGE-FIRST ADDITIONAL BAG"
+            },
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "1 ABAG x 23 KG"
+                  }
+                }
+              ]
+            },
+            "Price": [
+              {
+                "Total": {
+                  "value": 4625.0,
+                  "Code": "INR"
+                }
+              }
+            ],
+            "BookingInstructions": {
+              "SSRCode": [
+                "ABAG"
+              ],
+              "Method": "SSR"
+            },
+            "ServiceDefinitionRef": {},
+            "Associations": [
+              {
+                "Traveler": {
+                  "TravelerReferences": [
+                    "PAX1"
+                  ]
+                },
+                "Flight": {
+                  "originDestinationReferencesOrSegmentReferences": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "SEG2"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "PricedInd": false
+          },
+          {
+            "ObjectKey": "e0b3f0c5-9c44-4450-b3f0-c59c44f40002",
+            "ServiceID": {
+              "value": "SERVICE-e0b3f0c5-9c44-4450-b3f0-c59c44f40002"
+            },
+            "Name": {
+              "value": "Seat e0b3f0c5-9c44-4450-b3f0-c59c44f40002"
+            },
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "FRONT SECTION SEAT"
+                  }
+                }
+              ]
+            },
+            "Price": [
+              {
+                "Total": {
+                  "value": 1903.0,
+                  "Code": "INR"
+                }
+              }
+            ],
+            "Associations": [
+              {
+                "Traveler": {
+                  "TravelerReferences": [
+                    "PAX1"
+                  ]
+                },
+                "Flight": {
+                  "originDestinationReferencesOrSegmentReferences": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "SEG2"
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "Offer": {
+                  "OfferReferences": [
+                    "a587dc6f-3bc2-4522-87dc-6f3bc2050002"
+                  ]
+                }
+              }
+            ],
+            "PricedInd": true
+          }
+        ]
+      }
+    },
+    "Metadata": {
+      "PassengerMetadata": [
+        {
+          "AugmentationPoint": {
+            "AugPoint": [
+              {
+                "any": {
+                  "VdcAugPoint": {
+                    "Value": "TRApprovalDate=09/25/2025"
+                  }
+                }
+              },
+              {
+                "any": {
+                  "VdcAugPoint": {
+                    "Value": "TRCreationDate=09/25/2025"
+                  }
+                }
+              }
+            ]
+          },
+          "refs": [
+            "PAX1"
+          ]
+        }
+      ]
+    },
+    "Payments": {
+      "Payment": [
+        {
+          "Method": {
+            "Cash": {
+              "CashInd": "true"
+            }
+          },
+          "Amount": {
+            "Code": "INR",
+            "value": 32371
+          }
+        }
+      ]
+    }
+  }
+}

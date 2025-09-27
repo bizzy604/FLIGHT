@@ -49,8 +49,11 @@ export function calculateServiceFees(
   let currency = 'USD'
   const serviceDetails: ServiceInfo[] = []
 
+  // Ensure services is an array
+  const servicesArray = Array.isArray(services) ? services : []
+
   selectedServices.forEach(serviceKey => {
-    const service = services.find(s => s.objectKey === serviceKey)
+    const service = servicesArray.find(s => s.objectKey === serviceKey)
     if (service) {
       const price = service.price?.[0]?.total?.value || 0
       const serviceCurrency = service.price?.[0]?.total?.code || 'USD'

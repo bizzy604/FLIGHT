@@ -1,0 +1,135 @@
+{
+	"Travelers": {
+		"Traveler": [
+			{
+				"AnonymousTraveler": [
+					{
+						"PTC": {
+							"value": "ADT",
+							"Quantity": 1
+						}
+					}
+				]
+			}
+		]
+	},
+	"Query": {
+		"OriginDestination": [
+			{
+				"Flight": [
+					{
+						"SegmentKey": "26-SEG1",
+						"Departure": {
+							"AirportCode": {
+								"value": "CDG"
+							},
+							"Date": "2025-05-12T00:00:00.000",
+							"Time": "16:10",
+							"Terminal": {
+								"Name": "2E"
+							},
+							"CountryName": "France",
+							"CityName": "Paris"
+						},
+						"Arrival": {
+							"AirportCode": {
+								"value": "LHR"
+							},
+							"Date": "2025-05-12T00:00:00.000",
+							"Time": "16:35",
+							"Terminal": {
+								"Name": "4"
+							},
+							"CountryName": "United Kingdom",
+							"CityName": "London"
+						},
+						"MarketingCarrier": {
+							"AirlineID": {
+								"value": "26"
+							},
+							"FlightNumber": {
+								"value": "1280"
+							}
+						},
+						"OperatingCarrier": {
+							"AirlineID": {
+								"value": "26"
+							},
+							"Name": "Verteil"
+						},
+						"Equipment": {
+							"Aircr26tCode": {
+								"value": "223"
+							}
+						},
+						"SegmentType": "OnwardSeg",
+						"CabinType": {
+							"Name": "ECONOMY",
+							"Code": "Y"
+						},
+						"ClassOfService": {
+							"Code": {
+								"value": "V"
+							},
+							"refs": [
+								"FG0"
+							]
+						}
+					}
+				]
+			}
+		],
+		"Offers": {
+			"Offer": [
+				{
+					"OfferID": {
+						"value": "a587dc6f-3bc2-4522-87dc-6f3bc2050002",
+						"Owner": "26",
+						"Channel": "NDC"
+					},
+					"OfferItemIDs": {
+						"OfferItemID": [
+							{
+								"value": "b9835319-ef48-46f5-8353-19ef48e6f5fc",
+								"refs": [
+									"26-PAX1"
+								]
+							}
+						]
+					}
+				}
+			]
+		}
+	},
+	"DataLists": {
+		"FareList": {
+			"FareGroup": [
+				{
+					"ListKey": "FG0",
+					"FareBasisCode": {
+						"Code": "VYSFBBSA"
+					},
+					"refs": [
+						"PM0"
+					]
+				}
+			]
+		},
+		"AnonymousTravelerList": {
+			"AnonymousTraveler": [
+				{
+					"ObjectKey": "26-PAX1",
+					"PTC": {
+						"value": "ADT"
+					}
+				}
+			]
+		}
+	},
+	"ShoppingResponseID": {
+		"Owner": "26",
+		"ResponseID": {
+			"value": "duV1keHMCB9h0mXfaMZU34q6nikYue8CvOUdAbAYT40-26"
+		}
+	}
+}

@@ -1,0 +1,85 @@
+{
+  "PricedFlightOffers": {
+    "PricedFlightOffer": [
+      {
+        "OfferID": {
+          "value": "test-offer-123",
+          "Owner": "AF",
+          "Channel": "NDC"
+        },
+        "OfferPrice": [
+          {
+            "OfferItemID": "test-offer-item-123",
+            "RequestedDate": {
+              "PriceDetail": {
+                "BaseAmount": {
+                  "value": 500,
+                  "Code": "USD"
+                },
+                "Taxes": {
+                  "Total": {
+                    "value": 50,
+                    "Code": "USD"
+                  }
+                }
+              },
+              "Associations": [
+                {
+                  "AssociatedTraveler": {
+                    "TravelerReferences": ["PAX1"]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "DataLists": {
+    "AnonymousTravelerList": {
+      "AnonymousTraveler": [
+        {
+          "ObjectKey": "PAX1",
+          "PTC": {
+            "value": "ADT"
+          }
+        }
+      ]
+    },
+    "FlightSegmentList": {
+      "FlightSegment": [
+        {
+          "SegmentKey": "SEG1",
+          "Departure": {
+            "AirportCode": {
+              "value": "CDG"
+            },
+            "Date": "2025-10-03T13:40:00.000",
+            "Time": "13:40"
+          },
+          "Arrival": {
+            "AirportCode": {
+              "value": "DXB"
+            },
+            "Date": "2025-10-03T22:35:00.000",
+            "Time": "22:35"
+          },
+          "MarketingCarrier": {
+            "AirlineID": {
+              "value": "AF"
+            },
+            "FlightNumber": {
+              "value": "123"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "ShoppingResponseID": {
+    "ResponseID": {
+      "value": "test-shopping-response-123"
+    }
+  }
+}

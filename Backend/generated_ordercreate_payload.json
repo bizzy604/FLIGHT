@@ -1,0 +1,547 @@
+{
+  "Query": {
+    "Passengers": {
+      "Passenger": [
+        {
+          "ObjectKey": "T1",
+          "PTC": {
+            "value": "ADT"
+          },
+          "Name": {
+            "Surname": {
+              "value": ""
+            },
+            "Given": [
+              {
+                "value": ""
+              }
+            ],
+            "Title": "Ms"
+          },
+          "AdditionalRoles": {
+            "PaymentContactInd": true
+          },
+          "Gender": {
+            "value": ""
+          },
+          "Age": {
+            "BirthDate": {
+              "value": null
+            }
+          },
+          "Contacts": {
+            "Contact": [
+              {
+                "EmailContact": {
+                  "Address": {
+                    "value": "john.smith@example.com"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "OrderItems": {
+      "ShoppingResponse": {
+        "Owner": "BA",
+        "ResponseID": {
+          "value": "R3aVkW-0fb3YvBQrOP-pfRRTHZeyJJjUjzynsWMh0IQ-BA"
+        },
+        "Offers": {
+          "Offer": [
+            {
+              "OfferID": {
+                "ObjectKey": "OF-7d80feaf-7f31-4e1f-86ca-98f2b4944790",
+                "value": "OF-7d80feaf-7f31-4e1f-86ca-98f2b4944790",
+                "Owner": "BA",
+                "Channel": "NDC"
+              },
+              "OfferItems": {
+                "OfferItem": [
+                  {
+                    "OfferItemID": {
+                      "Owner": "BA",
+                      "value": "OF-7d80feaf-7f31-4e1f-86ca-98f2b4944790-OI-1",
+                      "Channel": "NDC"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "OfferItem": [
+        {
+          "OfferItemID": {
+            "value": "OF-7d80feaf-7f31-4e1f-86ca-98f2b4944790-OI-1",
+            "Owner": "BA",
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "DetailedFlightItem": [
+              {
+                "Price": {
+                  "BaseAmount": {
+                    "value": 9705,
+                    "Code": "INR"
+                  },
+                  "Taxes": {
+                    "Total": {
+                      "value": 4771,
+                      "Code": "INR"
+                    }
+                  }
+                },
+                "OriginDestination": [
+                  {
+                    "Flight": [
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "LHR"
+                          },
+                          "Date": "2025-10-03",
+                          "Time": "17:05",
+                          "AirportName": "Heathrow (London) Airport",
+                          "Terminal": {
+                            "Name": "5"
+                          }
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "CDG"
+                          },
+                          "Date": "2025-10-03",
+                          "Time": "19:25",
+                          "AirportName": "Charles de Gaulle (Paris) Airport",
+                          "Terminal": {
+                            "Name": "2C"
+                          }
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "V"
+                          },
+                          "MarketingName": {
+                            "value": "Economy",
+                            "CabinDesignator": "Y"
+                          },
+                          "refs": [
+                            "FBCODE1"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "BA"
+                          },
+                          "Name": "British Airways",
+                          "FlightNumber": {
+                            "value": "322"
+                          }
+                        },
+                        "Equipment": {
+                          "Name": "Airbus A321 Neo",
+                          "AircraftCode": {
+                            "value": "32Q"
+                          }
+                        },
+                        "Details": {
+                          "FlightDuration": {
+                            "Value": "PT1H20M"
+                          },
+                          "Stops": {
+                            "StopQuantity": 0
+                          }
+                        },
+                        "SegmentKey": "FS1"
+                      }
+                    ],
+                    "OriginDestinationKey": "OD1"
+                  }
+                ],
+                "refs": [
+                  "T1"
+                ],
+                "FareDetail": {
+                  "FareComponent": [
+                    {
+                      "FareBasis": {
+                        "FareBasisCode": {},
+                        "RBD": ""
+                      },
+                      "refs": [
+                        "FS1"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "BO-721616eb-d038-4223-9dcd-b6734194dc4d-OI-1-BA0322",
+            "Owner": "BA",
+            "refs": [
+              "BO-721616eb-d038-4223-9dcd-b6734194dc4d",
+              "R3aVkW-0fb3YvBQrOP-pfRRTHZeyJJjUjzynsWMh0IQ-BA"
+            ],
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "OtherItem": [
+              {
+                "refs": [
+                  "T1",
+                  "SI1-ExcessBaggage"
+                ],
+                "Price": {
+                  "SimpleCurrencyPrice": {
+                    "value": 4795,
+                    "Code": "INR"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "BO-721616eb-d038-4223-9dcd-b6734194dc4d-OI-2-BA0322",
+            "Owner": "BA",
+            "refs": [
+              "BO-721616eb-d038-4223-9dcd-b6734194dc4d",
+              "R3aVkW-0fb3YvBQrOP-pfRRTHZeyJJjUjzynsWMh0IQ-BA"
+            ],
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "OtherItem": [
+              {
+                "refs": [
+                  "T1",
+                  "SI2-ExcessBaggage"
+                ],
+                "Price": {
+                  "SimpleCurrencyPrice": {
+                    "value": 12580,
+                    "Code": "INR"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "BO-721616eb-d038-4223-9dcd-b6734194dc4d-OI-3-BA0322",
+            "Owner": "BA",
+            "refs": [
+              "BO-721616eb-d038-4223-9dcd-b6734194dc4d",
+              "R3aVkW-0fb3YvBQrOP-pfRRTHZeyJJjUjzynsWMh0IQ-BA"
+            ],
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "OtherItem": [
+              {
+                "refs": [
+                  "T1",
+                  "SI3-ExcessBaggage"
+                ],
+                "Price": {
+                  "SimpleCurrencyPrice": {
+                    "value": 22160,
+                    "Code": "INR"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "DataLists": {
+      "FareList": {
+        "FareGroup": [
+          {
+            "ListKey": "FBCODE1",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              }
+            },
+            "FareBasisCode": {
+              "Code": "VZ0RO/Y"
+            }
+          },
+          {
+            "ListKey": "FBCODE2ADT",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              }
+            },
+            "FareBasisCode": {
+              "Code": "VV2RO/Y"
+            }
+          },
+          {
+            "ListKey": "FBCODE3ADT",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              }
+            },
+            "FareBasisCode": {
+              "Code": "VV2OMJ/Y"
+            }
+          },
+          {
+            "ListKey": "FBCODE4ADT",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              }
+            },
+            "FareBasisCode": {
+              "Code": "RVV2RO/Y"
+            }
+          },
+          {
+            "ListKey": "FBCODE5ADT",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              }
+            },
+            "FareBasisCode": {
+              "Code": "RVV2OMJ/Y"
+            }
+          },
+          {
+            "ListKey": "FBCODE6ADT",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              }
+            },
+            "FareBasisCode": {
+              "Code": "YV3RO/Y"
+            }
+          },
+          {
+            "ListKey": "FBCODE7ADT",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              }
+            },
+            "FareBasisCode": {
+              "Code": "DV3RO/Y"
+            }
+          }
+        ]
+      },
+      "ServiceList": {
+        "Service": [
+          {
+            "ObjectKey": "SI1-ExcessBaggage",
+            "ServiceID": {
+              "ObjectKey": "BO-721616eb-d038-4223-9dcd-b6734194dc4d-OI-1-BA0322",
+              "value": "SRVC-BAGS-PRICE-1-BA0322",
+              "Owner": "BA"
+            },
+            "Name": {
+              "value": "BAG:ExcessBags1"
+            },
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "1 ExcessBag"
+                  }
+                }
+              ]
+            },
+            "Price": [
+              {
+                "Total": {
+                  "value": 4795,
+                  "Code": "INR"
+                }
+              }
+            ],
+            "BookingInstructions": {},
+            "ServiceDefinitionRef": {},
+            "Associations": [
+              {
+                "Traveler": {
+                  "TravelerReferences": [
+                    "T1"
+                  ]
+                },
+                "Flight": {
+                  "originDestinationReferencesOrSegmentReferences": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "FS1"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "PricedInd": true
+          },
+          {
+            "ObjectKey": "SI2-ExcessBaggage",
+            "ServiceID": {
+              "ObjectKey": "BO-721616eb-d038-4223-9dcd-b6734194dc4d-OI-2-BA0322",
+              "value": "SRVC-BAGS-PRICE-2-BA0322",
+              "Owner": "BA"
+            },
+            "Name": {
+              "value": "BAG:ExcessBags2"
+            },
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "2 ExcessBag"
+                  }
+                }
+              ]
+            },
+            "Price": [
+              {
+                "Total": {
+                  "value": 12580,
+                  "Code": "INR"
+                }
+              }
+            ],
+            "BookingInstructions": {},
+            "ServiceDefinitionRef": {},
+            "Associations": [
+              {
+                "Traveler": {
+                  "TravelerReferences": [
+                    "T1"
+                  ]
+                },
+                "Flight": {
+                  "originDestinationReferencesOrSegmentReferences": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "FS1"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "PricedInd": true
+          },
+          {
+            "ObjectKey": "SI3-ExcessBaggage",
+            "ServiceID": {
+              "ObjectKey": "BO-721616eb-d038-4223-9dcd-b6734194dc4d-OI-3-BA0322",
+              "value": "SRVC-BAGS-PRICE-3-BA0322",
+              "Owner": "BA"
+            },
+            "Name": {
+              "value": "BAG:ExcessBags3"
+            },
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "3 ExcessBag"
+                  }
+                }
+              ]
+            },
+            "Price": [
+              {
+                "Total": {
+                  "value": 22160,
+                  "Code": "INR"
+                }
+              }
+            ],
+            "BookingInstructions": {},
+            "ServiceDefinitionRef": {},
+            "Associations": [
+              {
+                "Traveler": {
+                  "TravelerReferences": [
+                    "T1"
+                  ]
+                },
+                "Flight": {
+                  "originDestinationReferencesOrSegmentReferences": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "FS1"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "PricedInd": true
+          }
+        ]
+      }
+    },
+    "Metadata": {
+      "PassengerMetadata": [
+        {
+          "AugmentationPoint": {
+            "AugPoint": [
+              {
+                "any": {
+                  "VdcAugPoint": {
+                    "Value": "TRApprovalDate=09/25/2025"
+                  }
+                }
+              },
+              {
+                "any": {
+                  "VdcAugPoint": {
+                    "Value": "TRCreationDate=09/25/2025"
+                  }
+                }
+              }
+            ]
+          },
+          "refs": [
+            "T1"
+          ]
+        }
+      ]
+    },
+    "Payments": {
+      "Payment": [
+        {
+          "Method": {},
+          "Amount": {
+            "Code": "INR",
+            "value": 14476
+          }
+        }
+      ]
+    }
+  }
+}

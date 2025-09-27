@@ -116,100 +116,79 @@ def build_ordercreate_rq(
     flight_price_response: Dict[str, Any],
     passenger_details: List[Dict[str, Any]],
     payment_details: Dict[str, Any],
-    contact_info: Dict[str, str]
+    contact_info: Dict[str, str],
+    servicelist_response: Optional[Dict[str, Any]] = None,
+    seatavailability_response: Optional[Dict[str, Any]] = None,
+    selected_services: Optional[List[str]] = None,
+    selected_seats: Optional[List[str]] = None
 ) -> Dict[str, Any]:
     """
     Build an OrderCreate request from a FlightPrice response.
+    
+    This is a simplified wrapper that delegates to the core OrderCreate builder.
+    The actual complex logic is handled in scripts/build_ordercreate_rq.py
     
     Args:
         flight_price_response: The FlightPrice response
         passenger_details: List of passenger details
         payment_details: Payment information
         contact_info: Contact information
+        servicelist_response: ServiceListRS response (optional)
+        seatavailability_response: SeatAvailabilityRS response (optional)
+        selected_services: List of selected service ObjectKeys (optional)
+        selected_seats: List of selected seat ObjectKeys (optional)
         
     Returns:
         Dictionary containing the OrderCreate request
     """
     try:
-        # First generate the base request
-        request = generate_order_create_rq(flight_price_response)
+        # FIXED: Extract the raw NDC response from the nested structure
+        # The core OrderCreate builder expects the raw NDC response, not the frontend-transformed response
+        enhanced_flight_price_response = flight_price_response.copy()
         
-        # Update with passenger details
-        if passenger_details:
-            if 'Query' not in request:
-                request['Query'] = {}
-            if 'DataLists' not in request['Query']:
-                request['Query']['DataLists'] = {}
-            
-            # Add passenger details
-            passengers = []
-            for idx, pax in enumerate(passenger_details, 1):
-                passenger = {
-                    "PaxID": f"PAX{idx}",
-                    "PTC": pax.get('type', 'ADT'),
-                    "CitizenshipCountryCode": pax.get('nationality', ''),
-                    "Individual": {
-                        "GivenName": pax.get('first_name', ''),
-                        "Surname": pax.get('last_name', ''),
-                        "Birthdate": pax.get('birth_date', ''),
-                        "Gender": pax.get('gender', 'U')
-                    }
-                }
-                
-                # Add passport info if available
-                if 'passport_number' in pax:
-                    passenger['IdentityDocument'] = {
-                        "IdentityDocumentNumber": pax['passport_number'],
-                        "ExpiryDate": pax.get('passport_expiry', ''),
-                        "IssuingCountryCode": pax.get('passport_country', '')
-                    }
-                
-                passengers.append(passenger)
-            
-            request['Query']['DataLists']['PassengerList'] = {"Passenger": passengers}
+        # Check if we have a nested response structure (frontend format)
+        if 'response' in enhanced_flight_price_response and 'raw_response' in enhanced_flight_price_response['response']:
+            # Use the raw NDC response directly
+            enhanced_flight_price_response = enhanced_flight_price_response['response']['raw_response']
+        elif 'response' in enhanced_flight_price_response and 'data' in enhanced_flight_price_response['response']:
+            # Try to get the raw response from the data section
+            data_response = enhanced_flight_price_response['response']['data']
+            if 'raw_response' in data_response:
+                enhanced_flight_price_response = data_response['raw_response']
+            else:
+                # If no raw_response, use the data section
+                enhanced_flight_price_response = data_response
         
-        # Update with contact information
-        if contact_info:
-            if 'ContactInfoList' not in request['Query']:
-                request['Query']['ContactInfoList'] = {}
-            
-            request['Query']['ContactInfoList']['ContactInformation'] = {
-                "Contact": {
-                    "EmailContact": {
-                        "EmailAddress": contact_info.get('email', '')
-                    },
-                    "PhoneContact": [
-                        {
-                            "PhoneNumber": contact_info.get('phone', ''),
-                            "Label": "MOBILE"
+        # Ensure ShoppingResponseID is available for the core builder
+        if 'ShoppingResponseID' not in enhanced_flight_price_response:
+            # Try to extract from the original nested structure
+            if 'response' in flight_price_response and 'raw_response' in flight_price_response['response']:
+                raw_response = flight_price_response['response']['raw_response']
+                if 'ShoppingResponseID' in raw_response:
+                    shopping_response_id = raw_response['ShoppingResponseID'].get('ResponseID', {}).get('value')
+                    if shopping_response_id:
+                        enhanced_flight_price_response['ShoppingResponseID'] = {
+                            'ResponseID': {'value': shopping_response_id}
                         }
-                    ]
-                }
-            }
+            elif 'response' in flight_price_response and 'data' in flight_price_response['response']:
+                data_response = flight_price_response['response']['data']
+                if 'ShoppingResponseID' in data_response:
+                    shopping_response_id = data_response['ShoppingResponseID'].get('ResponseID', {}).get('value')
+                    if shopping_response_id:
+                        enhanced_flight_price_response['ShoppingResponseID'] = {
+                            'ResponseID': {'value': shopping_response_id}
+                        }
         
-        # Update with payment information
-        if payment_details:
-            if 'Payments' not in request['Query']:
-                request['Query']['Payments'] = {}
-            
-            request['Query']['Payments']['Payment'] = {
-                "Type": payment_details.get('type', 'CARD'),
-                "Amount": {
-                    "value": payment_details.get('amount', '0'),
-                    "Code": payment_details.get('currency', 'USD')
-                },
-                "Method": {
-                    "PaymentCard": {
-                        "CardType": payment_details.get('card_type', ''),
-                        "CardCode": payment_details.get('card_code', ''),
-                        "CardNumber": payment_details.get('card_number', ''),
-                        "ExpiryDate": payment_details.get('card_expiry', ''),
-                        "CardHolderName": payment_details.get('card_holder_name', '')
-                    }
-                }
-            }
-        
-        return request
+        # Delegate to the core OrderCreate builder with enhanced response
+        return generate_order_create_rq(
+            flight_price_response=enhanced_flight_price_response,
+            passengers_data=passenger_details,
+            payment_input_info=payment_details,
+            servicelist_response=servicelist_response,
+            seatavailability_response=seatavailability_response,
+            selected_services=selected_services,
+            selected_seats=selected_seats
+        )
         
     except Exception as e:
         raise ValueError(f"Failed to build OrderCreate request: {str(e)}")

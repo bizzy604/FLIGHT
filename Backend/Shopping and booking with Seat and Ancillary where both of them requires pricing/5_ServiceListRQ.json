@@ -1,0 +1,101 @@
+{
+	"Travelers": {
+		"Traveler": [
+			{
+				"AnonymousTraveler": [
+					{
+						"ObjectKey": "PAX1",
+						"PTC": {
+							"value": "ADT"
+						}
+					}
+				]
+			}
+		]
+	},
+	"Query": {
+		"OriginDestination": [
+			{
+				"Flight": [
+					{
+						"SegmentKey": "SEG1",
+						"Departure": {
+							"AirportCode": {
+								"value": "CDG"
+							},
+							"Date": "2025-05-12T16:10:00.000",
+							"Time": "16:10",
+							"Terminal": {
+								"Name": "2E"
+							}
+						},
+						"Arrival": {
+							"AirportCode": {
+								"value": "LHR"
+							},
+							"Date": "2025-05-12T16:35:00.000",
+							"Time": "16:35",
+							"Terminal": {
+								"Name": "4"
+							}
+						},
+						"MarketingCarrier": {
+							"AirlineID": {
+								"value": "26"
+							},
+							"FlightNumber": {
+								"value": "1280"
+							}
+						},
+						"OperatingCarrier": {
+							"AirlineID": {
+								"value": "26"
+							}
+						},
+						"Equipment": {
+							"Aircr26tCode": {
+								"value": "223"
+							}
+						},
+						"ClassOfService": {
+							"Code": {
+								"value": "V"
+							},
+							"refs": [
+								"FG-SEG1"
+							]
+						},
+						"FlightDetail": {
+							"FlightDuration": {
+								"Value": "PT1H25M"
+							}
+						}
+					}
+				]
+			}
+		],
+		"Offers": {
+			"Offer": [
+				{
+					"OfferID": {
+						"value": "a587dc6f-3bc2-4522-87dc-6f3bc2050002",
+						"Owner": "26",
+						"Channel": "NDC"
+					},
+					"OfferItemIDs": {
+						"OfferItemID": [
+							{
+								"value": "b9835319-ef48-46f5-8353-19ef48e6f5fc"
+							}
+						]
+					}
+				}
+			]
+		}
+	},
+	"ShoppingResponseID": {
+		"ResponseID": {
+			"value": "duV1keHMCB9h0mXfaMZU34q6nikYue8CvOUdAbAYT40-26"
+		}
+	}
+}

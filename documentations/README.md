@@ -1,143 +1,109 @@
-# Flight Service Module
+# REA Flight Portal
 
-A modular and maintainable implementation of flight-related services for the Verteil NDC API integration.
+An end-to-end flight booking portal integrating Verteil NDC APIs with a modern Next.js frontend and a Quart (async Flask) backend. The system emphasizes robust caching via Redis to deliver fast navigation and resilient booking flows even when client-side raw responses are not persisted.
 
-## Structure
+## Project Overview
 
-```
-Backend/services/flight/
-├── __init__.py         # Package initialization and exports
-├── core.py            # Core functionality and base classes
-├── search.py          # Flight search functionality
-├── pricing.py         # Flight pricing functionality
-├── booking.py         # Booking management
-├── exceptions.py      # Custom exceptions
-├── decorators.py      # Async decorators for caching and rate limiting
-├── utils.py           # Utility functions
-└── types.py           # Type definitions and data models
-```
+- End-to-end NDC flow: AirShopping → FlightPrice → SeatAvailability/ServiceList → OrderCreate
+- Resilient cache-key strategy so booking is unblocked even if raw NDC price response is not present on the client
+- Multi-layer caching with Redis (backend) and lightweight in-memory/session scoping on the client for UX hints
+- Clear separation of concerns: Backend handles external APIs, caching and transformations; Frontend manages UX and orchestration
 
-## Key Components
+## Tech Stack
 
-### Core Module (`core.py`)
-- `FlightService`: Base class providing common functionality for all flight services
-- Request/response handling
-- Authentication and session management
-- Error handling and logging
+- Frontend: Next.js (App Router), TypeScript, TailwindCSS
+- Backend: Python, Quart (async Flask), Hypercorn server
+- Caching: Redis (Redis Cloud supported), unified cache services on backend
+- Data: Prisma (Frontend DB connectivity if enabled), Axios/Fetch for HTTP
+- Tooling: ESLint/Prettier, Jest/Playwright (optional), Pytest (backend), logging via console and Python logging
 
-### Search Module (`search.py`)
-- Flight search functionality
-- AirShopping API integration
-- Response processing and transformation
+## Monorepo Structure
 
-### Pricing Module (`pricing.py`)
-- Flight pricing functionality
-- FlightPrice API integration
-- Fare rules and pricing details
+- Backend/ — Quart app, routes, services, Redis integration
+- Frontend/ — Next.js app, pages, components, utils, API routes (proxy to backend)
+- documentations/ — Architecture notes, setup guides, cache design and debugging guides
 
-### Booking Module (`booking.py`)
-- Order creation and management
-- OrderCreate API integration
-- Booking retrieval and status updates
+## Setup
 
-## Usage
+1) Prerequisites
+- Node.js 18+
+- Python 3.10+
+- Redis (local or Redis Cloud) — optional for dev, recommended
 
-### Initialization
+2) Environment Variables
 
-```python
-from Backend.services.flight import FlightSearchService, FlightPricingService, FlightBookingService
+Backend (examples):
+- VERTEIL_API_BASE_URL
+- VERTEIL_USERNAME, VERTEIL_PASSWORD
+- VERTEIL_CLIENT_ID, VERTEIL_CLIENT_SECRET (if applicable)
+- VERTEIL_OFFICE_ID, VERTEIL_THIRD_PARTY_ID (if applicable)
+- VERTEIL_TOKEN_ENDPOINT (default /oauth2/token)
+- REDIS_URL or REDIS_HOST/REDIS_PORT/REDIS_DB/REDIS_PASSWORD
+- OAUTH2_TOKEN_EXPIRY_BUFFER (default 300)
 
-# Initialize services with optional config
-search_service = FlightSearchService(config={
-    'VERTEIL_API_KEY': 'your-api-key',
-    'VERTEIL_API_SECRET': 'your-api-secret'
-})
+Frontend (examples):
+- NEXT_PUBLIC_API_BASE_URL (defaults to http://localhost:5000)
+- NEXT_PUBLIC_FIXER_API_KEY / NEXT_PUBLIC_CURRENCYLAYER_API_KEY (optional currency rates)
+- DATABASE_URL (if using Prisma features)
 
-# Use context manager for automatic resource cleanup
-async with FlightSearchService() as service:
-    results = await service.search_flights(search_criteria)
-```
+3) Install dependencies
+- Backend: pip install -r Backend/requirements.txt
+- Frontend: cd Frontend && npm install
 
-### Making Requests
+4) Configure Redis
+- You may run without Redis (backend will warn but continue). For Redis Cloud, set REDIS_URL accordingly.
+- See documentations/REDIS_DEPLOYMENT_GUIDE.md and documentations/REDIS_CLOUD_SETUP.md for options.
 
-```python
-# Search for flights
-search_criteria = {
-    'trip_type': 'ROUND_TRIP',
-    'od_segments': [
-        {'origin': 'JFK', 'destination': 'LAX', 'departure_date': '2023-12-01'},
-        {'origin': 'LAX', 'destination': 'JFK', 'departure_date': '2023-12-15'}
-    ],
-    'num_adults': 1,
-    'cabin_preference': 'ECONOMY'
-}
+## Running Locally
 
-async with FlightSearchService() as service:
-    search_results = await service.search_flights(search_criteria)
-```
+- Start backend:
+  - cd Backend
+  - set environment variables (see above)
+  - python app.py (runs Hypercorn via if __name__ == '__main__')
+- Start frontend:
+  - cd Frontend
+  - set NEXT_PUBLIC_API_BASE_URL to backend URL
+  - npm run dev
 
-## Configuration
+Open http://localhost:3000 for the frontend, backend listens on http://localhost:5000 by default.
 
-Service configuration can be passed during initialization or loaded from environment variables:
+## Usage Examples
 
-```python
-config = {
-    'VERTEIL_API_BASE_URL': 'https://api.verteil.com/ndc',
-    'VERTEIL_API_KEY': 'your-api-key',
-    'VERTEIL_API_SECRET': 'your-api-secret',
-    'VERTEIL_API_TIMEOUT': 30,
-    'VERTEIL_MAX_RETRIES': 3,
-    'CACHE_ENABLED': True,
-    'CACHE_TTL': 300  # 5 minutes
-}
-```
+Core flow endpoints (backend):
+- POST /api/verteil/air-shopping
+- POST /api/verteil/flight-price
+- POST /api/verteil/seat-availability
+- POST /api/verteil/service-list
+- POST /api/verteil/order-create
 
-## Error Handling
+Frontend utils:
+- utils/simple-api-manager.ts orchestrates proactive loading of seat/service and ensures cache keys exist before booking
+- utils/api-client.ts provides ready-to-use methods for getFlightPrice and createBooking with normalized responses
 
-Custom exceptions are provided in `exceptions.py`:
-
-```python
-from Backend.services.flight.exceptions import (
-    FlightServiceError,
-    RateLimitExceeded,
-    AuthenticationError,
-    ValidationError,
-    APIError,
-    BookingError,
-    PricingError
-)
-
-try:
-    # Service call
-    pass
-except RateLimitExceeded as e:
-    # Handle rate limiting
-    pass
-except AuthenticationError as e:
-    # Handle auth errors
-    pass
-except FlightServiceError as e:
-    # Handle other flight service errors
-    pass
-```
+Behavioral guarantees:
+- Payment flow proceeds even when raw flight price response is absent on the client; cache keys are derived from metadata or IDs
+- Proactive loaders persist backend storage_key values, which are passed to OrderCreate to avoid recomputation
 
 ## Testing
 
-Unit tests can be run using pytest:
+- Backend: pytest from Backend directory
+- Frontend: npm test (configure as needed)
+- Cache health: Backend provides cache health/debug routes (see Backend/routes)
 
-```bash
-pytest tests/
-```
+## Deployment
+
+- Backend: Deploy Quart app on a container platform or VM; configure environment variables. Hypercorn is used as ASGI server.
+- Redis: Prefer Redis Cloud in production; set REDIS_URL as a secret.
+- Frontend: Deploy Next.js app (Vercel/Netlify/Render). Ensure NEXT_PUBLIC_API_BASE_URL points to the backend.
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Run tests and linting
-6. Submit a pull request
+1. Fork and create a feature branch
+2. Keep changes scoped and documented
+3. Add/adjust tests where relevant
+4. Ensure lint/test pass for both Frontend and Backend
+5. Open a PR with a clear description
 
 ## License
 
-This project is licensed under the MIT License.
+MIT License — see LICENSE file if present. If absent, the project is provided under MIT terms as stated here.

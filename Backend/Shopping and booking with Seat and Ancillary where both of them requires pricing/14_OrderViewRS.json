@@ -1,0 +1,1033 @@
+{
+	"Response": {
+		"Passengers": {
+			"Passenger": [
+				{
+					"ObjectKey": "PAX1",
+					"PTC": {
+						"value": "ADT"
+					},
+					"Age": {
+						"BirthDate": {
+							"value": "1992-11-17T00:00:00.000"
+						}
+					},
+					"Name": {
+						"Surname": {
+							"value": "JAMES"
+						},
+						"Given": [
+							{
+								"value": "RINU"
+							}
+						],
+						"Title": "MR"
+					},
+					"Contacts": {
+						"Contact": [
+							{
+								"EmailContact": {
+									"Address": {
+										"value": "ROHITH.KAKKATIL@VERTEIL.COM"
+									}
+								},
+								"PhoneContact": {
+									"Number": [
+										{
+											"value": "9324567893",
+											"CountryCode": "91"
+										}
+									]
+								}
+							}
+						]
+					},
+					"Gender": {
+						"value": "Male"
+					}
+				}
+			]
+		},
+		"Order": [
+			{
+				"OrderItems": {
+					"OrderItem": [
+						{
+							"OrderItemID": {
+								"value": "c744e864-32eb-4c6c-8bae-9103e3b61751",
+								"Owner": "26"
+							},
+							"FlightItem": {
+								"Price": {
+									"BaseAmount": {
+										"value": 8355.0,
+										"Code": "INR"
+									},
+									"Taxes": {
+										"Total": {
+											"value": 4222.0,
+											"Code": "INR"
+										},
+										"Breakdown": {
+											"Tax": [
+												{
+													"Amount": {
+														"value": 141.0,
+														"Code": "INR"
+													},
+													"TaxCode": "YR"
+												},
+												{
+													"Amount": {
+														"value": 483.0,
+														"Code": "INR"
+													},
+													"TaxCode": "FR"
+												},
+												{
+													"Amount": {
+														"value": 1225.0,
+														"Code": "INR"
+													},
+													"TaxCode": "FR"
+												},
+												{
+													"Amount": {
+														"value": 695.0,
+														"Code": "INR"
+													},
+													"TaxCode": "O4"
+												},
+												{
+													"Amount": {
+														"value": 1443.0,
+														"Code": "INR"
+													},
+													"TaxCode": "QX"
+												},
+												{
+													"Amount": {
+														"value": 235.0,
+														"Code": "INR"
+													},
+													"TaxCode": "T02"
+												}
+											]
+										}
+									}
+								},
+								"OriginDestination": [
+									{
+										"Flight": [
+											{
+												"SegmentKey": "SEG2",
+												"Departure": {
+													"AirportCode": {
+														"value": "CDG"
+													},
+													"Date": "2025-05-12T00:00:00.000",
+													"Time": "16:10",
+													"Terminal": {
+														"Name": "2E"
+													}
+												},
+												"Arrival": {
+													"AirportCode": {
+														"value": "LHR"
+													},
+													"Date": "2025-05-12T00:00:00.000",
+													"Time": "16:35",
+													"Terminal": {
+														"Name": "4"
+													}
+												},
+												"MarketingCarrier": {
+													"AirlineID": {
+														"value": "26"
+													},
+													"FlightNumber": {
+														"value": "1280"
+													}
+												},
+												"OperatingCarrier": {
+													"AirlineID": {
+														"value": "26"
+													}
+												},
+												"Equipment": {
+													"Name": "223",
+													"Aircr26tCode": {
+														"value": "223"
+													}
+												},
+												"ClassOfService": {
+													"Code": {
+														"value": "V"
+													},
+													"MarketingName": {
+														"value": "ECONOMY",
+														"CabinDesignator": "Y"
+													},
+													"refs": [
+														"FG-70J-N5OO0UX-1"
+													]
+												},
+												"Details": {
+													"FlightSegmentType": {
+														"Code": "HK"
+													},
+													"FlightDuration": {
+														"Value": "PT25M"
+													}
+												}
+											}
+										]
+									}
+								],
+								"FareDetail": {
+									"FareComponent": [
+										{
+											"FareRules": {
+												"Penalty": {
+													"refs": [
+														"PENALTY-NOSHOW-SEG2-PAX1-1",
+														"PENALTY-CANCELLATION-SEG2-PAX1-2",
+														"PENALTY-CANCELLATION-SEG2-PAX1-3",
+														"PENALTY-CHANGE-SEG2-PAX1-4",
+														"PENALTY-CHANGE-SEG2-PAX1-5"
+													]
+												}
+											},
+											"PriceClassReference": [
+												"PC21"
+											],
+											"refs": [
+												"SEG2"
+											]
+										}
+									]
+								}
+							},
+							"BaggageItem": {
+								"refs": [
+									"SRVID2_CO_PAX1_SEG2",
+									"SRVID2_BI_PAX1_SEG2"
+								]
+							},
+							"Associations": {
+								"Passengers": {
+									"PassengerReferences": [
+										"PAX1"
+									]
+								},
+								"IncludedService": {
+									"ServiceReferences": [
+										"SRV_PAX1_SEG2"
+									]
+								},
+								"AssociatedService": {
+									"ServiceReferences": [
+										"SEG2"
+									]
+								}
+							},
+							"Penalty": {
+								"refs": [
+									"PENALTY-NOSHOW-SEG2-PAX1-1",
+									"PENALTY-CANCELLATION-SEG2-PAX1-2",
+									"PENALTY-CANCELLATION-SEG2-PAX1-3",
+									"PENALTY-CHANGE-SEG2-PAX1-4",
+									"PENALTY-CHANGE-SEG2-PAX1-5"
+								]
+							}
+						},
+						{
+							"OrderItemID": {
+								"value": "a389d951-a51a-4e49-bf27-c070f94e41bc",
+								"Owner": "26"
+							},
+							"SeatItem": {
+								"Price": {
+									"Total": {
+										"value": 1703.0,
+										"Code": "INR"
+									}
+								},
+								"Location": {
+									"Column": "F",
+									"Row": {
+										"Number": {
+											"value": "6"
+										}
+									},
+									"Associations": {
+										"Services": {
+											"ServiceID": [
+												{
+													"ObjectKey": "1O24_57_PAX1_SEG2",
+													"value": "HI",
+													"refs": [
+														"F6SEG2"
+													]
+												}
+											]
+										}
+									}
+								},
+								"SeatAssociation": [
+									{
+										"SegmentReferences": {
+											"value": [
+												"SEG2"
+											]
+										},
+										"TravelerReference": "PAX1"
+									}
+								]
+							}
+						},
+						{
+							"OrderItemID": {
+								"value": "fe5663d3-559f-4adb-ba26-83872956e80d#1",
+								"Owner": "26"
+							},
+							"Price": {
+								"Total": {
+									"value": 4692.0,
+									"Code": "INR"
+								}
+							},
+							"Services": [
+								{
+									"ServiceID": {
+										"ObjectKey": "1O23_89-ABAG-1_PAX1_SEG2",
+										"Status": "HI"
+									},
+									"PassengerReferences": "PAX1",
+									"SegmentRefs": "SEG2",
+									"ServiceDefinitionRefs": "1O23_89-ABAG-1"
+								}
+							]
+						}
+					]
+				},
+				"CreationAPI": "NDC",
+				"LastModificationAPI": "NDC",
+				"OrderID": {
+					"value": "T75AHF",
+					"Owner": "26",
+					"Channel": "NDC"
+				},
+				"BookingReferences": {
+					"BookingReference": [
+						{
+							"ID": "1405709",
+							"OtherID": {
+								"value": "26057AV18552E",
+								"Name": "orderId"
+							}
+						}
+					]
+				},
+				"TotalOrderPrice": {
+					"SimpleCurrencyPrice": {
+						"value": 18972.0,
+						"Code": "INR"
+					}
+				},
+				"Status": {
+					"StatusCode": {
+						"Code": "T"
+					}
+				}
+			}
+		],
+		"Payments": {
+			"Payment": [
+				{
+					"Type": {
+						"Code": "CA"
+					},
+					"Method": {
+						"CashMethod": {
+							"Amount": {
+								"value": 18972,
+								"Code": "INR"
+							}
+						}
+					},
+					"Amount": {
+						"value": 18972,
+						"Code": "INR"
+					},
+					"Associations": {
+						"OrderItemID": [
+							{
+								"value": "c744e864-32eb-4c6c-8bae-9103e3b61751",
+								"Owner": "26"
+							},
+							{
+								"value": "a389d951-a51a-4e49-bf27-c070f94e41bc",
+								"Owner": "26"
+							},
+							{
+								"value": "fe5663d3-559f-4adb-ba26-83872956e80d#1",
+								"Owner": "26"
+							}
+						]
+					}
+				}
+			]
+		},
+		"TicketDocInfos": {
+			"TicketDocInfo": [
+				{
+					"IssuingAirlineInfo": {
+						"AirlineName": "26"
+					},
+					"TicketDocument": [
+						{
+							"TicketDocNbr": "0572332612728",
+							"Type": {
+								"Code": "T"
+							},
+							"NumberofBoo26ets": 1,
+							"DateOfIssue": "2025-04-06T00:00:00.000",
+							"CouponInfo": [
+								{
+									"CouponNumber": 1,
+									"CouponReference": "SEG2",
+									"FareBasisCode": {
+										"Code": "VYSFBBSA"
+									},
+									"Status": {
+										"Code": "O"
+									}
+								}
+							],
+							"ReportingType": "BSP"
+						}
+					],
+					"PassengerReference": [
+						"PAX1"
+					]
+				},
+				{
+					"IssuingAirlineInfo": {
+						"AirlineName": "26"
+					},
+					"TicketDocument": [
+						{
+							"TicketDocNbr": "0574219683086",
+							"Type": {
+								"Code": "J"
+							},
+							"NumberofBoo26ets": 1,
+							"DateOfIssue": "2025-04-06T00:00:00.000",
+							"CouponInfo": [
+								{
+									"CouponNumber": 1,
+									"CouponReference": "SEG2",
+									"FareBasisCode": {
+										"Code": "VYSFBBSA"
+									},
+									"Status": {
+										"Code": "O"
+									},
+									"ServiceReferences": [
+										"1O23_89-ABAG-1_PAX1_SEG2"
+									]
+								}
+							],
+							"ReportingType": "BSP"
+						}
+					],
+					"PassengerReference": [
+						"PAX1"
+					]
+				},
+				{
+					"IssuingAirlineInfo": {
+						"AirlineName": "26"
+					},
+					"TicketDocument": [
+						{
+							"TicketDocNbr": "0574219683087",
+							"Type": {
+								"Code": "J"
+							},
+							"NumberofBoo26ets": 1,
+							"DateOfIssue": "2025-04-06T00:00:00.000",
+							"CouponInfo": [
+								{
+									"CouponNumber": 1,
+									"CouponReference": "SEG2",
+									"FareBasisCode": {
+										"Code": "VYSFBBSA"
+									},
+									"Status": {
+										"Code": "O"
+									},
+									"ServiceReferences": [
+										"1O24_57_PAX1_SEG2"
+									]
+								}
+							],
+							"ReportingType": "BSP"
+						}
+					],
+					"PassengerReference": [
+						"PAX1"
+					]
+				}
+			]
+		},
+		"DataLists": {
+			"CarryOnAllowanceList": {
+				"CarryOnAllowance": [
+					{
+						"ListKey": "BA2_CARRY_ON",
+						"AllowanceDescription": {
+							"ApplicableParty": "Traveler"
+						},
+						"PieceAllowance": [
+							{
+								"ApplicableParty": "Traveler",
+								"TotalQuantity": 1
+							}
+						],
+						"WeightAllowance": {
+							"MaximumWeight": [
+								{
+									"Value": 12.0,
+									"UOM": "Kilogram"
+								},
+								{
+									"Value": 26.0,
+									"UOM": "Pound"
+								}
+							]
+						}
+					}
+				]
+			},
+			"CheckedBagAllowanceList": {
+				"CheckedBagAllowance": [
+					{
+						"ListKey": "BA2_CHECKED",
+						"AllowanceDescription": {
+							"ApplicableParty": "Traveler"
+						},
+						"PieceAllowance": [
+							{
+								"ApplicableParty": "Traveler",
+								"TotalQuantity": 1
+							}
+						],
+						"WeightAllowance": {
+							"MaximumWeight": [
+								{
+									"Value": 23.0,
+									"UOM": "Kilogram"
+								},
+								{
+									"Value": 50.0,
+									"UOM": "Pound"
+								}
+							]
+						}
+					}
+				]
+			},
+			"FareList": {
+				"FareGroup": [
+					{
+						"ListKey": "FG-70J-N5OO0UX-1",
+						"Fare": {
+							"FareCode": {
+								"Code": "70J"
+							},
+							"FareDetail": {
+								"FareComponent": [
+									{
+										"SegmentReference": {
+											"value": [
+												"SEG2"
+											]
+										},
+										"PriceBreakdown": {
+											"Price": {
+												"Taxes": {
+													"Total": {
+														"value": 4222.0,
+														"Code": "INR"
+													},
+													"Breakdown": {
+														"Tax": [
+															{
+																"Amount": {
+																	"value": 141.0,
+																	"Code": "INR"
+																},
+																"TaxType": "YR"
+															},
+															{
+																"Amount": {
+																	"value": 483.0,
+																	"Code": "INR"
+																},
+																"TaxType": "FR"
+															},
+															{
+																"Amount": {
+																	"value": 1225.0,
+																	"Code": "INR"
+																},
+																"TaxType": "FR"
+															},
+															{
+																"Amount": {
+																	"value": 695.0,
+																	"Code": "INR"
+																},
+																"TaxType": "O4"
+															},
+															{
+																"Amount": {
+																	"value": 1443.0,
+																	"Code": "INR"
+																},
+																"TaxType": "QX"
+															},
+															{
+																"Amount": {
+																	"value": 235.0,
+																	"Code": "INR"
+																},
+																"TaxType": "T02"
+															}
+														]
+													}
+												},
+												"BaseAmount": {
+													"value": 8355.0,
+													"Code": "INR"
+												}
+											}
+										},
+										"FareBasis": {
+											"RBD": "V"
+										}
+									}
+								],
+								"Remarks": {
+									"Remark": [
+										{
+											"value": "FG-PUBL"
+										}
+									]
+								}
+							}
+						},
+						"FareBasisCode": {
+							"Code": "VYSFBBSA"
+						},
+						"refs": [
+							"PAX1"
+						]
+					}
+				]
+			},
+			"OriginDestinationList": {
+				"OriginDestination": [
+					{
+						"OriginDestinationKey": "OD2",
+						"DepartureCode": {
+							"value": "CDG"
+						},
+						"ArrivalCode": {
+							"value": "LHR"
+						}
+					}
+				]
+			},
+			"PenaltyList": {
+				"Penalty": [
+					{
+						"ObjectKey": "PENALTY-NOSHOW-SEG2-PAX1-1",
+						"Details": {
+							"Detail": [
+								{
+									"Type": "NoShow",
+									"Application": {
+										"Code": "1"
+									},
+									"Amounts": {
+										"Amount": [
+											{
+												"CurrencyAmountValue": {
+													"value": 0,
+													"Code": "INR"
+												},
+												"AmountApplication": "MIN",
+												"ApplicableFeeRemarks": {
+													"Remark": [
+														{
+															"value": "NAV"
+														}
+													]
+												}
+											},
+											{
+												"CurrencyAmountValue": {
+													"value": 0,
+													"Code": "INR"
+												},
+												"AmountApplication": "MAX",
+												"ApplicableFeeRemarks": {
+													"Remark": [
+														{
+															"value": "NAV"
+														}
+													]
+												}
+											}
+										]
+									}
+								}
+							]
+						},
+						"RefundableInd": false
+					},
+					{
+						"ObjectKey": "PENALTY-CANCELLATION-SEG2-PAX1-2",
+						"Details": {
+							"Detail": [
+								{
+									"Type": "Cancel",
+									"Application": {
+										"Code": "2"
+									},
+									"Amounts": {
+										"Amount": [
+											{
+												"CurrencyAmountValue": {
+													"value": 0,
+													"Code": "INR"
+												},
+												"AmountApplication": "MIN",
+												"ApplicableFeeRemarks": {
+													"Remark": [
+														{
+															"value": "NAV"
+														}
+													]
+												}
+											},
+											{
+												"CurrencyAmountValue": {
+													"value": 0,
+													"Code": "INR"
+												},
+												"AmountApplication": "MAX",
+												"ApplicableFeeRemarks": {
+													"Remark": [
+														{
+															"value": "NAV"
+														}
+													]
+												}
+											}
+										]
+									}
+								}
+							]
+						},
+						"CancelFeeInd": false,
+						"RefundableInd": false
+					},
+					{
+						"ObjectKey": "PENALTY-CANCELLATION-SEG2-PAX1-3",
+						"Details": {
+							"Detail": [
+								{
+									"Type": "Cancel",
+									"Application": {
+										"Code": "3"
+									},
+									"Amounts": {
+										"Amount": [
+											{
+												"CurrencyAmountValue": {
+													"value": 0,
+													"Code": "INR"
+												},
+												"AmountApplication": "MIN",
+												"ApplicableFeeRemarks": {
+													"Remark": [
+														{
+															"value": "NAV"
+														}
+													]
+												}
+											},
+											{
+												"CurrencyAmountValue": {
+													"value": 0,
+													"Code": "INR"
+												},
+												"AmountApplication": "MAX",
+												"ApplicableFeeRemarks": {
+													"Remark": [
+														{
+															"value": "NAV"
+														}
+													]
+												}
+											}
+										]
+									}
+								}
+							]
+						},
+						"CancelFeeInd": false,
+						"RefundableInd": false
+					},
+					{
+						"ObjectKey": "PENALTY-CHANGE-SEG2-PAX1-4",
+						"Details": {
+							"Detail": [
+								{
+									"Type": "Change",
+									"Application": {
+										"Code": "2"
+									},
+									"Amounts": {
+										"Amount": [
+											{
+												"CurrencyAmountValue": {
+													"value": 70.0,
+													"Code": "EUR"
+												},
+												"AmountApplication": "MIN",
+												"ApplicableFeeRemarks": {
+													"Remark": [
+														{
+															"value": "Allowed"
+														}
+													]
+												}
+											},
+											{
+												"CurrencyAmountValue": {
+													"value": 70.0,
+													"Code": "EUR"
+												},
+												"AmountApplication": "MAX",
+												"ApplicableFeeRemarks": {
+													"Remark": [
+														{
+															"value": "Allowed"
+														}
+													]
+												}
+											}
+										]
+									}
+								}
+							]
+						},
+						"ChangeFeeInd": true,
+						"ChangeAllowedInd": true
+					},
+					{
+						"ObjectKey": "PENALTY-CHANGE-SEG2-PAX1-5",
+						"Details": {
+							"Detail": [
+								{
+									"Type": "Change",
+									"Application": {
+										"Code": "3"
+									},
+									"Amounts": {
+										"Amount": [
+											{
+												"CurrencyAmountValue": {
+													"value": 70.0,
+													"Code": "EUR"
+												},
+												"AmountApplication": "MIN",
+												"ApplicableFeeRemarks": {
+													"Remark": [
+														{
+															"value": "Allowed"
+														}
+													]
+												}
+											},
+											{
+												"CurrencyAmountValue": {
+													"value": 70.0,
+													"Code": "EUR"
+												},
+												"AmountApplication": "MAX",
+												"ApplicableFeeRemarks": {
+													"Remark": [
+														{
+															"value": "Allowed"
+														}
+													]
+												}
+											}
+										]
+									}
+								}
+							]
+						},
+						"ChangeFeeInd": true,
+						"ChangeAllowedInd": true
+					}
+				]
+			},
+			"PriceClassList": {
+				"PriceClass": [
+					{
+						"ObjectKey": "PC21",
+						"Name": "Standard"
+					}
+				]
+			},
+			"ServiceList": {
+				"Service": [
+					{
+						"ObjectKey": "1O23_89-ABAG-1",
+						"ServiceID": {
+							"value": "1O23_89-ABAG-1",
+							"Owner": "26"
+						},
+						"Name": {
+							"value": "BAG:ABAG"
+						},
+						"Descriptions": {
+							"Description": [
+								{
+									"Text": {
+										"value": "ABAG"
+									}
+								}
+							]
+						}
+					},
+					{
+						"ObjectKey": "SRV_PAX1_SEG2",
+						"Associations": [
+							{
+								"Traveler": {
+									"TravelerReferences": [
+										"PAX1"
+									]
+								},
+								"Flight": {
+									"originDestinationReferencesOrSegmentReferences": [
+										"SEG2"
+									]
+								}
+							}
+						]
+					},
+					{
+						"ObjectKey": "SRVID2_CO_PAX1_SEG2",
+						"Name": {
+							"value": "BAG:Carry On Bag Allowance"
+						},
+						"Descriptions": {
+							"Description": [
+								{
+									"Text": {
+										"value": "BAG:Carry On Bag Allowance"
+									}
+								}
+							]
+						},
+						"Associations": [
+							{
+								"Traveler": {
+									"TravelerReferences": [
+										"PAX1"
+									]
+								},
+								"Flight": {
+									"originDestinationReferencesOrSegmentReferences": [
+										"SEG2"
+									]
+								}
+							}
+						],
+						"refs": [
+							"BA2_CARRY_ON"
+						]
+					},
+					{
+						"ObjectKey": "SRVID2_BI_PAX1_SEG2",
+						"Name": {
+							"value": "BAG:Checked Bag Allowance"
+						},
+						"Descriptions": {
+							"Description": [
+								{
+									"Text": {
+										"value": "BAG:Checked Bag Allowance"
+									}
+								}
+							]
+						},
+						"Associations": [
+							{
+								"Traveler": {
+									"TravelerReferences": [
+										"PAX1"
+									]
+								},
+								"Flight": {
+									"originDestinationReferencesOrSegmentReferences": [
+										"SEG2"
+									]
+								}
+							}
+						],
+						"refs": [
+							"BA2_CHECKED"
+						]
+					}
+				]
+			}
+		},
+		"Metadata": {
+			"PassengerMetadata": [
+				{
+					"AugmentationPoint": {
+						"AugPoint": [
+							{
+								"any": {
+									"VdcAugPoint": {
+										"Value": "TRApprovalDate=6/4/2025"
+									}
+								}
+							},
+							{
+								"any": {
+									"VdcAugPoint": {
+										"Value": "TRCreationDate=6/4/2025"
+									}
+								}
+							}
+						]
+					},
+					"refs": [
+						"PAX1"
+					]
+				}
+			]
+		}
+	}
+}

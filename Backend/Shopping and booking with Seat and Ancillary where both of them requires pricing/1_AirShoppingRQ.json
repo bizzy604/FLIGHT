@@ -1,0 +1,66 @@
+{
+	"Travelers": {
+		"Traveler": [
+			{
+				"AnonymousTraveler": [
+					{
+						"PTC": {
+							"value": "ADT"
+						}
+					}
+				]
+			}
+		]
+	},
+	"CoreQuery": {
+		"OriginDestinations": {
+			"OriginDestination": [
+				{
+					"Departure": {
+						"AirportCode": {
+							"value": "CDG"
+						},
+						"Date": "2025-05-12"
+					},
+					"Arrival": {
+						"AirportCode": {
+							"value": "LHR"
+						}
+					},
+					"OriginDestinationKey": "OD1"
+				}
+			]
+		}
+	},
+	"Preference": {
+		"FarePreferences": {
+			"Types": {
+				"Type": [
+					{
+						"Code": "PUBL"
+					},
+					{
+						"Code": "PVT"
+					}
+				]
+			}
+		}
+	},
+	"ResponseParameters": {
+		"ShopResultPreference": "OPTIMIZED",
+		"SortOrder": [
+			{
+				"Order": "ASCENDING",
+				"Parameter": "STOP"
+			},
+			{
+				"Order": "ASCENDING",
+				"Parameter": "PRICE"
+			},
+			{
+				"Order": "ASCENDING",
+				"Parameter": "DEPARTURE_TIME"
+			}
+		]
+	}
+}

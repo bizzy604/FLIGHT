@@ -1,0 +1,599 @@
+{
+  "Query": {
+    "Passengers": {
+      "Passenger": [
+        {
+          "ObjectKey": "PAX1",
+          "PTC": {
+            "value": "ADT"
+          },
+          "Name": {
+            "Surname": {
+              "value": "Test"
+            },
+            "Given": [
+              {
+                "value": "User"
+              }
+            ],
+            "Title": null
+          },
+          "AdditionalRoles": {
+            "PaymentContactInd": true
+          },
+          "Gender": {
+            "value": "M"
+          },
+          "Age": {
+            "BirthDate": {
+              "value": "1990-01-01"
+            }
+          },
+          "Contacts": {
+            "Contact": [
+              {
+                "EmailContact": {
+                  "Address": {
+                    "value": "test@example.com"
+                  }
+                },
+                "PhoneContact": {
+                  "Application": "Home",
+                  "Number": [
+                    {
+                      "value": "1234567890",
+                      "CountryCode": "1"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "OrderItems": {
+      "ShoppingResponse": {
+        "Owner": "AF",
+        "ResponseID": {
+          "value": "test-shopping-response-123"
+        },
+        "Offers": {
+          "Offer": [
+            {
+              "OfferID": {
+                "ObjectKey": "test-offer-123",
+                "value": "test-offer-123",
+                "Owner": "AF",
+                "Channel": "NDC"
+              },
+              "OfferItems": {
+                "OfferItem": [
+                  {
+                    "OfferItemID": {
+                      "Owner": "AF",
+                      "value": "test-offer-item-123",
+                      "Channel": "NDC"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "OfferItem": [
+        {
+          "OfferItemID": {
+            "value": "test-offer-item-123",
+            "Owner": "AF",
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "DetailedFlightItem": [
+              {
+                "Price": {
+                  "BaseAmount": {
+                    "value": 500,
+                    "Code": "USD"
+                  },
+                  "Taxes": {
+                    "Total": {
+                      "value": 50,
+                      "Code": "USD"
+                    }
+                  }
+                },
+                "OriginDestination": [],
+                "refs": [
+                  "PAX1"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "c5a33bf8-a8c7-4123-a33b-f8a8c771000d",
+            "Owner": "AF",
+            "refs": [
+              "cb2dbadd-9ab1-443f-adba-dd9ab1040001",
+              "rk9bYuZMmyQSkA9A0AXEfbv80qNRGGF5uui3HaAvwXk-AF"
+            ],
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "OtherItem": [
+              {
+                "refs": [
+                  "PAX1",
+                  "1-ServiceIdAF-13"
+                ],
+                "Price": {
+                  "SimpleCurrencyPrice": {
+                    "value": 7050.0,
+                    "Code": "INR"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "c5a33bf8-a8c7-4123-a33b-f8a8c771001a",
+            "Owner": "AF",
+            "refs": [
+              "cb2dbadd-9ab1-443f-adba-dd9ab1040001",
+              "rk9bYuZMmyQSkA9A0AXEfbv80qNRGGF5uui3HaAvwXk-AF"
+            ],
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "OtherItem": [
+              {
+                "refs": [
+                  "PAX1",
+                  "1-ServiceIdAF-26"
+                ],
+                "Price": {
+                  "SimpleCurrencyPrice": {
+                    "value": 0.0,
+                    "Code": "INR"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "c5a33bf8-a8c7-4123-a33b-f8a8c771001b",
+            "Owner": "AF",
+            "refs": [
+              "cb2dbadd-9ab1-443f-adba-dd9ab1040001",
+              "rk9bYuZMmyQSkA9A0AXEfbv80qNRGGF5uui3HaAvwXk-AF"
+            ],
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "OtherItem": [
+              {
+                "refs": [
+                  "PAX1",
+                  "1-ServiceIdAF-27"
+                ],
+                "Price": {
+                  "SimpleCurrencyPrice": {
+                    "value": 0.0,
+                    "Code": "INR"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "c5a33bf8-a8c7-4123-a33b-f8a8c771001c",
+            "Owner": "AF",
+            "refs": [
+              "cb2dbadd-9ab1-443f-adba-dd9ab1040001",
+              "rk9bYuZMmyQSkA9A0AXEfbv80qNRGGF5uui3HaAvwXk-AF"
+            ],
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "OtherItem": [
+              {
+                "refs": [
+                  "PAX1",
+                  "1-ServiceIdAF-28"
+                ],
+                "Price": {
+                  "SimpleCurrencyPrice": {
+                    "value": 0.0,
+                    "Code": "INR"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "c5a33bf8-a8c7-4123-a33b-f8a8c771001d",
+            "Owner": "AF",
+            "refs": [
+              "cb2dbadd-9ab1-443f-adba-dd9ab1040001",
+              "rk9bYuZMmyQSkA9A0AXEfbv80qNRGGF5uui3HaAvwXk-AF"
+            ],
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "OtherItem": [
+              {
+                "refs": [
+                  "PAX1",
+                  "1-ServiceIdAF-29"
+                ],
+                "Price": {
+                  "SimpleCurrencyPrice": {
+                    "value": 0.0,
+                    "Code": "INR"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "DataLists": {
+      "FareList": {
+        "FareGroup": []
+      },
+      "ServiceList": {
+        "Service": [
+          {
+            "ObjectKey": "1-ServiceIdAF-13",
+            "ServiceID": {
+              "ObjectKey": "c5a33bf8-a8c7-4123-a33b-f8a8c771000d",
+              "value": "SRV13",
+              "Owner": "AF"
+            },
+            "Name": {
+              "value": "BAG:LUGGAGE-FIRST ADDITIONAL BAG"
+            },
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "1 ABAG x 23 KG"
+                  }
+                }
+              ]
+            },
+            "Price": [
+              {
+                "Total": {
+                  "value": 7050.0,
+                  "Code": "INR"
+                }
+              }
+            ],
+            "BookingInstructions": {
+              "SSRCode": [
+                "ABAG"
+              ],
+              "Method": "SSR"
+            },
+            "ServiceDefinitionRef": {},
+            "Associations": [
+              {
+                "Traveler": {
+                  "TravelerReferences": [
+                    "PAX1"
+                  ]
+                },
+                "Flight": {
+                  "originDestinationReferencesOrSegmentReferences": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "SEG1"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "PricedInd": false
+          },
+          {
+            "ObjectKey": "1-ServiceIdAF-26",
+            "ServiceID": {
+              "ObjectKey": "c5a33bf8-a8c7-4123-a33b-f8a8c771001a",
+              "value": "SRV28",
+              "Owner": "AF"
+            },
+            "Name": {
+              "value": "DISABILITY:WCHR - Wheelchair request - Stairs OK"
+            },
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "Wheelchair request - Stairs OK"
+                  }
+                }
+              ]
+            },
+            "Price": [
+              {
+                "Total": {
+                  "value": 0.0,
+                  "Code": "INR"
+                }
+              }
+            ],
+            "BookingInstructions": {
+              "SSRCode": [
+                "WCHR"
+              ],
+              "Method": "SSR"
+            },
+            "ServiceDefinitionRef": {},
+            "Associations": [
+              {
+                "Traveler": {
+                  "TravelerReferences": [
+                    "PAX1"
+                  ]
+                },
+                "Flight": {
+                  "originDestinationReferencesOrSegmentReferences": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "SEG1"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "PricedInd": false
+          },
+          {
+            "ObjectKey": "1-ServiceIdAF-27",
+            "ServiceID": {
+              "ObjectKey": "c5a33bf8-a8c7-4123-a33b-f8a8c771001b",
+              "value": "SRV29",
+              "Owner": "AF"
+            },
+            "Name": {
+              "value": "DISABILITY:WCHS - Wheelchair request - No Stairs"
+            },
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "Wheelchair request - No Stairs"
+                  }
+                }
+              ]
+            },
+            "Price": [
+              {
+                "Total": {
+                  "value": 0.0,
+                  "Code": "INR"
+                }
+              }
+            ],
+            "BookingInstructions": {
+              "SSRCode": [
+                "WCHS"
+              ],
+              "Method": "SSR"
+            },
+            "ServiceDefinitionRef": {},
+            "Associations": [
+              {
+                "Traveler": {
+                  "TravelerReferences": [
+                    "PAX1"
+                  ]
+                },
+                "Flight": {
+                  "originDestinationReferencesOrSegmentReferences": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "SEG1"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "PricedInd": false
+          },
+          {
+            "ObjectKey": "1-ServiceIdAF-28",
+            "ServiceID": {
+              "ObjectKey": "c5a33bf8-a8c7-4123-a33b-f8a8c771001c",
+              "value": "SRV30",
+              "Owner": "AF"
+            },
+            "Name": {
+              "value": "DISABILITY:BLND - Visual impairment"
+            },
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "Visual impairment"
+                  }
+                }
+              ]
+            },
+            "Price": [
+              {
+                "Total": {
+                  "value": 0.0,
+                  "Code": "INR"
+                }
+              }
+            ],
+            "BookingInstructions": {
+              "SSRCode": [
+                "BLND"
+              ],
+              "Method": "SSR"
+            },
+            "ServiceDefinitionRef": {},
+            "Associations": [
+              {
+                "Traveler": {
+                  "TravelerReferences": [
+                    "PAX1"
+                  ]
+                },
+                "Flight": {
+                  "originDestinationReferencesOrSegmentReferences": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "SEG1"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "PricedInd": false
+          },
+          {
+            "ObjectKey": "1-ServiceIdAF-29",
+            "ServiceID": {
+              "ObjectKey": "c5a33bf8-a8c7-4123-a33b-f8a8c771001d",
+              "value": "SRV31",
+              "Owner": "AF"
+            },
+            "Name": {
+              "value": "DISABILITY:DEAF - Hearing impairment"
+            },
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "Hearing impairment"
+                  }
+                }
+              ]
+            },
+            "Price": [
+              {
+                "Total": {
+                  "value": 0.0,
+                  "Code": "INR"
+                }
+              }
+            ],
+            "BookingInstructions": {
+              "SSRCode": [
+                "DEAF"
+              ],
+              "Method": "SSR"
+            },
+            "ServiceDefinitionRef": {},
+            "Associations": [
+              {
+                "Traveler": {
+                  "TravelerReferences": [
+                    "PAX1"
+                  ]
+                },
+                "Flight": {
+                  "originDestinationReferencesOrSegmentReferences": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "SEG1"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "PricedInd": false
+          }
+        ]
+      }
+    },
+    "Metadata": {
+      "PassengerMetadata": [
+        {
+          "AugmentationPoint": {
+            "AugPoint": [
+              {
+                "any": {
+                  "VdcAugPoint": {
+                    "Value": "TRApprovalDate=09/25/2025"
+                  }
+                }
+              },
+              {
+                "any": {
+                  "VdcAugPoint": {
+                    "Value": "TRCreationDate=09/25/2025"
+                  }
+                }
+              }
+            ]
+          },
+          "refs": [
+            "PAX1"
+          ]
+        }
+      ]
+    },
+    "Payments": {
+      "Payment": [
+        {
+          "Method": {
+            "Cash": {
+              "CashInd": "true"
+            }
+          },
+          "Amount": {
+            "Code": "USD",
+            "value": 7600
+          }
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "pricing_info": {
+      "requires_pricing": true,
+      "services_require_pricing": [
+        "1-ServiceIdAF-13",
+        "1-ServiceIdAF-26",
+        "1-ServiceIdAF-27",
+        "1-ServiceIdAF-28",
+        "1-ServiceIdAF-29"
+      ],
+      "seats_require_pricing": [],
+      "total_items_require_pricing": 5
+    },
+    "used_priced_response": false
+  }
+}

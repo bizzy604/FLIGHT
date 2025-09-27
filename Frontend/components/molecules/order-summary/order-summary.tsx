@@ -75,14 +75,15 @@ function OrderSummary({
   const pricedOffer = booking?.flightOffer || {}
   const flightPricing = extractFlightPricing(pricedOffer)
   
-  // Use unified pricing calculation
-  const { serviceDetails } = calculateServiceFees(selectedServices || [], services || [])
+  // Use unified pricing calculation - ensure services is an array
+  const servicesArray = Array.isArray(services) ? services : []
+  const { serviceDetails } = calculateServiceFees(selectedServices || [], servicesArray)
   const pricingBreakdown = calculatePricingBreakdown(
     flightPricing.baseFare,
     flightPricing.taxes,
     seatPrices || { outbound: 0, return: 0 },
     selectedServices || [],
-    services || [],
+    servicesArray,
     null, // baggageSelection - to be added later
     35, // additionalBagPrice
     flightPricing.currency

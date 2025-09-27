@@ -468,10 +468,17 @@ async def get_seat_availability():
         
         # Cache the transformed result and get the ACTUAL storage key
         actual_storage_key = None
+        cache_key = None  # Initialize cache_key
         try:
-            cache_key = _generate_seat_availability_cache_key(flight_price_response, data.get('segment_key'), flight_price_cache_key)
-            # Cache key is now the session_id directly
-            session_id = cache_key
+            # 🔧 FIXED: Use flight_price_cache_key directly as session_id for consistent cache retrieval
+            if flight_price_cache_key:
+                session_id = flight_price_cache_key
+                cache_key = flight_price_cache_key  # Use same value for cache_key
+                logger.info(f"Using flight_price_cache_key as session_id: {session_id}")
+            else:
+                cache_key = _generate_seat_availability_cache_key(flight_price_response, data.get('segment_key'), flight_price_cache_key)
+                session_id = cache_key
+                logger.info(f"Generated cache key as session_id: {session_id}")
             
             cache_result = simple_flight_cache.store_seat_availability(
                 session_id=session_id,
@@ -654,10 +661,17 @@ async def get_service_list():
         
         # Cache the transformed result and get the ACTUAL storage key
         actual_storage_key = None
+        cache_key = None  # Initialize cache_key
         try:
-            cache_key = _generate_service_list_cache_key(flight_price_response, flight_price_cache_key)
-            # Cache key is now the session_id directly
-            session_id = cache_key
+            # 🔧 FIXED: Use flight_price_cache_key directly as session_id for consistent cache retrieval
+            if flight_price_cache_key:
+                session_id = flight_price_cache_key
+                cache_key = flight_price_cache_key  # Use same value for cache_key
+                logger.info(f"Using flight_price_cache_key as session_id: {session_id}")
+            else:
+                cache_key = _generate_service_list_cache_key(flight_price_response, flight_price_cache_key)
+                session_id = cache_key
+                logger.info(f"Generated cache key as session_id: {session_id}")
             
             cache_result = simple_flight_cache.store_service_list(
                 session_id=session_id,

@@ -23,6 +23,73 @@ from services.flight.air_shopping import process_air_shopping_enhanced, process_
 from services.flight.search import process_air_shopping  # Legacy compatibility
 
 
+def detect_pricing_required(
+    servicelist_response: Optional[Dict[str, Any]] = None,
+    seatavailability_response: Optional[Dict[str, Any]] = None,
+    selected_services: Optional[list] = None,
+    selected_seats: Optional[list] = None
+) -> Dict[str, Any]:
+    """
+    Detect if additional pricing is required for selected services and seats.
+    
+    Args:
+        servicelist_response: ServiceList response data
+        seatavailability_response: SeatAvailability response data
+        selected_services: List of selected service ObjectKeys
+        selected_seats: List of selected seat positions (e.g., ['47G', '48A'])
+    
+    Returns:
+        Dict with pricing requirements information
+    """
+    services_require_pricing = []
+    seats_require_pricing = []
+    
+    # Check services
+    if servicelist_response and selected_services:
+        services = servicelist_response.get('Services', {}).get('Service', [])
+        # Handle case where Service is a single dict instead of a list
+        if isinstance(services, dict):
+            services = [services]
+        elif not isinstance(services, list):
+            services = []
+            
+        for service in services:
+            if isinstance(service, dict):
+                service_key = service.get('ObjectKey', '')
+                priced_ind = service.get('PricedInd', True)
+                
+                if service_key in selected_services and not priced_ind:
+                    services_require_pricing.append(service_key)
+    
+    # Check seats - FIXED: Handle pricing ObjectKeys directly
+    if seatavailability_response and selected_seats:
+        # Get seat services from response
+        seat_services = seatavailability_response.get('Services', {}).get('Service', [])
+        if not isinstance(seat_services, list):
+            seat_services = [seat_services] if seat_services else []
+        
+        # Check each selected seat (which are pricing ObjectKeys)
+        for selected_seat in selected_seats:
+            # Find the service that matches this pricing ObjectKey
+            for service in seat_services:
+                if isinstance(service, dict):
+                    service_key = service.get('ObjectKey', '')
+                    if service_key == selected_seat:
+                        priced_ind = service.get('PricedInd', True)
+                        if not priced_ind:
+                            seats_require_pricing.append(selected_seat)
+                            break  # Found one that requires pricing, no need to check others for this seat
+    
+    requires_pricing = len(services_require_pricing) > 0 or len(seats_require_pricing) > 0
+    
+    return {
+        'requires_pricing': requires_pricing,
+        'services_require_pricing': services_require_pricing,
+        'seats_require_pricing': seats_require_pricing,
+        'total_items_requiring_pricing': len(services_require_pricing) + len(seats_require_pricing)
+    }
+
+
 
 # Simple in-memory request deduplication cache
 class RequestDeduplicationCache:
@@ -979,18 +1046,71 @@ async def flight_price():
                 logger.info(f"🔑 GUARANTEED cached flight_price_cache_key transmission: metadata={cached_data['metadata']['flight_price_cache_key']}, top_level={cache_response['flight_price_cache_key']}")
                 return jsonify(cache_response)
         
-        # Log the offer details for debugging
-        logger.info(f"[DEBUG] Flight price request (cache miss) - Offer ID: {offer_id}, Type: {type(offer_id).__name__}")
+        # NEW: Check if this is a PricedInd=false pricing request
+        servicelist_response = data.get('servicelist_response')
+        seatavailability_response = data.get('seatavailability_response')
+        selected_services = data.get('selected_services', [])
+        selected_seats = data.get('selected_seats', [])
         
-        price_request = {
-            'offer_id': offer_id,  # This is the frontend's offer ID
-            'shopping_response_id': shopping_response_id,
-            'air_shopping_response': air_shopping,
-            'currency': data.get('currency', 'USD'),
-            'request_id': request_id,
-            'raw_response_cache_key': raw_response_cache_key,  # For optimized backend caching
-            'config': dict(current_app.config)  # Pass the app configuration
-        }
+        # Check if pricing is required for selected services and seats
+        pricing_info = detect_pricing_required(
+            servicelist_response=servicelist_response,
+            seatavailability_response=seatavailability_response,
+            selected_services=selected_services,
+            selected_seats=selected_seats
+        )
+        
+        if pricing_info['requires_pricing']:
+            logger.info(f"💰 PricedInd=false scenario detected - using ancillary pricing builder - Request ID: {request_id}")
+            logger.info(f"Pricing required for: {pricing_info}")
+            
+            # Use ancillary pricing builder for PricedInd=false scenario
+            from scripts.build_flightprice_ancillary_rq import build_flightprice_ancillary_request
+            
+            # Build ancillary pricing request
+            ancillary_request = build_flightprice_ancillary_request(
+                flight_price_response=air_shopping,  # Use air shopping response as base
+                servicelist_response=servicelist_response,
+                seatavailability_response=seatavailability_response,
+                selected_services=selected_services,
+                selected_seats=selected_seats
+            )
+            
+            if not ancillary_request:
+                return jsonify(_create_error_response("Failed to build ancillary pricing request", 400, request_id))
+            
+            logger.info(f"✅ Built ancillary pricing request with {len(ancillary_request.get('Query', {}).get('Offers', {}).get('Offer', [{}])[0].get('OfferItemIDs', {}).get('OfferItemID', []))} items")
+            
+            # NEW: Log ancillary pricing request
+            from utils.api_logger import api_logger
+            api_logger.log_request(
+                service_name='FlightPrice',
+                request_id=request_id,
+                payload=ancillary_request,
+                endpoint='/entrygate/rest/request:flightPrice',
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            # Create price request for ancillary pricing
+            price_request = {
+                'ancillary_pricing_request': ancillary_request,  # Use ancillary request
+                'pricing_info': pricing_info,
+                'request_id': request_id,
+                'config': dict(current_app.config)
+            }
+        else:
+            # Standard flight pricing request
+            logger.info(f"[DEBUG] Standard flight price request - Offer ID: {offer_id}, Type: {type(offer_id).__name__}")
+            
+            price_request = {
+                'offer_id': offer_id,  # This is the frontend's offer ID
+                'shopping_response_id': shopping_response_id,
+                'air_shopping_response': air_shopping,
+                'currency': data.get('currency', 'USD'),
+                'request_id': request_id,
+                'raw_response_cache_key': raw_response_cache_key,  # For optimized backend caching
+                'config': dict(current_app.config)  # Pass the app configuration
+            }
         
         # Add request deduplication to prevent multiple concurrent API calls for same flight pricing
         dedup_key = f"flight_price:{cache_key}"
@@ -1133,6 +1253,16 @@ async def flight_price():
                 logger.info(f"Flight price request completed with status: {status} - Request ID: {request_id}")
                 if status == 'error' and not is_expired_offer_error:
                     logger.error(f"Error in flight price request: {result.get('error', 'No error details')} - Request ID: {request_id}")
+                
+                # NEW: Log FlightPrice response
+                from utils.api_logger import api_logger
+                api_logger.log_response(
+                    service_name='FlightPrice',
+                    request_id=request_id,
+                    response=result,
+                    status_code=200 if status == 'success' else 400,
+                    response_time_ms=None  # Could be calculated if needed
+                )
 
             return jsonify(result)
             
@@ -1453,32 +1583,46 @@ async def create_order():
                     
                 logger.info(f"[FALLBACK] Extracted flight_price_cache_key: {flight_price_cache_key} (ReqID: {request_id})")
             
-            # Derive cache keys using the same logic as seat/service endpoints
+            # 🔧 FIXED: Use the flight_price_cache_key directly for consistency with seat/service endpoints
+            # The seat/service data is stored with the flight_price_cache_key as session_id
             if flight_price_cache_key and not seat_availability_cache_key:
-                try:
-                    # Import the cache key generation function
-                    from routes.clean_seat_service import _generate_seat_availability_cache_key
-                    derived_seat_key = _generate_seat_availability_cache_key(
-                        flight_price_response=flight_price_response,
-                        flight_price_cache_key=flight_price_cache_key
-                    )
-                    seat_availability_cache_key = derived_seat_key
-                    logger.info(f"[FALLBACK] ✅ Derived seat_availability_cache_key: {seat_availability_cache_key} (ReqID: {request_id})")
-                except Exception as e:
-                    logger.warning(f"[FALLBACK] Failed to derive seat cache key: {e} (ReqID: {request_id})")
+                seat_availability_cache_key = flight_price_cache_key
+                logger.info(f"[FALLBACK] ✅ Using flight_price_cache_key for seat_availability_cache_key: {seat_availability_cache_key} (ReqID: {request_id})")
             
             if flight_price_cache_key and not service_list_cache_key:
-                try:
-                    # Import the cache key generation function  
-                    from routes.clean_seat_service import _generate_service_list_cache_key
-                    derived_service_key = _generate_service_list_cache_key(
-                        flight_price_response=flight_price_response,
-                        flight_price_cache_key=flight_price_cache_key
-                    )
-                    service_list_cache_key = derived_service_key
-                    logger.info(f"[FALLBACK] ✅ Derived service_list_cache_key: {service_list_cache_key} (ReqID: {request_id})")
-                except Exception as e:
-                    logger.warning(f"[FALLBACK] Failed to derive service cache key: {e} (ReqID: {request_id})")
+                service_list_cache_key = flight_price_cache_key
+                logger.info(f"[FALLBACK] ✅ Using flight_price_cache_key for service_list_cache_key: {service_list_cache_key} (ReqID: {request_id})")
+            
+            # If no flight_price_cache_key, fall back to the old derivation method
+            if not flight_price_cache_key:
+                logger.warning(f"[FALLBACK] No flight_price_cache_key found, falling back to derivation (ReqID: {request_id})")
+                
+                # Derive cache keys using the same logic as seat/service endpoints
+                if not seat_availability_cache_key:
+                    try:
+                        # Import the cache key generation function
+                        from routes.clean_seat_service import _generate_seat_availability_cache_key
+                        derived_seat_key = _generate_seat_availability_cache_key(
+                            flight_price_response=flight_price_response,
+                            flight_price_cache_key=flight_price_cache_key
+                        )
+                        seat_availability_cache_key = derived_seat_key
+                        logger.info(f"[FALLBACK] ✅ Derived seat_availability_cache_key: {seat_availability_cache_key} (ReqID: {request_id})")
+                    except Exception as e:
+                        logger.warning(f"[FALLBACK] Failed to derive seat cache key: {e} (ReqID: {request_id})")
+                
+                if not service_list_cache_key:
+                    try:
+                        # Import the cache key generation function  
+                        from routes.clean_seat_service import _generate_service_list_cache_key
+                        derived_service_key = _generate_service_list_cache_key(
+                            flight_price_response=flight_price_response,
+                            flight_price_cache_key=flight_price_cache_key
+                        )
+                        service_list_cache_key = derived_service_key
+                        logger.info(f"[FALLBACK] ✅ Derived service_list_cache_key: {service_list_cache_key} (ReqID: {request_id})")
+                    except Exception as e:
+                        logger.warning(f"[FALLBACK] Failed to derive service cache key: {e} (ReqID: {request_id})")
         
         # 🔍 DEBUG: Log raw request data to identify missing keys
         logger.info(f"[DEBUG] RAW REQUEST DATA received at OrderCreate (ReqID: {request_id}):")
@@ -1645,6 +1789,80 @@ async def create_order():
         if not contact_info or not contact_info.get('email'):
             return jsonify(_create_error_response("Contact information with email is required", 400, request_id))
         
+        # FIXED: Check if pricing is required for selected services and seats BEFORE OrderCreate
+        from scripts.build_flightprice_ancillary_rq import detect_pricing_required
+        pricing_info = detect_pricing_required(
+            servicelist_response=servicelist_response,
+            seatavailability_response=seatavailability_response,
+            selected_services=selected_services,
+            selected_seats=selected_seats
+        )
+        
+        logger.info(f"🔍 Pricing requirements: {pricing_info} - Request ID: {request_id}")
+        
+        # FIXED: Handle PricedInd=false scenario by calling ancillary pricing API
+        ancillary_pricing_response = None
+        if pricing_info['requires_pricing']:
+            logger.info("💰 PricedInd=false scenario detected - calling ancillary pricing API")
+            
+            # Check if ancillary pricing response is already provided
+            ancillary_pricing_response = data.get('ancillary_pricing_response')
+            
+            if not ancillary_pricing_response:
+                # Call ancillary pricing API
+                try:
+                    from scripts.build_flightprice_ancillary_rq import build_flightprice_ancillary_request
+                    from services.flight.core import make_api_request
+                    from utils.auth import TokenManager
+                    
+                    # Build ancillary pricing request
+                    ancillary_request = build_flightprice_ancillary_request(
+                        flight_price_response=flight_price_response,
+                        servicelist_response=servicelist_response,
+                        seatavailability_response=seatavailability_response,
+                        selected_services=selected_services,
+                        selected_seats=selected_seats,
+                        selected_offer_index=0
+                    )
+                    
+                    # Get token for API call
+                    token_manager = TokenManager.get_instance()
+                    bearer_token = token_manager.get_token()
+                    
+                    # Make ancillary pricing API call
+                    logger.info(f"🚀 Calling ancillary pricing API for {pricing_info['total_items_require_pricing']} items")
+                    ancillary_pricing_response = await make_api_request(
+                        url=f"{current_app.config.get('VERTEIL_API_BASE_URL')}/entrygate/rest/request:preFlightPrice",
+                        method='POST',
+                        headers={
+                            'Content-Type': 'application/json',
+                            'Accept': '*/*',
+                            'Authorization': bearer_token,
+                            'OfficeId': current_app.config.get('VERTEIL_OFFICE_ID'),
+                            'service': 'FlightPrice',
+                            'User-Agent': 'PostmanRuntime/7.41',
+                            'Cache-Control': 'no-cache',
+                            'Accept-Encoding': 'gzip, deflate, br',
+                            'Connection': 'keep-alive'
+                        },
+                        json_data=ancillary_request,
+                        service_name='FlightPrice',
+                        request_id=request_id
+                    )
+                    
+                    logger.info("✅ Ancillary pricing API call completed successfully")
+                    
+                except Exception as e:
+                    logger.error(f"❌ Failed to call ancillary pricing API: {e}")
+                    return jsonify(_create_error_response(
+                        f"Failed to price selected services/seats: {str(e)}", 
+                        500, request_id
+                    ))
+            
+            logger.info("✅ Ancillary pricing response available - will use enhanced OrderCreate builder")
+        else:
+            logger.info("✅ PricedInd=true scenario - using standard OrderCreate builder")
+        
         # Prepare order data for the booking service (pass raw frontend data)
         order_data = {
             'flight_price_response': flight_price_response,  # Consistent naming throughout backend
@@ -1660,13 +1878,25 @@ async def create_order():
             'selected_services': selected_services,  # Pass selected service ObjectKeys
             'selected_seats': selected_seats,  # Pass selected seat ObjectKeys
             'seat_availability_cache_key': seat_availability_cache_key,  # 🚀 Direct cache key from frontend
-            'service_list_cache_key': service_list_cache_key  # 🚀 Direct cache key from frontend
+            'service_list_cache_key': service_list_cache_key,  # 🚀 Direct cache key from frontend
+            'pricing_info': pricing_info,  # NEW: Pass pricing requirements info
+            'ancillary_pricing_response': ancillary_pricing_response if pricing_info['requires_pricing'] else None  # NEW: Pass pricing response if needed
         }
         
         # DEBUG: Log order data summary (without verbose content)
         logger.info(f"[DEBUG] Order data being sent to booking service (ReqID: {request_id}) - Keys: {list(order_data.keys()) if order_data else 'None'}")
         
         logger.info(f"Processing order creation - Request ID: {request_id}")
+        
+        # NEW: Log OrderCreate request
+        from utils.api_logger import api_logger
+        api_logger.log_request(
+            service_name='OrderCreate',
+            request_id=request_id,
+            payload=order_data,
+            endpoint='/entrygate/rest/request:orderCreate',
+            headers={'Content-Type': 'application/json'}
+        )
         
         # Call the booking service
         result = await process_order_create(order_data)
@@ -1724,6 +1954,15 @@ async def create_order():
                     
             except Exception as storage_error:
                 logger.warning(f"⚠️ Error storing OrderCreate response in Redis: {storage_error}")
+            
+            # NEW: Log OrderCreate response
+            api_logger.log_response(
+                service_name='OrderCreate',
+                request_id=request_id,
+                response=result,
+                status_code=200,
+                response_time_ms=None
+            )
             
             return jsonify({
                 'status': 'success',

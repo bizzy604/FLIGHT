@@ -775,7 +775,7 @@ export default function PaymentPage() {
                     selectedSeats={booking.extras?.seats || { outbound: [], return: [] }}
                     selectedServices={booking.extras?.services || []}
                     seatPrices={booking.extras?.seatPrices || { outbound: 0, return: 0 }}
-                    services={booking.extras?.serviceData || []}
+                    services={Array.isArray(booking.extras?.serviceData) ? booking.extras.serviceData : []}
                   />
                 </div>
               </div>

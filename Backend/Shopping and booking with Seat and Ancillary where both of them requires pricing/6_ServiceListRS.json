@@ -1,0 +1,428 @@
+{
+	"OfferExpiration": {
+		"ObjectKey": "a587dc6f-3bc2-4522-87dc-6f3bc2050002",
+		"DateTime": "2025-04-06T16:03:06.259",
+		"Time": "2025-04-07T01:03:06.259"
+	},
+	"ShoppingResponseID": {
+		"ResponseID": {
+			"value": "duV1keHMCB9h0mXfaMZU34q6nikYue8CvOUdAbAYT40-26"
+		}
+	},
+	"Services": {
+		"Service": [
+			{
+				"ObjectKey": "1-ServiceId26-1",
+				"ServiceID": {
+					"ObjectKey": "cc9f5fc7-8ff2-44e1-9f5f-c78ff2d40001",
+					"value": "SRV1",
+					"Owner": "26"
+				},
+				"Name": {
+					"value": "LOUNGE:LOUNGE - CDG 26 Terminal 2E"
+				},
+				"Descriptions": {
+					"Description": [
+						{
+							"Text": {
+								"value": "LOUNGE"
+							}
+						}
+					]
+				},
+				"Price": [
+					{
+						"Total": {
+							"value": 6938.0,
+							"Code": "INR"
+						}
+					}
+				],
+				"BookingInstructions": {
+					"SSRCode": [
+						"LOUNGE"
+					],
+					"Method": "SSR"
+				},
+				"Associations": [
+					{
+						"Traveler": {
+							"TravelerReferences": [
+								"PAX1"
+							]
+						},
+						"Flight": {
+							"originDestinationReferencesOrSegmentReferences": [
+								{
+									"SegmentReferences": {
+										"value": [
+											"SEG2"
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"PricedInd": false
+			},
+			{
+				"ObjectKey": "1-ServiceId26-2",
+				"ServiceID": {
+					"ObjectKey": "cc9f5fc7-8ff2-44e1-9f5f-c78ff2d40002",
+					"value": "SRV2",
+					"Owner": "26"
+				},
+				"Name": {
+					"value": "BAG:LUGGAGE-FIRST ADDITIONAL BAG"
+				},
+				"Descriptions": {
+					"Description": [
+						{
+							"Text": {
+								"value": "1 ABAG x 23 KG"
+							}
+						}
+					]
+				},
+				"Price": [
+					{
+						"Total": {
+							"value": 4625.0,
+							"Code": "INR"
+						}
+					}
+				],
+				"BookingInstructions": {
+					"SSRCode": [
+						"ABAG"
+					],
+					"Method": "SSR"
+				},
+				"Associations": [
+					{
+						"Traveler": {
+							"TravelerReferences": [
+								"PAX1"
+							]
+						},
+						"Flight": {
+							"originDestinationReferencesOrSegmentReferences": [
+								{
+									"SegmentReferences": {
+										"value": [
+											"SEG2"
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"PricedInd": false
+			},
+			{
+				"ObjectKey": "1-ServiceId26-11",
+				"ServiceID": {
+					"ObjectKey": "cc9f5fc7-8ff2-44e1-9f5f-c78ff2d4000b",
+					"value": "SRV13",
+					"Owner": "26"
+				},
+				"Name": {
+					"value": "DISABILITY:WCHR - Wheelchair request - Stairs OK"
+				},
+				"Descriptions": {
+					"Description": [
+						{
+							"Text": {
+								"value": "Wheelchair request - Stairs OK"
+							}
+						}
+					]
+				},
+				"Price": [
+					{
+						"Total": {
+							"value": 0.0,
+							"Code": "INR"
+						}
+					}
+				],
+				"BookingInstructions": {
+					"SSRCode": [
+						"WCHR"
+					],
+					"Method": "SSR"
+				},
+				"Associations": [
+					{
+						"Traveler": {
+							"TravelerReferences": [
+								"PAX1"
+							]
+						},
+						"Flight": {
+							"originDestinationReferencesOrSegmentReferences": [
+								{
+									"SegmentReferences": {
+										"value": [
+											"SEG2"
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"PricedInd": false
+			},
+			{
+				"ObjectKey": "1-ServiceId26-12",
+				"ServiceID": {
+					"ObjectKey": "cc9f5fc7-8ff2-44e1-9f5f-c78ff2d4000c",
+					"value": "SRV14",
+					"Owner": "26"
+				},
+				"Name": {
+					"value": "DISABILITY:WCHS - Wheelchair request - No Stairs"
+				},
+				"Descriptions": {
+					"Description": [
+						{
+							"Text": {
+								"value": "Wheelchair request - No Stairs"
+							}
+						}
+					]
+				},
+				"Price": [
+					{
+						"Total": {
+							"value": 0.0,
+							"Code": "INR"
+						}
+					}
+				],
+				"BookingInstructions": {
+					"SSRCode": [
+						"WCHS"
+					],
+					"Method": "SSR"
+				},
+				"Associations": [
+					{
+						"Traveler": {
+							"TravelerReferences": [
+								"PAX1"
+							]
+						},
+						"Flight": {
+							"originDestinationReferencesOrSegmentReferences": [
+								{
+									"SegmentReferences": {
+										"value": [
+											"SEG2"
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"PricedInd": false
+			},
+			{
+				"ObjectKey": "1-ServiceId26-13",
+				"ServiceID": {
+					"ObjectKey": "cc9f5fc7-8ff2-44e1-9f5f-c78ff2d4000d",
+					"value": "SRV15",
+					"Owner": "26"
+				},
+				"Name": {
+					"value": "DISABILITY:BLND - Visual impairment"
+				},
+				"Descriptions": {
+					"Description": [
+						{
+							"Text": {
+								"value": "Visual impairment"
+							}
+						}
+					]
+				},
+				"Price": [
+					{
+						"Total": {
+							"value": 0.0,
+							"Code": "INR"
+						}
+					}
+				],
+				"BookingInstructions": {
+					"SSRCode": [
+						"BLND"
+					],
+					"Method": "SSR"
+				},
+				"Associations": [
+					{
+						"Traveler": {
+							"TravelerReferences": [
+								"PAX1"
+							]
+						},
+						"Flight": {
+							"originDestinationReferencesOrSegmentReferences": [
+								{
+									"SegmentReferences": {
+										"value": [
+											"SEG2"
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"PricedInd": false
+			},
+			{
+				"ObjectKey": "1-ServiceId26-14",
+				"ServiceID": {
+					"ObjectKey": "cc9f5fc7-8ff2-44e1-9f5f-c78ff2d4000e",
+					"value": "SRV16",
+					"Owner": "26"
+				},
+				"Name": {
+					"value": "DISABILITY:DE26 - Hearing impairment"
+				},
+				"Descriptions": {
+					"Description": [
+						{
+							"Text": {
+								"value": "Hearing impairment"
+							}
+						}
+					]
+				},
+				"Price": [
+					{
+						"Total": {
+							"value": 0.0,
+							"Code": "INR"
+						}
+					}
+				],
+				"BookingInstructions": {
+					"SSRCode": [
+						"DE26"
+					],
+					"Method": "SSR"
+				},
+				"Associations": [
+					{
+						"Traveler": {
+							"TravelerReferences": [
+								"PAX1"
+							]
+						},
+						"Flight": {
+							"originDestinationReferencesOrSegmentReferences": [
+								{
+									"SegmentReferences": {
+										"value": [
+											"SEG2"
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"PricedInd": false
+			}
+		]
+	},
+	"DataLists": {
+		"RecognizedTravelerList": {
+			"RecognizedTraveler": [
+				{
+					"ObjectKey": "PAX1",
+					"PTC": {
+						"value": "ADT"
+					}
+				}
+			]
+		},
+		"FlightSegmentList": {
+			"FlightSegment": [
+				{
+					"SegmentKey": "SEG2",
+					"Departure": {
+						"AirportCode": {
+							"value": "CDG"
+						},
+						"Date": "2025-05-12T00:00:00.000",
+						"Time": "16:10",
+						"Terminal": {
+							"Name": "2E"
+						}
+					},
+					"Arrival": {
+						"AirportCode": {
+							"value": "LHR"
+						},
+						"Date": "2025-05-12T00:00:00.000",
+						"Time": "16:35",
+						"Terminal": {
+							"Name": "4"
+						}
+					},
+					"MarketingCarrier": {
+						"AirlineID": {
+							"value": "26"
+						},
+						"FlightNumber": {
+							"value": "1280"
+						}
+					},
+					"OperatingCarrier": {
+						"AirlineID": {
+							"value": "26"
+						}
+					}
+				}
+			]
+		},
+		"FlightList": {
+			"Flight": [
+				{
+					"FlightKey": "PJ2",
+					"SegmentReferences": {
+						"value": [
+							"SEG2"
+						]
+					}
+				}
+			]
+		},
+		"OriginDestinationList": {
+			"OriginDestination": [
+				{
+					"OriginDestinationKey": "OD2",
+					"FlightReferences": {
+						"value": [
+							"PJ2"
+						]
+					},
+					"DepartureCode": {
+						"value": "CDG"
+					},
+					"ArrivalCode": {
+						"value": "LHR"
+					}
+				}
+			]
+		}
+	}
+}

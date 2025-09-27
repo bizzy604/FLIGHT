@@ -1,0 +1,694 @@
+{
+	"Success": {},
+	"Warnings": {
+		"Warning": [
+			{
+				"value": "Air product quote changed",
+				"Status": "AIR_PRODUCT_QUOTE_CHANGED"
+			},
+			{
+				"value": "This agency is not authorised to pay by debit or credit card",
+				"Status": "WARNING_AGENCY_NOT_CC_AUTHORISED"
+			}
+		]
+	},
+	"ShoppingResponseID": {
+		"ResponseID": {
+			"value": "duV1keHMCB9h0mXfaMZU34q6nikYue8CvOUdAbAYT40-26"
+		}
+	},
+	"PricedFlightOffers": {
+		"PricedFlightOffer": [
+			{
+				"OfferID": {
+					"ObjectKey": "a587dc6f-3bc2-4522-87dc-6f3bc2050002",
+					"value": "a587dc6f-3bc2-4522-87dc-6f3bc2050002",
+					"Owner": "26",
+					"Channel": "NDC"
+				},
+				"OfferPrice": [
+					{
+						"RequestedDate": {
+							"Associations": [
+								{
+									"AssociatedTraveler": {
+										"TravelerReferences": [
+											"PAX1"
+										]
+									},
+									"ApplicableFlight": {
+										"FlightSegmentReference": [
+											{
+												"ClassOfService": {
+													"Code": {
+														"value": "V"
+													},
+													"MarketingName": {
+														"value": "ECONOMY",
+														"CabinDesignator": "Y"
+													},
+													"refs": [
+														"FG-SEG1"
+													]
+												},
+												"BagDetailAssociation": {
+													"CheckedBagReferences": [
+														"BA2_CHECKED_ADT"
+													],
+													"CarryOnReferences": [
+														"BA1_CARRY_ON_ADT"
+													]
+												},
+												"ref": "SEG1"
+											}
+										],
+										"OriginDestinationReferences": [
+											"OD1"
+										],
+										"FlightReferences": {
+											"value": [
+												"PJ1"
+											]
+										}
+									},
+									"PriceClass": {
+										"PriceClassReference": "PC1"
+									}
+								}
+							],
+							"PriceDetail": {
+								"TotalAmount": {
+									"SimpleCurrencyPrice": {
+										"value": 12577.0,
+										"Code": "INR"
+									}
+								},
+								"BaseAmount": {
+									"value": 8355.0,
+									"Code": "INR"
+								},
+								"Taxes": {
+									"Total": {
+										"value": 4222.0,
+										"Code": "INR"
+									},
+									"Breakdown": {
+										"Tax": [
+											{
+												"Amount": {
+													"value": 141.0,
+													"Code": "INR"
+												},
+												"TaxCode": "YR"
+											},
+											{
+												"Amount": {
+													"value": 483.0,
+													"Code": "INR"
+												},
+												"TaxCode": "FR"
+											},
+											{
+												"Amount": {
+													"value": 1225.0,
+													"Code": "INR"
+												},
+												"TaxCode": "FR"
+											},
+											{
+												"Amount": {
+													"value": 695.0,
+													"Code": "INR"
+												},
+												"TaxCode": "O4"
+											},
+											{
+												"Amount": {
+													"value": 1443.0,
+													"Code": "INR"
+												},
+												"TaxCode": "QX"
+											},
+											{
+												"Amount": {
+													"value": 235.0,
+													"Code": "INR"
+												},
+												"TaxCode": "T02"
+											}
+										]
+									}
+								}
+							}
+						},
+						"FareDetail": {
+							"FareComponent": [
+								{
+									"FareBasis": {
+										"FareBasisCode": {
+											"Code": "VYSFBBSA"
+										},
+										"RBD": "V"
+									},
+									"FareRules": {
+										"Penalty": {
+											"refs": [
+												"PEN_NoShow_NOSHOW_CANCELLATION_12577.00_false",
+												"PEN_Cancellation_PDE_12577.00_NAV_N",
+												"PEN_NoShow_NOSHOW_CHANGE_12577.00_false",
+												"PEN_Cancellation_ADE_12577.00_NAV_N",
+												"PEN_Change_ADE_70_Y",
+												"PEN_Change_PDE_70_Y"
+											]
+										}
+									},
+									"refs": [
+										"SEG1"
+									]
+								}
+							]
+						},
+						"OfferItemID": "b9835319-ef48-46f5-8353-19ef48e6f5fc"
+					}
+				],
+				"TimeLimits": {
+					"OfferExpiration": {
+						"DateTime": "2025-04-06T16:03:06.259"
+					},
+					"Payment": {
+						"DateTime": "2025-04-12T23:59:00.000"
+					}
+				}
+			}
+		]
+	},
+	"DataLists": {
+		"AnonymousTravelerList": {
+			"AnonymousTraveler": [
+				{
+					"ObjectKey": "PAX1",
+					"PTC": {
+						"value": "ADT"
+					}
+				}
+			]
+		},
+		"CarryOnAllowanceList": {
+			"CarryOnAllowance": [
+				{
+					"ListKey": "BA1_CARRY_ON_ADT",
+					"AllowanceDescription": {
+						"ApplicableParty": "Traveler",
+						"Descriptions": {
+							"Description": [
+								{
+									"Text": {
+										"value": "Height 13.8 IN"
+									}
+								},
+								{
+									"Text": {
+										"value": "Width 9.9 IN"
+									}
+								},
+								{
+									"Text": {
+										"value": "Length 21.7 IN"
+									}
+								},
+								{
+									"Text": {
+										"value": "Total Linear 45.4 IN"
+									}
+								}
+							]
+						}
+					},
+					"PieceAllowance": [
+						{
+							"ApplicableParty": "Traveler",
+							"TotalQuantity": 1
+						}
+					],
+					"WeightAllowance": {
+						"ApplicableParty": "Traveler",
+						"MaximumWeight": [
+							{
+								"Value": 12.0,
+								"UOM": "Kilogram"
+							},
+							{
+								"Value": 26.0,
+								"UOM": "Pound"
+							}
+						]
+					}
+				}
+			]
+		},
+		"CheckedBagAllowanceList": {
+			"CheckedBagAllowance": [
+				{
+					"ListKey": "BA2_CHECKED_ADT",
+					"AllowanceDescription": {
+						"ApplicableParty": "Traveler",
+						"Descriptions": {
+							"Description": [
+								{
+									"Text": {
+										"value": "Total Linear 62.2 IN"
+									}
+								}
+							]
+						}
+					},
+					"PieceAllowance": [
+						{
+							"ApplicableParty": "Traveler",
+							"TotalQuantity": 1
+						}
+					],
+					"WeightAllowance": {
+						"ApplicableParty": "Traveler",
+						"MaximumWeight": [
+							{
+								"Value": 23.0,
+								"UOM": "Kilogram"
+							},
+							{
+								"Value": 50.0,
+								"UOM": "Pound"
+							}
+						]
+					}
+				}
+			]
+		},
+		"FareList": {
+			"FareGroup": [
+				{
+					"ListKey": "FG-SEG1",
+					"Fare": {
+						"FareCode": {
+							"Code": "70J"
+						},
+						"FareDetail": {
+							"Remarks": {
+								"Remark": [
+									{
+										"value": "PUBL"
+									}
+								]
+							}
+						}
+					},
+					"FareBasisCode": {
+						"Code": "VYSFBBSA"
+					}
+				}
+			]
+		},
+		"FlightSegmentList": {
+			"FlightSegment": [
+				{
+					"SegmentKey": "SEG1",
+					"Departure": {
+						"AirportCode": {
+							"value": "CDG"
+						},
+						"Date": "2025-05-12T16:10:00.000",
+						"Time": "16:10",
+						"Terminal": {
+							"Name": "2E"
+						}
+					},
+					"Arrival": {
+						"AirportCode": {
+							"value": "LHR"
+						},
+						"Date": "2025-05-12T16:35:00.000",
+						"Time": "16:35",
+						"Terminal": {
+							"Name": "4"
+						}
+					},
+					"MarketingCarrier": {
+						"AirlineID": {
+							"value": "26"
+						},
+						"FlightNumber": {
+							"value": "1280"
+						}
+					},
+					"OperatingCarrier": {
+						"AirlineID": {
+							"value": "26"
+						}
+					},
+					"Equipment": {
+						"Aircr26tCode": {
+							"value": "223"
+						}
+					},
+					"ClassOfService": {
+						"Code": {
+							"value": "V"
+						},
+						"refs": [
+							"FG-SEG1"
+						]
+					},
+					"FlightDetail": {
+						"FlightDuration": {
+							"Value": "PT1H25M"
+						}
+					}
+				}
+			]
+		},
+		"FlightList": {
+			"Flight": [
+				{
+					"FlightKey": "PJ1",
+					"SegmentReferences": {
+						"value": [
+							"SEG1"
+						]
+					}
+				}
+			]
+		},
+		"OriginDestinationList": {
+			"OriginDestination": [
+				{
+					"OriginDestinationKey": "OD1",
+					"FlightReferences": {
+						"value": [
+							"PJ1"
+						]
+					},
+					"DepartureCode": {
+						"value": "CDG"
+					},
+					"ArrivalCode": {
+						"value": "LHR"
+					}
+				}
+			]
+		},
+		"PenaltyList": {
+			"Penalty": [
+				{
+					"ObjectKey": "PEN_NoShow_NOSHOW_CHANGE_12577.00_false",
+					"Details": {
+						"Detail": [
+							{
+								"Type": "Change-Noshow",
+								"Application": {
+									"Code": "1"
+								},
+								"Amounts": {
+									"Amount": [
+										{
+											"CurrencyAmountValue": {
+												"value": 12577.0,
+												"Code": "INR"
+											},
+											"AmountApplication": "MIN",
+											"ApplicableFeeRemarks": {
+												"Remark": [
+													{
+														"value": "false"
+													}
+												]
+											}
+										},
+										{
+											"CurrencyAmountValue": {
+												"value": 12577.0,
+												"Code": "INR"
+											},
+											"AmountApplication": "MAX",
+											"ApplicableFeeRemarks": {
+												"Remark": [
+													{
+														"value": "false"
+													}
+												]
+											}
+										}
+									]
+								}
+							}
+						]
+					},
+					"ChangeFeeInd": false,
+					"ChangeAllowedInd": false
+				},
+				{
+					"ObjectKey": "PEN_NoShow_NOSHOW_CANCELLATION_12577.00_false",
+					"Details": {
+						"Detail": [
+							{
+								"Type": "Cancel-Noshow",
+								"Application": {
+									"Code": "1"
+								},
+								"Amounts": {
+									"Amount": [
+										{
+											"CurrencyAmountValue": {
+												"value": 12577.0,
+												"Code": "INR"
+											},
+											"AmountApplication": "MIN",
+											"ApplicableFeeRemarks": {
+												"Remark": [
+													{
+														"value": "false"
+													}
+												]
+											}
+										},
+										{
+											"CurrencyAmountValue": {
+												"value": 12577.0,
+												"Code": "INR"
+											},
+											"AmountApplication": "MAX",
+											"ApplicableFeeRemarks": {
+												"Remark": [
+													{
+														"value": "false"
+													}
+												]
+											}
+										}
+									]
+								}
+							}
+						]
+					},
+					"CancelFeeInd": false,
+					"RefundableInd": false
+				},
+				{
+					"ObjectKey": "PEN_Cancellation_PDE_12577.00_NAV_N",
+					"Details": {
+						"Detail": [
+							{
+								"Type": "Cancel",
+								"Application": {
+									"Code": "2"
+								},
+								"Amounts": {
+									"Amount": [
+										{
+											"CurrencyAmountValue": {
+												"value": 12577.0,
+												"Code": "INR"
+											},
+											"AmountApplication": "MIN",
+											"ApplicableFeeRemarks": {
+												"Remark": [
+													{
+														"value": "NAV"
+													}
+												]
+											}
+										},
+										{
+											"CurrencyAmountValue": {
+												"value": 12577.0,
+												"Code": "INR"
+											},
+											"AmountApplication": "MAX",
+											"ApplicableFeeRemarks": {
+												"Remark": [
+													{
+														"value": "NAV"
+													}
+												]
+											}
+										}
+									]
+								}
+							}
+						]
+					},
+					"CancelFeeInd": false,
+					"RefundableInd": false
+				},
+				{
+					"ObjectKey": "PEN_Cancellation_ADE_12577.00_NAV_N",
+					"Details": {
+						"Detail": [
+							{
+								"Type": "Cancel",
+								"Application": {
+									"Code": "3"
+								},
+								"Amounts": {
+									"Amount": [
+										{
+											"CurrencyAmountValue": {
+												"value": 12577.0,
+												"Code": "INR"
+											},
+											"AmountApplication": "MIN",
+											"ApplicableFeeRemarks": {
+												"Remark": [
+													{
+														"value": "NAV"
+													}
+												]
+											}
+										},
+										{
+											"CurrencyAmountValue": {
+												"value": 12577.0,
+												"Code": "INR"
+											},
+											"AmountApplication": "MAX",
+											"ApplicableFeeRemarks": {
+												"Remark": [
+													{
+														"value": "NAV"
+													}
+												]
+											}
+										}
+									]
+								}
+							}
+						]
+					},
+					"CancelFeeInd": false,
+					"RefundableInd": false
+				},
+				{
+					"ObjectKey": "PEN_Change_PDE_70_Y",
+					"Details": {
+						"Detail": [
+							{
+								"Type": "Change",
+								"Application": {
+									"Code": "2"
+								},
+								"Amounts": {
+									"Amount": [
+										{
+											"CurrencyAmountValue": {
+												"value": 70.0,
+												"Code": "EUR"
+											},
+											"AmountApplication": "MIN",
+											"ApplicableFeeRemarks": {
+												"Remark": [
+													{
+														"value": "Allowed"
+													}
+												]
+											}
+										},
+										{
+											"CurrencyAmountValue": {
+												"value": 70.0,
+												"Code": "EUR"
+											},
+											"AmountApplication": "MAX",
+											"ApplicableFeeRemarks": {
+												"Remark": [
+													{
+														"value": "Allowed"
+													}
+												]
+											}
+										}
+									]
+								}
+							}
+						]
+					},
+					"ChangeFeeInd": true,
+					"ChangeAllowedInd": true
+				},
+				{
+					"ObjectKey": "PEN_Change_ADE_70_Y",
+					"Details": {
+						"Detail": [
+							{
+								"Type": "Change",
+								"Application": {
+									"Code": "3"
+								},
+								"Amounts": {
+									"Amount": [
+										{
+											"CurrencyAmountValue": {
+												"value": 70.0,
+												"Code": "EUR"
+											},
+											"AmountApplication": "MIN",
+											"ApplicableFeeRemarks": {
+												"Remark": [
+													{
+														"value": "Allowed"
+													}
+												]
+											}
+										},
+										{
+											"CurrencyAmountValue": {
+												"value": 70.0,
+												"Code": "EUR"
+											},
+											"AmountApplication": "MAX",
+											"ApplicableFeeRemarks": {
+												"Remark": [
+													{
+														"value": "Allowed"
+													}
+												]
+											}
+										}
+									]
+								}
+							}
+						]
+					},
+					"ChangeFeeInd": true,
+					"ChangeAllowedInd": true
+				}
+			]
+		},
+		"PriceClassList": {
+			"PriceClass": [
+				{
+					"ObjectKey": "PC1",
+					"Name": "Standard"
+				}
+			]
+		}
+	}
+}

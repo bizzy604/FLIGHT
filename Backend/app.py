@@ -96,6 +96,12 @@ def create_app(test_config=None):
     from routes import clean_seat_service
     app.register_blueprint(clean_seat_service.bp)
     
+    # Register enhanced pricing and OrderCreate routes
+    from routes.ancillary_pricing_routes import bp as ancillary_pricing_bp
+    from routes.enhanced_ordercreate_routes import bp as enhanced_ordercreate_bp
+    app.register_blueprint(ancillary_pricing_bp)
+    app.register_blueprint(enhanced_ordercreate_bp)
+    
     # Register cache health monitoring routes
     from routes.cache_health import cache_health_bp
     app.register_blueprint(cache_health_bp)

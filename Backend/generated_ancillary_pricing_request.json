@@ -1,0 +1,141 @@
+{
+  "Travelers": {
+    "Traveler": [
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "Query": {
+    "OriginDestination": [
+      {
+        "Flight": [
+          {
+            "SegmentKey": "SEG1",
+            "Departure": {
+              "AirportCode": {
+                "value": "CDG"
+              },
+              "Date": "2025-05-12T16:10:00.000",
+              "Time": "16:10",
+              "Terminal": {
+                "Name": "2E"
+              }
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "LHR"
+              },
+              "Date": "2025-05-12T16:35:00.000",
+              "Time": "16:35",
+              "Terminal": {
+                "Name": "4"
+              }
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "26"
+              },
+              "FlightNumber": {
+                "value": "1280"
+              }
+            },
+            "OperatingCarrier": {
+              "AirlineID": {
+                "value": "26"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "Offers": {
+      "Offer": [
+        {
+          "OfferID": {
+            "ObjectKey": "a587dc6f-3bc2-4522-87dc-6f3bc2050002",
+            "value": "a587dc6f-3bc2-4522-87dc-6f3bc2050002",
+            "Owner": "26",
+            "Channel": "NDC"
+          },
+          "OfferItemIDs": {
+            "OfferItemID": [
+              {
+                "value": "b9835319-ef48-46f5-8353-19ef48e6f5fc",
+                "refs": [
+                  "PAX1"
+                ]
+              },
+              {
+                "value": "1-ServiceId26-1",
+                "refs": [
+                  "PAX1"
+                ],
+                "Quantity": 1
+              },
+              {
+                "value": "1-ServiceId26-2",
+                "refs": [
+                  "PAX1"
+                ],
+                "Quantity": 1
+              },
+              {
+                "value": "e0b3f0c5-9c44-4450-b3f0-c59c44f40002",
+                "refs": [
+                  "PAX1"
+                ],
+                "SelectedSeat": [
+                  {
+                    "Location": {
+                      "Column": "C",
+                      "Row": {
+                        "Number": {
+                          "value": "10"
+                        }
+                      }
+                    },
+                    "SeatAssociation": [
+                      {
+                        "SegmentReferences": {
+                          "value": [
+                            "SEG2"
+                          ]
+                        },
+                        "TravelerReference": "PAX1"
+                      }
+                    ]
+                  }
+                ],
+                "Quantity": 1
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "DataLists": {
+    "AnonymousTravelerList": {
+      "AnonymousTraveler": [
+        {
+          "ObjectKey": "PAX1",
+          "PTC": {
+            "value": "ADT"
+          }
+        }
+      ]
+    }
+  },
+  "ShoppingResponseID": {
+    "ResponseID": {
+      "value": "duV1keHMCB9h0mXfaMZU34q6nikYue8CvOUdAbAYT40-26"
+    }
+  }
+}

@@ -1,0 +1,202 @@
+{
+	"Travelers": {
+		"Traveler": [
+			{
+				"AnonymousTraveler": [
+					{
+						"PTC": {
+							"value": "ADT",
+							"Quantity": 1
+						}
+					}
+				]
+			}
+		]
+	},
+	"Query": {
+		"OriginDestination": [
+			{
+				"Flight": [
+					{
+						"SegmentKey": "SEG1",
+						"Departure": {
+							"AirportCode": {
+								"value": "CDG"
+							},
+							"Date": "2025-05-12T16:10:00.000",
+							"Time": "16:10",
+							"Terminal": {
+								"Name": "2E"
+							}
+						},
+						"Arrival": {
+							"AirportCode": {
+								"value": "LHR"
+							},
+							"Date": "2025-05-12T16:35:00.000",
+							"Time": "16:35",
+							"Terminal": {
+								"Name": "4"
+							}
+						},
+						"MarketingCarrier": {
+							"AirlineID": {
+								"value": "26"
+							},
+							"FlightNumber": {
+								"value": "1280"
+							}
+						},
+						"OperatingCarrier": {
+							"AirlineID": {
+								"value": "26"
+							}
+						},
+						"Equipment": {
+							"Aircr26tCode": {
+								"value": "223"
+							}
+						},
+						"ClassOfService": {
+							"Code": {
+								"value": "V"
+							},
+							"refs": [
+								"FG-SEG1"
+							]
+						},
+						"FlightDetail": {
+							"FlightDuration": {
+								"Value": "PT1H25M"
+							}
+						}
+					}
+				]
+			}
+		],
+		"Offers": {
+			"Offer": [
+				{
+					"OfferID": {
+						"value": "a587dc6f-3bc2-4522-87dc-6f3bc2050002",
+						"Owner": "26",
+						"Channel": "NDC"
+					},
+					"OfferItemIDs": {
+						"OfferItemID": [
+							{
+								"value": "b9835319-ef48-46f5-8353-19ef48e6f5fc",
+								"refs": [
+									"PAX1"
+								]
+							},
+							{
+								"value": "e0b3f0c5-9c44-4450-b3f0-c59c44f40005",
+								"SelectedSeat": [
+									{
+										"Location": {
+											"Column": "F",
+											"Row": {
+												"Number": {
+													"value": "6"
+												}
+											},
+											"Characteristics": {
+												"Characteristic": [
+													{
+														"Code": "AM"
+													},
+													{
+														"Code": "CH"
+													},
+													{
+														"Code": "O"
+													},
+													{
+														"Code": "RS"
+													},
+													{
+														"Code": "W"
+													},
+													{
+														"Remarks": {
+															"Remark": [
+																{
+																	"value": "A"
+																}
+															]
+														}
+													}
+												]
+											}
+										},
+										"SeatAssociation": [
+											{
+												"SegmentReferences": {
+													"value": [
+														"SEG2"
+													]
+												},
+												"TravelerReference": "PAX1"
+											}
+										]
+									}
+								],
+								"Quantity": 1
+							},
+							{
+								"value": "cc9f5fc7-8ff2-44e1-9f5f-c78ff2d40002",
+								"refs": [
+									"PAX1"
+								],
+								"Quantity": 1
+							}
+						]
+					}
+				}
+			]
+		}
+	},
+	"DataLists": {
+		"AnonymousTravelerList": {
+			"AnonymousTraveler": [
+				{
+					"ObjectKey": "PAX1",
+					"PTC": {
+						"value": "ADT"
+					}
+				}
+			]
+		},
+		"FareList": {
+			"FareGroup": [
+				{
+					"ListKey": "FG-SEG1",
+					"Fare": {
+						"FareCode": {
+							"Code": "70J"
+						},
+						"FareDetail": {
+							"Remarks": {
+								"Remark": [
+									{
+										"value": "PUBL"
+									}
+								]
+							}
+						}
+					},
+					"FareBasisCode": {
+						"Code": "VYSFBBSA"
+					}
+				}
+			]
+		}
+	},
+	"ShoppingResponseID": {
+		"Owner": "26",
+		"ResponseID": {
+			"value": "duV1keHMCB9h0mXfaMZU34q6nikYue8CvOUdAbAYT40-26"
+		}
+	}
+}

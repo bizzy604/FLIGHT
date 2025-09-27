@@ -61,8 +61,19 @@ class APILogger:
     
     def _generate_filename(self, service_name: str, request_id: str, data_type: str) -> str:
         """Generate a filename for the log entry."""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        return f"{timestamp}_{request_id}_{data_type}.json"
+        # Use descriptive naming: ServiceName_RQ.json for requests, ServiceName_RS.json for responses
+        service_abbrev = {
+            'AirShopping': 'AirShopping',
+            'FlightPrice': 'FlightPrice', 
+            'OrderCreate': 'Booking',
+            'ServiceList': 'ServiceList',
+            'SeatAvailability': 'SeatAvailability'
+        }.get(service_name, service_name)
+        
+        if data_type == "request":
+            return f"{service_abbrev}_RQ.json"
+        else:  # response
+            return f"{service_abbrev}_RS.json"
     
     def log_request(self, service_name: str, request_id: str, payload: Dict[str, Any], 
                    endpoint: str, headers: Dict[str, str]) -> None:
@@ -105,16 +116,18 @@ class APILogger:
             logger.error(f"Failed to log API request for {service_name}: {e}")
     
     def log_response(self, service_name: str, request_id: str, response: Dict[str, Any],
-                    status_code: int, response_time_ms: Optional[float] = None) -> None:
+                    status_code: int, response_time_ms: Optional[float] = None, 
+                    raw_response: Optional[Dict[str, Any]] = None) -> None:
         """
         Log API response data.
         
         Args:
             service_name: Name of the service
             request_id: Unique request identifier
-            response: Response data
+            response: Response data (transformed/processed)
             status_code: HTTP status code
             response_time_ms: Response time in milliseconds
+            raw_response: Raw NDC response (if available)
         """
         if not self.enabled:
             return
@@ -133,10 +146,15 @@ class APILogger:
                 "response": response
             }
             
+            # Add raw response if available
+            if raw_response:
+                response_data["raw_response"] = raw_response
+                logger.info(f"API response logged with raw NDC response: {filepath}")
+            else:
+                logger.info(f"API response logged (transformed only): {filepath}")
+            
             with open(filepath, 'w', encoding='utf-8') as f:
                 json.dump(response_data, f, indent=2, ensure_ascii=False)
-            
-            logger.info(f"API response logged: {filepath}")
             
         except Exception as e:
             logger.error(f"Failed to log API response for {service_name}: {e}")

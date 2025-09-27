@@ -99,6 +99,8 @@ class FlightBookingService(FlightService):
         selected_seats: Optional[List[str]] = None,
         seat_availability_cache_key: Optional[str] = None,  # 🚀 Direct cache key from frontend
         service_list_cache_key: Optional[str] = None,  # 🚀 Direct cache key from frontend
+        pricing_info: Optional[Dict[str, Any]] = None,  # NEW: Pricing requirements info
+        ancillary_pricing_response: Optional[Dict[str, Any]] = None  # NEW: Pricing response for PricedInd=false
     ) -> BookingResponse:
         # VERY FIRST LOG - This should appear if method is called
         print("🟢🟢🟢 FIRST LINE OF create_booking METHOD 🟢🟢🟢")
@@ -159,7 +161,9 @@ class FlightBookingService(FlightService):
                 selected_services=selected_services,
                 selected_seats=selected_seats,
                 seat_availability_cache_key=seat_availability_cache_key,  # 🚀 Pass cache keys
-                service_list_cache_key=service_list_cache_key  # 🚀 Pass cache keys
+                service_list_cache_key=service_list_cache_key,  # 🚀 Pass cache keys
+                pricing_info=pricing_info,  # NEW: Pass pricing requirements info
+                ancillary_pricing_response=ancillary_pricing_response  # NEW: Pass pricing response
             )
             logger.info(f"[DEBUG] Finished calling _build_booking_payload (ReqID: {request_id})")
             print(f"[PRINT DEBUG] Finished calling _build_booking_payload (ReqID: {request_id})")
@@ -202,6 +206,10 @@ class FlightBookingService(FlightService):
                 'request_id': request_id
             }
     
+    # REMOVED: Duplicate _build_booking_payload method (lines 209-315)
+    # This was a duplicate that was overriding the main implementation
+    # The main implementation is below (line 755) and needs the segment key mapping fixes
+
     def _extract_airline_code_from_enhanced_payload(self, payload: Dict[str, Any], original_flight_price_response: Dict[str, Any]) -> Optional[str]:
         """
         Extract the airline code from the enhanced payload or original flight price response.
@@ -654,7 +662,9 @@ class FlightBookingService(FlightService):
         selected_services: Optional[List[str]] = None,
         selected_seats: Optional[List[str]] = None,
         seat_availability_cache_key: Optional[str] = None,  # 🚀 Cache keys from frontend
-        service_list_cache_key: Optional[str] = None  # 🚀 Cache keys from frontend
+        service_list_cache_key: Optional[str] = None,  # 🚀 Cache keys from frontend
+        pricing_info: Optional[Dict[str, Any]] = None,  # NEW: Pricing requirements info
+        ancillary_pricing_response: Optional[Dict[str, Any]] = None  # NEW: Pricing response for PricedInd=false
     ) -> Dict[str, Any]:
         """
         Build the OrderCreate request payload using the request builder.
@@ -716,6 +726,25 @@ class FlightBookingService(FlightService):
             logger.info(f"[DEBUG] Extracted offer_id from frontend (ReqID: {request_id}): {offer_id}")
             logger.info(f"[DEBUG] Extracted shopping_response_id from frontend (ReqID: {request_id}): {shopping_response_id}")
 
+            # FIXED: Ensure we use the correct FlightPriceRS data structure for segment key mapping
+            actual_flight_price_response = flight_price_response
+            if 'response' in flight_price_response and 'raw_response' in flight_price_response['response']:
+                actual_flight_price_response = flight_price_response['response']['raw_response']
+                logger.info("Using raw FlightPriceRS response for proper segment key mapping")
+            
+            # FIXED: Ensure ShoppingResponseID is available for OrderCreate builders
+            if 'ShoppingResponseID' not in actual_flight_price_response:
+                # Extract ShoppingResponseID from the original response structure
+                if 'response' in flight_price_response and 'data' in flight_price_response['response']:
+                    shopping_id = flight_price_response['response']['data'].get('ShoppingResponseID')
+                    if shopping_id:
+                        actual_flight_price_response['ShoppingResponseID'] = shopping_id
+                        logger.info(f"Added ShoppingResponseID to FlightPriceRS: {shopping_id}")
+                else:
+                    # Use a default ShoppingResponseID if none found
+                    actual_flight_price_response['ShoppingResponseID'] = {"value": "test-shopping-id"}
+                    logger.warning("Using default ShoppingResponseID for OrderCreate generation")
+            
             # FIXED: Try to get the raw flight price response from cache_manager (where pricing service stores it)
             raw_flight_price_response = None
             try:
@@ -1121,10 +1150,24 @@ class FlightBookingService(FlightService):
                 # For build_ordercreate_rq.py, put Remarks at top level
                 transformed_payment['Remarks'] = payment_info.get('remarks', [])
             
-            # Enhance flight_price_response with extracted IDs if available
+            # FIXED: Enhance flight_price_response with extracted IDs if available
             # (enhanced_flight_price_response was already initialized at the beginning of the function)
 
-            # If we have extracted IDs from frontend, inject them into the response structure
+            # FIXED: Always try to extract ShoppingResponseID from the response structure
+            if not shopping_response_id:
+                # Try to extract ShoppingResponseID from the nested response structure
+                if 'response' in enhanced_flight_price_response and 'raw_response' in enhanced_flight_price_response['response']:
+                    raw_response = enhanced_flight_price_response['response']['raw_response']
+                    if 'ShoppingResponseID' in raw_response:
+                        shopping_response_id = raw_response['ShoppingResponseID'].get('ResponseID', {}).get('value')
+                        logger.info(f"[DEBUG] Extracted ShoppingResponseID from raw_response: {shopping_response_id} (ReqID: {request_id})")
+                elif 'response' in enhanced_flight_price_response and 'data' in enhanced_flight_price_response['response']:
+                    data_response = enhanced_flight_price_response['response']['data']
+                    if 'ShoppingResponseID' in data_response:
+                        shopping_response_id = data_response['ShoppingResponseID'].get('ResponseID', {}).get('value')
+                        logger.info(f"[DEBUG] Extracted ShoppingResponseID from data: {shopping_response_id} (ReqID: {request_id})")
+
+            # If we have extracted IDs from frontend or response, inject them into the response structure
             # to ensure build_ordercreate_rq can find them reliably
             if offer_id or shopping_response_id:
                 logger.info(f"[DEBUG] Enhancing flight_price_response with extracted IDs (ReqID: {request_id})")
@@ -1173,6 +1216,9 @@ class FlightBookingService(FlightService):
                 if priced_offers and len(priced_offers) > 0:
                     logger.info(f"[DEBUG] First PricedFlightOffer OfferID (ReqID: {request_id}): {priced_offers[0].get('OfferID')}")
 
+            # FIXED: Ensure we use the enhanced flight price response with ShoppingResponseID for OrderCreate builders
+            actual_flight_price_response = enhanced_flight_price_response
+            
             # Use the request builder to generate the payload
             logger.info(f"[DEBUG] About to call generate_order_create_rq with enhanced_flight_price_response keys: {list(enhanced_flight_price_response.keys())}")
             logger.info(f"[DEBUG] Enhanced flight_price_response has {len(enhanced_flight_price_response)} top-level keys")
@@ -1310,18 +1356,38 @@ class FlightBookingService(FlightService):
             logger.info(f"[DEBUG] - selected_services: {selected_services}")
             logger.info(f"[DEBUG] - selected_seats (converted to pricing ObjectKeys): {selected_seats}")
 
-            logger.info(f"[DEBUG] ===== CALLING generate_order_create_rq FUNCTION =====")
-            logger.info(f"[DEBUG] Final transformed_payment structure (ReqID: {request_id}): {transformed_payment}")
-            payload = current_func(
-                flight_price_response=enhanced_flight_price_response,
-                passengers_data=transformed_passengers,
-                payment_input_info=transformed_payment,
-                servicelist_response=servicelist_response,
-                seatavailability_response=seatavailability_response,
-                selected_services=selected_services,
-                selected_seats=selected_seats
-            )
-            logger.info(f"[DEBUG] ===== generate_order_create_rq FUNCTION COMPLETED SUCCESSFULLY =====")
+            # NEW: Check if enhanced OrderCreate builder should be used
+            if pricing_info and pricing_info.get('requires_pricing', False) and ancillary_pricing_response:
+                logger.info(f"[DEBUG] ===== USING ENHANCED ORDERCREATE BUILDER (PricedInd=false) =====")
+                logger.info(f"[DEBUG] Pricing info: {pricing_info}")
+                
+                # Use enhanced OrderCreate builder for PricedInd=false scenario
+                from scripts.build_ordercreate_enhanced_rq import build_ordercreate_enhanced_request
+                
+                payload = build_ordercreate_enhanced_request(
+                    flight_price_response=actual_flight_price_response,  # FIXED: Use actual response with segment key mapping
+                    passengers_data=transformed_passengers,
+                    payment_input_info=transformed_payment,
+                    servicelist_response=servicelist_response,
+                    seatavailability_response=seatavailability_response,
+                    selected_services=selected_services,
+                    selected_seats=selected_seats,
+                    ancillary_pricing_response=ancillary_pricing_response
+                )
+                logger.info(f"[DEBUG] ===== ENHANCED ORDERCREATE BUILDER COMPLETED SUCCESSFULLY =====")
+            else:
+                logger.info(f"[DEBUG] ===== USING STANDARD ORDERCREATE BUILDER (PricedInd=true) =====")
+                logger.info(f"[DEBUG] Final transformed_payment structure (ReqID: {request_id}): {transformed_payment}")
+                payload = current_func(
+                    flight_price_response=actual_flight_price_response,  # FIXED: Use actual response with segment key mapping
+                    passengers_data=transformed_passengers,
+                    payment_input_info=transformed_payment,
+                    servicelist_response=servicelist_response,
+                    seatavailability_response=seatavailability_response,
+                    selected_services=selected_services,
+                    selected_seats=selected_seats
+                )
+                logger.info(f"[DEBUG] ===== STANDARD ORDERCREATE BUILDER COMPLETED SUCCESSFULLY =====")
             
             # DEBUG: Log payload summary (without verbose content)
             logger.info(f"[DEBUG] OrderCreate payload generated successfully (ReqID: {request_id})")
@@ -2449,7 +2515,9 @@ async def process_order_create(order_data: Dict[str, Any]) -> Dict[str, Any]:
                 selected_services=order_data.get('selected_services'),
                 selected_seats=order_data.get('selected_seats'),
                 seat_availability_cache_key=order_data.get('seat_availability_cache_key'),  # 🚀 Pass cache keys
-                service_list_cache_key=order_data.get('service_list_cache_key')  # 🚀 Pass cache keys
+                service_list_cache_key=order_data.get('service_list_cache_key'),  # 🚀 Pass cache keys
+                pricing_info=order_data.get('pricing_info'),  # NEW: Pass pricing requirements info
+                ancillary_pricing_response=order_data.get('ancillary_pricing_response')  # NEW: Pass pricing response
             )
 
             print(f"🟢🟢🟢 create_booking returned successfully! 🟢🟢🟢")

@@ -1,0 +1,185 @@
+🚀 VDC API FLOW - PricedInd=false Scenario
+==========================================
+
+📊 COMPLETE DATA FLOW DIAGRAM
+=============================
+
+1. AIRSHOPPING
+   ┌─────────────────┐
+   │ AirShoppingRQ   │
+   └─────────┬───────┘
+             │
+             ▼
+   ┌─────────────────┐
+   │ AirShoppingRS   │ ◄─── Contains flight offers
+   └─────────┬───────┘
+             │
+             ▼
+
+2. INITIAL FLIGHT PRICING
+   ┌─────────────────┐
+   │ FlightPriceRQ   │ ◄─── Built from AirShoppingRS
+   └─────────┬───────┘
+             │
+             ▼
+   ┌─────────────────┐
+   │ FlightPriceRS   │ ◄─── Contains priced flight offer
+   └─────────┬───────┘
+             │
+             ▼
+
+3. SERVICE DISCOVERY
+   ┌─────────────────┐
+   │ ServiceListRQ   │ ◄─── Built from FlightPriceRS
+   └─────────┬───────┘
+             │
+             ▼
+   ┌─────────────────┐
+   │ ServiceListRS   │ ◄─── Contains services (PricedInd=false)
+   └─────────┬───────┘
+             │
+             ▼
+
+4. SEAT DISCOVERY
+   ┌─────────────────┐
+   │ SeatAvailabilityRQ │ ◄─── Built from FlightPriceRS
+   └─────────┬───────┘
+             │
+             ▼
+   ┌─────────────────┐
+   │ SeatAvailabilityRS │ ◄─── Contains seats (PricedInd=false)
+   └─────────┬───────┘
+             │
+             ▼
+
+5. ANCILLARY PRICING (Second FlightPrice Call)
+   ┌─────────────────────────────────────────┐
+   │ FlightPriceRQ (Ancillary)               │ ◄─── Built from:
+   │ ┌─────────────────────────────────────┐ │      - FlightPriceRS (flight details)
+   │ │ Travelers: [PAX1]                   │ │      - ServiceListRS (selected services)
+   │ │ Query:                              │ │      - SeatAvailabilityRS (selected seats)
+   │ │   OriginDestination: [Flight]       │ │
+   │ │   Offers:                           │ │
+   │ │     OfferID: [original offer]       │ │
+   │ │     OfferItemIDs: [                 │ │
+   │ │       - Flight item (refs: PAX1)    │ │
+   │ │       - Service 1 (Quantity: 1)     │ │
+   │ │       - Service 2 (Quantity: 1)     │ │
+   │ │       - Seat 1 (SelectedSeat: {...})│ │
+   │ │       - Seat 2 (SelectedSeat: {...})│ │
+   │ │     ]                               │ │
+   │ └─────────────────────────────────────┘ │
+   └─────────┬───────────────────────────────┘
+             │
+             ▼
+   ┌─────────────────┐
+   │ FlightPriceRS   │ ◄─── Contains ALL priced items
+   │ (Pricing Response)│      (flight + services + seats)
+   └─────────┬───────┘
+             │
+             ▼
+
+6. ORDER CREATION
+   ┌─────────────────────────────────────────┐
+   │ OrderCreateRQ                           │ ◄─── Built from:
+   │ ┌─────────────────────────────────────┐ │      - Pricing Response (main data)
+   │ │ Query:                              │ │      - ServiceListRS (service definitions)
+   │ │   Passengers: [PAX1 details]        │ │      - SeatAvailabilityRS (seat definitions)
+   │ │   OrderItems:                       │ │
+   │ │     ShoppingResponse: [offer ref]   │ │
+   │ │     OfferItem: [                    │ │
+   │ │       - DetailedFlightItem          │ │
+   │ │       - OtherItem (service 1)       │ │
+   │ │       - OtherItem (service 2)       │ │
+   │ │       - SeatItem (seat 1)           │ │
+   │ │       - SeatItem (seat 2)           │ │
+   │ │     ]                               │ │
+   │ │   DataLists:                        │ │
+   │ │     ServiceList: [service defs]     │ │
+   │ │     FareList: [fare groups]         │ │
+   │ └─────────────────────────────────────┘ │
+   └─────────────────┬───────────────────────┘
+                     │
+                     ▼
+   ┌─────────────────┐
+   │ OrderCreateRS   │ ◄─── Final booking confirmation
+   └─────────────────┘
+
+🔑 KEY PAYLOAD STRUCTURES
+=========================
+
+ANCILLARY PRICING REQUEST:
+├── Travelers: [PAX1]
+├── Query:
+│   ├── OriginDestination: [Flight details]
+│   └── Offers:
+│       ├── OfferID: [original offer]
+│       └── OfferItemIDs: [5 items]
+│           ├── Flight item (refs: PAX1)
+│           ├── Service 1 (Quantity: 1)
+│           ├── Service 2 (Quantity: 1)
+│           ├── Seat 1 (SelectedSeat: {...})
+│           └── Seat 2 (SelectedSeat: {...})
+└── DataLists: [traveler, fare info]
+
+ORDERCREATE REQUEST:
+├── Query:
+│   ├── Passengers: [PAX1 with full details]
+│   ├── OrderItems:
+│   │   ├── ShoppingResponse: [offer reference]
+│   │   └── OfferItem: [3 items]
+│   │       ├── DetailedFlightItem (priced)
+│   │       ├── OtherItem (service 1, priced)
+│   │       └── SeatItem (seat 1, priced)
+│   └── DataLists:
+│       ├── ServiceList: [service definitions]
+│       └── FareList: [fare groups]
+└── Payments: [payment details]
+
+🎯 DATA TRANSFORMATION
+=====================
+
+ServiceListRS → Ancillary Pricing:
+- ObjectKey → OfferItemID value
+- Associations → refs array
+- Price → Quantity (for services)
+- Seat details → SelectedSeat object
+
+SeatAvailabilityRS → Ancillary Pricing:
+- ObjectKey → OfferItemID value
+- Location → SelectedSeat.Location
+- Characteristics → SelectedSeat.Characteristics
+- Associations → SeatAssociation
+
+Pricing Response → OrderCreate:
+- PricedFlightOffers → ShoppingResponse
+- OfferPrice items → OfferItem array
+- Service definitions → DataLists.ServiceList
+- Seat definitions → DataLists.ServiceList
+
+🔍 PAYLOAD BUILDING PROCESS
+===========================
+
+1. ANCILLARY PRICING BUILDER:
+   - Takes FlightPriceRS (flight details)
+   - Takes ServiceListRS (selected services)
+   - Takes SeatAvailabilityRS (selected seats)
+   - Combines into single pricing request
+   - Each service gets Quantity: 1
+   - Each seat gets SelectedSeat object
+
+2. ORDERCREATE BUILDER:
+   - Takes pricing response (main data source)
+   - Takes ServiceListRS (service definitions)
+   - Takes SeatAvailabilityRS (seat definitions)
+   - Builds complete order with all items
+   - Each item has proper pricing and associations
+
+✅ SUCCESS CRITERIA
+==================
+- All selected services included in pricing request
+- All selected seats included in pricing request
+- Pricing response contains all items with correct pricing
+- OrderCreate includes all items as separate OfferItems
+- ServiceList in DataLists contains service definitions
+- All items properly associated with passengers and flights

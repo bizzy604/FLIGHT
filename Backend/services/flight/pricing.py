@@ -282,11 +282,12 @@ class FlightPricingService(FlightService):
                 processed_response['request_id'] = request_id
                 return processed_response
 
-            # Return success response
+            # Return success response with raw response included for API logging
             return {
                 'status': 'success',
                 'data': processed_response,
-                'request_id': request_id
+                'request_id': request_id,
+                'raw_response': response  # Include raw NDC response for API logging
             }
             
         except ValidationError as e:
@@ -1116,9 +1117,61 @@ async def process_flight_price(price_request: Dict[str, Any]) -> Dict[str, Any]:
             - currency: Currency code (default: USD)
             - request_id: Optional request ID for tracking
             - config: Optional configuration overrides
+            - ancillary_pricing_request: Optional ancillary pricing request for PricedInd=false
+            - pricing_info: Optional pricing requirements info
     """
     config = price_request.pop('config', {})
     
+    # NEW: Check if this is an ancillary pricing request
+    if 'ancillary_pricing_request' in price_request:
+        logger.info(f"[INFO] Processing ancillary pricing request for PricedInd=false scenario")
+        
+        # Use FlightBookingService to make the ancillary pricing API call
+        from services.flight.booking import FlightBookingService
+        
+        async with FlightBookingService(config=config) as service:
+            # Log the actual VDC API call
+            from utils.api_logger import api_logger
+            api_logger.log_request(
+                service_name='FlightPrice',
+                request_id=price_request.get('request_id', 'unknown'),
+                payload=price_request['ancillary_pricing_request'],
+                endpoint='/entrygate/rest/request:flightPrice',
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            response = await service._make_request(
+                endpoint='/entrygate/rest/request:flightPrice',
+                payload=price_request['ancillary_pricing_request'],
+                service_name='FlightPrice',
+                airline_code='EY',  # Default airline, should be extracted from request
+                request_id=price_request.get('request_id')
+            )
+            
+            # Log the VDC API response
+            api_logger.log_response(
+                service_name='FlightPrice',
+                request_id=price_request.get('request_id', 'unknown'),
+                response=response,
+                status_code=200 if response.get('success') else 400,
+                response_time_ms=None
+            )
+            
+            if response.get('success'):
+                return {
+                    'status': 'success',
+                    'data': response['data'],
+                    'pricing_info': price_request.get('pricing_info', {}),
+                    'source': 'ancillary_pricing'
+                }
+            else:
+                return {
+                    'status': 'error',
+                    'error': f"Ancillary pricing API call failed: {response.get('error')}",
+                    'source': 'ancillary_pricing'
+                }
+    
+    # Standard flight pricing request
     # Extract the offer_id from the request
     offer_id = price_request.get('offer_id', '')
     if not offer_id:

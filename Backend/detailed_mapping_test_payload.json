@@ -1,0 +1,636 @@
+{
+  "Query": {
+    "Passengers": {
+      "Passenger": [
+        {
+          "ObjectKey": "PAX1",
+          "PTC": {
+            "value": "ADT"
+          },
+          "Name": {
+            "Surname": {
+              "value": {
+                "value": "Test"
+              }
+            },
+            "Given": [
+              {
+                "value": "User"
+              }
+            ],
+            "Title": null
+          },
+          "AdditionalRoles": {
+            "PaymentContactInd": true
+          },
+          "Gender": {
+            "value": {
+              "value": "Male"
+            }
+          },
+          "Age": {
+            "BirthDate": {
+              "value": {
+                "value": "1990-01-01"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "OrderItems": {
+      "ShoppingResponse": {
+        "Owner": "EY",
+        "ResponseID": {
+          "value": "y7pp3pv0klROuicDjv3J1vre5iBKYKZ8XfKS1XQ6o-Q-EY"
+        },
+        "Offers": {
+          "Offer": [
+            {
+              "OfferID": {
+                "ObjectKey": "1H1EYZ_6DVGUOV0R59DIN0YCQ4EV9RD0IFB",
+                "value": "1H1EYZ_6DVGUOV0R59DIN0YCQ4EV9RD0IFB",
+                "Owner": "EY",
+                "Channel": "NDC"
+              },
+              "OfferItems": {
+                "OfferItem": [
+                  {
+                    "OfferItemID": {
+                      "Owner": "EY",
+                      "value": "1H1EYZ_6DVGUOV0R59DIN0YCQ4EV9RD0IFB-1-1",
+                      "Channel": "NDC"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "OfferItem": [
+        {
+          "OfferItemID": {
+            "value": "1H1EYZ_6DVGUOV0R59DIN0YCQ4EV9RD0IFB-1-1",
+            "Owner": "EY",
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "DetailedFlightItem": [
+              {
+                "Price": {
+                  "BaseAmount": {
+                    "value": 14135,
+                    "Code": "INR"
+                  },
+                  "Taxes": {
+                    "Total": {
+                      "value": 29630,
+                      "Code": "INR"
+                    }
+                  }
+                },
+                "OriginDestination": [
+                  {
+                    "Flight": [
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "LHR"
+                          },
+                          "Date": "2025-10-03",
+                          "Time": "09:30",
+                          "AirportName": "London Heathrow Airport",
+                          "Terminal": {
+                            "Name": "4"
+                          }
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "AUH"
+                          },
+                          "Date": "2025-10-03",
+                          "Time": "19:25",
+                          "AirportName": "Abu Dhabi International Airport",
+                          "Terminal": {
+                            "Name": "A"
+                          }
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "E"
+                          },
+                          "MarketingName": {
+                            "value": "ECONOMY",
+                            "CabinDesignator": "Y"
+                          },
+                          "refs": [
+                            "FG-122501123802340"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "EY"
+                          },
+                          "Name": "ETIHAD AIRWAYS",
+                          "FlightNumber": {
+                            "value": "62"
+                          }
+                        },
+                        "Equipment": {
+                          "AircraftCode": {
+                            "value": "388"
+                          }
+                        },
+                        "Details": {
+                          "FlightDuration": {
+                            "Value": "PT6H55M"
+                          }
+                        },
+                        "SegmentKey": "SEG6"
+                      },
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "AUH"
+                          },
+                          "Date": "2025-10-04",
+                          "Time": "09:00",
+                          "AirportName": "Abu Dhabi International Airport",
+                          "Terminal": {
+                            "Name": "A"
+                          }
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "NBO"
+                          },
+                          "Date": "2025-10-04",
+                          "Time": "13:00",
+                          "AirportName": "Jomo Kenyatta International Airport",
+                          "Terminal": {
+                            "Name": "1E"
+                          }
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "E"
+                          },
+                          "MarketingName": {
+                            "value": "ECONOMY",
+                            "CabinDesignator": "Y"
+                          },
+                          "refs": [
+                            "FG-122501123802340"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "EY"
+                          },
+                          "Name": "ETIHAD AIRWAYS",
+                          "FlightNumber": {
+                            "value": "767"
+                          }
+                        },
+                        "Equipment": {
+                          "AircraftCode": {
+                            "value": "32A"
+                          }
+                        },
+                        "Details": {
+                          "FlightDuration": {
+                            "Value": "PT5H0M"
+                          }
+                        },
+                        "SegmentKey": "SEG3"
+                      }
+                    ],
+                    "OriginDestinationKey": "OND1"
+                  }
+                ],
+                "refs": [
+                  "PAX1"
+                ],
+                "FareDetail": {
+                  "FareComponent": [
+                    {
+                      "FareBasis": {
+                        "FareBasisCode": {
+                          "Code": "ELN20H2K"
+                        },
+                        "RBD": "E"
+                      },
+                      "refs": [
+                        "SEG6"
+                      ]
+                    },
+                    {
+                      "FareBasis": {
+                        "FareBasisCode": {
+                          "Code": "ELN20H2K"
+                        },
+                        "RBD": "E"
+                      },
+                      "refs": [
+                        "SEG3"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "1H1EYZ_6DVGUOV0R59DIN0YCQ4EV9RD0IFB-2",
+            "Owner": "EY",
+            "refs": [
+              "1H1EYZ_6DVGUOV0R59DIN0YCQ4EV9RD0IFB",
+              "y7pp3pv0klROuicDjv3J1vre5iBKYKZ8XfKS1XQ6o-Q-EY"
+            ],
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "OtherItem": [
+              {
+                "refs": [
+                  "PAX1",
+                  "SER1-ServiceIdEY-1"
+                ],
+                "Price": {
+                  "SimpleCurrencyPrice": {
+                    "value": 14109,
+                    "Code": "INR"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "1H1EYZ_6DVGUOV0R59DIN0YCQ4EV9RD0IFB-3",
+            "Owner": "EY",
+            "refs": [
+              "1H1EYZ_6DVGUOV0R59DIN0YCQ4EV9RD0IFB",
+              "y7pp3pv0klROuicDjv3J1vre5iBKYKZ8XfKS1XQ6o-Q-EY"
+            ],
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "OtherItem": [
+              {
+                "refs": [
+                  "PAX1",
+                  "SER2-ServiceIdEY-2"
+                ],
+                "Price": {
+                  "SimpleCurrencyPrice": {
+                    "value": 4406,
+                    "Code": "INR"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "1H1EYZ_6DVGUOV0R59DIN0YCQ4EV9RD0IFB-5_SEG6_WG_5",
+            "Owner": "EY",
+            "refs": [
+              "1H1EYZ_6DVGUOV0R59DIN0YCQ4EV9RD0IFB",
+              "y7pp3pv0klROuicDjv3J1vre5iBKYKZ8XfKS1XQ6o-Q-EY"
+            ],
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "OtherItem": [
+              {
+                "refs": [
+                  "PAX1",
+                  "SER4-ServiceIdEY-4"
+                ],
+                "Price": {
+                  "SimpleCurrencyPrice": {
+                    "value": 4956,
+                    "Code": "INR"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "DataLists": {
+      "FareList": {
+        "FareGroup": [
+          {
+            "ListKey": "FG-122501123802340",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              }
+            },
+            "FareBasisCode": {
+              "Code": "ELN20H2K"
+            }
+          },
+          {
+            "ListKey": "FG-122501123813056",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              }
+            },
+            "FareBasisCode": {
+              "Code": "ELN20H2K"
+            }
+          }
+        ]
+      },
+      "ServiceList": {
+        "Service": [
+          {
+            "ObjectKey": "SER1-ServiceIdEY-1",
+            "ServiceID": {
+              "ObjectKey": "1H1EYZ_6DVGUOV0R59DIN0YCQ4EV9RD0IFB-2",
+              "value": "SRV1",
+              "Owner": "EY"
+            },
+            "Name": {
+              "value": "LOUNGE:BUSINESS CLASS LOUNGE UP TO 4H"
+            },
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "Chargeable"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "F"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "01"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "LG"
+                  }
+                }
+              ]
+            },
+            "Price": [
+              {
+                "Total": {
+                  "value": 14109,
+                  "Code": "INR"
+                }
+              }
+            ],
+            "BookingInstructions": {
+              "SSRCode": [
+                "LBZA"
+              ],
+              "Method": "SSR"
+            },
+            "ServiceDefinitionRef": {},
+            "Associations": [
+              {
+                "Traveler": {
+                  "TravelerReferences": [
+                    "PAX1"
+                  ]
+                },
+                "Flight": {
+                  "originDestinationReferencesOrSegmentReferences": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "SEG3"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "PricedInd": false
+          },
+          {
+            "ObjectKey": "SER2-ServiceIdEY-2",
+            "ServiceID": {
+              "ObjectKey": "1H1EYZ_6DVGUOV0R59DIN0YCQ4EV9RD0IFB-3",
+              "value": "SRV2",
+              "Owner": "EY"
+            },
+            "Name": {
+              "value": "ACCESS:PRIORITY ACCESS"
+            },
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "Chargeable"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "F"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "01"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "TS"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "PO"
+                  }
+                }
+              ]
+            },
+            "Price": [
+              {
+                "Total": {
+                  "value": 4406,
+                  "Code": "INR"
+                }
+              }
+            ],
+            "BookingInstructions": {
+              "SSRCode": [
+                "PRIO"
+              ],
+              "Method": "SSR"
+            },
+            "ServiceDefinitionRef": {},
+            "Associations": [
+              {
+                "Traveler": {
+                  "TravelerReferences": [
+                    "PAX1"
+                  ]
+                },
+                "Flight": {
+                  "originDestinationReferencesOrSegmentReferences": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "SEG6",
+                          "SEG3"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "PricedInd": false
+          },
+          {
+            "ObjectKey": "SER4-ServiceIdEY-4",
+            "ServiceID": {
+              "ObjectKey": "1H1EYZ_6DVGUOV0R59DIN0YCQ4EV9RD0IFB-5_SEG6_WG_5",
+              "value": "SRV4",
+              "Owner": "EY"
+            },
+            "Name": {
+              "value": "BAG:EXCESS BAGGAGE WEIGHT-5 KGM"
+            },
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "Chargeable"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "P"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "01"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "BG"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "XS"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "WT"
+                  }
+                }
+              ]
+            },
+            "Price": [
+              {
+                "Total": {
+                  "value": 4956,
+                  "Code": "INR"
+                }
+              }
+            ],
+            "BookingInstructions": {
+              "SSRCode": [
+                "XWBG"
+              ],
+              "OSIText": [
+                "WVAL",
+                "[0-9]{1,3}"
+              ],
+              "Method": "SSR",
+              "Text": [
+                "TTL%WVAL%KG"
+              ]
+            },
+            "ServiceDefinitionRef": {},
+            "Associations": [
+              {
+                "Traveler": {
+                  "TravelerReferences": [
+                    "PAX1"
+                  ]
+                },
+                "Flight": {
+                  "originDestinationReferencesOrSegmentReferences": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "SEG6",
+                          "SEG3"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "PricedInd": false
+          }
+        ]
+      }
+    },
+    "Metadata": {
+      "PassengerMetadata": [
+        {
+          "AugmentationPoint": {
+            "AugPoint": [
+              {
+                "any": {
+                  "VdcAugPoint": {
+                    "Value": "TRApprovalDate=09/26/2025"
+                  }
+                }
+              },
+              {
+                "any": {
+                  "VdcAugPoint": {
+                    "Value": "TRCreationDate=09/26/2025"
+                  }
+                }
+              }
+            ]
+          },
+          "refs": [
+            "PAX1"
+          ]
+        }
+      ]
+    },
+    "Payments": {
+      "Payment": [
+        {
+          "Method": {},
+          "Amount": {
+            "Code": "INR",
+            "value": 67236
+          }
+        }
+      ]
+    }
+  }
+}
