@@ -13,8 +13,10 @@ export async function POST(req: Request) {
     });
 
     // Forward the raw NDC payload directly to the existing backend endpoint
+    const rawBackend = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+    const backend = rawBackend.replace(/\/+$/, '');
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/verteil/air-shopping`,
+      `${backend}/verteil/air-shopping`,
       ndcPayload,
       {
         headers: {

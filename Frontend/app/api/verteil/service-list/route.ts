@@ -4,10 +4,11 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Forward the request to the backend
-    const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+  // Forward the request to the backend. Normalize base and avoid double '/api'.
+  const rawBackend = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+  const backend = rawBackend.replace(/\/+$/, '');
 
-    const response = await fetch(`${backendUrl}/api/verteil/service-list`, {
+  const response = await fetch(`${backend}/verteil/service-list`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

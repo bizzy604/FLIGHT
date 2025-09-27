@@ -17,8 +17,10 @@ export interface FlightSearchRequest {
 
 export async function callVerteilAirShopping(params: FlightSearchRequest) {
     try {
+      const rawBackend = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+      const backend = rawBackend.replace(/\/+$/, '');
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/verteil/air-shopping`,
+        `${backend}/verteil/air-shopping`,
         params,
         {
           headers: {
