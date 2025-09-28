@@ -1,13 +1,13 @@
 {
-  "timestamp": "2025-09-27T12:21:15.058222",
+  "timestamp": "2025-09-28T10:56:09.933562",
   "service": "FlightPrice",
-  "request_id": "ce454772-68e1-41b5-8f46-559dcaa43f2b",
+  "request_id": "51b9dd1c-4314-42c9-9f28-e92f69e27a78",
   "endpoint": "/entrygate/rest/request:flightPrice",
   "headers": {
     "Content-Type": "application/json",
     "Accept": "*/*",
-    "Authorization": "Bearer ***k416yncA",
-    "OfficeId": "***F301",
+    "Authorization": "Bearer ***5_QcO4Dg",
+    "OfficeId": "***3746",
     "service": "FlightPrice",
     "User-Agent": "PostmanRuntime/7.41",
     "Cache-Control": "no-cache",
@@ -19,16 +19,16 @@
     "DataLists": {
       "FareGroup": [
         {
-          "ListKey": "KQ-FG-145369758825304",
+          "ListKey": "SQ-FG-101344033366889",
           "FareBasisCode": {
-            "Code": "ULSFWGB"
+            "Code": "YIFSQ"
           }
         }
       ],
       "AnonymousTravelerList": {
         "AnonymousTraveler": [
           {
-            "ObjectKey": "KQ-PAX1",
+            "ObjectKey": "SQ-PAX1",
             "PTC": {
               "value": "ADT"
             }
@@ -41,88 +41,88 @@
         {
           "Flight": [
             {
-              "SegmentKey": "KQ-SEG5",
+              "SegmentKey": "SQ-SEG24",
               "Departure": {
                 "AirportCode": {
-                  "value": "LHR"
+                  "value": "CDG"
                 },
-                "Date": "2025-10-03T19:45:00.000",
-                "Time": "19:45",
+                "Date": "2025-10-03T06:40:00.000",
+                "Time": "06:40",
                 "Terminal": {
-                  "Name": "4"
+                  "Name": "1"
                 }
               },
               "Arrival": {
                 "AirportCode": {
-                  "value": "CDG"
+                  "value": "MUC"
                 },
-                "Date": "2025-10-03T22:00:00.000",
-                "Time": "22:00",
+                "Date": "2025-10-03T08:10:00.000",
+                "Time": "08:10",
                 "Terminal": {
-                  "Name": "2E"
+                  "Name": "2"
                 }
               },
               "MarketingCarrier": {
                 "AirlineID": {
-                  "value": "KQ"
+                  "value": "LH"
                 },
-                "Name": "Kenya Airways",
+                "Name": "Lufthansa",
                 "FlightNumber": {
-                  "value": "3079"
+                  "value": "2239"
                 }
               },
               "OperatingCarrier": {
                 "AirlineID": {
-                  "value": "AF"
+                  "value": "LH"
                 },
-                "Name": "Air France"
+                "Name": "LUFTHANSA"
               },
               "FlightDetail": {
                 "FlightDuration": {
-                  "Value": "PT1H15M"
+                  "Value": "PT1H30M"
                 }
               }
             },
             {
-              "SegmentKey": "KQ-SEG6",
+              "SegmentKey": "SQ-SEG9",
               "Departure": {
                 "AirportCode": {
-                  "value": "CDG"
+                  "value": "MUC"
                 },
-                "Date": "2025-10-04T10:45:00.000",
-                "Time": "10:45",
+                "Date": "2025-10-03T12:30:00.000",
+                "Time": "12:30",
                 "Terminal": {
-                  "Name": "2E"
+                  "Name": "2"
                 }
               },
               "Arrival": {
                 "AirportCode": {
-                  "value": "NBO"
+                  "value": "SIN"
                 },
-                "Date": "2025-10-04T20:10:00.000",
-                "Time": "20:10",
+                "Date": "2025-10-04T06:40:00.000",
+                "Time": "06:40",
                 "Terminal": {
-                  "Name": "1A"
+                  "Name": "0"
                 }
               },
               "MarketingCarrier": {
                 "AirlineID": {
-                  "value": "KQ"
+                  "value": "SQ"
                 },
-                "Name": "Kenya Airways",
+                "Name": "Singapore Airlines",
                 "FlightNumber": {
-                  "value": "113"
+                  "value": "327"
                 }
               },
               "OperatingCarrier": {
                 "AirlineID": {
-                  "value": "KQ"
+                  "value": "SQ"
                 },
-                "Name": "Kenya Airways"
+                "Name": "SINGAPORE AIRLINES"
               },
               "FlightDetail": {
                 "FlightDuration": {
-                  "Value": "PT8H25M"
+                  "Value": "PT12H10M"
                 }
               }
             }
@@ -133,16 +133,16 @@
         "Offer": [
           {
             "OfferID": {
-              "value": "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2",
-              "Owner": "KQ",
+              "value": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X",
+              "Owner": "SQ",
               "Channel": "NDC"
             },
             "OfferItemIDs": {
               "OfferItemID": [
                 {
-                  "value": "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2-1",
+                  "value": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-1-1",
                   "refs": [
-                    "KQ-PAX1"
+                    "SQ-PAX1"
                   ]
                 }
               ]
@@ -150,6 +150,9 @@
             "refs": [
               {
                 "Ref": "VDC-AIRLINE-SRID"
+              },
+              {
+                "Ref": "VDC-PR-c4rh0564PCDl7WMb9Qoh"
               }
             ]
           }
@@ -157,9 +160,9 @@
       }
     },
     "ShoppingResponseID": {
-      "Owner": "KQ",
+      "Owner": "SQ",
       "ResponseID": {
-        "value": "RQ295nCRfbrvzRjC8m6QKnLLJegueo3Nuh9xeqvacr0-KQ"
+        "value": "aL-ByHTHp1wrQ8uVhevKaMzIcMMu916-5dJYarTGF-Y-SQ"
       }
     },
     "Travelers": {
@@ -187,8 +190,21 @@
                     "AugPoint": [
                       {
                         "any": {
-                          "type": "java.util.HashMap",
-                          "value": "eyJLTCI6ImdWZnZIRnZ5ZmtIS0owelhiNWE4IiwiUVIiOiIxRzVRUlpfSlY1QU0xWTJHSUZQQzdDWklSMjJHSEs1QzhLRiIsIkVZIjoiRlE2V1JKRERUNTVCMTlKS1BCM1FTQjlGRTEiLCJBRiI6Ilh3MVN1OFdMQ1NUbk5BTEgwNXNRIiwiS1EiOiIxR0hLUVpfSktaUktIR1M1MEVBWTAxMzRUR0hUQjA2VlVKQiIsIlRLIjoiMGYxOTZkZWYtZWI4Ni00NWNjLWFkMGUtZmY3Yjg4M2IzNTY1In0="
+                          "value": "eyJRUiI6IjFIMFFSWl84UVQzMExQNzRWMUI1TFk0MFhIVTJJUkUyUk5UIiwiS0wiOiJyVmZqdWt5b2YzVVZyczdVSElBcyIsIkVZIjoiSiNNU0FWVzNRWEdUMUcxQVM3RVg0N1BFSDAiLCJBRiI6ImVodjFIZWVFc2NLRWhHWVdadHV3IiwiRUsiOiJYQjlGQkU4MDQtOTQxQy00NEFELUI1MkEiLCJBWSI6IjFIMEFZWl85Vk44R1U0SFE1TkRWQVRLT1BPMUxJOVUzWlVSIiwiTEhHIjoiWDE4NzlENjlDLTlFNS00QkM0LTgxQjEiLCJTUSI6Ikg1VDBDRUtGQ0tRVTE5Q0I3VzhIRk9OQ1UwIiwiRVQiOiJBT0czMVBPNFhSRzlNMDIiLCJHRiI6IjMzNGRjNTdkLWZjNmQtNGQ3NS1iM2Q0LWY5YTJlNjhlZWZhZjozMzRkYzU3ZC1mYzZkLTRkNzUtYjNkNC1mOWEyZTY4ZWVmYWYifQ==",
+                          "type": "java.util.HashMap"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "MetadataKey": "VDC-PR-c4rh0564PCDl7WMb9Qoh",
+                  "AugmentationPoint": {
+                    "AugPoint": [
+                      {
+                        "any": {
+                          "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
+                          "value": "VmztqMkuj5WVHKUOPoL0/DiBNY1c+IGkGjClupY6w6FBGKFHLAlokI/iHK0q4QzFyNIqSi9HpO8BAOdDsODO31ZZ2TvKWVqDee3LKEL7DtdLPcyI09wcv0ORiVM+u4n8Mab70nHDRz0YEglXaDgxmnKI9N5SoFMqEh7rOWJjEqTNB6Jg3Aw7lKbDy/TQPP19BU7HiJZdMaSJZmHsDfSWSNLnKWYG7FoU/zMvyhqyoUYch1q8AFIWGI95wQTukQwn+4wRzkeN3W+QkH4c+KWJhrKz09Pnl08LT2u2Z0+OZzqMdBG0V1PEcIqHJf5Sbm2iX3Bk2AP2WBM7oapWU+tfdY96+Q/m589OzRxLWmnd2GXABRGc8/PB/cnuF9UoWLOYTySRev8Zo7FDkQ=="
                         }
                       }
                     ]

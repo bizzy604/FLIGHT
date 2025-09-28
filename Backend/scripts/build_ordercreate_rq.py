@@ -18,13 +18,13 @@ def extract_services_from_response(response: Dict[str, Any]) -> List[Dict[str, A
     services = response.get('Services', {}).get('Service', [])
     return normalize_to_list(services)
 
-def create_offer_item_id(value: str, owner: str = "SQ", refs: Optional[List[str]] = None, channel: str = "NDC") -> Dict[str, Any]:
+def create_offer_item_id(value: str, owner: str, refs: Optional[List[str]] = None, channel: str = "NDC") -> Dict[str, Any]:
     """Create standardized OfferItemID structure - DRY principle
-    NOTE: Owner should come from response data, not hardcoded
+    NOTE: Owner must be provided from response data
     """
     offer_item_id = {
         "value": value,
-        "Owner": owner,  # Should be extracted from API response, not hardcoded
+        "Owner": owner,  # Must be extracted from API response
         "Channel": channel
     }
     if refs:
@@ -184,49 +184,34 @@ def create_passenger_mapping(flight_price_response: Dict[str, Any], passengers_d
     
     return passenger_mapping
 
-def _create_flight_to_segment_mapping(flight_price_response: Dict[str, Any]) -> Dict[str, str]:
+def _extract_segment_keys_from_responses(flight_price_response: Dict[str, Any]) -> List[str]:
     """
-    Create a mapping from flight numbers to segment keys from FlightPriceRS.
+    Extract segment keys directly from FlightPriceRS response.
     
     Args:
         flight_price_response: FlightPriceRS response
         
     Returns:
-        Dict mapping flight numbers to segment keys (e.g., {"BA322": "FS1"})
+        List of segment keys (e.g., ["SEG2", "SEG9"])
     """
-    import logging
-    logger = logging.getLogger(__name__)
-    
-    flight_to_segment_map = {}
-    
     try:
-        # Extract flight segments from FlightPriceRS
+        # Extract segment keys directly from FlightPriceRS
         flight_segments = flight_price_response.get('DataLists', {}).get('FlightSegmentList', {}).get('FlightSegment', [])
         if not isinstance(flight_segments, list):
             flight_segments = [flight_segments] if flight_segments else []
         
+        segment_keys = []
         for segment in flight_segments:
             if isinstance(segment, dict):
                 segment_key = segment.get('SegmentKey', '')
-                marketing_carrier = segment.get('MarketingCarrier', {})
-                airline_id = marketing_carrier.get('AirlineID', {}).get('value', '')
-                flight_number = marketing_carrier.get('FlightNumber', {}).get('value', '')
-                
-                if segment_key and airline_id and flight_number:
-                    # Create flight number with airline code (e.g., "BA322")
-                    full_flight_number = f"{airline_id}{flight_number}"
-                    flight_to_segment_map[full_flight_number] = segment_key
-                    
-                    # Also create mapping with leading zero (e.g., "BA0322")
-                    full_flight_number_with_zero = f"{airline_id}{flight_number.zfill(4)}"
-                    flight_to_segment_map[full_flight_number_with_zero] = segment_key
-                    
-        logger.info(f"Created flight to segment mapping: {flight_to_segment_map}")
-        return flight_to_segment_map
+                if segment_key:
+                    segment_keys.append(segment_key)
+        
+        return segment_keys
         
     except Exception as e:
-        logger.error(f"Error creating flight to segment mapping: {e}")
-        return {}
+        print(f"Error extracting segment keys: {e}")
+        return []
 
 def generate_order_create_rq(
     flight_price_response: Dict[str, Any],
@@ -265,8 +250,8 @@ def generate_order_create_rq(
     if not fpr_response_id_value:
         raise ValueError("ShoppingResponseID (value) missing from FlightPriceResponse")
     
-    # Create flight to segment mapping for correct SegmentReferences
-    flight_to_segment_map = _create_flight_to_segment_mapping(actual_flight_price_response)
+    # Extract segment keys directly from response
+    segment_keys = _extract_segment_keys_from_responses(actual_flight_price_response)
 
     priced_flight_offers = actual_flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', [])
     if not priced_flight_offers or not isinstance(priced_flight_offers, list) or not priced_flight_offers[0]:
@@ -349,13 +334,13 @@ def generate_order_create_rq(
         if idx in passenger_mapping:
             pax["ObjectKey"] = passenger_mapping[idx]
         elif "ObjectKey" not in pax or not pax["ObjectKey"]:
-            # Use ObjectKey from response instead of creating hardcoded "PAX{idx + 1}"
+            # Use ObjectKey from response - API responses are reliable
             if idx < len(available_object_keys):
                 pax["ObjectKey"] = available_object_keys[idx]
             else:
-                # Only fallback if absolutely no ObjectKeys found in response
-                print(f"WARNING: No ObjectKey found in response for passenger {idx}, using fallback")
-                pax["ObjectKey"] = f"PAX{idx + 1}"
+                # This should not happen with reliable API responses
+                print(f"ERROR: No ObjectKey found in response for passenger {idx}")
+                raise ValueError(f"No ObjectKey found in response for passenger {idx}")
     
     # Process OfferItems
     offer_price_list_fprs = selected_priced_offer.get('OfferPrice', [])
@@ -415,7 +400,7 @@ def generate_order_create_rq(
         seatavailability_response,
         selected_seats,
         passengers_data,
-        flight_to_segment_map  # Pass the mapping for correct SegmentReferences
+        segment_keys  # Pass the segment keys directly
     )
     
     return order_create_rq
@@ -938,16 +923,16 @@ def add_seat_service_selections_to_order_create(
     seatavailability_response: Optional[Dict[str, Any]] = None,
     selected_seats: Optional[List[str]] = None,
     passengers_data: List[Dict[str, Any]] = None,
-    flight_to_segment_map: Optional[Dict[str, str]] = None
+    segment_keys: Optional[List[str]] = None
 ):
     """FIXED: Add seat and service selections to OrderCreate per VDC specification"""
     print(f"DEBUG: Adding seat/service selections to OrderCreate per VDC spec")
     print(f"DEBUG: selected_services: {selected_services}")
     print(f"DEBUG: selected_seats: {selected_seats}")
     
-    # Default empty mapping if not provided
-    if flight_to_segment_map is None:
-        flight_to_segment_map = {}
+    # Default empty list if not provided
+    if segment_keys is None:
+        segment_keys = []
     
     # Initialize OfferItem list if not exists
     if "OfferItem" not in order_create_rq["Query"]["OrderItems"]:
@@ -990,64 +975,28 @@ def add_seat_service_selections_to_order_create(
         available_object_keys = [service.get('ObjectKey') for service in services]
         print(f"DEBUG: Available service ObjectKeys: {available_object_keys}")
         
-        # Check if we need to map custom service IDs to ObjectKeys
-        # This is a temporary fix for the frontend sending wrong service IDs
-        service_id_mapping = {}
-        for i, service in enumerate(services):
-            service_key = service.get('ObjectKey')
-            service_id = service.get('ServiceID', {})
-            service_id_value = service_id.get('value', '') if isinstance(service_id, dict) else str(service_id)
-            
-            # Extract service owner for mapping
-            service_owner = service_id.get('Owner') if isinstance(service_id, dict) else None
-            
-            # Create potential mapping keys that frontend might be using
-            if service_id_value:
-                # Try different formats that frontend might be generating
-                # The frontend seems to be using patterns like "SER13-ServiceIdEY-13"
-                potential_keys = [
-                    f"SER{i+1}-ServiceId{service_owner}-{i+1}" if service_owner else f"SER{i+1}-ServiceId-{i+1}",  # Pattern: SER1-ServiceIdWY-1
-                    f"SER{i+13}-ServiceId{service_owner}-{i+13}" if service_owner else f"SER{i+13}-ServiceId-{i+13}",  # Pattern: SER13-ServiceIdWY-13 (common frontend pattern)
-                    f"SER{i+13}-ServiceIdEY-{i+13}",  # Pattern: SER13-ServiceIdEY-13 (exact match)
-                    f"SER{i+1}-{service_id_value}",  # Pattern: SER1-E-OC-0AG-LG-EX-WY
-                    service_id_value,  # Direct service ID
-                    service_key  # Direct ObjectKey
-                ]
-                
-                for potential_key in potential_keys:
-                    if potential_key not in service_id_mapping:
-                        service_id_mapping[potential_key] = service_key
-        
-        print(f"DEBUG: Created service ID mapping: {service_id_mapping}")
+        # Simplified service selection - use direct ObjectKey matching
+        print(f"DEBUG: Processing services with direct ObjectKey matching")
         
         for service in services:
             service_key = service.get('ObjectKey')
             print(f"DEBUG: Checking service: {service_key}")
             
-            # Check if this service is selected (either by ObjectKey or mapped ID)
-            is_selected = False
-            selected_key = None
+            # Check if this service is selected using direct ObjectKey matching
+            is_selected = service_key in selected_services
             
-            if service_key in selected_services:
-                is_selected = True
-                selected_key = service_key
-                print(f"DEBUG: Service {service_key} found in selected services (direct match)")
+            if is_selected:
+                print(f"DEBUG: Service {service_key} found in selected services")
             else:
-                # Try to find a mapping
-                for selected_service in selected_services:
-                    if selected_service in service_id_mapping and service_id_mapping[selected_service] == service_key:
-                        is_selected = True
-                        selected_key = service_key
-                        print(f"DEBUG: Service {service_key} found via mapping from {selected_service}")
-                        break
+                print(f"DEBUG: Service {service_key} not in selected services")
             
             if is_selected:
                 print(f"DEBUG: Adding service to OrderCreate per VDC spec: {service_key}")
                 
                 # FIXED: Create service OfferItem per NDC spec mapping with correct ServiceListRS mapping
                 # Extract Owner from each individual service per NDC spec
-                service_id = service.get('ServiceID', {})
-                service_owner = service_id.get('Owner') if isinstance(service_id, dict) else None
+                service_id = service.get('ServiceID').get('ObjectKey')
+                service_owner = service.get('ServiceID', {}).get('Owner')
                 
                 # Use ServiceID.ObjectKey for the value per NDC spec
                 service_id_object_key = service_id.get('ObjectKey', '') if isinstance(service_id, dict) else ''
@@ -1092,9 +1041,9 @@ def add_seat_service_selections_to_order_create(
                 
                 service_offer_item = {
                     "OfferItemID": {
-                        "value": service_id_object_key,  # FIXED: Use ServiceID.ObjectKey as value per NDC spec
+                        "value": service_id,
                         "Owner": service_owner,
-                        "refs": offer_item_refs,  # OfferExpiration.ObjectKey first, then ShoppingResponseID
+                        "refs": offer_item_refs,
                         "Channel": "NDC"
                     },
                     "OfferItemType": {
@@ -1119,12 +1068,9 @@ def add_seat_service_selections_to_order_create(
                     flight_refs = assoc.get('Flight', {}).get('originDestinationReferencesOrSegmentReferences', [])
                     for flight_ref in flight_refs:
                         segment_refs = flight_ref.get('SegmentReferences', {}).get('value', [])
-                        # Map flight numbers to segment keys
-                        mapped_refs = [
-                            flight_to_segment_map.get(seg_ref, seg_ref) 
-                            for seg_ref in segment_refs
-                        ]
-                        flight_ref['SegmentReferences']['value'] = mapped_refs
+                        # Use segment references directly from service associations
+                        # No mapping needed - use segment references as they are
+                        flight_ref['SegmentReferences']['value'] = segment_refs
                 
                 service_list_entry = {
                     "ObjectKey": service_key,
@@ -1145,43 +1091,8 @@ def add_seat_service_selections_to_order_create(
     if seatavailability_response and selected_seats:
         print(f"DEBUG: Processing {len(selected_seats)} selected seats per VDC spec")
         
-        # Map seat positions to their data from response
-        seat_position_to_data = {}
-        
-        # FIXED: Extract seats from SeatAvailabilityRS response structure
-        seats = []
-        if seatavailability_response:
-            # Handle different response structures
-            if 'response' in seatavailability_response and 'Services' in seatavailability_response['response']:
-                # SeatAvailabilityRS structure: response.Services.Service
-                seats_data = seatavailability_response['response']['Services'].get('Service', [])
-                if not isinstance(seats_data, list):
-                    seats_data = [seats_data] if seats_data else []
-                seats = seats_data
-            elif 'Services' in seatavailability_response:
-                # Direct structure: Services.Service
-                seats_data = seatavailability_response['Services'].get('Service', [])
-                if not isinstance(seats_data, list):
-                    seats_data = [seats_data] if seats_data else []
-                seats = seats_data
-            else:
-                # Fallback: try DataLists.SeatList.Seats
-                datalists = seatavailability_response.get('DataLists', {})
-                seats = normalize_to_list(datalists.get('SeatList', {}).get('Seats', []))
-        
-        print(f"DEBUG: Found {len(seats)} seats in response")
-        
-        for seat in seats:
-            location = seat.get('Location', {})
-            if location:
-                row_num = location.get('Row', {}).get('Number', {}).get('value', '')
-                column = location.get('Column', '')
-                
-                if row_num and column:
-                    seat_position = f"{row_num}{column}"
-                    seat_position_to_data[seat_position] = seat
-        
-        print(f"DEBUG: Mapped {len(seat_position_to_data)} seat positions")
+        # Simplified seat processing - focus on services only
+        print(f"DEBUG: Processing seat services from SeatAvailabilityRS")
         
         # FIXED: Get Services from seatavailability_response for pricing
         seat_services = []
@@ -1202,20 +1113,8 @@ def add_seat_service_selections_to_order_create(
         
         service_map = {s.get('ObjectKey'): s for s in seat_services}
         
-        # Create a mapping from seat positions to service ObjectKeys
-        seat_to_service_map = {}
-        for seat_service in seat_services:
-            service_object_key = seat_service.get('ObjectKey')
-            associations = seat_service.get('Associations', [])
-            for assoc in associations:
-                traveler_refs = assoc.get('Traveler', {}).get('TravelerReferences', [])
-                flight_refs = assoc.get('Flight', {}).get('originDestinationReferencesOrSegmentReferences', [])
-                for flight_ref in flight_refs:
-                    segment_refs = flight_ref.get('SegmentReferences', {}).get('value', [])
-                    if segment_refs:
-                        # Map seat positions to service ObjectKeys
-                        for segment_ref in segment_refs:
-                            seat_to_service_map[segment_ref] = service_object_key
+        # Simplified seat service processing
+        print(f"DEBUG: Processing {len(seat_services)} seat services")
         
         # FIXED: Extract Owner from SeatAvailabilityRS.Services.Service.ServiceID.Owner per NDC spec
         # Each seat service can have different owners - extract per service, not globally
@@ -1228,19 +1127,48 @@ def add_seat_service_selections_to_order_create(
                 seat_service = service_map[selected_seat]
                 print(f"DEBUG: Found pricing ObjectKey {selected_seat}, using VDC spec mapping")
                 
-                # FIXED: Create seat OfferItem per NDC spec with correct SeatAvailabilityRS mapping
-                # Extract Owner from each individual seat service per NDC spec
-                seat_service_id = seat_service.get('ServiceID', {})
-                seat_owner = seat_service_id.get('Owner') if isinstance(seat_service_id, dict) else None
-                
-                # FIXED: Use Service.ObjectKey for the value per VDC spec (not ServiceID.ObjectKey)
+                # FIXED: Use ServiceID.value as OfferItemID.value per VDC spec
+                seat_service_id = seat_service.get('ServiceID', {}).get('value', '')
                 seat_service_object_key = seat_service.get('ObjectKey', '')
                 
-                # FIXED: Build refs per VDC spec: "PRICE" reference and ShoppingResponseID.ResponseID.value
+                # Get Owner from the main flight offer since seat services don't have their own Owner
+                # Extract from the flight offer in the order_create_rq
+                # seat_owner = ''
+                # if 'DataLists' in seatavailability_response and \
+                #    'FlightSegmentList' in seatavailability_response['DataLists'] and \
+                #    'FlightSegment' in seatavailability_response['DataLists']['FlightSegmentList']:
+                #     flight_segments = seatavailability_response['DataLists']['FlightSegmentList']['FlightSegment']
+                #     if isinstance(flight_segments, list):
+                #         # Multiple segments, pick the first
+                #         flight_segment = flight_segments[0]
+                #     else:
+                #         flight_segment = flight_segments
+                #     if 'MarketingCarrier' in flight_segment and \
+                #        'AirlineID' in flight_segment['MarketingCarrier']:
+                #         seat_owner = flight_segment['MarketingCarrier']['AirlineID'].get('value', 'None')
+                # # Fallback to QR if not found
+                # if not seat_owner:
+                #     seat_owner = None
+                
+                # FIXED: Build refs per VDC spec: extract from Associations.Offer.OfferReferences and ShoppingResponseID.ResponseID.value
                 seat_offer_item_refs = []
                 
-                # Add "PRICE" reference first per VDC spec (as shown in documentation example)
-                seat_offer_item_refs.append("PRICE")
+                # Add reference from Associations.Offer.OfferReferences per VDC spec
+                # Extract from the current seat service data
+                seat_offer_references = []
+                seat_service_associations = seat_service.get('Associations', [])
+                if isinstance(seat_service_associations, list):
+                    for association in seat_service_associations:
+                        if isinstance(association, dict) and 'Offer' in association:
+                            offer_references = association['Offer'].get('OfferReferences', [])
+                            if isinstance(offer_references, list) and offer_references:
+                                seat_offer_references.extend(offer_references)
+                
+                # Add the extracted references (fallback to "PRICE" if not found)
+                if seat_offer_references:
+                    seat_offer_item_refs.extend(seat_offer_references)
+                else:
+                    pass # seat_offer_item_refs.append("PRICE")  # Fallback to maintain compatibility
                 
                 # Add ShoppingResponseID.ResponseID.value second per VDC spec
                 # FIXED: Handle SeatAvailabilityRS response structure
@@ -1256,9 +1184,8 @@ def add_seat_service_selections_to_order_create(
                 
                 seat_offer_item = {
                     "OfferItemID": {
-                        "value": seat_service_object_key,  # FIXED: Use Service.ObjectKey as value per VDC spec
-                        "Owner": seat_owner,  # FIXED: Use extracted Owner
-                        "refs": seat_offer_item_refs,  # FIXED: "PRICE" and ShoppingResponseID.ResponseID.value
+                        "value": seat_service_object_key,
+                        "refs": seat_offer_item_refs,
                         "Channel": "NDC"
                     },
                     "OfferItemType": {
@@ -1267,12 +1194,12 @@ def add_seat_service_selections_to_order_create(
                                 "Total": _extract_seat_price(seat_service)
                             },
                             "Descriptions": seat_service.get('Descriptions', {}),
-                            "Location": {},  # Will be filled from seat data
+                            "Location": _extract_seat_location(seatavailability_response, selected_seat),
                             "SeatAssociation": [{
                                 "SegmentReferences": {
                                     "value": [
-                                        # FIXED: Map flight numbers to segment keys using the mapping
-                                        flight_to_segment_map.get(seg_ref, seg_ref) 
+                                        # Use segment references directly from seat service associations
+                                        seg_ref 
                                         for assoc in seat_service.get('Associations', [])
                                         for flight_ref in assoc.get('Flight', {}).get('originDestinationReferencesOrSegmentReferences', [])
                                         for seg_ref in flight_ref.get('SegmentReferences', {}).get('value', [])
@@ -1285,155 +1212,29 @@ def add_seat_service_selections_to_order_create(
                     }
                 }
                 
-                # Try to find corresponding seat data for location
-                for seat_position, seat_data in seat_position_to_data.items():
-                    refs = seat_data.get('refs', [])
-                    if selected_seat in refs:
-                        location = seat_data.get('Location', {})
-                        seat_offer_item["OfferItemType"]["SeatItem"][0]["Location"] = location
-                        print(f"DEBUG: Found seat location {seat_position} for pricing ObjectKey {selected_seat}")
-                        break
+                # Simplified seat location handling - use empty location for now
+                # The actual seat location will be filled from the seat service data
+                print(f"DEBUG: Using simplified seat location for pricing ObjectKey {selected_seat}")
                 
                 order_create_rq["Query"]["OrderItems"]["OfferItem"].append(seat_offer_item)
-                
                 # FIXED: Add to DataLists.ServiceList per VDC spec
                 seat_service_list_entry = {
-                    "ObjectKey": selected_seat,
-                    "ServiceID": {"value": f"SERVICE-{selected_seat}"},
-                    "Name": {"value": f"Seat {selected_seat}"},
-                    "Descriptions": seat_service.get('Descriptions', {}),
-                    "Price": seat_service.get('Price', []),
-                    "Associations": seat_service.get('Associations', []),
-                    "PricedInd": True
-                }
-                add_to_service_list(order_create_rq["Query"]["DataLists"]["ServiceList"]["Service"], seat_service_list_entry)
-                print(f"DEBUG: Added seat service using VDC spec: {selected_seat}")
-                
-            elif selected_seat in seat_to_service_map:
-                # This is a seat position, find the corresponding service
-                service_object_key = seat_to_service_map[selected_seat]
-                seat_service = service_map.get(service_object_key)
-                if seat_service:
-                    print(f"DEBUG: Found seat position {selected_seat} mapped to service {service_object_key}")
-                else:
-                    print(f"DEBUG: Seat position {selected_seat} mapped to service {service_object_key} but service not found")
-                    continue
-            elif selected_seat in seat_position_to_data:
-                # This is a seat position (like "16D"), find the corresponding service
-                seat_data_item = seat_position_to_data[selected_seat]
-                refs = seat_data_item.get('refs', [])
-                location = seat_data_item.get('Location', {})
-                
-                print(f"DEBUG: Adding seat {selected_seat} per VDC spec with location: {location}")
-                
-                # FIXED: Find the actual service ObjectKey from the seat data associations
-                # The seat position should map to a service ObjectKey like "PRICE1-SEG7"
-                seat_service_object_key = None
-                seat_service = None
-                
-                # Look for the service that has this seat position in its associations
-                for service_obj_key, service_data in service_map.items():
-                    service_associations = service_data.get('Associations', [])
-                    for assoc in service_associations:
-                        flight_refs = assoc.get('Flight', {}).get('originDestinationReferencesOrSegmentReferences', [])
-                        for flight_ref in flight_refs:
-                            segment_refs = flight_ref.get('SegmentReferences', {}).get('value', [])
-                            if segment_refs:
-                                # Check if this service is associated with the seat position
-                                # by looking at the seat's refs or associations
-                                if selected_seat in refs or any(selected_seat in str(assoc) for assoc in service_associations):
-                                    seat_service_object_key = service_obj_key
-                                    seat_service = service_data
-                                    break
-                        if seat_service_object_key:
-                            break
-                    if seat_service_object_key:
-                        break
-                
-                # If no service found, create a fallback
-                if not seat_service_object_key:
-                    # Try to find any service that might be associated with this seat
-                    for service_obj_key, service_data in service_map.items():
-                        # Use the first available service as fallback
-                        seat_service_object_key = service_obj_key
-                        seat_service = service_data
-                        break
-                
-                if not seat_service:
-                    print(f"DEBUG: No service found for seat position {selected_seat}, skipping")
-                    continue
-                
-                print(f"DEBUG: Mapped seat position {selected_seat} to service {seat_service_object_key}")
-                
-                # FIXED: Create seat OfferItem per NDC spec with correct SeatAvailabilityRS mapping
-                # Extract Owner from each individual seat service per NDC spec
-                seat_service_id = seat_service.get('ServiceID', {})
-                seat_owner = seat_service_id.get('Owner') if isinstance(seat_service_id, dict) else None
-                
-                # FIXED: Build refs per VDC spec: "PRICE" reference and ShoppingResponseID.ResponseID.value
-                seat_offer_item_refs = []
-                
-                # Add "PRICE" reference first per VDC spec (as shown in documentation example)
-                seat_offer_item_refs.append("PRICE")
-                
-                # Add ShoppingResponseID.ResponseID.value second per VDC spec
-                # FIXED: Handle SeatAvailabilityRS response structure
-                seat_shopping_response_id = ''
-                if 'response' in seatavailability_response:
-                    # SeatAvailabilityRS structure: response.ShoppingResponseID
-                    seat_shopping_response_id = seatavailability_response['response'].get('ShoppingResponseID', {}).get('ResponseID', {}).get('value', '')
-                else:
-                    # Direct structure: ShoppingResponseID
-                    seat_shopping_response_id = seatavailability_response.get('ShoppingResponseID', {}).get('ResponseID', {}).get('value', '')
-                if seat_shopping_response_id:
-                    seat_offer_item_refs.append(seat_shopping_response_id)
-                
-                seat_offer_item = {
-                    "OfferItemID": {
-                        "value": seat_service_object_key,  # FIXED: Use Service.ObjectKey as value per VDC spec
-                        "Owner": seat_owner,  # FIXED: Use extracted Owner
-                        "refs": seat_offer_item_refs,  # FIXED: "PRICE" and ShoppingResponseID.ResponseID.value
-                        "Channel": "NDC"
-                    },
-                    "OfferItemType": {
-                        "SeatItem": [{
-                        "Price": {
-                            "Total": _extract_seat_price(seat_service)
-                        },
-                            "Location": location,
-                            "SeatAssociation": [{
-                                "SegmentReferences": {
-                                    "value": [
-                                        # FIXED: Map flight numbers to segment keys using the mapping
-                                        flight_to_segment_map.get(seg_ref, seg_ref) 
-                                        for assoc in seat_service.get('Associations', [])
-                                        for flight_ref in assoc.get('Flight', {}).get('originDestinationReferencesOrSegmentReferences', [])
-                                        for seg_ref in flight_ref.get('SegmentReferences', {}).get('value', [])
-                                    ]
-                                },
-                                "TravelerReference": traveler_ref
-                            } for assoc in seat_service.get('Associations', [])
-                            for traveler_ref in assoc.get('Traveler', {}).get('TravelerReferences', [])]
-                        }]
-                    }
-                }
-                
-                order_create_rq["Query"]["OrderItems"]["OfferItem"].append(seat_offer_item)
-                
-                # FIXED: Add to DataLists.ServiceList per VDC spec
-                seat_service_list_entry = {
-                    "ObjectKey": seat_service_object_key,  # Use the actual service ObjectKey
+                    "ObjectKey": seat_service_object_key,
                     "ServiceID": seat_service.get('ServiceID', {}),
                     "Name": seat_service.get('Name', {}),
                     "Descriptions": seat_service.get('Descriptions', {}),
-                    "Price": seat_service.get('Price', []),
-                    "Associations": seat_service.get('Associations', []),
-                    "PricedInd": seat_service.get('PricedInd', True)
+                    "Price": seat_service.get('Price', {}),
+                    "Associations": seat_service.get('Associations', {}),
+                    "PricedInd": seat_service.get('PricedInd')
                 }
                 add_to_service_list(order_create_rq["Query"]["DataLists"]["ServiceList"]["Service"], seat_service_list_entry)
-                print(f"DEBUG: Added seat service for {selected_seat} per VDC spec")
+                print(f"DEBUG: Added seat service using VDC spec: {selected_seat}")
             else:
-                print(f"DEBUG: Seat position or pricing ObjectKey {selected_seat} not found in seat availability response")
+                # Handle other seat selection patterns
+                print(f"DEBUG: Processing seat selection: {selected_seat}")
+                # Simplified seat processing - skip complex mapping
+                print(f"DEBUG: Skipping complex seat position mapping for {selected_seat}")
+                continue
     
     print(f"DEBUG: Finished adding seat/service selections to OrderCreate per VDC spec")
 
@@ -1484,6 +1285,63 @@ def _extract_seat_price(seat_service_data: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as e:
         print(f"Warning: Error extracting seat price: {e}")
         return {"value": 0, "Code": "USD"}
+
+def _extract_seat_price(seat_service_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Extract price information from seat service data.
+    
+    Args:
+        seat_service_data: Seat service data from SeatAvailabilityRS
+        
+    Returns:
+        Dict containing price information
+    """
+    try:
+        price_list = seat_service_data.get('Price', [])
+        if price_list and len(price_list) > 0:
+            price = price_list[0]
+            return {
+                "value": price.get('Total', {}).get('value', 0),
+                "Code": price.get('Total', {}).get('Code', 'INR')
+            }
+        return {"value": 0, "Code": "INR"}
+    except Exception as e:
+        print(f"DEBUG: Error extracting seat price: {e}")
+        return {"value": 0, "Code": "INR"}
+
+def _extract_seat_location(seatavailability_response: Dict[str, Any], selected_seat: str) -> Dict[str, Any]:
+    """
+    Extract seat location data from SeatAvailabilityRS response.
+    
+    Args:
+        seatavailability_response: SeatAvailabilityRS response
+        selected_seat: The selected seat ObjectKey (e.g., "PRICE1-SEG9")
+        
+    Returns:
+        Dict containing seat location information
+    """
+    try:
+        # Extract seat list from response
+        seat_list = seatavailability_response.get('DataLists', {}).get('SeatList', {}).get('Seats', [])
+        if not isinstance(seat_list, list):
+            seat_list = [seat_list] if seat_list else []
+        
+        # Find the first seat that matches the selected seat reference
+        for seat in seat_list:
+            if isinstance(seat, dict):
+                seat_refs = seat.get('refs', [])
+                if selected_seat in seat_refs:
+                    location = seat.get('Location', {})
+                    if location:
+                        print(f"DEBUG: Found seat location for {selected_seat}: {location}")
+                        return location
+        
+        print(f"DEBUG: No seat location found for {selected_seat}")
+        return {}
+        
+    except Exception as e:
+        print(f"DEBUG: Error extracting seat location: {e}")
+        return {}
 
 if __name__ == "__main__":
     print("This is the version of build_ordercreate_rq.py")

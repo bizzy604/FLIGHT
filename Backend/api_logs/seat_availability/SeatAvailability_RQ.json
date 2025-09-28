@@ -1,13 +1,13 @@
 {
-  "timestamp": "2025-09-27T12:24:15.964516",
+  "timestamp": "2025-09-28T10:58:34.938015",
   "service": "SeatAvailability",
-  "request_id": "919f44b0-b058-4b71-9fd1-3e1c5ed923ec",
+  "request_id": "92ed64e9-beae-40d6-bc96-85427ab20ff1",
   "endpoint": "/entrygate/rest/request:preSeatAvailability",
   "headers": {
     "Content-Type": "application/json",
     "Accept": "*/*",
-    "Authorization": "Bearer ***k416yncA",
-    "OfficeId": "***F301",
+    "Authorization": "Bearer ***5_QcO4Dg",
+    "OfficeId": "***3746",
     "service": "SeatAvailability",
     "User-Agent": "PostmanRuntime/7.41",
     "Cache-Control": "no-cache",
@@ -35,10 +35,10 @@
         {
           "FlightSegmentReference": [
             {
-              "ref": "SEG5"
+              "ref": "SEG24"
             },
             {
-              "ref": "SEG6"
+              "ref": "SEG9"
             }
           ]
         }
@@ -47,14 +47,14 @@
         "Offer": [
           {
             "OfferID": {
-              "value": "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2",
-              "Owner": "KQ",
+              "value": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X",
+              "Owner": "SQ",
               "Channel": "NDC"
             },
             "OfferItemIDs": {
               "OfferItemID": [
                 {
-                  "value": "1GHKQZ_M5E20LQLNRI0VVVFEK1KGZWUKNS2-1-1"
+                  "value": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-1-1"
                 }
               ]
             }
@@ -66,86 +66,90 @@
       "FlightSegmentList": {
         "FlightSegment": [
           {
-            "SegmentKey": "SEG5",
+            "SegmentKey": "SEG24",
             "Departure": {
               "AirportCode": {
-                "value": "LHR"
+                "value": "CDG"
               },
-              "Date": "2025-10-03T19:45:00.000",
-              "Time": "19:45",
+              "Date": "2025-10-03T06:40:00.000",
+              "Time": "06:40",
+              "AirportName": "Charles De Gaulle Airport",
               "Terminal": {
-                "Name": "4"
+                "Name": "1"
               }
             },
             "Arrival": {
               "AirportCode": {
-                "value": "CDG"
+                "value": "MUC"
               },
-              "Date": "2025-10-03T22:00:00.000",
-              "Time": "22:00",
+              "Date": "2025-10-03T08:10:00.000",
+              "Time": "08:10",
+              "AirportName": "Munich Airport",
               "Terminal": {
-                "Name": "2E"
+                "Name": "2"
               }
             },
             "MarketingCarrier": {
               "AirlineID": {
-                "value": "KQ"
+                "value": "LH"
               },
-              "Name": "Kenya Airways",
+              "Name": "LUFTHANSA",
               "FlightNumber": {
-                "value": "3079"
+                "value": "2239"
               }
             },
             "Equipment": {
               "AircraftCode": {
-                "value": "223"
+                "value": "32N"
               }
             },
             "FlightDetail": {
               "FlightDuration": {
-                "Value": "PT1H15M"
+                "Value": "PT1H30M"
               }
             }
           },
           {
-            "SegmentKey": "SEG6",
+            "SegmentKey": "SEG9",
             "Departure": {
               "AirportCode": {
-                "value": "CDG"
+                "value": "MUC"
               },
-              "Date": "2025-10-04T10:45:00.000",
-              "Time": "10:45",
+              "Date": "2025-10-03T12:30:00.000",
+              "Time": "12:30",
+              "AirportName": "Munich Airport",
               "Terminal": {
-                "Name": "2E"
+                "Name": "2"
               }
             },
             "Arrival": {
               "AirportCode": {
-                "value": "NBO"
+                "value": "SIN"
               },
-              "Date": "2025-10-04T20:10:00.000",
-              "Time": "20:10",
+              "Date": "2025-10-04T06:40:00.000",
+              "Time": "06:40",
+              "AirportName": "Changi Airport",
               "Terminal": {
-                "Name": "1A"
+                "Name": "0"
               }
             },
             "MarketingCarrier": {
               "AirlineID": {
-                "value": "KQ"
+                "value": "SQ"
               },
-              "Name": "Kenya Airways",
+              "Name": "SINGAPORE AIRLINES",
               "FlightNumber": {
-                "value": "113"
+                "value": "327"
               }
             },
             "Equipment": {
               "AircraftCode": {
-                "value": "788"
+                "value": "359"
               }
             },
             "FlightDetail": {
               "FlightDuration": {
-                "Value": "PT8H25M"
+                "Value": "PT12H10M"
               }
             }
           }
@@ -154,14 +158,25 @@
       "FareList": {
         "FareGroup": [
           {
-            "ListKey": "FG-58909065483531",
+            "ListKey": "FG-101397051322010",
             "Fare": {
               "FareCode": {
                 "Code": "70J"
               }
             },
             "FareBasisCode": {
-              "Code": "ULSFWGB"
+              "Code": "YIFSQ"
+            }
+          },
+          {
+            "ListKey": "FG-101397051343393",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              }
+            },
+            "FareBasisCode": {
+              "Code": "YIFSQ"
             }
           }
         ]
@@ -169,7 +184,7 @@
     },
     "ShoppingResponseID": {
       "ResponseID": {
-        "value": "RQ295nCRfbrvzRjC8m6QKnLLJegueo3Nuh9xeqvacr0-KQ"
+        "value": "aL-ByHTHp1wrQ8uVhevKaMzIcMMu916-5dJYarTGF-Y-SQ"
       }
     }
   }
