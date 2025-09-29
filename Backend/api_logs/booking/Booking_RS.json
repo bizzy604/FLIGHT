@@ -1,44 +1,44 @@
 {
-  "timestamp": "2025-09-28T10:59:11.447755",
+  "timestamp": "2025-09-29T21:09:00.881540",
   "service": "OrderCreate",
-  "request_id": "361e5d8c-f5bf-45c4-b77c-cd99850a4441",
+  "request_id": "3ee385ce-2143-4e0e-9e9c-0f12a0f4d034",
   "status_code": 200,
   "response_time_ms": null,
   "response": {
     "status": "success",
     "data": {
-      "bookingReference": "1962214",
-      "order_id": "F45EWC",
+      "bookingReference": "1963594",
+      "order_id": "Y3KUGT",
       "status": "confirmed",
-      "createdAt": "2025-09-28T07:59:11.230278Z",
+      "createdAt": "2025-09-29T18:09:00.648246Z",
       "flightDetails": {
         "outbound": {
           "departure": {
+            "city": "Frankfurt",
+            "airport": "FRA - Frankfurt Airport",
+            "code": "FRA",
+            "time": "00:00",
+            "fullDate": "2025-10-08T00:00:00.000T07:05",
+            "terminal": "2"
+          },
+          "arrival": {
             "city": "Paris",
             "airport": "CDG - Charles de Gaulle Airport",
             "code": "CDG",
-            "time": "06:40",
-            "fullDate": "2025-10-03T06:40:00.000T06:40:00",
-            "terminal": "1"
-          },
-          "arrival": {
-            "city": "MUC",
-            "airport": "MUC - Munich Airport",
-            "code": "MUC",
-            "time": "08:10",
-            "fullDate": "2025-10-03T08:10:00.000T08:10:00",
-            "terminal": "2"
+            "time": "00:00",
+            "fullDate": "2025-10-08T00:00:00.000T08:35",
+            "terminal": "2G"
           },
           "airline": {
-            "name": "LUFTHANSA",
-            "code": "LH",
-            "flightNumber": "LH2239",
-            "logo": "/airlines/LH.svg"
+            "name": "Unknown Airline",
+            "code": "AF",
+            "flightNumber": "AF1019",
+            "logo": "/airlines/AF.svg"
           },
           "duration": "N/A",
           "aircraft": {
-            "type": "32N",
-            "model": "32N"
+            "type": "E90",
+            "model": "E90"
           }
         },
         "return": null
@@ -58,20 +58,20 @@
         }
       ],
       "contactInfo": {
-        "email": "KEVINAMONI20@GMAIL.COM",
+        "email": "kevinamoni20@gmail.com",
         "phone": {
-          "countryCode": "++39",
-          "number": "75468964567",
-          "formatted": "++39 75468964567"
+          "countryCode": "+33",
+          "number": "0796861525",
+          "formatted": "+33 0796861525"
         }
       },
       "pricing": {
         "baseFare": {
-          "amount": 332800.0,
+          "amount": 10400.0,
           "currency": "INR"
         },
         "taxes": {
-          "amount": 14911.0,
+          "amount": 6870.0,
           "currency": "INR"
         },
         "fees": {
@@ -79,7 +79,7 @@
           "currency": "INR"
         },
         "total": {
-          "amount": 347711.0,
+          "amount": 17270.0,
           "currency": "INR"
         }
       },
@@ -104,20 +104,17 @@
       }
     },
     "raw_order_create_response": {
-      "Document": {
-        "Name": "SQ"
-      },
       "Response": {
         "Passengers": {
           "Passenger": [
             {
-              "ObjectKey": "PAX2",
+              "ObjectKey": "PAX1",
               "PTC": {
                 "value": "ADT"
               },
               "Age": {
                 "BirthDate": {
-                  "value": "2000-09-10T00:00:00.000"
+                  "value": "2003-06-04T00:00:00.000"
                 }
               },
               "Name": {
@@ -129,31 +126,21 @@
                     "value": "AMONI"
                   }
                 ],
-                "Title": "MRS"
+                "Title": "MR"
               },
               "Contacts": {
                 "Contact": [
                   {
-                    "AddressContact": {
-                      "Street": [
-                        "KIMATHI"
-                      ],
-                      "CityName": "NAIROBI",
-                      "PostalCode": "30500",
-                      "CountryCode": {
-                        "value": "BI"
-                      }
-                    },
                     "EmailContact": {
                       "Address": {
-                        "value": "KEVINAMONI20@GMAIL.COM"
+                        "value": "kevinamoni20@gmail.com"
                       }
                     },
                     "PhoneContact": {
                       "Number": [
                         {
-                          "value": "75468964567",
-                          "CountryCode": "+39"
+                          "value": "0796861525",
+                          "CountryCode": "33"
                         }
                       ]
                     }
@@ -161,15 +148,15 @@
                 ]
               },
               "Gender": {
-                "value": "Female"
+                "value": "Male"
               },
               "PassengerIDInfo": {
                 "PassengerDocument": [
                   {
                     "Type": "PT",
-                    "ID": "38505676",
-                    "DateOfExpiration": "2032-07-08T00:00:00.000",
-                    "CountryOfIssuance": "BI"
+                    "ID": "Q032893N",
+                    "DateOfExpiration": "2033-08-09T00:00:00.000",
+                    "CountryOfIssuance": "KE"
                   }
                 ]
               }
@@ -182,70 +169,56 @@
               "OrderItem": [
                 {
                   "OrderItemID": {
-                    "value": "SQ618F45EWC00_AIR-1-2-PAX2",
-                    "Owner": "SQ"
+                    "value": "ce69b13a-e8cb-428a-9f7b-4d7c1e9d9582",
+                    "Owner": "AF"
                   },
                   "FlightItem": {
                     "Price": {
                       "BaseAmount": {
-                        "value": 332800,
+                        "value": 10400.0,
                         "Code": "INR"
                       },
                       "Taxes": {
                         "Total": {
-                          "value": 14911,
+                          "value": 6870.0,
                           "Code": "INR"
                         },
                         "Breakdown": {
                           "Tax": [
                             {
                               "Amount": {
-                                "value": 208,
+                                "value": 156.0,
                                 "Code": "INR"
                               },
-                              "TaxCode": "YQ"
+                              "TaxCode": "YR"
                             },
                             {
                               "Amount": {
-                                "value": 4680,
+                                "value": 1616.0,
                                 "Code": "INR"
                               },
-                              "TaxCode": "YQ"
+                              "TaxCode": "OY"
                             },
                             {
                               "Amount": {
-                                "value": 962,
-                                "Code": "INR"
-                              },
-                              "TaxCode": "FR"
-                            },
-                            {
-                              "Amount": {
-                                "value": 1358,
-                                "Code": "INR"
-                              },
-                              "TaxCode": "FR"
-                            },
-                            {
-                              "Amount": {
-                                "value": 4160,
-                                "Code": "INR"
-                              },
-                              "TaxCode": "O4"
-                            },
-                            {
-                              "Amount": {
-                                "value": 1451,
-                                "Code": "INR"
-                              },
-                              "TaxCode": "QX"
-                            },
-                            {
-                              "Amount": {
-                                "value": 2092,
+                                "value": 3604.0,
                                 "Code": "INR"
                               },
                               "TaxCode": "RA"
+                            },
+                            {
+                              "Amount": {
+                                "value": 1234.0,
+                                "Code": "INR"
+                              },
+                              "TaxCode": "DE"
+                            },
+                            {
+                              "Amount": {
+                                "value": 260.0,
+                                "Code": "INR"
+                              },
+                              "TaxCode": "T02"
                             }
                           ]
                         }
@@ -253,7 +226,7 @@
                       "Discount": [
                         {
                           "DiscountAmount": {
-                            "value": 16640,
+                            "value": 520,
                             "Code": "INR"
                           },
                           "DiscountPercent": 5,
@@ -261,7 +234,7 @@
                           "discountCode": "Disc_rea",
                           "discountName": "ReaDiscount",
                           "preDiscountedAmount": {
-                            "value": 332800,
+                            "value": 10400.0,
                             "Code": "INR"
                           }
                         }
@@ -271,61 +244,56 @@
                       {
                         "Flight": [
                           {
-                            "SegmentKey": "SEG1",
+                            "SegmentKey": "SEG4",
                             "Departure": {
                               "AirportCode": {
-                                "value": "CDG"
+                                "value": "FRA"
                               },
-                              "Date": "2025-10-03T06:40:00.000",
-                              "Time": "06:40:00",
-                              "AirportName": "Charles De Gaulle Airport",
-                              "Terminal": {
-                                "Name": "1"
-                              }
-                            },
-                            "Arrival": {
-                              "AirportCode": {
-                                "value": "MUC"
-                              },
-                              "Date": "2025-10-03T08:10:00.000",
-                              "Time": "08:10:00",
-                              "AirportName": "Munich Airport",
+                              "Date": "2025-10-08T00:00:00.000",
+                              "Time": "07:05",
                               "Terminal": {
                                 "Name": "2"
                               }
                             },
+                            "Arrival": {
+                              "AirportCode": {
+                                "value": "CDG"
+                              },
+                              "Date": "2025-10-08T00:00:00.000",
+                              "Time": "08:35",
+                              "Terminal": {
+                                "Name": "2G"
+                              }
+                            },
                             "MarketingCarrier": {
                               "AirlineID": {
-                                "value": "LH"
+                                "value": "AF"
                               },
-                              "Name": "LUFTHANSA",
                               "FlightNumber": {
-                                "value": "2239"
-                              },
-                              "ResBookDesigCode": "Y"
+                                "value": "1019"
+                              }
                             },
                             "OperatingCarrier": {
                               "AirlineID": {
-                                "value": "LH"
-                              },
-                              "Name": "LUFTHANSA"
+                                "value": "A5"
+                              }
                             },
                             "Equipment": {
-                              "Name": "32N",
+                              "Name": "E90",
                               "AircraftCode": {
-                                "value": "32N"
+                                "value": "E90"
                               }
                             },
                             "ClassOfService": {
                               "Code": {
-                                "value": "Y"
+                                "value": "T"
                               },
                               "MarketingName": {
                                 "value": "ECONOMY",
                                 "CabinDesignator": "Y"
                               },
                               "refs": [
-                                "FG-70J-FJMHKJD-1"
+                                "FG-70J-NHAIJKX-1"
                               ]
                             },
                             "Details": {
@@ -334,73 +302,6 @@
                               },
                               "FlightDuration": {
                                 "Value": "PT1H30M"
-                              }
-                            }
-                          },
-                          {
-                            "SegmentKey": "SEG2",
-                            "Departure": {
-                              "AirportCode": {
-                                "value": "MUC"
-                              },
-                              "Date": "2025-10-03T12:30:00.000",
-                              "Time": "12:30:00",
-                              "AirportName": "Munich Airport",
-                              "Terminal": {
-                                "Name": "2"
-                              }
-                            },
-                            "Arrival": {
-                              "AirportCode": {
-                                "value": "SIN"
-                              },
-                              "Date": "2025-10-04T06:40:00.000",
-                              "Time": "06:40:00",
-                              "AirportName": "Changi Airport",
-                              "Terminal": {
-                                "Name": "0"
-                              }
-                            },
-                            "MarketingCarrier": {
-                              "AirlineID": {
-                                "value": "SQ"
-                              },
-                              "Name": "SINGAPORE AIRLINES",
-                              "FlightNumber": {
-                                "value": "327"
-                              },
-                              "ResBookDesigCode": "Y"
-                            },
-                            "OperatingCarrier": {
-                              "AirlineID": {
-                                "value": "SQ"
-                              },
-                              "Name": "SINGAPORE AIRLINES"
-                            },
-                            "Equipment": {
-                              "Name": "359",
-                              "AircraftCode": {
-                                "value": "359"
-                              }
-                            },
-                            "ClassOfService": {
-                              "Code": {
-                                "value": "Y"
-                              },
-                              "MarketingName": {
-                                "value": "ECONOMY",
-                                "CabinDesignator": "Y"
-                              },
-                              "refs": [
-                                "FG-70J-FJMHKJD-1"
-                              ]
-                            },
-                            "Details": {
-                              "FlightSegmentType": {
-                                "Code": "HK"
-                              },
-                              "FlightDuration": {
-                                "Value": "PT12H10M"
                               }
                             }
                           }
@@ -413,44 +314,19 @@
                           "FareRules": {
                             "Penalty": {
                               "refs": [
-                                "CANCEL-PAX1-SEG24-106ACk",
-                                "CANCEL-PAX1-SEG24-pRWd7c",
-                                "CANCEL-PAX1-SEG24-W0U6aK",
-                                "CANCEL-PAX1-SEG24-2POXoq",
-                                "CHANGE-PAX1-SEG24-Kuor3x",
-                                "CHANGE-PAX1-SEG24-LE6FWw",
-                                "CHANGE-PAX1-SEG24-ynkv2a",
-                                "CHANGE-PAX1-SEG24-iDgs4d"
+                                "PENALTY-CANCELLATION-SEG4-PAX1-1",
+                                "PENALTY-CANCELLATION-SEG4-PAX1-2",
+                                "PENALTY-CHANGE-SEG4-PAX1-3",
+                                "PENALTY-CHANGE-SEG4-PAX1-4",
+                                "PENALTY-NOSHOW-SEG4-PAX1-5"
                               ]
                             }
                           },
                           "PriceClassReference": [
-                            "FF21"
+                            "PC41"
                           ],
                           "refs": [
-                            "SEG1"
-                          ]
-                        },
-                        {
-                          "FareRules": {
-                            "Penalty": {
-                              "refs": [
-                                "CANCEL-PAX1-SEG9-otSi6u",
-                                "CANCEL-PAX1-SEG9-qaEKvx",
-                                "CANCEL-PAX1-SEG9-QXtF3R",
-                                "CANCEL-PAX1-SEG9-GyHkuQ",
-                                "CHANGE-PAX1-SEG9-v7Qizh",
-                                "CHANGE-PAX1-SEG9-lZMFvn",
-                                "CHANGE-PAX1-SEG9-EFgffO",
-                                "CHANGE-PAX1-SEG9-J1jQVZ"
-                              ]
-                            }
-                          },
-                          "PriceClassReference": [
-                            "FF21"
-                          ],
-                          "refs": [
-                            "SEG2"
+                            "SEG4"
                           ]
                         }
                       ]
@@ -458,89 +334,35 @@
                   },
                   "BaggageItem": {
                     "refs": [
-                      "BAGALLOW_1_SEG1_PAX2",
-                      "BAGALLOW_1_SEG2_PAX2"
+                      "SRVID4_CO_PAX1_SEG4",
+                      "SRVID4_BI_PAX1_SEG4"
                     ]
                   },
                   "Associations": {
                     "Passengers": {
                       "PassengerReferences": [
-                        "PAX2"
+                        "PAX1"
                       ]
                     },
                     "IncludedService": {
                       "ServiceReferences": [
-                        "SEG1_PAX2",
-                        "SEG2_PAX2"
+                        "SRV_PAX1_SEG4"
                       ]
                     },
                     "AssociatedService": {
                       "ServiceReferences": [
-                        "SEG1",
-                        "SEG2"
+                        "SEG4"
                       ]
                     }
                   },
                   "Penalty": {
                     "refs": [
-                      "CANCEL-PAX1-SEG24-106ACk",
-                      "CANCEL-PAX1-SEG24-pRWd7c",
-                      "CANCEL-PAX1-SEG24-W0U6aK",
-                      "CANCEL-PAX1-SEG24-2POXoq",
-                      "CHANGE-PAX1-SEG24-Kuor3x",
-                      "CHANGE-PAX1-SEG24-LE6FWw",
-                      "CHANGE-PAX1-SEG24-ynkv2a",
-                      "CHANGE-PAX1-SEG24-iDgs4d",
-                      "CANCEL-PAX1-SEG9-otSi6u",
-                      "CANCEL-PAX1-SEG9-qaEKvx",
-                      "CANCEL-PAX1-SEG9-QXtF3R",
-                      "CANCEL-PAX1-SEG9-GyHkuQ",
-                      "CHANGE-PAX1-SEG9-v7Qizh",
-                      "CHANGE-PAX1-SEG9-lZMFvn",
-                      "CHANGE-PAX1-SEG9-EFgffO",
-                      "CHANGE-PAX1-SEG9-J1jQVZ"
+                      "PENALTY-CANCELLATION-SEG4-PAX1-1",
+                      "PENALTY-CANCELLATION-SEG4-PAX1-2",
+                      "PENALTY-CHANGE-SEG4-PAX1-3",
+                      "PENALTY-CHANGE-SEG4-PAX1-4",
+                      "PENALTY-NOSHOW-SEG4-PAX1-5"
                     ]
-                  }
-                },
-                {
-                  "OrderItemID": {
-                    "value": "SQ618F45EWC00_SRV14",
-                    "Owner": "SQ"
-                  },
-                  "Price": {
-                    "Total": {
-                      "value": 1851,
-                      "Code": "INR"
-                    }
-                  },
-                  "Services": [
-                    {
-                      "ServiceID": {
-                        "ObjectKey": "SSR10",
-                        "Status": "HI"
-                      },
-                      "PassengerReferences": "PAX2",
-                      "SegmentRefs": "SEG2",
-                      "ServiceDefinitionRefs": "XBAG_1"
-                    }
-                  ]
-                },
-                {
-                  "OrderItemID": {
-                    "value": "OSI1",
-                    "Owner": "SQ"
-                  },
-                  "OtherItem": {
-                    "refs": [
-                      "ServiceID1OSI1"
-                    ]
-                  },
-                  "Associations": {
-                    "Passengers": {
-                      "PassengerReferences": [
-                        "PAX2"
-                      ]
-                    }
                   }
                 }
               ]
@@ -548,16 +370,16 @@
             "CreationAPI": "NDC",
             "LastModificationAPI": "NDC",
             "OrderID": {
-              "value": "F45EWC",
-              "Owner": "SQ",
+              "value": "Y3KUGT",
+              "Owner": "AF",
               "Channel": "NDC"
             },
             "BookingReferences": {
               "BookingReference": [
                 {
-                  "ID": "1962214",
+                  "ID": "1963594",
                   "OtherID": {
-                    "value": "SQ618F45EWC00",
+                    "value": "AF057AV279FC7",
                     "Name": "orderId"
                   }
                 }
@@ -565,18 +387,18 @@
             },
             "TotalOrderPrice": {
               "SimpleCurrencyPrice": {
-                "value": 332922,
+                "value": 16750.0,
                 "Code": "INR"
               }
             },
             "Status": {
               "StatusCode": {
-                "Code": "OPENED"
+                "Code": "T"
               }
             },
             "refs": [
               {
-                "Ref": "VDC-PR-c4rh0564PCDl7WMb9Qoh"
+                "Ref": "VDC-PR-JuOQq3XzSBD2l5do21Ql"
               }
             ]
           }
@@ -590,30 +412,26 @@
               "Method": {
                 "CashMethod": {
                   "Amount": {
-                    "value": 332922,
+                    "value": 16750.0,
                     "Code": "INR"
                   }
                 }
               },
               "Amount": {
-                "value": 332922,
+                "value": 16750.0,
                 "Code": "INR"
               },
               "Associations": {
-                "OrderID": {
-                  "value": "SQ618F45EWC00",
-                  "Owner": "SQ"
-                },
                 "OrderItemID": [
                   {
-                    "value": "SQ618F45EWC00_AIR-1-2-PAX2",
-                    "Owner": "SQ"
-                  },
-                  {
-                    "value": "SQ618F45EWC00_SRV14",
-                    "Owner": "SQ"
+                    "value": "ce69b13a-e8cb-428a-9f7b-4d7c1e9d9582",
+                    "Owner": "AF"
                   }
                 ]
+              },
+              "SurchargeAmount": {
+                "value": 0,
+                "Code": "INR"
               }
             }
           ]
@@ -622,110 +440,25 @@
           "TicketDocInfo": [
             {
               "IssuingAirlineInfo": {
-                "AirlineName": "SQ"
+                "AirlineName": "AF"
               },
               "TicketDocument": [
                 {
-                  "TicketDocNbr": "6182461899594",
+                  "TicketDocNbr": "0572333465508",
                   "Type": {
-                    "Code": "T",
-                    "Definition": "Ticket"
+                    "Code": "T"
                   },
                   "NumberofBooklets": 1,
-                  "DateOfIssue": "2025-09-28T00:00:00.000",
+                  "DateOfIssue": "2025-09-29T00:00:00.000",
                   "CouponInfo": [
                     {
                       "CouponNumber": 1,
-                      "CouponReference": "SEG1",
+                      "CouponReference": "SEG4",
                       "FareBasisCode": {
-                        "Code": "YIFSQ"
+                        "Code": "TYS0BALA"
                       },
                       "Status": {
                         "Code": "I"
-                      },
-                      "SoldAirlineInfo": {
-                        "DepartureDateTime": {
-                          "DateTime": "2025-10-03T06:40:00.000"
-                        },
-                        "Departure": {
-                          "AirportCode": {
-                            "value": "CDG"
-                          },
-                          "Date": "2025-10-03T06:40:00.000",
-                          "Time": "06:40:00",
-                          "AirportName": "Charles De Gaulle Airport",
-                          "Terminal": {
-                            "Name": "1"
-                          }
-                        },
-                        "Arrival": {
-                          "AirportCode": {
-                            "value": "MUC"
-                          },
-                          "Date": "2025-10-03T08:10:00.000",
-                          "Time": "08:10:00",
-                          "AirportName": "Munich Airport",
-                          "Terminal": {
-                            "Name": "2"
-                          }
-                        },
-                        "MarketingCarrier": {
-                          "AirlineID": {
-                            "value": "LH"
-                          },
-                          "Name": "LUFTHANSA",
-                          "FlightNumber": {
-                            "value": "2239"
-                          },
-                          "ResBookDesigCode": "Y"
-                        }
-                      }
-                    },
-                    {
-                      "CouponNumber": 2,
-                      "CouponReference": "SEG2",
-                      "FareBasisCode": {
-                        "Code": "YIFSQ"
-                      },
-                      "Status": {
-                        "Code": "I"
-                      },
-                      "SoldAirlineInfo": {
-                        "DepartureDateTime": {
-                          "DateTime": "2025-10-03T12:30:00.000"
-                        },
-                        "Departure": {
-                          "AirportCode": {
-                            "value": "MUC"
-                          },
-                          "Date": "2025-10-03T12:30:00.000",
-                          "Time": "12:30:00",
-                          "AirportName": "Munich Airport",
-                          "Terminal": {
-                            "Name": "2"
-                          }
-                        },
-                        "Arrival": {
-                          "AirportCode": {
-                            "value": "SIN"
-                          },
-                          "Date": "2025-10-04T06:40:00.000",
-                          "Time": "06:40:00",
-                          "AirportName": "Changi Airport",
-                          "Terminal": {
-                            "Name": "0"
-                          }
-                        },
-                        "MarketingCarrier": {
-                          "AirlineID": {
-                            "value": "SQ"
-                          },
-                          "Name": "SINGAPORE AIRLINES",
-                          "FlightNumber": {
-                            "value": "327"
-                          },
-                          "ResBookDesigCode": "Y"
-                        }
                       }
                     }
                   ],
@@ -733,100 +466,51 @@
                 }
               ],
               "PassengerReference": [
-                "PAX2"
-              ]
-            },
-            {
-              "IssuingAirlineInfo": {
-                "AirlineName": "SQ"
-              },
-              "TicketDocument": [
-                {
-                  "TicketDocNbr": "6184574804689",
-                  "Type": {
-                    "Code": "J",
-                    "Definition": "EMD-A (Associated)"
-                  },
-                  "NumberofBooklets": 1,
-                  "DateOfIssue": "2025-09-28T00:00:00.000",
-                  "CouponInfo": [
-                    {
-                      "CouponNumber": 1,
-                      "CouponReference": "SEG2",
-                      "Status": {
-                        "Code": "I"
-                      },
-                      "ServiceReferences": [
-                        "SSR10"
-                      ],
-                      "InConnectionWithInfo": {
-                        "InConnectionDocNbr": "6182461899594",
-                        "InConnectonCpnNbr": 2
-                      },
-                      "ReasonForIssuance": {
-                        "RFIC": {
-                          "Code": "C"
-                        },
-                        "Code": "0AA"
-                      }
-                    }
-                  ],
-                  "ReportingType": "BSP"
-                }
-              ],
-              "PassengerReference": [
-                "PAX2"
+                "PAX1"
               ]
             }
           ]
         },
         "DataLists": {
-          "CheckedBagAllowanceList": {
-            "CheckedBagAllowance": [
+          "CarryOnAllowanceList": {
+            "CarryOnAllowance": [
               {
-                "ListKey": "FBA1",
+                "ListKey": "BA4_CARRY_ON",
                 "AllowanceDescription": {
-                  "ApplicableParty": "Traveler",
-                  "Descriptions": {
-                    "Description": [
-                      {
-                        "Text": {
-                          "value": "Checked"
-                        }
-                      }
-                    ]
-                  }
+                  "ApplicableParty": "Traveler"
                 },
+                "PieceAllowance": [
+                  {
+                    "ApplicableParty": "Traveler",
+                    "TotalQuantity": 1
+                  }
+                ],
                 "WeightAllowance": {
                   "MaximumWeight": [
                     {
-                      "Value": 30,
+                      "Value": 12.0,
                       "UOM": "Kilogram"
+                    },
+                    {
+                      "Value": 26.0,
+                      "UOM": "Pound"
                     }
                   ]
                 }
               }
             ]
           },
-          "DisclosureList": {
-            "Disclosures": [
+          "CheckedBagAllowanceList": {
+            "CheckedBagAllowance": [
               {
-                "ListKey": "DIS1",
-                "Description": [
+                "ListKey": "BA4_CHECKED",
+                "AllowanceDescription": {
+                  "ApplicableParty": "Traveler"
+                },
+                "PieceAllowance": [
                   {
-                    "Text": {
-                      "value": "LUFTHANSA"
-                    }
-                  }
-                ]
-              },
-              {
-                "ListKey": "DIS2",
-                "Description": [
-                  {
-                    "Text": {
-                      "value": "SINGAPORE AIRLINES"
-                    }
+                    "ApplicableParty": "Traveler",
+                    "TotalQuantity": 0
                   }
                 ]
               }
@@ -835,7 +519,7 @@
           "FareList": {
             "FareGroup": [
               {
-                "ListKey": "FG-70J-FJMHKJD-1",
+                "ListKey": "FG-70J-NHAIJKX-1",
                 "Fare": {
                   "FareCode": {
                     "Code": "70J"
@@ -845,93 +529,69 @@
                       {
                         "SegmentReference": {
                           "value": [
-                            "SEG1",
-                            "SEG2"
+                            "SEG4"
                           ]
                         },
                         "PriceBreakdown": {
                           "Price": {
                             "Taxes": {
                               "Total": {
-                                "value": 14911,
+                                "value": 6870.0,
                                 "Code": "INR"
                               },
                               "Breakdown": {
                                 "Tax": [
                                   {
                                     "Amount": {
-                                      "value": 208,
+                                      "value": 156.0,
                                       "Code": "INR"
                                     },
-                                    "TaxType": "YQ"
+                                    "TaxType": "YR"
                                   },
                                   {
                                     "Amount": {
-                                      "value": 4680,
+                                      "value": 1616.0,
                                       "Code": "INR"
                                     },
-                                    "TaxType": "YQ"
+                                    "TaxType": "OY"
                                   },
                                   {
                                     "Amount": {
-                                      "value": 962,
-                                      "Code": "INR"
-                                    },
-                                    "TaxType": "FR"
-                                  },
-                                  {
-                                    "Amount": {
-                                      "value": 1358,
-                                      "Code": "INR"
-                                    },
-                                    "TaxType": "FR"
-                                  },
-                                  {
-                                    "Amount": {
-                                      "value": 4160,
-                                      "Code": "INR"
-                                    },
-                                    "TaxType": "O4"
-                                  },
-                                  {
-                                    "Amount": {
-                                      "value": 1451,
-                                      "Code": "INR"
-                                    },
-                                    "TaxType": "QX"
-                                  },
-                                  {
-                                    "Amount": {
-                                      "value": 2092,
+                                      "value": 3604.0,
                                       "Code": "INR"
                                     },
                                     "TaxType": "RA"
+                                  },
+                                  {
+                                    "Amount": {
+                                      "value": 1234.0,
+                                      "Code": "INR"
+                                    },
+                                    "TaxType": "DE"
+                                  },
+                                  {
+                                    "Amount": {
+                                      "value": 260.0,
+                                      "Code": "INR"
+                                    },
+                                    "TaxType": "T02"
                                   }
                                 ]
                               }
                             },
                             "BaseAmount": {
-                              "value": 332800,
+                              "value": 10400.0,
                               "Code": "INR"
                             }
                           }
                         },
                         "FareBasis": {
-                          "RBD": "Y Y"
+                          "RBD": "T"
                         }
                       }
                     ],
                     "Remarks": {
                       "Remark": [
-                        {
-                          "value": "FC-PAR LH X/MUC SQ SIN M3711.06NUC3711.06END ROE0.862287"
-                        },
-                        {
-                          "value": "F"
-                        },
-                        {
-                          "value": "PUBL"
-                        },
                         {
                           "value": "FG-PUBL"
                         }
@@ -940,10 +600,10 @@
                   }
                 },
                 "FareBasisCode": {
-                  "Code": "YIFSQ YIFSQ"
+                  "Code": "TYS0BALA"
                 },
                 "refs": [
-                  "PAX2"
+                  "PAX1"
                 ]
               }
             ]
@@ -951,31 +611,12 @@
           "OriginDestinationList": {
             "OriginDestination": [
               {
-                "OriginDestinationKey": "OD1",
-                "FlightReferences": {
-                  "value": [
-                    "2239"
-                  ]
-                },
+                "OriginDestinationKey": "OD4",
                 "DepartureCode": {
+                  "value": "FRA"
+                },
+                "ArrivalCode": {
                   "value": "CDG"
-                },
-                "ArrivalCode": {
-                  "value": "MUC"
-                }
-              },
-              {
-                "OriginDestinationKey": "OD2",
-                "FlightReferences": {
-                  "value": [
-                    "327"
-                  ]
-                },
-                "DepartureCode": {
-                  "value": "MUC"
-                },
-                "ArrivalCode": {
-                  "value": "SIN"
                 }
               }
             ]
@@ -983,7 +624,7 @@
           "PenaltyList": {
             "Penalty": [
               {
-                "ObjectKey": "CANCEL-PAX1-SEG24-106ACk",
+                "ObjectKey": "PENALTY-CANCELLATION-SEG4-PAX1-1",
                 "Details": {
                   "Detail": [
                     {
@@ -998,11 +639,11 @@
                               "value": 0,
                               "Code": "INR"
                             },
-                            "AmountApplication": "MAX",
+                            "AmountApplication": "MIN",
                             "ApplicableFeeRemarks": {
                               "Remark": [
                                 {
-                                  "value": "Refund permitted before departure"
+                                  "value": "NAV"
                                 }
                               ]
                             }
@@ -1012,11 +653,11 @@
                               "value": 0,
                               "Code": "INR"
                             },
-                            "AmountApplication": "MIN",
+                            "AmountApplication": "MAX",
                             "ApplicableFeeRemarks": {
                               "Remark": [
                                 {
-                                  "value": "Refund permitted before departure"
+                                  "value": "NAV"
                                 }
                               ]
                             }
@@ -1027,57 +668,10 @@
                   ]
                 },
                 "CancelFeeInd": false,
-                "RefundableInd": true
+                "RefundableInd": false
               },
               {
-                "ObjectKey": "CANCEL-PAX1-SEG24-pRWd7c",
-                "Details": {
-                  "Detail": [
-                    {
-                      "Type": "Cancel-NoShow",
-                      "Application": {
-                        "Code": "4"
-                      },
-                      "Amounts": {
-                        "Amount": [
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MAX",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Refund permitted before departure no show"
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MIN",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Refund permitted before departure no show"
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                },
-                "CancelFeeInd": false,
-                "RefundableInd": true
-              },
-              {
-                "ObjectKey": "CANCEL-PAX1-SEG24-W0U6aK",
+                "ObjectKey": "PENALTY-CANCELLATION-SEG4-PAX1-2",
                 "Details": {
                   "Detail": [
                     {
@@ -1092,11 +686,11 @@
                               "value": 0,
                               "Code": "INR"
                             },
-                            "AmountApplication": "MAX",
+                            "AmountApplication": "MIN",
                             "ApplicableFeeRemarks": {
                               "Remark": [
                                 {
-                                  "value": "Refund permitted after departure"
+                                  "value": "NAV"
                                 }
                               ]
                             }
@@ -1106,11 +700,11 @@
                               "value": 0,
                               "Code": "INR"
                             },
-                            "AmountApplication": "MIN",
+                            "AmountApplication": "MAX",
                             "ApplicableFeeRemarks": {
                               "Remark": [
                                 {
-                                  "value": "Refund permitted after departure"
+                                  "value": "NAV"
                                 }
                               ]
                             }
@@ -1121,57 +715,10 @@
                   ]
                 },
                 "CancelFeeInd": false,
-                "RefundableInd": true
+                "RefundableInd": false
               },
               {
-                "ObjectKey": "CANCEL-PAX1-SEG24-2POXoq",
-                "Details": {
-                  "Detail": [
-                    {
-                      "Type": "Cancel-NoShow",
-                      "Application": {
-                        "Code": "1"
-                      },
-                      "Amounts": {
-                        "Amount": [
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MAX",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Refund permitted after departure no show"
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MIN",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Refund permitted after departure no show"
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                },
-                "CancelFeeInd": false,
-                "RefundableInd": true
-              },
-              {
-                "ObjectKey": "CHANGE-PAX1-SEG24-Kuor3x",
+                "ObjectKey": "PENALTY-CHANGE-SEG4-PAX1-3",
                 "Details": {
                   "Detail": [
                     {
@@ -1186,11 +733,11 @@
                               "value": 0,
                               "Code": "INR"
                             },
-                            "AmountApplication": "MAX",
+                            "AmountApplication": "MIN",
                             "ApplicableFeeRemarks": {
                               "Remark": [
                                 {
-                                  "value": "Reissue permitted before departure"
+                                  "value": "NAV"
                                 }
                               ]
                             }
@@ -1200,11 +747,11 @@
                               "value": 0,
                               "Code": "INR"
                             },
-                            "AmountApplication": "MIN",
+                            "AmountApplication": "MAX",
                             "ApplicableFeeRemarks": {
                               "Remark": [
                                 {
-                                  "value": "Reissue permitted before departure"
+                                  "value": "NAV"
                                 }
                               ]
                             }
@@ -1215,57 +762,10 @@
                   ]
                 },
                 "ChangeFeeInd": false,
-                "ChangeAllowedInd": true
+                "ChangeAllowedInd": false
               },
               {
-                "ObjectKey": "CHANGE-PAX1-SEG24-LE6FWw",
-                "Details": {
-                  "Detail": [
-                    {
-                      "Type": "Change-NoShow",
-                      "Application": {
-                        "Code": "4"
-                      },
-                      "Amounts": {
-                        "Amount": [
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MAX",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Reissue permitted before departure no show"
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MIN",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Reissue permitted before departure no show"
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                },
-                "ChangeFeeInd": false,
-                "ChangeAllowedInd": true
-              },
-              {
-                "ObjectKey": "CHANGE-PAX1-SEG24-ynkv2a",
+                "ObjectKey": "PENALTY-CHANGE-SEG4-PAX1-4",
                 "Details": {
                   "Detail": [
                     {
@@ -1280,11 +780,11 @@
                               "value": 0,
                               "Code": "INR"
                             },
-                            "AmountApplication": "MAX",
+                            "AmountApplication": "MIN",
                             "ApplicableFeeRemarks": {
                               "Remark": [
                                 {
-                                  "value": "Reissue permitted after departure"
+                                  "value": "NAV"
                                 }
                               ]
                             }
@@ -1294,11 +794,11 @@
                               "value": 0,
                               "Code": "INR"
                             },
-                            "AmountApplication": "MIN",
+                            "AmountApplication": "MAX",
                             "ApplicableFeeRemarks": {
                               "Remark": [
                                 {
-                                  "value": "Reissue permitted after departure"
+                                  "value": "NAV"
                                 }
                               ]
                             }
@@ -1309,14 +809,14 @@
                   ]
                 },
                 "ChangeFeeInd": false,
-                "ChangeAllowedInd": true
+                "ChangeAllowedInd": false
               },
               {
-                "ObjectKey": "CHANGE-PAX1-SEG24-iDgs4d",
+                "ObjectKey": "PENALTY-NOSHOW-SEG4-PAX1-5",
                 "Details": {
                   "Detail": [
                     {
-                      "Type": "Change-NoShow",
+                      "Type": "NoShow",
                       "Application": {
                         "Code": "1"
                       },
@@ -1327,11 +827,11 @@
                               "value": 0,
                               "Code": "INR"
                             },
-                            "AmountApplication": "MAX",
+                            "AmountApplication": "MIN",
                             "ApplicableFeeRemarks": {
                               "Remark": [
                                 {
-                                  "value": "Reissue  permitted after departure no show"
+                                  "value": "NAV"
                                 }
                               ]
                             }
@@ -1341,58 +841,11 @@
                               "value": 0,
                               "Code": "INR"
                             },
-                            "AmountApplication": "MIN",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Reissue  permitted after departure no show"
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                },
-                "ChangeFeeInd": false,
-                "ChangeAllowedInd": true
-              },
-              {
-                "ObjectKey": "CANCEL-PAX1-SEG9-otSi6u",
-                "Details": {
-                  "Detail": [
-                    {
-                      "Type": "Cancel",
-                      "Application": {
-                        "Code": "2"
-                      },
-                      "Amounts": {
-                        "Amount": [
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
                             "AmountApplication": "MAX",
                             "ApplicableFeeRemarks": {
                               "Remark": [
                                 {
-                                  "value": "Refund permitted before departure"
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MIN",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Refund permitted before departure"
+                                  "value": "NAV"
                                 }
                               ]
                             }
@@ -1402,441 +855,71 @@
                     }
                   ]
                 },
-                "CancelFeeInd": false,
-                "RefundableInd": true
-              },
-              {
-                "ObjectKey": "CANCEL-PAX1-SEG9-qaEKvx",
-                "Details": {
-                  "Detail": [
-                    {
-                      "Type": "Cancel-NoShow",
-                      "Application": {
-                        "Code": "4"
-                      },
-                      "Amounts": {
-                        "Amount": [
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MAX",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Refund permitted before departure no show"
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MIN",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Refund permitted before departure no show"
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                },
-                "CancelFeeInd": false,
-                "RefundableInd": true
-              },
-              {
-                "ObjectKey": "CANCEL-PAX1-SEG9-QXtF3R",
-                "Details": {
-                  "Detail": [
-                    {
-                      "Type": "Cancel",
-                      "Application": {
-                        "Code": "3"
-                      },
-                      "Amounts": {
-                        "Amount": [
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MAX",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Refund permitted after departure"
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MIN",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Refund permitted after departure"
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                },
-                "CancelFeeInd": false,
-                "RefundableInd": true
-              },
-              {
-                "ObjectKey": "CANCEL-PAX1-SEG9-GyHkuQ",
-                "Details": {
-                  "Detail": [
-                    {
-                      "Type": "Cancel-NoShow",
-                      "Application": {
-                        "Code": "1"
-                      },
-                      "Amounts": {
-                        "Amount": [
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MAX",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Refund permitted after departure no show"
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MIN",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Refund permitted after departure no show"
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                },
-                "CancelFeeInd": false,
-                "RefundableInd": true
-              },
-              {
-                "ObjectKey": "CHANGE-PAX1-SEG9-v7Qizh",
-                "Details": {
-                  "Detail": [
-                    {
-                      "Type": "Change",
-                      "Application": {
-                        "Code": "2"
-                      },
-                      "Amounts": {
-                        "Amount": [
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MAX",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Reissue permitted before departure"
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MIN",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Reissue permitted before departure"
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                },
-                "ChangeFeeInd": false,
-                "ChangeAllowedInd": true
-              },
-              {
-                "ObjectKey": "CHANGE-PAX1-SEG9-lZMFvn",
-                "Details": {
-                  "Detail": [
-                    {
-                      "Type": "Change-NoShow",
-                      "Application": {
-                        "Code": "4"
-                      },
-                      "Amounts": {
-                        "Amount": [
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MAX",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Reissue permitted before departure no show"
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MIN",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Reissue permitted before departure no show"
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                },
-                "ChangeFeeInd": false,
-                "ChangeAllowedInd": true
-              },
-              {
-                "ObjectKey": "CHANGE-PAX1-SEG9-EFgffO",
-                "Details": {
-                  "Detail": [
-                    {
-                      "Type": "Change",
-                      "Application": {
-                        "Code": "3"
-                      },
-                      "Amounts": {
-                        "Amount": [
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MAX",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Reissue permitted after departure"
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MIN",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Reissue permitted after departure"
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                },
-                "ChangeFeeInd": false,
-                "ChangeAllowedInd": true
-              },
-              {
-                "ObjectKey": "CHANGE-PAX1-SEG9-J1jQVZ",
-                "Details": {
-                  "Detail": [
-                    {
-                      "Type": "Change-NoShow",
-                      "Application": {
-                        "Code": "1"
-                      },
-                      "Amounts": {
-                        "Amount": [
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MAX",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Reissue  permitted after departure no show"
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "CurrencyAmountValue": {
-                              "value": 0,
-                              "Code": "INR"
-                            },
-                            "AmountApplication": "MIN",
-                            "ApplicableFeeRemarks": {
-                              "Remark": [
-                                {
-                                  "value": "Reissue  permitted after departure no show"
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                },
-                "ChangeFeeInd": false,
-                "ChangeAllowedInd": true
+                "RefundableInd": false
               }
             ]
           },
           "PriceClassList": {
             "PriceClass": [
               {
-                "ObjectKey": "FF21",
-                "Name": "Economy Flexi",
-                "Code": "FF21"
+                "ObjectKey": "PC41",
+                "Name": "Light"
               }
             ]
           },
           "ServiceList": {
             "Service": [
               {
-                "ObjectKey": "XBAG_1",
-                "Name": {
-                  "value": "BAG:EXCESS BAGGAGE WEIGHT"
-                },
-                "Encoding": {
-                  "RFIC": {
-                    "Code": "C"
-                  },
-                  "SubCode": {
-                    "value": "0AA"
+                "ObjectKey": "SRV_PAX1_SEG4",
+                "Associations": [
+                  {
+                    "Traveler": {
+                      "TravelerReferences": [
+                        "PAX1"
+                      ]
+                    },
+                    "Flight": {
+                      "originDestinationReferencesOrSegmentReferences": [
+                        "SEG4"
+                      ]
+                    }
                   }
+                ]
+              },
+              {
+                "ObjectKey": "SRVID4_CO_PAX1_SEG4",
+                "Name": {
+                  "value": "BAG:Carry On Bag Allowance"
                 },
                 "Descriptions": {
                   "Description": [
                     {
-                      "ObjectKey": "DESC_XBAG_1_1",
                       "Text": {
-                        "value": "TTL 0KG"
+                        "value": "BAG:Carry On Bag Allowance"
                       }
                     }
                   ]
                 },
-                "BookingInstructions": {
-                  "SSRCode": [
-                    "XBAG"
-                  ],
-                  "Method": "SSR"
-                }
-              },
-              {
-                "ObjectKey": "AVML_1",
-                "Name": {
-                  "value": "MEAL:VEGETARIAN INDIAN MEAL"
-                },
-                "BookingInstructions": {
-                  "SSRCode": [
-                    "AVML"
-                  ],
-                  "Method": "SSR"
-                }
-              },
-              {
-                "ObjectKey": "WCHR_1",
-                "Name": {
-                  "value": "DISABILITY:WHEELCHAIR TO AIRCRAFT DOOR REQUEST"
-                },
-                "BookingInstructions": {
-                  "SSRCode": [
-                    "WCHR"
-                  ],
-                  "Method": "SSR"
-                }
-              },
-              {
-                "ObjectKey": "SEG1_PAX2",
                 "Associations": [
                   {
                     "Traveler": {
                       "TravelerReferences": [
-                        "PAX2"
+                        "PAX1"
                       ]
                     },
                     "Flight": {
                       "originDestinationReferencesOrSegmentReferences": [
-                        "SEG1"
+                        "SEG4"
                       ]
                     }
                   }
+                ],
+                "refs": [
+                  "BA4_CARRY_ON"
                 ]
               },
               {
-                "ObjectKey": "SEG2_PAX2",
-                "Associations": [
-                  {
-                    "Traveler": {
-                      "TravelerReferences": [
-                        "PAX2"
-                      ]
-                    },
-                    "Flight": {
-                      "originDestinationReferencesOrSegmentReferences": [
-                        "SEG2"
-                      ]
-                    }
-                  }
-                ]
-              },
-              {
-                "ObjectKey": "BAGALLOW_1_SEG1_PAX2",
+                "ObjectKey": "SRVID4_BI_PAX1_SEG4",
                 "Name": {
                   "value": "BAG:Checked Bag Allowance"
                 },
@@ -1844,7 +927,7 @@
                   "Description": [
                     {
                       "Text": {
-                        "value": "Checked Bag Allowance"
+                        "value": "BAG:Checked Bag Allowance"
                       }
                     }
                   ]
@@ -1853,78 +936,18 @@
                   {
                     "Traveler": {
                       "TravelerReferences": [
-                        "PAX2"
+                        "PAX1"
                       ]
                     },
                     "Flight": {
                       "originDestinationReferencesOrSegmentReferences": [
-                        "SEG1"
+                        "SEG4"
                       ]
                     }
                   }
                 ],
                 "refs": [
-                  "FBA1"
-                ]
-              },
-              {
-                "ObjectKey": "BAGALLOW_1_SEG2_PAX2",
-                "Name": {
-                  "value": "BAG:Checked Bag Allowance"
-                },
-                "Descriptions": {
-                  "Description": [
-                    {
-                      "Text": {
-                        "value": "Checked Bag Allowance"
-                      }
-                    }
-                  ]
-                },
-                "Associations": [
-                  {
-                    "Traveler": {
-                      "TravelerReferences": [
-                        "PAX2"
-                      ]
-                    },
-                    "Flight": {
-                      "originDestinationReferencesOrSegmentReferences": [
-                        "SEG2"
-                      ]
-                    }
-                  }
-                ],
-                "refs": [
-                  "FBA1"
-                ]
-              },
-              {
-                "ObjectKey": "ServiceID1OSI1",
-                "ServiceID": {
-                  "value": "OSI1"
-                },
-                "Name": {
-                  "value": "OSI1"
-                },
-                "Descriptions": {
-                  "Description": [
-                    {
-                      "Application": "OsiText",
-                      "Text": {
-                        "value": "WVAL"
-                      }
-                    }
-                  ]
-                },
-                "Associations": [
-                  {
-                    "Traveler": {
-                      "TravelerReferences": [
-                        "PAX2"
-                      ]
-                    }
-                  }
+                  "BA4_CHECKED"
                 ]
               }
             ]
@@ -1937,28 +960,13 @@
                 "PriceMetadatas": {
                   "PriceMetadata": [
                     {
-                      "MetadataKey": "VDC-OSI-Text",
-                      "AugmentationPoint": {
-                        "AugPoint": [
-                          {
-                            "any": {
-                              "@type": "java.util.Map",
-                              "value": {
-                                "$OSI.ADT": "WVAL"
-                              }
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "MetadataKey": "VDC-PR-c4rh0564PCDl7WMb9Qoh",
+                      "MetadataKey": "VDC-PR-JuOQq3XzSBD2l5do21Ql",
                       "AugmentationPoint": {
                         "AugPoint": [
                           {
                             "any": {
                               "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
-                              "value": "HIy6qOzWhFMrTAl92shq4xc9jkBgb3Y/kbsmmFtw9IV4+ibTKsOBenLk/aMGF6pj+fDlRYWGPXy71rYwdxKXFzLaaECEg6gaeeCYJMgGWGqjSHivYL2FQsaw+LHDpJ+WVhU7Nr+nDGR502mildc9hb01QgCqaAIJZt3atZciGYx5Aou4u1NJLg7A/8DxQ+pNSNc919DBh4li3mg0CTq6IuaN7P5KukO5KTfyTni3XuKH8Cy5z1ILv2oGBwGa3vqd9eIDg80rq/Z5JeqIsXRCcp6mI+i+8MsAGdUn8tzlMq9QO76cY89L4MQ8N9VeZYQHPrAXy7x+PhGDvuYPY/QCCG9ug22YFGOS755G4/0+CPrNePCrYiS47LbFNRxEMHQdRz8ed56CneX49w=="
+                              "value": "VmztqMkuj5WVHKUOPoL0/DiBNY1c+IGkGjClupY6w6FBGKFHLAlokNvOTstJjTKVqa5dS0M4xZBiMIByt4vLp3l5oUTLVS76EeWjPkz1WMxQKMG08ccWuQSJgFY+vo/9M7SoiyHSVyEJDkUOM1NF6hnqhJMY5Fk+PQ/8HVdzGJaaWoo5xDgm0KzX5OXHGMB8Sj2Bm+RPA5G2W2KRcISJIbGKDxhjlztHi2EYtmre10IV8iOFCjsJSJF4wQTukQwn+4wRzkeN3W+QkH4c+KWJhrKz09Pnl08LT2u2Z0+OZzqMdBG0V1PEcIqHJf5Sbm2iX3Jn3QP3Rw8p7+lHV9lXW5d7+EOo9sZNxRhLRmWZiTHAS0HQ6PjGuKOjpMCz9nlXMzGNQ+9WEvjD+kraMZCTJw=="
                             }
                           }
                         ]
@@ -1972,6 +980,6 @@
         }
       }
     },
-    "request_id": "361e5d8c-f5bf-45c4-b77c-cd99850a4441"
+    "request_id": "3ee385ce-2143-4e0e-9e9c-0f12a0f4d034"
   }
 }

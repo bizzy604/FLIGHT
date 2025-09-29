@@ -1,12 +1,12 @@
 {
-  "timestamp": "2025-09-28T10:55:14.373855",
+  "timestamp": "2025-09-29T21:10:36.182191",
   "service": "AirShopping",
-  "request_id": "13510757-ec48-4103-9a1e-38fc7622a6b6",
+  "request_id": "d5357682-49f2-4427-907c-b4911ec067a5",
   "endpoint": "/entrygate/rest/request:airShopping",
   "headers": {
     "Content-Type": "application/json",
     "Accept": "*/*",
-    "Authorization": "Bearer ***5_QcO4Dg",
+    "Authorization": "Bearer ***8_J2lJuA",
     "OfficeId": "***3746",
     "service": "AirShopping",
     "User-Agent": "PostmanRuntime/7.41",
@@ -79,7 +79,7 @@
             },
             "Arrival": {
               "AirportCode": {
-                "value": "SIN"
+                "value": "FRA"
               }
             }
           }

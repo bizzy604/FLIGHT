@@ -1,12 +1,12 @@
 {
-  "timestamp": "2025-09-28T10:58:35.504427",
+  "timestamp": "2025-09-29T21:01:04.046739",
   "service": "ServiceList",
-  "request_id": "c623bd95-2ce3-4020-9ddf-697dff4bde57",
+  "request_id": "75e29a13-4a95-45a1-95d5-2da04cc01cd3",
   "endpoint": "/entrygate/rest/request:preServiceList",
   "headers": {
     "Content-Type": "application/json",
     "Accept": "*/*",
-    "Authorization": "Bearer ***5_QcO4Dg",
+    "Authorization": "Bearer ***8_J2lJuA",
     "OfficeId": "***3746",
     "service": "ServiceList",
     "User-Agent": "PostmanRuntime/7.41",
@@ -35,96 +35,43 @@
         {
           "Flight": [
             {
-              "SegmentKey": "SEG24",
+              "SegmentKey": "SEG2",
               "Departure": {
+                "AirportCode": {
+                  "value": "FRA"
+                },
+                "Date": "2025-10-08T07:05:00.000",
+                "Time": "07:05",
+                "AirportName": null,
+                "Terminal": {
+                  "Name": "2"
+                }
+              },
+              "Arrival": {
                 "AirportCode": {
                   "value": "CDG"
                 },
-                "Date": "2025-10-03T06:40:00.000",
-                "Time": "06:40",
-                "AirportName": "Charles De Gaulle Airport",
+                "Date": "2025-10-08T08:35:00.000",
+                "Time": "08:35",
+                "AirportName": null,
                 "Terminal": {
-                  "Name": "1"
-                }
-              },
-              "Arrival": {
-                "AirportCode": {
-                  "value": "MUC"
-                },
-                "Date": "2025-10-03T08:10:00.000",
-                "Time": "08:10",
-                "AirportName": "Munich Airport",
-                "Terminal": {
-                  "Name": "2"
+                  "Name": "2G"
                 }
               },
               "MarketingCarrier": {
                 "AirlineID": {
-                  "value": "LH"
+                  "value": "AF"
                 },
-                "Name": "LUFTHANSA",
                 "FlightNumber": {
-                  "value": "2239"
+                  "value": "1019"
                 }
               },
               "Equipment": {
                 "AircraftCode": {
-                  "value": "32N"
+                  "value": "E90"
                 }
               },
-              "FlightDetail": {
-                "FlightDuration": {
-                  "Value": "PT1H30M"
-                }
-              }
-            }
-          ]
-        },
-        {
-          "Flight": [
-            {
-              "SegmentKey": "SEG9",
-              "Departure": {
-                "AirportCode": {
-                  "value": "MUC"
-                },
-                "Date": "2025-10-03T12:30:00.000",
-                "Time": "12:30",
-                "AirportName": "Munich Airport",
-                "Terminal": {
-                  "Name": "2"
-                }
-              },
-              "Arrival": {
-                "AirportCode": {
-                  "value": "SIN"
-                },
-                "Date": "2025-10-04T06:40:00.000",
-                "Time": "06:40",
-                "AirportName": "Changi Airport",
-                "Terminal": {
-                  "Name": "0"
-                }
-              },
-              "MarketingCarrier": {
-                "AirlineID": {
-                  "value": "SQ"
-                },
-                "Name": "SINGAPORE AIRLINES",
-                "FlightNumber": {
-                  "value": "327"
-                }
-              },
-              "Equipment": {
-                "AircraftCode": {
-                  "value": "359"
-                }
-              },
-              "FlightDetail": {
-                "FlightDuration": {
-                  "Value": "PT12H10M"
-                }
-              }
+              "FlightDetail": {}
             }
           ]
         }
@@ -133,14 +80,14 @@
         "Offer": [
           {
             "OfferID": {
-              "value": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X",
-              "Owner": "SQ",
+              "value": "edb526aa-9135-480a-b526-aa9135080004",
+              "Owner": "AF",
               "Channel": "NDC"
             },
             "OfferItemIDs": {
               "OfferItemID": [
                 {
-                  "value": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-1-1"
+                  "value": "adeb2186-018a-412a-ab21-86018a212a30"
                 }
               ]
             }
@@ -150,7 +97,7 @@
     },
     "ShoppingResponseID": {
       "ResponseID": {
-        "value": "aL-ByHTHp1wrQ8uVhevKaMzIcMMu916-5dJYarTGF-Y-SQ"
+        "value": "EXsjg1GfB4vGnSVojmzfw8OhdMM8Bnm6N-GMq-1AcUs-AF"
       }
     }
   }

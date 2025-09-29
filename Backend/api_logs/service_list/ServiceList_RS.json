@@ -1,58 +1,45 @@
 {
-  "timestamp": "2025-09-28T10:58:38.269623",
+  "timestamp": "2025-09-29T21:01:10.804848",
   "service": "ServiceList",
-  "request_id": "c623bd95-2ce3-4020-9ddf-697dff4bde57",
+  "request_id": "75e29a13-4a95-45a1-95d5-2da04cc01cd3",
   "status_code": 200,
-  "response_time_ms": 2753.6840438842773,
+  "response_time_ms": 6750.652313232422,
   "response": {
+    "Warnings": {
+      "Warning": [
+        {
+          "value": "No lounge offer available",
+          "Status": "LOUNGE_UNAVAILABLE"
+        }
+      ]
+    },
     "OfferExpiration": {
-      "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X"
+      "ObjectKey": "edb526aa-9135-480a-b526-aa9135080004",
+      "DateTime": "2025-09-29T18:30:25.810",
+      "Time": "2025-09-30T00:00:25.810"
     },
     "ShoppingResponseID": {
       "ResponseID": {
-        "value": "aL-ByHTHp1wrQ8uVhevKaMzIcMMu916-5dJYarTGF-Y-SQ"
+        "value": "EXsjg1GfB4vGnSVojmzfw8OhdMM8Bnm6N-GMq-1AcUs-AF"
       }
     },
     "Services": {
       "Service": [
         {
-          "ObjectKey": "SER1-ServiceIdSQ-1",
+          "ObjectKey": "1-ServiceIdAF-1",
           "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-40",
+            "ObjectKey": "bc20f69c-8754-4924-a0f6-9c8754d90001",
             "value": "SRV1",
-            "Owner": "SQ"
+            "Owner": "AF"
           },
           "Name": {
-            "value": "BAG:ONE KILOGRAM BAGGAGE"
-          },
-          "Encoding": {
-            "RFIC": {
-              "Code": "C"
-            },
-            "SubCode": {
-              "value": "0AA"
-            }
+            "value": "BAG:LUGGAGE-FIRST ADDITIONAL BAG"
           },
           "Descriptions": {
             "Description": [
               {
                 "Text": {
-                  "value": "Chargeable"
-                }
-              },
-              {
-                "Text": {
-                  "value": "F"
-                }
-              },
-              {
-                "Text": {
-                  "value": "01"
-                }
-              },
-              {
-                "Text": {
-                  "value": "BG"
+                  "value": "1 ABAG x 23 KG"
                 }
               }
             ]
@@ -60,36 +47,16 @@
           "Price": [
             {
               "Total": {
-                "value": 1851,
+                "value": 3640.0,
                 "Code": "INR"
-              },
-              "Discount": {
-                "DiscountAmount": {
-                  "value": 617,
-                  "Code": "INR"
-                },
-                "DiscountPercent": 0,
-                "discountOwner": "SQ",
-                "discountCode": "SQDGENBSDTEB",
-                "preDiscountedAmount": {
-                  "value": 2468,
-                  "Code": "INR"
-                }
               }
             }
           ],
           "BookingInstructions": {
             "SSRCode": [
-              "XBAG"
+              "ABAG"
             ],
-            "OSIText": [
-              "WVAL",
-              "[0-9]{1,3}"
-            ],
-            "Method": "SSR",
-            "Text": [
-              "TTL\\s?%WVAL%KG"
-            ]
+            "Method": "SSR"
           },
           "Associations": [
             {
@@ -103,7 +70,7 @@
                   {
                     "SegmentReferences": {
                       "value": [
-                        "SEG9"
+                        "SEG4"
                       ]
                     }
                   }
@@ -114,565 +81,20 @@
           "PricedInd": false
         },
         {
-          "ObjectKey": "SER6-ServiceIdSQ-6",
+          "ObjectKey": "1-ServiceIdAF-14",
           "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-11",
-            "value": "SRV6",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "MEAL:VEGETARIAN INDIAN MEAL"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "AVML"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG9"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER7-ServiceIdSQ-7",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-12",
-            "value": "SRV7",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "MEAL:BABY MEAL"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "BBML"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG9"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER8-ServiceIdSQ-8",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-13",
-            "value": "SRV8",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "MEAL:BLAND MEAL"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "BLML"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG9"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER9-ServiceIdSQ-9",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-14",
-            "value": "SRV9",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "DISABILITY:BLIND PASSENGER INFORMATION"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "PAXINFO,MEDICAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "BLND"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG24"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER10-ServiceIdSQ-10",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-15",
-            "value": "SRV9",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "DISABILITY:BLIND PASSENGER INFORMATION"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "PAXINFO,MEDICAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "BLND"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG9"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER12-ServiceIdSQ-12",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-17",
-            "value": "SRV12",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "MEAL:CHILD MEAL"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "CHML"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG9"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER13-ServiceIdSQ-13",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-18",
-            "value": "SRV13",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "MEAL:DIABETIC MEAL"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "DBML"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG9"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER14-ServiceIdSQ-14",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-19",
-            "value": "SRV14",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "DISABILITY:DEAF PASSENGER INFORMATION"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "PAXINFO,MEDICAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "DEAF"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG24"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER15-ServiceIdSQ-15",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-20",
-            "value": "SRV14",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "DISABILITY:DEAF PASSENGER INFORMATION"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "PAXINFO,MEDICAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "DEAF"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG9"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER16-ServiceIdSQ-16",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-21",
+            "ObjectKey": "bc20f69c-8754-4924-a0f6-9c8754d9000e",
             "value": "SRV16",
-            "Owner": "SQ"
+            "Owner": "AF"
           },
           "Name": {
-            "value": "MEAL:FRUIT PLATTER"
+            "value": "DISABILITY:WCHR - Wheelchair request - Stairs OK"
           },
           "Descriptions": {
             "Description": [
               {
                 "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
+                  "value": "Wheelchair request - Stairs OK"
                 }
               }
             ]
@@ -680,14 +102,14 @@
           "Price": [
             {
               "Total": {
-                "value": 0,
+                "value": 0.0,
                 "Code": "INR"
               }
             }
           ],
           "BookingInstructions": {
             "SSRCode": [
-              "FPML"
+              "WCHR"
             ],
             "Method": "SSR"
           },
@@ -703,7 +125,7 @@
                   {
                     "SegmentReferences": {
                       "value": [
-                        "SEG9"
+                        "SEG4"
                       ]
                     }
                   }
@@ -711,28 +133,23 @@
               }
             }
           ],
-          "PricedInd": true
+          "PricedInd": false
         },
         {
-          "ObjectKey": "SER17-ServiceIdSQ-17",
+          "ObjectKey": "1-ServiceIdAF-15",
           "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-22",
+            "ObjectKey": "bc20f69c-8754-4924-a0f6-9c8754d9000f",
             "value": "SRV17",
-            "Owner": "SQ"
+            "Owner": "AF"
           },
           "Name": {
-            "value": "MEAL:GLUTEN INTOLERENT MEAL"
+            "value": "DISABILITY:WCHS - Wheelchair request - No Stairs"
           },
           "Descriptions": {
             "Description": [
               {
                 "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
+                  "value": "Wheelchair request - No Stairs"
                 }
               }
             ]
@@ -740,14 +157,14 @@
           "Price": [
             {
               "Total": {
-                "value": 0,
+                "value": 0.0,
                 "Code": "INR"
               }
             }
           ],
           "BookingInstructions": {
             "SSRCode": [
-              "GFML"
+              "WCHS"
             ],
             "Method": "SSR"
           },
@@ -763,7 +180,7 @@
                   {
                     "SegmentReferences": {
                       "value": [
-                        "SEG9"
+                        "SEG4"
                       ]
                     }
                   }
@@ -771,28 +188,23 @@
               }
             }
           ],
-          "PricedInd": true
+          "PricedInd": false
         },
         {
-          "ObjectKey": "SER18-ServiceIdSQ-18",
+          "ObjectKey": "1-ServiceIdAF-16",
           "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-23",
+            "ObjectKey": "bc20f69c-8754-4924-a0f6-9c8754d90010",
             "value": "SRV18",
-            "Owner": "SQ"
+            "Owner": "AF"
           },
           "Name": {
-            "value": "MEAL:HINDU NON-VEGETARIAN MEAL"
+            "value": "DISABILITY:BLND - Visual impairment"
           },
           "Descriptions": {
             "Description": [
               {
                 "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
+                  "value": "Visual impairment"
                 }
               }
             ]
@@ -800,14 +212,14 @@
           "Price": [
             {
               "Total": {
-                "value": 0,
+                "value": 0.0,
                 "Code": "INR"
               }
             }
           ],
           "BookingInstructions": {
             "SSRCode": [
-              "HNML"
+              "BLND"
             ],
             "Method": "SSR"
           },
@@ -823,7 +235,7 @@
                   {
                     "SegmentReferences": {
                       "value": [
-                        "SEG9"
+                        "SEG4"
                       ]
                     }
                   }
@@ -831,28 +243,23 @@
               }
             }
           ],
-          "PricedInd": true
+          "PricedInd": false
         },
         {
-          "ObjectKey": "SER19-ServiceIdSQ-19",
+          "ObjectKey": "1-ServiceIdAF-17",
           "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-24",
+            "ObjectKey": "bc20f69c-8754-4924-a0f6-9c8754d90011",
             "value": "SRV19",
-            "Owner": "SQ"
+            "Owner": "AF"
           },
           "Name": {
-            "value": "MEAL:KOSHER MEAL"
+            "value": "DISABILITY:DEAF - Hearing impairment"
           },
           "Descriptions": {
             "Description": [
               {
                 "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
+                  "value": "Hearing impairment"
                 }
               }
             ]
@@ -860,14 +267,14 @@
           "Price": [
             {
               "Total": {
-                "value": 0,
+                "value": 0.0,
                 "Code": "INR"
               }
             }
           ],
           "BookingInstructions": {
             "SSRCode": [
-              "KSML"
+              "DEAF"
             ],
             "Method": "SSR"
           },
@@ -883,7 +290,7 @@
                   {
                     "SegmentReferences": {
                       "value": [
-                        "SEG9"
+                        "SEG4"
                       ]
                     }
                   }
@@ -891,667 +298,7 @@
               }
             }
           ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER20-ServiceIdSQ-20",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-25",
-            "value": "SRV20",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "MEAL:LOW FAT MEAL"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "LFML"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG9"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER21-ServiceIdSQ-21",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-26",
-            "value": "SRV21",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "MEAL:LOW SALT MEAL"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "LSML"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG9"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER23-ServiceIdSQ-23",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-28",
-            "value": "SRV23",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "MEAL:MUSLIM MEAL"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "MOML"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG9"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER24-ServiceIdSQ-24",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-29",
-            "value": "SRV24",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "MEAL:LOW LACTOSE MEAL"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "NLML"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG9"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER25-ServiceIdSQ-25",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-30",
-            "value": "SRV25",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "MEAL:SEAFOOD MEAL"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "SFML"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG9"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER27-ServiceIdSQ-27",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-32",
-            "value": "SRV27",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "MEAL:VEGETARIAN VEGAN MEAL"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "VGML"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG9"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER28-ServiceIdSQ-28",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-33",
-            "value": "SRV28",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "MEAL:VEGETARIAN JAIN MEAL"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "VJML"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG9"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER29-ServiceIdSQ-29",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-34",
-            "value": "SRV29",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "MEAL:VEGETARIAN LACTO-OVO MEAL"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "VLML"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG9"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER30-ServiceIdSQ-30",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-35",
-            "value": "SRV30",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "MEAL:VEGETARIAN ORIENTAL MEAL"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "MEAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "VOML"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG9"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER32-ServiceIdSQ-32",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-37",
-            "value": "SRV32",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "DISABILITY:WHEELCHAIR TO AIRCRAFT DOOR REQUEST"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "PAXINFO,MEDICAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "WCHR"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG24"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
-        },
-        {
-          "ObjectKey": "SER33-ServiceIdSQ-33",
-          "ServiceID": {
-            "ObjectKey": "1H0SQZ_1LEF2YRUGSQJS2Y3UNAAN29DAX8X-38",
-            "value": "SRV32",
-            "Owner": "SQ"
-          },
-          "Name": {
-            "value": "DISABILITY:WHEELCHAIR TO AIRCRAFT DOOR REQUEST"
-          },
-          "Descriptions": {
-            "Description": [
-              {
-                "Text": {
-                  "value": "Free"
-                }
-              },
-              {
-                "Text": {
-                  "value": "PAXINFO,MEDICAL"
-                }
-              }
-            ]
-          },
-          "Price": [
-            {
-              "Total": {
-                "value": 0,
-                "Code": "INR"
-              }
-            }
-          ],
-          "BookingInstructions": {
-            "SSRCode": [
-              "WCHR"
-            ],
-            "Method": "SSR"
-          },
-          "Associations": [
-            {
-              "Traveler": {
-                "TravelerReferences": [
-                  "PAX1"
-                ]
-              },
-              "Flight": {
-                "originDestinationReferencesOrSegmentReferences": [
-                  {
-                    "SegmentReferences": {
-                      "value": [
-                        "SEG9"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ],
-          "PricedInd": true
+          "PricedInd": false
         }
       ]
     },
@@ -1569,79 +316,39 @@
       "FlightSegmentList": {
         "FlightSegment": [
           {
-            "SegmentKey": "SEG24",
+            "SegmentKey": "SEG4",
             "Departure": {
+              "AirportCode": {
+                "value": "FRA"
+              },
+              "Date": "2025-10-08T00:00:00.000",
+              "Time": "07:05",
+              "Terminal": {
+                "Name": "2"
+              }
+            },
+            "Arrival": {
               "AirportCode": {
                 "value": "CDG"
               },
-              "Date": "2025-10-03T06:40:00.000",
-              "Time": "06:40",
+              "Date": "2025-10-08T00:00:00.000",
+              "Time": "08:35",
               "Terminal": {
-                "Name": "1"
-              }
-            },
-            "Arrival": {
-              "AirportCode": {
-                "value": "MUC"
-              },
-              "Date": "2025-10-03T08:10:00.000",
-              "Time": "08:10",
-              "Terminal": {
-                "Name": "2"
+                "Name": "2G"
               }
             },
             "MarketingCarrier": {
               "AirlineID": {
-                "value": "LH"
+                "value": "AF"
               },
-              "Name": "LUFTHANSA",
               "FlightNumber": {
-                "value": "2239"
+                "value": "1019"
               }
             },
             "OperatingCarrier": {
               "AirlineID": {
-                "value": "LH"
-              },
-              "Name": "LUFTHANSA"
-            }
-          },
-          {
-            "SegmentKey": "SEG9",
-            "Departure": {
-              "AirportCode": {
-                "value": "MUC"
-              },
-              "Date": "2025-10-03T12:30:00.000",
-              "Time": "12:30",
-              "Terminal": {
-                "Name": "2"
+                "value": "A5"
               }
-            },
-            "Arrival": {
-              "AirportCode": {
-                "value": "SIN"
-              },
-              "Date": "2025-10-04T06:40:00.000",
-              "Time": "06:40",
-              "Terminal": {
-                "Name": "0"
-              }
-            },
-            "MarketingCarrier": {
-              "AirlineID": {
-                "value": "SQ"
-              },
-              "Name": "SINGAPORE AIRLINES",
-              "FlightNumber": {
-                "value": "327"
-              }
-            },
-            "OperatingCarrier": {
-              "AirlineID": {
-                "value": "SQ"
-              },
-              "Name": "SINGAPORE AIRLINES"
             }
           }
         ]
@@ -1649,11 +356,10 @@
       "FlightList": {
         "Flight": [
           {
-            "FlightKey": "FLT1",
+            "FlightKey": "PJ4",
             "SegmentReferences": {
               "value": [
-                "SEG24",
-                "SEG9"
+                "SEG4"
               ]
             }
           }
@@ -1662,17 +368,17 @@
       "OriginDestinationList": {
         "OriginDestination": [
           {
-            "OriginDestinationKey": "JRN1",
+            "OriginDestinationKey": "OD4",
             "FlightReferences": {
               "value": [
-                "FLT1"
+                "PJ4"
               ]
             },
             "DepartureCode": {
-              "value": "CDG"
+              "value": "FRA"
             },
             "ArrivalCode": {
-              "value": "SIN"
+              "value": "CDG"
             }
           }
         ]

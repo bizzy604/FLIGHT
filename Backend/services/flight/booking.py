@@ -148,7 +148,41 @@ class FlightBookingService(FlightService):
             # Build the request payload first (this will enhance the flight_price_response)
             logger.info(f"[DEBUG] About to call _build_booking_payload (ReqID: {request_id})")
             print(f"[PRINT DEBUG] About to call _build_booking_payload (ReqID: {request_id})")
-            payload = self._build_booking_payload(
+
+            # NEW: Check if ancillary pricing is needed before building payload
+            temp_pricing_info = None
+            temp_ancillary_response = None
+
+            if servicelist_response and seatavailability_response:
+                from scripts.build_flightprice_ancillary_rq import detect_pricing_required
+
+                temp_pricing_info = detect_pricing_required(
+                    servicelist_response=servicelist_response,
+                    seatavailability_response=seatavailability_response,
+                    selected_services=selected_services,
+                    selected_seats=selected_seats
+                )
+
+                # If pricing is required, call ancillary pricing API
+                if temp_pricing_info and temp_pricing_info.get('requires_pricing', False):
+                    try:
+                        logger.info(f"[DEBUG] Ancillary pricing required, calling API (ReqID: {request_id})")
+                        temp_ancillary_response = await self._call_ancillary_pricing_api(
+                            flight_price_response=flight_price_response,
+                            servicelist_response=servicelist_response,
+                            seatavailability_response=seatavailability_response,
+                            selected_services=selected_services,
+                            selected_seats=selected_seats,
+                            pricing_info=temp_pricing_info,
+                            request_id=request_id
+                        )
+                        logger.info(f"[DEBUG] Ancillary pricing API call completed successfully (ReqID: {request_id})")
+                    except Exception as e:
+                        logger.error(f"[DEBUG] Ancillary pricing API call failed: {e} (ReqID: {request_id})")
+                        logger.error(f"[DEBUG] Falling back to original flight_price_response (ReqID: {request_id})")
+                        temp_ancillary_response = None
+
+            payload = await self._build_booking_payload(
                 flight_price_response=flight_price_response,
                 passengers=passengers,
                 payment_info=payment_info,
@@ -162,8 +196,8 @@ class FlightBookingService(FlightService):
                 selected_seats=selected_seats,
                 seat_availability_cache_key=seat_availability_cache_key,  # 🚀 Pass cache keys
                 service_list_cache_key=service_list_cache_key,  # 🚀 Pass cache keys
-                pricing_info=pricing_info,  # NEW: Pass pricing requirements info
-                ancillary_pricing_response=ancillary_pricing_response  # NEW: Pass pricing response
+                pricing_info=temp_pricing_info,  # NEW: Pass pricing requirements info
+                ancillary_pricing_response=temp_ancillary_response  # NEW: Pass pricing response
             )
             logger.info(f"[DEBUG] Finished calling _build_booking_payload (ReqID: {request_id})")
             print(f"[PRINT DEBUG] Finished calling _build_booking_payload (ReqID: {request_id})")
@@ -648,7 +682,7 @@ class FlightBookingService(FlightService):
         if len(country_code) != 2 or not country_code.isalpha():
             raise ValidationError("Valid country code is required (2-letter ISO format)")
     
-    def _build_booking_payload(
+    async def _build_booking_payload(
         self,
         flight_price_response: Dict[str, Any],
         passengers: List[Dict[str, Any]],
@@ -1357,13 +1391,37 @@ class FlightBookingService(FlightService):
             logger.info(f"[DEBUG] - selected_seats (converted to pricing ObjectKeys): {selected_seats}")
 
             # NEW: Check if enhanced OrderCreate builder should be used
-            if pricing_info and pricing_info.get('requires_pricing', False) and ancillary_pricing_response:
+            # First, detect if any items require additional pricing
+            from scripts.build_flightprice_ancillary_rq import detect_pricing_required
+
+            # Initialize ancillary_pricing_response (it may be None if no additional pricing is needed)
+            ancillary_pricing_response = None
+
+            pricing_info = detect_pricing_required(
+                servicelist_response=servicelist_response,
+                seatavailability_response=seatavailability_response,
+                selected_services=selected_services,
+                selected_seats=selected_seats
+            )
+
+            if pricing_info and pricing_info.get('requires_pricing', False):
                 logger.info(f"[DEBUG] ===== USING ENHANCED ORDERCREATE BUILDER (PricedInd=false) =====")
                 logger.info(f"[DEBUG] Pricing info: {pricing_info}")
-                
+
+                # NEW: Call ancillary pricing API when pricing is required
+                ancillary_pricing_response = await self._call_ancillary_pricing_api(
+                    flight_price_response=actual_flight_price_response,
+                    servicelist_response=servicelist_response,
+                    seatavailability_response=seatavailability_response,
+                    selected_services=selected_services,
+                    selected_seats=selected_seats,
+                    pricing_info=pricing_info,
+                    request_id=request_id
+                )
+
                 # Use enhanced OrderCreate builder for PricedInd=false scenario
                 from scripts.build_ordercreate_enhanced_rq import build_ordercreate_enhanced_request
-                
+
                 payload = build_ordercreate_enhanced_request(
                     flight_price_response=actual_flight_price_response,  # FIXED: Use actual response with segment key mapping
                     passengers_data=transformed_passengers,
@@ -1372,7 +1430,7 @@ class FlightBookingService(FlightService):
                     seatavailability_response=seatavailability_response,
                     selected_services=selected_services,
                     selected_seats=selected_seats,
-                    ancillary_pricing_response=ancillary_pricing_response
+                    ancillary_pricing_response=ancillary_pricing_response  # NEW: Pass actual pricing response
                 )
                 logger.info(f"[DEBUG] ===== ENHANCED ORDERCREATE BUILDER COMPLETED SUCCESSFULLY =====")
             else:
@@ -1405,12 +1463,12 @@ class FlightBookingService(FlightService):
             logger.error(f"Request builder traceback: {traceback.format_exc()}")
             logger.error(f"[DEBUG] ===== FALLING BACK TO MANUAL CONSTRUCTION =====")
             # Fallback to manual construction with extracted IDs
-            return self._build_fallback_payload(
+            return await self._build_fallback_payload(
                 flight_price_response, passengers, payment_info, contact_info, request_id,
                 offer_id, shopping_response_id
             )
     
-    def _build_fallback_payload(
+    async def _build_fallback_payload(
         self,
         flight_price_response: Dict[str, Any],
         passengers: List[Dict[str, Any]],
@@ -2441,6 +2499,91 @@ class FlightBookingService(FlightService):
                 })
         
         return processed
+
+
+    async def _call_ancillary_pricing_api(
+        self,
+        flight_price_response: Dict[str, Any],
+        servicelist_response: Optional[Dict[str, Any]],
+        seatavailability_response: Optional[Dict[str, Any]],
+        selected_services: Optional[List[str]],
+        selected_seats: Optional[List[str]],
+        pricing_info: Dict[str, Any],
+        request_id: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Call the ancillary pricing API to get priced data for PricedInd=false items.
+
+        Args:
+            flight_price_response: Original FlightPrice response
+            servicelist_response: ServiceList response data
+            seatavailability_response: SeatAvailability response data
+            selected_services: List of selected service ObjectKeys
+            selected_seats: List of selected seat ObjectKeys
+            pricing_info: Pricing requirements information
+            request_id: Request ID for tracking
+
+        Returns:
+            Ancillary pricing response or None if failed
+        """
+        try:
+            logger.info(f"[DEBUG] Calling ancillary pricing API (ReqID: {request_id})")
+
+            # Build the request payload for the ancillary pricing API
+            pricing_payload = {
+                'flight_price_response': flight_price_response,
+                'servicelist_response': servicelist_response,
+                'seatavailability_response': seatavailability_response,
+                'selected_services': selected_services or [],
+                'selected_seats': selected_seats or [],
+                'selected_offer_index': 0
+            }
+
+            # Get auth token
+            token_manager = self._token_manager
+            bearer_token = token_manager.get_token()
+
+            # Get current app config
+            config = self.config if hasattr(self, 'config') else {}
+
+            # Create headers
+            headers = {
+                'Content-Type': 'application/json',
+                'Accept': '*/*',
+                'Authorization': bearer_token,
+                'OfficeId': config.get('VERTEIL_OFFICE_ID', ''),
+                'service': 'FlightPrice',
+                'User-Agent': 'PostmanRuntime/7.41',
+                'Cache-Control': 'no-cache',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Connection': 'keep-alive'
+            }
+
+            # Make API call to our own ancillary pricing endpoint
+            api_url = f"{config.get('API_BASE_URL', 'http://localhost:8000')}/api/verteil/pricing/price-ancillaries"
+
+            import aiohttp
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    api_url,
+                    headers=headers,
+                    json=pricing_payload,
+                    timeout=30
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        if result.get('status') == 'success':
+                            logger.info(f"[DEBUG] Ancillary pricing API call successful (ReqID: {request_id})")
+                            return result.get('data')
+                        else:
+                            logger.error(f"[DEBUG] Ancillary pricing API returned error: {result} (ReqID: {request_id})")
+                    else:
+                        logger.error(f"[DEBUG] Ancillary pricing API HTTP error: {response.status} (ReqID: {request_id})")
+
+        except Exception as e:
+            logger.error(f"[DEBUG] Exception calling ancillary pricing API: {e} (ReqID: {request_id})")
+
+        return None
 
 
 # Helper functions for backward compatibility

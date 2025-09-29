@@ -812,8 +812,7 @@ def process_payments_for_order_create_fixed(
     
     for offer in offer_prices:
         price_detail = offer.get('RequestedDate', {}).get('PriceDetail', {})
-        base_amount = price_detail.get('BaseAmount', {})
-        taxes_total = price_detail.get('Taxes', {}).get('Total', {})
+        flight_amount = price_detail.get('TotalAmount', {}).get('SimpleCurrencyPrice', {})
         
         passenger_count = 1
         associations = offer.get('RequestedDate', {}).get('Associations', [])
@@ -823,14 +822,13 @@ def process_payments_for_order_create_fixed(
             if isinstance(traveler_refs, list):
                 passenger_count = len(traveler_refs)
         
-        base_value = base_amount.get('value', 0)
-        tax_value = taxes_total.get('value', 0)
-        if base_value > 0:
-            flight_total = float(base_value + tax_value) * passenger_count
+        flight_value = flight_amount.get('value', 0)
+        if flight_value > 0:
+            flight_total = float(flight_value) * passenger_count
             total_amount += flight_total
             
-            if currency_code is None and 'Code' in base_amount:
-                currency_code = base_amount['Code']
+            if currency_code is None and 'Code' in flight_amount:
+                currency_code = flight_amount['Code']
     
     # Add service and seat costs (same logic as original)
     service_costs = 0.0

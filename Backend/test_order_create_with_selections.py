@@ -82,16 +82,16 @@ def main():
         # 1. Doha Convenience Pack (paid service) - ObjectKey: "1-ServiceIdQR-4"
         # 2. Weight System Charge (paid baggage service) - ObjectKey: "1-ServiceIdQR-5"
         selected_services = [
-            "1-ServiceIdQR-4",  # DOHA CONVENIENCE PACK - ₹20,796
-            "1-ServiceIdQR-5"   # WEIGHT SYSTEM CHARGE - ₹1,763
+            "1-ServiceIdQR-3",  # DOHA CONVENIENCE PACK - ₹20,796
+            "1-ServiceIdQR-4"   # WEIGHT SYSTEM CHARGE - ₹1,763
         ]
 
         # SELECTED SEATS - Based on available seats from SeatAvailability_RS.json
         # Since we don't have explicit seat pricing in the response, we'll assume some seats are available
         # Using format: "PRICE{number}-SEG{segment}" as seen in the original test
         selected_seats = [
-            "PRICE2-SEG2",   # Another premium seat on segment 9
-            "PRICE11-SEG9"    # Another premium seat on segment 9
+            "PRICE1-SEG7",   # Another premium seat on segment 9
+            "PRICE4-SEG7"    # Another premium seat on segment 9
         ]
 
         print("\n🔄 Generating OrderCreate payload with selections:")

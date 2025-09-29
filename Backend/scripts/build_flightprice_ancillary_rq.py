@@ -568,14 +568,51 @@ def detect_pricing_required(
         # Check services
         if servicelist_response and selected_services:
             services = normalize_to_list(servicelist_response.get('Services', {}).get('Service', []))
-            
+
+            # Create mapping from service IDs to ObjectKeys using ServiceID structure
+            service_id_to_object_key = {}
+            for service in services:
+                object_key = service.get('ObjectKey', '')
+                service_id_dict = service.get('ServiceID', {})
+
+                if object_key and isinstance(service_id_dict, dict):
+                    service_id_value = service_id_dict.get('value', '')
+                    if service_id_value:
+                        # Map ServiceID.value to ObjectKey (e.g., "SRV16" -> "1-ServiceIdAF-16")
+                        service_id_to_object_key[service_id_value] = object_key
+
+            logger.info(f"Service ID to ObjectKey mapping: {service_id_to_object_key}")
+
             for service in services:
                 service_key = service.get('ObjectKey', '')
+                priced_ind = service.get('PricedInd', True)
+
+                # Check if this service is selected (by ObjectKey or by service ID)
+                is_selected = False
+                selected_object_key = None
+
+                # First try direct ObjectKey match
                 if service_key in selected_services:
-                    priced_ind = service.get('PricedInd', True)
+                    is_selected = True
+                    selected_object_key = service_key
+
+                # Then try service ID match (e.g., "SRV16" matches "1-ServiceIdAF-16")
+                else:
+                    for selected_service in selected_services:
+                        if selected_service in service_id_to_object_key:
+                            if service_id_to_object_key[selected_service] == service_key:
+                                is_selected = True
+                                selected_object_key = service_key
+                                break
+
+                if is_selected:
+                    logger.info(f"Service {service_key} is selected (PricedInd: {priced_ind})")
                     if not priced_ind:
-                        result["services_require_pricing"].append(service_key)
+                        result["services_require_pricing"].append(selected_object_key or service_key)
                         result["requires_pricing"] = True
+                        logger.info(f"Service {service_key} requires pricing (PricedInd=false)")
+                else:
+                    logger.debug(f"Service {service_key} not selected")
         
         # Check seats - FIXED: Handle pricing ObjectKeys directly
         if seatavailability_response and selected_seats:
