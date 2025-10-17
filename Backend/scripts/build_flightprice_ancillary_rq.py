@@ -127,6 +127,10 @@ def build_flightprice_ancillary_request(
     """
     Build FlightPrice request for pricing selected seats and ancillaries.
     
+    CRITICAL: This function now creates SEPARATE requests based on NDC specification.
+    According to reference examples (9_FlightPriceRQ.json), ancillary items should be 
+    priced separately, not all together in one request.
+    
     This function handles the case where PricedInd is false, requiring additional pricing
     for selected services and seats before proceeding to OrderCreate.
     
@@ -140,9 +144,14 @@ def build_flightprice_ancillary_request(
     
     Returns:
         Dict containing the FlightPrice request for ancillary pricing
+        
+    Note: If both seats and services are provided, this will only price ONE type.
+          Use build_flightprice_request_for_services() and build_flightprice_request_for_seats()
+          separately for proper sequential pricing.
     """
     try:
         logger.info("Building FlightPrice request for ancillary pricing")
+        logger.warning("⚠️ DEPRECATION WARNING: Use build_flightprice_request_for_services() or build_flightprice_request_for_seats() for separate pricing")
         
         # Detect if this is a multi-airline response
         is_multi_airline = _is_multi_airline_flight_price_response(flight_price_response)
@@ -244,11 +253,11 @@ def build_flightprice_ancillary_request(
             
             for service in services:
                 service_key = service.get('ObjectKey', '')
-                logger.info(f"Checking service: {service_key}, PricedInd: {service.get('PricedInd', True)}")
+                logger.info(f"Checking service: {service_key}, PricedInd: {service.get('PricedInd', False)}")
                 if service_key in selected_services:
                     # Check if this service requires pricing
-                    priced_ind = service.get('PricedInd', True)
-                    if not priced_ind:  # Only add if PricedInd is false
+                    priced_ind = service.get('PricedInd', False)  # Missing PricedInd means requires pricing
+                    if not priced_ind:  # Only add if PricedInd is false or missing
                         service_offer_item = {
                             "value": service_key,
                             "refs": [clean_airline_prefix_from_key(traveler.get('ObjectKey', ''), airline_code) if airline_code else traveler.get('ObjectKey', '') for traveler in travelers],
@@ -272,11 +281,11 @@ def build_flightprice_ancillary_request(
             
             for service in services:
                 service_key = service.get('ObjectKey', '')
-                logger.info(f"Checking seat service: {service_key}, PricedInd: {service.get('PricedInd', True)}")
+                logger.info(f"Checking seat service: {service_key}, PricedInd: {service.get('PricedInd', False)}")
                 if service_key in selected_seats:
                     # Check if this seat requires pricing
-                    priced_ind = service.get('PricedInd', True)
-                    if not priced_ind:  # Only add if PricedInd is false
+                    priced_ind = service.get('PricedInd', False)  # Missing PricedInd means requires pricing
+                    if not priced_ind:  # Only add if PricedInd is false or missing
                         # Extract dynamic seat information
                         seat_info = _extract_seat_selection_info(service, seat_data_map, travelers, airline_code)
                         
@@ -585,7 +594,7 @@ def detect_pricing_required(
 
             for service in services:
                 service_key = service.get('ObjectKey', '')
-                priced_ind = service.get('PricedInd', True)
+                priced_ind = service.get('PricedInd', False)  # Missing PricedInd means requires pricing
 
                 # Check if this service is selected (by ObjectKey or by service ID)
                 is_selected = False
@@ -625,7 +634,7 @@ def detect_pricing_required(
                 for service in services:
                     service_key = service.get('ObjectKey', '')
                     if service_key == selected_seat:
-                        priced_ind = service.get('PricedInd', True)
+                        priced_ind = service.get('PricedInd', False)  # Missing PricedInd means requires pricing
                         if not priced_ind:
                             result["seats_require_pricing"].append(selected_seat)
                             result["requires_pricing"] = True
@@ -639,5 +648,318 @@ def detect_pricing_required(
     except Exception as e:
         logger.error(f"Error detecting pricing requirements: {e}")
         return result
+
+def build_flightprice_request_for_services(
+    flight_price_response: Dict[str, Any],
+    servicelist_response: Dict[str, Any],
+    selected_services: List[str],
+    selected_offer_index: int = 0,
+    base_offer_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Build FlightPrice request ONLY for pricing selected services.
+    
+    According to NDC specification (reference: 9_FlightPriceRQ.json), ancillary items 
+    should be priced separately. This function creates a request with:
+    - Base flight offer item (always included)
+    - Selected SERVICE items only (no seats)
+    
+    Args:
+        flight_price_response: The original FlightPrice response
+        servicelist_response: ServiceList response containing available services
+        selected_services: List of selected service ObjectKeys
+        selected_offer_index: Index of the selected offer (default: 0)
+        base_offer_id: If provided, use this OfferID instead of extracting from response
+                       (useful for chaining multiple pricing calls)
+    
+    Returns:
+        Dict containing the FlightPrice request for service pricing
+    """
+    try:
+        logger.info(f"🔧 Building FlightPrice request for SERVICES ONLY: {selected_services}")
+        
+        # Detect multi-airline context
+        is_multi_airline = _is_multi_airline_flight_price_response(flight_price_response)
+        airline_code = _extract_airline_from_flight_price_response(flight_price_response)
+        
+        logger.info(f"Multi-airline context: {is_multi_airline}, Airline: {airline_code}")
+        
+        # Extract base offer information
+        priced_offers = normalize_to_list(flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', []))
+        
+        if not priced_offers or selected_offer_index >= len(priced_offers):
+            raise ValueError(f"No priced offers found or invalid offer index: {selected_offer_index}")
+        
+        selected_offer = priced_offers[selected_offer_index]
+        offer_id = selected_offer.get('OfferID', {})
+        
+        # Use base_offer_id if provided (for chained calls)
+        if base_offer_id:
+            offer_id = {
+                "ObjectKey": base_offer_id,
+                "value": base_offer_id,
+                "Owner": offer_id.get('Owner', ''),
+                "Channel": offer_id.get('Channel', 'NDC')
+            }
+        
+        # Build base request structure
+        request = _build_base_flightprice_request(flight_price_response, airline_code)
+        
+        # Build offer with selected items
+        offer_item_ids = []
+        
+        # Extract travelers for refs
+        data_lists = flight_price_response.get('DataLists', {})
+        travelers = normalize_to_list(data_lists.get('AnonymousTravelerList', {}).get('AnonymousTraveler', []))
+        
+        # 1. Add flight item (always included)
+        offer_prices = normalize_to_list(selected_offer.get('OfferPrice', []))
+        if offer_prices:
+            flight_offer_item_id = offer_prices[0].get('OfferItemID', '')
+            if flight_offer_item_id:
+                offer_item_ids.append({
+                    "value": flight_offer_item_id,
+                    "refs": [clean_airline_prefix_from_key(traveler.get('ObjectKey', ''), airline_code) if airline_code else traveler.get('ObjectKey', '') for traveler in travelers]
+                })
+        
+        # 2. Add selected services ONLY
+        services = normalize_to_list(servicelist_response.get('Services', {}).get('Service', []))
+        logger.info(f"Processing {len(services)} services, looking for: {selected_services}")
+        
+        for service in services:
+            service_key = service.get('ObjectKey', '')
+            if service_key in selected_services:
+                # Check if this service requires pricing
+                priced_ind = service.get('PricedInd', False)
+                if not priced_ind:
+                    service_offer_item = {
+                        "value": service_key,
+                        "refs": [clean_airline_prefix_from_key(traveler.get('ObjectKey', ''), airline_code) if airline_code else traveler.get('ObjectKey', '') for traveler in travelers],
+                        "Quantity": 1
+                    }
+                    offer_item_ids.append(service_offer_item)
+                    logger.info(f"✅ Added service for pricing: {service_key}")
+        
+        # Build the offer
+        offer = {
+            "OfferID": {
+                "ObjectKey": offer_id.get('value', ''),
+                "value": offer_id.get('value', ''),
+                "Owner": offer_id.get('Owner', ''),
+                "Channel": offer_id.get('Channel', 'NDC')
+            },
+            "OfferItemIDs": {
+                "OfferItemID": offer_item_ids
+            }
+        }
+        
+        request["Query"]["Offers"]["Offer"].append(offer)
+        
+        logger.info(f"✅ Built FlightPrice request for SERVICES with {len(offer_item_ids)} offer items")
+        return request
+        
+    except Exception as e:
+        logger.error(f"❌ Error building FlightPrice request for services: {e}")
+        raise
+
+def build_flightprice_request_for_seats(
+    flight_price_response: Dict[str, Any],
+    seatavailability_response: Dict[str, Any],
+    selected_seats: List[str],
+    selected_offer_index: int = 0,
+    base_offer_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Build FlightPrice request ONLY for pricing selected seats.
+    
+    According to NDC specification (reference: 9_FlightPriceRQ.json), ancillary items 
+    should be priced separately. This function creates a request with:
+    - Base flight offer item (always included)
+    - Selected SEAT items only (no services)
+    
+    Args:
+        flight_price_response: The original FlightPrice response
+        seatavailability_response: SeatAvailability response containing available seats
+        selected_seats: List of selected seat ObjectKeys
+        selected_offer_index: Index of the selected offer (default: 0)
+        base_offer_id: If provided, use this OfferID instead of extracting from response
+                       (useful for chaining multiple pricing calls)
+    
+    Returns:
+        Dict containing the FlightPrice request for seat pricing
+    """
+    try:
+        logger.info(f"🔧 Building FlightPrice request for SEATS ONLY: {selected_seats}")
+        
+        # Detect multi-airline context
+        is_multi_airline = _is_multi_airline_flight_price_response(flight_price_response)
+        airline_code = _extract_airline_from_flight_price_response(flight_price_response)
+        
+        logger.info(f"Multi-airline context: {is_multi_airline}, Airline: {airline_code}")
+        
+        # Extract base offer information
+        priced_offers = normalize_to_list(flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', []))
+        
+        if not priced_offers or selected_offer_index >= len(priced_offers):
+            raise ValueError(f"No priced offers found or invalid offer index: {selected_offer_index}")
+        
+        selected_offer = priced_offers[selected_offer_index]
+        offer_id = selected_offer.get('OfferID', {})
+        
+        # Use base_offer_id if provided (for chained calls)
+        if base_offer_id:
+            offer_id = {
+                "ObjectKey": base_offer_id,
+                "value": base_offer_id,
+                "Owner": offer_id.get('Owner', ''),
+                "Channel": offer_id.get('Channel', 'NDC')
+            }
+        
+        # Build base request structure
+        request = _build_base_flightprice_request(flight_price_response, airline_code)
+        
+        # Build offer with selected items
+        offer_item_ids = []
+        
+        # Extract travelers for refs
+        data_lists = flight_price_response.get('DataLists', {})
+        travelers = normalize_to_list(data_lists.get('AnonymousTravelerList', {}).get('AnonymousTraveler', []))
+        
+        # 1. Add flight item (always included)
+        offer_prices = normalize_to_list(selected_offer.get('OfferPrice', []))
+        if offer_prices:
+            flight_offer_item_id = offer_prices[0].get('OfferItemID', '')
+            if flight_offer_item_id:
+                offer_item_ids.append({
+                    "value": flight_offer_item_id,
+                    "refs": [clean_airline_prefix_from_key(traveler.get('ObjectKey', ''), airline_code) if airline_code else traveler.get('ObjectKey', '') for traveler in travelers]
+                })
+        
+        # 2. Add selected seats ONLY
+        services = normalize_to_list(seatavailability_response.get('Services', {}).get('Service', []))
+        logger.info(f"Processing {len(services)} seat services, looking for: {selected_seats}")
+        
+        # Extract seat data from DataLists.SeatList for dynamic seat information
+        seat_data_map = _extract_seat_data_from_response(seatavailability_response)
+        logger.info(f"Extracted seat data for {len(seat_data_map)} seats")
+        
+        for service in services:
+            service_key = service.get('ObjectKey', '')
+            if service_key in selected_seats:
+                # Check if this seat requires pricing
+                priced_ind = service.get('PricedInd', False)
+                if not priced_ind:
+                    # Extract dynamic seat information
+                    seat_info = _extract_seat_selection_info(service, seat_data_map, travelers, airline_code)
+                    
+                    seat_offer_item = {
+                        "value": service_key,
+                        "refs": [clean_airline_prefix_from_key(traveler.get('ObjectKey', ''), airline_code) if airline_code else traveler.get('ObjectKey', '') for traveler in travelers],
+                        "SelectedSeat": [seat_info],
+                        "Quantity": 1
+                    }
+                    offer_item_ids.append(seat_offer_item)
+                    logger.info(f"✅ Added seat for pricing: {service_key} with dynamic seat data")
+        
+        # Build the offer
+        offer = {
+            "OfferID": {
+                "ObjectKey": offer_id.get('value', ''),
+                "value": offer_id.get('value', ''),
+                "Owner": offer_id.get('Owner', ''),
+                "Channel": offer_id.get('Channel', 'NDC')
+            },
+            "OfferItemIDs": {
+                "OfferItemID": offer_item_ids
+            }
+        }
+        
+        request["Query"]["Offers"]["Offer"].append(offer)
+        
+        logger.info(f"✅ Built FlightPrice request for SEATS with {len(offer_item_ids)} offer items")
+        return request
+        
+    except Exception as e:
+        logger.error(f"❌ Error building FlightPrice request for seats: {e}")
+        raise
+
+def _build_base_flightprice_request(
+    flight_price_response: Dict[str, Any],
+    airline_code: Optional[str]
+) -> Dict[str, Any]:
+    """
+    Build the base structure for a FlightPrice request (common parts).
+    
+    Args:
+        flight_price_response: The original FlightPrice response
+        airline_code: Airline code for reference cleaning
+    
+    Returns:
+        Dict containing base request structure with Travelers, OriginDestination, and DataLists
+    """
+    request = {
+        "Travelers": {
+            "Traveler": []
+        },
+        "Query": {
+            "OriginDestination": [],
+            "Offers": {
+                "Offer": []
+            }
+        },
+        "DataLists": {
+            "AnonymousTravelerList": {
+                "AnonymousTraveler": []
+            }
+        },
+        "ShoppingResponseID": flight_price_response.get('ShoppingResponseID', {})
+    }
+    
+    # Extract and build traveler information
+    data_lists = flight_price_response.get('DataLists', {})
+    travelers = normalize_to_list(data_lists.get('AnonymousTravelerList', {}).get('AnonymousTraveler', []))
+    
+    for traveler in travelers:
+        traveler_obj = {
+            "AnonymousTraveler": [{
+                "PTC": traveler.get('PTC', {})
+            }]
+        }
+        request["Travelers"]["Traveler"].append(traveler_obj)
+        
+        # Add to DataLists
+        clean_object_key = clean_airline_prefix_from_key(traveler.get('ObjectKey', ''), airline_code) if airline_code else traveler.get('ObjectKey', '')
+        request["DataLists"]["AnonymousTravelerList"]["AnonymousTraveler"].append({
+            "ObjectKey": clean_object_key,
+            "PTC": traveler.get('PTC', {})
+        })
+    
+    # Extract and build flight segment information
+    flight_segment_list = data_lists.get('FlightSegmentList', {})
+    flight_segments = normalize_to_list(flight_segment_list.get('FlightSegment', []) if isinstance(flight_segment_list, dict) else flight_segment_list)
+    
+    for segment in flight_segments:
+        origin_dest = {
+            "Flight": [{
+                "SegmentKey": clean_airline_prefix_from_key(segment.get('SegmentKey', ''), airline_code) if airline_code else segment.get('SegmentKey', ''),
+                "Departure": {
+                    "AirportCode": segment.get('Departure', {}).get('AirportCode', {}),
+                    "Date": segment.get('Departure', {}).get('Date', ''),
+                    "Time": segment.get('Departure', {}).get('Time', ''),
+                    "Terminal": segment.get('Departure', {}).get('Terminal', {})
+                },
+                "Arrival": {
+                    "AirportCode": segment.get('Arrival', {}).get('AirportCode', {}),
+                    "Date": segment.get('Arrival', {}).get('Date', ''),
+                    "Time": segment.get('Arrival', {}).get('Time', ''),
+                    "Terminal": segment.get('Arrival', {}).get('Terminal', {})
+                },
+                "MarketingCarrier": segment.get('MarketingCarrier', {}),
+                "OperatingCarrier": segment.get('OperatingCarrier', {})
+            }]
+        }
+        request["Query"]["OriginDestination"].append(origin_dest)
+    
+    return request
 
 # --- END OF FILE build_flightprice_ancillary_rq.py ---

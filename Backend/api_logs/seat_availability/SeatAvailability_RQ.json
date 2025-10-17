@@ -1,12 +1,12 @@
 {
-  "timestamp": "2025-09-29T21:01:03.528971",
+  "timestamp": "2025-10-17T21:13:32.634304",
   "service": "SeatAvailability",
-  "request_id": "769740ce-6c96-4f69-b17f-386d7fd03222",
+  "request_id": "c6eff0e6-7bb5-4c42-bac1-88ce3730966b",
   "endpoint": "/entrygate/rest/request:preSeatAvailability",
   "headers": {
     "Content-Type": "application/json",
     "Accept": "*/*",
-    "Authorization": "Bearer ***8_J2lJuA",
+    "Authorization": "Bearer ***JfR56jBg",
     "OfficeId": "***3746",
     "service": "SeatAvailability",
     "User-Agent": "PostmanRuntime/7.41",
@@ -35,7 +35,7 @@
         {
           "FlightSegmentReference": [
             {
-              "ref": "SEG2"
+              "ref": "SEG1"
             }
           ]
         }
@@ -44,14 +44,14 @@
         "Offer": [
           {
             "OfferID": {
-              "value": "edb526aa-9135-480a-b526-aa9135080004",
+              "value": "ef49d126-b797-4712-89d1-26b797370001",
               "Owner": "AF",
               "Channel": "NDC"
             },
             "OfferItemIDs": {
               "OfferItemID": [
                 {
-                  "value": "adeb2186-018a-412a-ab21-86018a212a30"
+                  "value": "d47274a9-3f9f-4a99-b274-a93f9fba9906"
                 }
               ]
             }
@@ -63,25 +63,25 @@
       "FlightSegmentList": {
         "FlightSegment": [
           {
-            "SegmentKey": "SEG2",
+            "SegmentKey": "SEG1",
             "Departure": {
               "AirportCode": {
-                "value": "FRA"
+                "value": "CDG"
               },
-              "Date": "2025-10-08T07:05:00.000",
-              "Time": "07:05",
+              "Date": "2025-10-23T07:40:00.000",
+              "Time": "07:40",
               "Terminal": {
-                "Name": "2"
+                "Name": "2G"
               }
             },
             "Arrival": {
               "AirportCode": {
-                "value": "CDG"
+                "value": "FRA"
               },
-              "Date": "2025-10-08T08:35:00.000",
-              "Time": "08:35",
+              "Date": "2025-10-23T09:00:00.000",
+              "Time": "09:00",
               "Terminal": {
-                "Name": "2G"
+                "Name": "2"
               }
             },
             "MarketingCarrier": {
@@ -89,12 +89,12 @@
                 "value": "AF"
               },
               "FlightNumber": {
-                "value": "1019"
+                "value": "1518"
               }
             },
             "Equipment": {
               "AircraftCode": {
-                "value": "E90"
+                "value": "E70"
               }
             },
             "FlightDetail": {}
@@ -104,14 +104,14 @@
       "FareList": {
         "FareGroup": [
           {
-            "ListKey": "FG-SEG2",
+            "ListKey": "FG-SEG1",
             "Fare": {
               "FareCode": {
                 "Code": "70J"
               }
             },
             "FareBasisCode": {
-              "Code": "TYS0BALA"
+              "Code": "NYS5BALA"
             }
           }
         ]
@@ -119,7 +119,7 @@
     },
     "ShoppingResponseID": {
       "ResponseID": {
-        "value": "EXsjg1GfB4vGnSVojmzfw8OhdMM8Bnm6N-GMq-1AcUs-AF"
+        "value": "tz-s9tozhn8KCauIlsOhm4dhNa5LF7sNsGxATQtLyJo-AF"
       }
     }
   }

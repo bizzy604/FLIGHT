@@ -1,0 +1,166 @@
+{
+  "timestamp": "2025-10-17T21:16:24.736115",
+  "service": "AncillaryPricing",
+  "request_id": "c2f0e5ba-d360-4199-9771-be23e60116b8",
+  "endpoint": "/entrygate/rest/request:preFlightPrice",
+  "headers": {
+    "Content-Type": "application/json",
+    "Accept": "*/*",
+    "Authorization": "Bearer ***JfR56jBg",
+    "OfficeId": "***3746",
+    "ThirdpartyId": "***",
+    "service": "FlightPrice",
+    "User-Agent": "PostmanRuntime/7.41",
+    "Cache-Control": "no-cache",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive"
+  },
+  "payload": {
+    "Travelers": {
+      "Traveler": [
+        {
+          "AnonymousTraveler": [
+            {
+              "PTC": {
+                "value": "ADT"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Query": {
+      "OriginDestination": [
+        {
+          "Flight": [
+            {
+              "SegmentKey": "SEG1",
+              "Departure": {
+                "AirportCode": {
+                  "value": "CDG"
+                },
+                "Date": "2025-10-23T07:40:00.000",
+                "Time": "07:40",
+                "Terminal": {
+                  "Name": "2G"
+                }
+              },
+              "Arrival": {
+                "AirportCode": {
+                  "value": "FRA"
+                },
+                "Date": "2025-10-23T09:00:00.000",
+                "Time": "09:00",
+                "Terminal": {
+                  "Name": "2"
+                }
+              },
+              "MarketingCarrier": {
+                "AirlineID": {
+                  "value": "AF"
+                },
+                "FlightNumber": {
+                  "value": "1518"
+                }
+              },
+              "OperatingCarrier": {
+                "AirlineID": {
+                  "value": "A5"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "Offers": {
+        "Offer": [
+          {
+            "OfferID": {
+              "ObjectKey": "ef49d126-b797-4712-89d1-26b797370001",
+              "value": "ef49d126-b797-4712-89d1-26b797370001",
+              "Owner": "AF",
+              "Channel": "NDC"
+            },
+            "OfferItemIDs": {
+              "OfferItemID": [
+                {
+                  "value": "d47274a9-3f9f-4a99-b274-a93f9fba9906",
+                  "refs": [
+                    "PAX1"
+                  ]
+                },
+                {
+                  "value": "1-ServiceIdAF-2",
+                  "refs": [
+                    "PAX1"
+                  ],
+                  "Quantity": 1
+                },
+                {
+                  "value": "1-ServiceIdAF-15",
+                  "refs": [
+                    "PAX1"
+                  ],
+                  "Quantity": 1
+                },
+                {
+                  "value": "1-ServiceIdAF-17",
+                  "refs": [
+                    "PAX1"
+                  ],
+                  "Quantity": 1
+                },
+                {
+                  "value": "e0ee9182-5616-47e1-ae91-825616070020",
+                  "refs": [
+                    "PAX1"
+                  ],
+                  "SelectedSeat": [
+                    {
+                      "Location": {
+                        "Column": "C",
+                        "Row": {
+                          "Number": {
+                            "value": "16"
+                          }
+                        }
+                      },
+                      "SeatAssociation": [
+                        {
+                          "SegmentReferences": {
+                            "value": [
+                              "SEG1"
+                            ]
+                          },
+                          "TravelerReference": "PAX1"
+                        }
+                      ]
+                    }
+                  ],
+                  "Quantity": 1
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "DataLists": {
+      "AnonymousTravelerList": {
+        "AnonymousTraveler": [
+          {
+            "ObjectKey": "PAX1",
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      }
+    },
+    "ShoppingResponseID": {
+      "ResponseID": {
+        "value": "tz-s9tozhn8KCauIlsOhm4dhNa5LF7sNsGxATQtLyJo-AF"
+      }
+    }
+  }
+}

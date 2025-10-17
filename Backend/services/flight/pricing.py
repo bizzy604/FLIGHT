@@ -248,6 +248,20 @@ class FlightPricingService(FlightService):
                 response_travelers = response['DataLists']['AnonymousTravelerList']
                 logger.info(f"[PASSENGER DEBUG] Flight Price API Response - AnonymousTravelerList count: {len(response_travelers) if isinstance(response_travelers, list) else 1}")
 
+            # CRITICAL FIX: Ensure ShoppingResponseID is in the response before caching
+            if response and 'ShoppingResponseID' not in response:
+                logger.warning("⚠️ ShoppingResponseID not found in API response, adding from request")
+                # Add ShoppingResponseID from the request parameter
+                response['ShoppingResponseID'] = {
+                    'ResponseID': {
+                        'value': shopping_response_id
+                    }
+                }
+                logger.info(f"✅ Added ShoppingResponseID to response: {shopping_response_id}")
+            elif response and 'ShoppingResponseID' in response:
+                shopping_id_value = response['ShoppingResponseID'].get('ResponseID', {}).get('value')
+                logger.info(f"✅ ShoppingResponseID already in response: {shopping_id_value}")
+
             # Cache the raw flight price response for order creation using SimpleFlightCache
             # Use consistent key format: flight_price_raw_{request_id}_{timestamp}
             flight_price_cache_key = f"flight_price_raw_{request_id}_{int(datetime.now().timestamp())}"

@@ -1,35 +1,27 @@
 {
-  "timestamp": "2025-09-29T21:01:10.804848",
+  "timestamp": "2025-10-17T21:13:36.363581",
   "service": "ServiceList",
-  "request_id": "75e29a13-4a95-45a1-95d5-2da04cc01cd3",
+  "request_id": "1b3910b1-f588-4a79-9bda-4dfacfb66544",
   "status_code": 200,
-  "response_time_ms": 6750.652313232422,
+  "response_time_ms": 4842.503309249878,
   "response": {
-    "Warnings": {
-      "Warning": [
-        {
-          "value": "No lounge offer available",
-          "Status": "LOUNGE_UNAVAILABLE"
-        }
-      ]
-    },
     "OfferExpiration": {
-      "ObjectKey": "edb526aa-9135-480a-b526-aa9135080004",
-      "DateTime": "2025-09-29T18:30:25.810",
-      "Time": "2025-09-30T00:00:25.810"
+      "ObjectKey": "ef49d126-b797-4712-89d1-26b797370001",
+      "DateTime": "2025-10-17T18:42:31.888",
+      "Time": "2025-10-18T00:12:31.888"
     },
     "ShoppingResponseID": {
       "ResponseID": {
-        "value": "EXsjg1GfB4vGnSVojmzfw8OhdMM8Bnm6N-GMq-1AcUs-AF"
+        "value": "tz-s9tozhn8KCauIlsOhm4dhNa5LF7sNsGxATQtLyJo-AF"
       }
     },
     "Services": {
       "Service": [
         {
-          "ObjectKey": "1-ServiceIdAF-1",
+          "ObjectKey": "1-ServiceIdAF-2",
           "ServiceID": {
-            "ObjectKey": "bc20f69c-8754-4924-a0f6-9c8754d90001",
-            "value": "SRV1",
+            "ObjectKey": "cc550c32-83d8-4a4d-950c-3283d8ca0002",
+            "value": "SRV2",
             "Owner": "AF"
           },
           "Name": {
@@ -47,7 +39,7 @@
           "Price": [
             {
               "Total": {
-                "value": 3640.0,
+                "value": 4102.0,
                 "Code": "INR"
               }
             }
@@ -70,7 +62,141 @@
                   {
                     "SegmentReferences": {
                       "value": [
-                        "SEG4"
+                        "SEG1"
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "PricedInd": false
+        },
+        {
+          "ObjectKey": "1-ServiceIdAF-12",
+          "ServiceID": {
+            "ObjectKey": "cc550c32-83d8-4a4d-950c-3283d8ca000c",
+            "value": "SRV14-SAF",
+            "Owner": "AF"
+          },
+          "Name": {
+            "value": "SUSTAINABLE AVIATION FUEL:SAF"
+          },
+          "Descriptions": {
+            "Description": [
+              {
+                "Text": {
+                  "value": "SUSTAINABLE_AVIATION_FUEL"
+                }
+              },
+              {
+                "Text": {
+                  "value": "SAFINVESTED_KG_20.00"
+                }
+              },
+              {
+                "Text": {
+                  "value": "CO2_KG_20.00"
+                }
+              }
+            ]
+          },
+          "Price": [
+            {
+              "Total": {
+                "value": 810.0,
+                "Code": "INR"
+              }
+            }
+          ],
+          "BookingInstructions": {
+            "SSRCode": [
+              "SUSTAINABLE_AVIATION_FUEL",
+              "SAFINVESTED_KG_20.00",
+              "CO2_KG_20.00"
+            ],
+            "Method": "SSR"
+          },
+          "Associations": [
+            {
+              "Traveler": {
+                "TravelerReferences": [
+                  "PAX1"
+                ]
+              },
+              "Flight": {
+                "originDestinationReferencesOrSegmentReferences": [
+                  {
+                    "SegmentReferences": {
+                      "value": [
+                        "SEG1"
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "PricedInd": false
+        },
+        {
+          "ObjectKey": "1-ServiceIdAF-13",
+          "ServiceID": {
+            "ObjectKey": "cc550c32-83d8-4a4d-950c-3283d8ca000d",
+            "value": "SRV15-SAF",
+            "Owner": "AF"
+          },
+          "Name": {
+            "value": "SUSTAINABLE AVIATION FUEL:SAF"
+          },
+          "Descriptions": {
+            "Description": [
+              {
+                "Text": {
+                  "value": "SUSTAINABLE_AVIATION_FUEL"
+                }
+              },
+              {
+                "Text": {
+                  "value": "SAFINVESTED_KG_34.00"
+                }
+              },
+              {
+                "Text": {
+                  "value": "CO2_KG_34.00"
+                }
+              }
+            ]
+          },
+          "Price": [
+            {
+              "Total": {
+                "value": 1345.0,
+                "Code": "INR"
+              }
+            }
+          ],
+          "BookingInstructions": {
+            "SSRCode": [
+              "SUSTAINABLE_AVIATION_FUEL",
+              "SAFINVESTED_KG_34.00",
+              "CO2_KG_34.00"
+            ],
+            "Method": "SSR"
+          },
+          "Associations": [
+            {
+              "Traveler": {
+                "TravelerReferences": [
+                  "PAX1"
+                ]
+              },
+              "Flight": {
+                "originDestinationReferencesOrSegmentReferences": [
+                  {
+                    "SegmentReferences": {
+                      "value": [
+                        "SEG1"
                       ]
                     }
                   }
@@ -83,8 +209,75 @@
         {
           "ObjectKey": "1-ServiceIdAF-14",
           "ServiceID": {
-            "ObjectKey": "bc20f69c-8754-4924-a0f6-9c8754d9000e",
-            "value": "SRV16",
+            "ObjectKey": "cc550c32-83d8-4a4d-950c-3283d8ca000e",
+            "value": "SRV16-SAF",
+            "Owner": "AF"
+          },
+          "Name": {
+            "value": "SUSTAINABLE AVIATION FUEL:SAF"
+          },
+          "Descriptions": {
+            "Description": [
+              {
+                "Text": {
+                  "value": "SUSTAINABLE_AVIATION_FUEL"
+                }
+              },
+              {
+                "Text": {
+                  "value": "SAFINVESTED_KG_68.00"
+                }
+              },
+              {
+                "Text": {
+                  "value": "CO2_KG_68.00"
+                }
+              }
+            ]
+          },
+          "Price": [
+            {
+              "Total": {
+                "value": 2692.0,
+                "Code": "INR"
+              }
+            }
+          ],
+          "BookingInstructions": {
+            "SSRCode": [
+              "SUSTAINABLE_AVIATION_FUEL",
+              "SAFINVESTED_KG_68.00",
+              "CO2_KG_68.00"
+            ],
+            "Method": "SSR"
+          },
+          "Associations": [
+            {
+              "Traveler": {
+                "TravelerReferences": [
+                  "PAX1"
+                ]
+              },
+              "Flight": {
+                "originDestinationReferencesOrSegmentReferences": [
+                  {
+                    "SegmentReferences": {
+                      "value": [
+                        "SEG1"
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "PricedInd": false
+        },
+        {
+          "ObjectKey": "1-ServiceIdAF-15",
+          "ServiceID": {
+            "ObjectKey": "cc550c32-83d8-4a4d-950c-3283d8ca000f",
+            "value": "SRV17",
             "Owner": "AF"
           },
           "Name": {
@@ -125,7 +318,7 @@
                   {
                     "SegmentReferences": {
                       "value": [
-                        "SEG4"
+                        "SEG1"
                       ]
                     }
                   }
@@ -136,10 +329,10 @@
           "PricedInd": false
         },
         {
-          "ObjectKey": "1-ServiceIdAF-15",
+          "ObjectKey": "1-ServiceIdAF-16",
           "ServiceID": {
-            "ObjectKey": "bc20f69c-8754-4924-a0f6-9c8754d9000f",
-            "value": "SRV17",
+            "ObjectKey": "cc550c32-83d8-4a4d-950c-3283d8ca0010",
+            "value": "SRV18",
             "Owner": "AF"
           },
           "Name": {
@@ -180,7 +373,7 @@
                   {
                     "SegmentReferences": {
                       "value": [
-                        "SEG4"
+                        "SEG1"
                       ]
                     }
                   }
@@ -191,10 +384,10 @@
           "PricedInd": false
         },
         {
-          "ObjectKey": "1-ServiceIdAF-16",
+          "ObjectKey": "1-ServiceIdAF-17",
           "ServiceID": {
-            "ObjectKey": "bc20f69c-8754-4924-a0f6-9c8754d90010",
-            "value": "SRV18",
+            "ObjectKey": "cc550c32-83d8-4a4d-950c-3283d8ca0011",
+            "value": "SRV19",
             "Owner": "AF"
           },
           "Name": {
@@ -235,7 +428,7 @@
                   {
                     "SegmentReferences": {
                       "value": [
-                        "SEG4"
+                        "SEG1"
                       ]
                     }
                   }
@@ -246,10 +439,10 @@
           "PricedInd": false
         },
         {
-          "ObjectKey": "1-ServiceIdAF-17",
+          "ObjectKey": "1-ServiceIdAF-18",
           "ServiceID": {
-            "ObjectKey": "bc20f69c-8754-4924-a0f6-9c8754d90011",
-            "value": "SRV19",
+            "ObjectKey": "cc550c32-83d8-4a4d-950c-3283d8ca0012",
+            "value": "SRV20",
             "Owner": "AF"
           },
           "Name": {
@@ -290,7 +483,7 @@
                   {
                     "SegmentReferences": {
                       "value": [
-                        "SEG4"
+                        "SEG1"
                       ]
                     }
                   }
@@ -316,25 +509,25 @@
       "FlightSegmentList": {
         "FlightSegment": [
           {
-            "SegmentKey": "SEG4",
+            "SegmentKey": "SEG1",
             "Departure": {
               "AirportCode": {
-                "value": "FRA"
+                "value": "CDG"
               },
-              "Date": "2025-10-08T00:00:00.000",
-              "Time": "07:05",
+              "Date": "2025-10-23T00:00:00.000",
+              "Time": "07:40",
               "Terminal": {
-                "Name": "2"
+                "Name": "2G"
               }
             },
             "Arrival": {
               "AirportCode": {
-                "value": "CDG"
+                "value": "FRA"
               },
-              "Date": "2025-10-08T00:00:00.000",
-              "Time": "08:35",
+              "Date": "2025-10-23T00:00:00.000",
+              "Time": "09:00",
               "Terminal": {
-                "Name": "2G"
+                "Name": "2"
               }
             },
             "MarketingCarrier": {
@@ -342,7 +535,7 @@
                 "value": "AF"
               },
               "FlightNumber": {
-                "value": "1019"
+                "value": "1518"
               }
             },
             "OperatingCarrier": {
@@ -356,10 +549,10 @@
       "FlightList": {
         "Flight": [
           {
-            "FlightKey": "PJ4",
+            "FlightKey": "PJ1",
             "SegmentReferences": {
               "value": [
-                "SEG4"
+                "SEG1"
               ]
             }
           }
@@ -368,17 +561,17 @@
       "OriginDestinationList": {
         "OriginDestination": [
           {
-            "OriginDestinationKey": "OD4",
+            "OriginDestinationKey": "OD1",
             "FlightReferences": {
               "value": [
-                "PJ4"
+                "PJ1"
               ]
             },
             "DepartureCode": {
-              "value": "FRA"
+              "value": "CDG"
             },
             "ArrivalCode": {
-              "value": "CDG"
+              "value": "FRA"
             }
           }
         ]

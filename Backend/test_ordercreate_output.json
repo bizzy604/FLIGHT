@@ -1,0 +1,358 @@
+{
+  "Query": {
+    "Passengers": {
+      "Passenger": [
+        {
+          "ObjectKey": "PAX1",
+          "PTC": {
+            "value": "ADT"
+          },
+          "Name": {
+            "Surname": {
+              "value": "AMONI"
+            },
+            "Given": [
+              {
+                "value": "KEVIN"
+              }
+            ],
+            "Title": null
+          },
+          "AdditionalRoles": {
+            "PaymentContactInd": true
+          },
+          "Gender": {
+            "value": "Male"
+          },
+          "Age": {
+            "BirthDate": {
+              "value": "1990-01-01"
+            }
+          },
+          "Contacts": {
+            "Contact": [
+              {
+                "AddressContact": {
+                  "Street": [
+                    "190"
+                  ],
+                  "CityName": "LODWAR",
+                  "CountrySubDivisionCode": "",
+                  "PostalCode": "30500",
+                  "CountryCode": {
+                    "value": "AO"
+                  }
+                },
+                "EmailContact": {
+                  "Address": {
+                    "value": "kevinamoni20@gmail.com"
+                  }
+                },
+                "PhoneContact": {
+                  "Application": "Home",
+                  "Number": [
+                    {
+                      "value": "0796861525",
+                      "CountryCode": "+254"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "PassengerIDInfo": {
+            "PassengerDocument": [
+              {
+                "Type": "PT",
+                "ID": "A12345678",
+                "DateOfExpiration": null,
+                "CountryOfIssuance": ""
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "OrderItems": {
+      "ShoppingResponse": {
+        "Owner": "AF",
+        "ResponseID": {
+          "value": "N0nYFssLA-RW7ydampZ2QS922JWY1vgZHW8XfcYnUPA-AF"
+        },
+        "Offers": {
+          "Offer": [
+            {
+              "OfferID": {
+                "ObjectKey": "ae524fe3-8a90-4f7d-924f-e38a909f0001",
+                "value": "ae524fe3-8a90-4f7d-924f-e38a909f0001",
+                "Owner": "AF",
+                "Channel": "NDC"
+              },
+              "OfferItems": {
+                "OfferItem": [
+                  {
+                    "OfferItemID": {
+                      "Owner": "AF",
+                      "value": "b9c1d990-e31c-4c23-81d9-90e31c7c2319",
+                      "Channel": "NDC"
+                    }
+                  },
+                  {
+                    "OfferItemID": {
+                      "Owner": "AF",
+                      "value": "f29c1264-524b-4553-9c12-64524bb50033",
+                      "Channel": "NDC"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "OfferItem": [
+        {
+          "OfferItemID": {
+            "value": "b9c1d990-e31c-4c23-81d9-90e31c7c2319",
+            "Owner": "AF",
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "DetailedFlightItem": [
+              {
+                "Price": {
+                  "BaseAmount": {
+                    "value": 12390.0,
+                    "Code": "INR"
+                  },
+                  "Taxes": {
+                    "Total": {
+                      "value": 4536.0,
+                      "Code": "INR"
+                    }
+                  }
+                },
+                "OriginDestination": [
+                  {
+                    "Flight": [
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "CDG"
+                          },
+                          "Date": "2025-10-09",
+                          "Time": "07:40",
+                          "Terminal": {
+                            "Name": "2G"
+                          }
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "FRA"
+                          },
+                          "Date": "2025-10-09",
+                          "Time": "09:00",
+                          "Terminal": {
+                            "Name": "2"
+                          }
+                        },
+                        "ClassOfService": {
+                          "Code": {
+                            "value": "T"
+                          },
+                          "MarketingName": {
+                            "value": "ECONOMY",
+                            "CabinDesignator": "Y"
+                          },
+                          "refs": [
+                            "FG-SEG1"
+                          ]
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "AF"
+                          },
+                          "FlightNumber": {
+                            "value": "1518"
+                          }
+                        },
+                        "Equipment": {
+                          "AircraftCode": {
+                            "value": "E70"
+                          }
+                        },
+                        "Details": null,
+                        "SegmentKey": "SEG1"
+                      }
+                    ],
+                    "OriginDestinationKey": "OD1"
+                  }
+                ],
+                "refs": [
+                  "PAX1"
+                ],
+                "FareDetail": {
+                  "FareComponent": [
+                    {
+                      "FareBasis": {
+                        "FareBasisCode": {
+                          "Code": "TYS0BALA"
+                        },
+                        "RBD": "T"
+                      },
+                      "refs": [
+                        "SEG1"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "OfferItemID": {
+            "value": "f29c1264-524b-4553-9c12-64524bb50033",
+            "Owner": "AF",
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "DetailedFlightItem": [
+              {
+                "Price": {
+                  "BaseAmount": {
+                    "value": 560.0,
+                    "Code": "INR"
+                  },
+                  "Taxes": {
+                    "Total": {
+                      "value": 0,
+                      "Code": "INR"
+                    }
+                  }
+                },
+                "OriginDestination": [
+                  {
+                    "Flight": [
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "CDG"
+                          },
+                          "Date": "2025-10-09",
+                          "Time": "07:40",
+                          "Terminal": {
+                            "Name": "2G"
+                          }
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "FRA"
+                          },
+                          "Date": "2025-10-09",
+                          "Time": "09:00",
+                          "Terminal": {
+                            "Name": "2"
+                          }
+                        },
+                        "ClassOfService": null,
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "AF"
+                          },
+                          "FlightNumber": {
+                            "value": "1518"
+                          }
+                        },
+                        "Equipment": {
+                          "AircraftCode": {
+                            "value": "E70"
+                          }
+                        },
+                        "Details": null
+                      }
+                    ]
+                  }
+                ],
+                "refs": [
+                  "PAX1"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "DataLists": {
+      "FareList": {
+        "FareGroup": [
+          {
+            "ListKey": "FG-SEG1",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              }
+            },
+            "FareBasisCode": {
+              "Code": "TYS0BALA"
+            }
+          }
+        ]
+      },
+      "ServiceList": {
+        "Service": []
+      }
+    },
+    "Metadata": {
+      "PassengerMetadata": [
+        {
+          "AugmentationPoint": {
+            "AugPoint": [
+              {
+                "any": {
+                  "VdcAugPoint": {
+                    "Value": "TRApprovalDate=10/06/2025"
+                  }
+                }
+              },
+              {
+                "any": {
+                  "VdcAugPoint": {
+                    "Value": "TRCreationDate=10/06/2025"
+                  }
+                }
+              }
+            ]
+          },
+          "refs": [
+            "PAX1"
+          ]
+        }
+      ]
+    },
+    "Payments": {
+      "Payment": [
+        {
+          "Method": {
+            "Cash": {
+              "CashInd": "true"
+            }
+          },
+          "Amount": {
+            "Code": "INR",
+            "value": 16866
+          }
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "pricing_info": {
+      "requires_pricing": false,
+      "services_require_pricing": [],
+      "seats_require_pricing": [],
+      "total_items_require_pricing": 0
+    },
+    "used_priced_response": false
+  }
+}

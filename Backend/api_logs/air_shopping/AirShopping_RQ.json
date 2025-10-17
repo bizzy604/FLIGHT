@@ -1,12 +1,12 @@
 {
-  "timestamp": "2025-09-29T21:10:36.182191",
+  "timestamp": "2025-10-17T21:12:28.463698",
   "service": "AirShopping",
-  "request_id": "d5357682-49f2-4427-907c-b4911ec067a5",
+  "request_id": "6f0a3a92-f9c7-4264-bf6a-29b70c1614a4",
   "endpoint": "/entrygate/rest/request:airShopping",
   "headers": {
     "Content-Type": "application/json",
     "Accept": "*/*",
-    "Authorization": "Bearer ***8_J2lJuA",
+    "Authorization": "Bearer ***JfR56jBg",
     "OfficeId": "***3746",
     "service": "AirShopping",
     "User-Agent": "PostmanRuntime/7.41",
@@ -75,7 +75,7 @@
               "AirportCode": {
                 "value": "CDG"
               },
-              "Date": "2025-10-03"
+              "Date": "2025-10-23"
             },
             "Arrival": {
               "AirportCode": {

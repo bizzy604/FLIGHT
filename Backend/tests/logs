@@ -1,0 +1,95 @@
+INFO:services.flight.booking:[DEBUG] ✅ Converted 19C → ['f29c1264-524b-4553-9c12-64524bb50033']
+INFO:services.flight.booking:[DEBUG] ✅ Final pricing ObjectKeys: ['f29c1264-524b-4553-9c12-64524bb50033']
+INFO:services.flight.booking:[DEBUG] Final seat/service status (ReqID: 88076056-f4c0-4dbd-913e-b9e2947d8d0a):
+INFO:services.flight.booking:[DEBUG] - seatavailability_response available: True
+INFO:services.flight.booking:[DEBUG] - servicelist_response available: True
+INFO:services.flight.booking:[DEBUG] - selected_services: []
+INFO:services.flight.booking:[DEBUG] - selected_seats (converted to pricing ObjectKeys): ['f29c1264-524b-4553-9c12-64524bb50033']
+INFO:scripts.build_flightprice_ancillary_rq:Pricing detection result: {'requires_pricing': True, 'services_require_pricing': [], 'seats_require_pricing': ['f29c1264-524b-4553-9c12-64524bb50033'], 'total_items_require_pricing': 1}
+INFO:services.flight.booking:[DEBUG] ===== USING ENHANCED ORDERCREATE BUILDER (PricedInd=false) =====
+INFO:services.flight.booking:[DEBUG] Pricing info: {'requires_pricing': True, 'services_require_pricing': [], 'seats_require_pricing': ['f29c1264-524b-4553-9c12-64524bb50033'], 'total_items_require_pricing': 1}
+INFO:services.flight.booking:[DEBUG] Calling ancillary pricing API (ReqID: 88076056-f4c0-4dbd-913e-b9e2947d8d0a)
+INFO:routes.ancillary_pricing_routes:Pricing ancillaries request received - Request ID: 723ceb73-e12e-481a-bffb-6fb0595d72d2
+INFO:routes.ancillary_pricing_routes:✅ Validated raw NDC flight price response with keys: ['Success', 'ShoppingResponseID', 'PricedFlightOffers', 'DataLists']
+INFO:routes.ancillary_pricing_routes:📊 Data Availability Status:
+INFO:routes.ancillary_pricing_routes:  ✅ Flight Price Response: Available
+INFO:routes.ancillary_pricing_routes:  ✅ Seat Availability Response: Available
+INFO:routes.ancillary_pricing_routes:  ✅ Service List Response: Available
+INFO:scripts.build_flightprice_ancillary_rq:Pricing detection result: {'requires_pricing': True, 'services_require_pricing': [], 'seats_require_pricing': ['f29c1264-524b-4553-9c12-64524bb50033'], 'total_items_require_pricing': 1}
+INFO:routes.ancillary_pricing_routes:Extracted airline code for ThirdPartyId: AF
+INFO:routes.ancillary_pricing_routes:Building ancillary pricing request with raw NDC responses - Request ID: 723ceb73-e12e-481a-bffb-6fb0595d72d2
+INFO:scripts.build_flightprice_ancillary_rq:Building FlightPrice request for ancillary pricing 
+INFO:scripts.build_flightprice_ancillary_rq:Multi-airline context: True, Airline: AF
+INFO:scripts.build_flightprice_ancillary_rq:Processing 4 seat services, looking for: ['f29c1264-524b-4553-9c12-64524bb50033']
+INFO:scripts.build_flightprice_ancillary_rq:Extracting seat data from 58 seats
+INFO:scripts.build_flightprice_ancillary_rq:Extracted seat data for 4 seats
+INFO:scripts.build_flightprice_ancillary_rq:Checking seat service: f29c1264-524b-4553-9c12-64524bb50002, PricedInd: False
+INFO:scripts.build_flightprice_ancillary_rq:Skipped seat f29c1264-524b-4553-9c12-64524bb50002 - not selected
+INFO:scripts.build_flightprice_ancillary_rq:Checking seat service: f29c1264-524b-4553-9c12-64524bb50017, PricedInd: False
+INFO:scripts.build_flightprice_ancillary_rq:Skipped seat f29c1264-524b-4553-9c12-64524bb50017 - not selected
+INFO:scripts.build_flightprice_ancillary_rq:Checking seat service: f29c1264-524b-4553-9c12-64524bb50020, PricedInd: False
+INFO:scripts.build_flightprice_ancillary_rq:Skipped seat f29c1264-524b-4553-9c12-64524bb50020 - not selected
+INFO:scripts.build_flightprice_ancillary_rq:Checking seat service: f29c1264-524b-4553-9c12-64524bb50033, PricedInd: False
+INFO:scripts.build_flightprice_ancillary_rq:Extracting seat selection info for service: f29c1264-524b-4553-9c12-64524bb50033
+INFO:scripts.build_flightprice_ancillary_rq:Built dynamic seat selection for f29c1264-524b-4553-9c12-64524bb50033: {'Location': {'Column': 'F', 'Row': {'Number': {'value': '20'}}}, 'SeatAssociation': [{'SegmentReferences': {'value': ['SEG1']}, 'TravelerReference': 'PAX1'}]}
+INFO:scripts.build_flightprice_ancillary_rq:Added seat for pricing: f29c1264-524b-4553-9c12-64524bb50033 with dynamic seat data
+INFO:scripts.build_flightprice_ancillary_rq:Built FlightPrice ancillary request with 2 offer items
+INFO:utils.api_logger:API request logged: api_logs\ancillary_pricing\AncillaryPricing_RQ.json
+INFO:routes.ancillary_pricing_routes:Ancillary pricing request completed successfully - Status: 200 - Request ID: 723ceb73-e12e-481a-bffb-6fb0595d72d2
+INFO:utils.api_logger:API response logged (transformed only): api_logs\ancillary_pricing\AncillaryPricing_RS.json
+INFO:routes.ancillary_pricing_routes:✅ ShoppingResponseID already in result: N0nYFssLA-RW7ydampZ2QS922JWY1vgZHW8XfcYnUPA-AF
+[2025-10-05 23:36:31 +0300] [30000] [INFO] 127.0.0.1:56100 POST /api/verteil/pricing/price-ancillaries 1.1 200 8247 6674763
+INFO:services.flight.booking:[DEBUG] Ancillary pricing API call successful (ReqID: 88076056-f4c0-4dbd-913e-b9e2947d8d0a)
+INFO:scripts.build_ordercreate_enhanced_rq:Building enhanced OrderCreate request
+INFO:scripts.build_flightprice_ancillary_rq:Pricing detection result: {'requires_pricing': True, 'services_require_pricing': [], 'seats_require_pricing': ['f29c1264-524b-4553-9c12-64524bb50033'], 'total_items_require_pricing': 1}
+INFO:scripts.build_ordercreate_enhanced_rq:Pricing requirements: {'requires_pricing': True, 'services_require_pricing': [], 'seats_require_pricing': ['f29c1264-524b-4553-9c12-64524bb50033'], 'total_items_require_pricing': 1}
+INFO:scripts.build_ordercreate_enhanced_rq:Using provided ancillary pricing response for PricedInd=false items
+DEBUG: Processing 1 passengers in OrderCreate builder
+DEBUG: Passenger 0 data keys: ['PTC', 'Name', 'Gender', 'BirthDate', 'Documents', 'Contacts', 'ObjectKey']
+DEBUG: Passenger 0 has Contacts: True
+DEBUG: Passenger 0 Contacts structure: {'Contact': [{'PhoneContact': {'Number': [{'CountryCode': '+254', 'value': '0796861525'}], 'Application': 'Home'}, 'EmailContact': {'Address': {'value': 'kevinamoni20@gmail.com'}}, 'AddressContact': {'Street': ['190'], 'PostalCode': '30500', 'CityName': 'LODWAR', 'CountryCode': {'value': 'AO'}}}]}
+DEBUG: Passenger 0 contacts_data type: <class 'dict'>, value: {'Contact': [{'PhoneContact': {'Number': [{'CountryCode': '+254', 'value': '0796861525'}], 'Application': 'Home'}, 'EmailContact': {'Address': {'value': 'kevinamoni20@gmail.com'}}, 'AddressContact': {'Street': ['190'], 'PostalCode': '30500', 'CityName': 'LODWAR', 'CountryCode': {'value': 'AO'}}}]}
+DEBUG: Extracted first contact from Contact array: {'PhoneContact': {'Number': [{'CountryCode': '+254', 'value': '0796861525'}], 'Application': 'Home'}, 'EmailContact': {'Address': {'value': 'kevinamoni20@gmail.com'}}, 'AddressContact': {'Street': ['190'], 'PostalCode': '30500', 'CityName': 'LODWAR', 'CountryCode': {'value': 'AO'}}}
+DEBUG: Added EmailContact to passenger: kevinamoni20@gmail.com
+DEBUG: phone_data type: <class 'dict'>, value: {'Number': [{'CountryCode': '+254', 'value': '0796861525'}], 'Application': 'Home'}
+DEBUG: Extracted phone_number: 0796861525, country_code: +254
+DEBUG: Added PhoneContact with number: 0796861525
+DEBUG: Adding seat/service selections to OrderCreate per VDC spec
+DEBUG: selected_services: []
+DEBUG: selected_seats: ['f29c1264-524b-4553-9c12-64524bb50033']
+DEBUG: Processing 1 selected seats per VDC spec
+DEBUG: Processing seat services from SeatAvailabilityRS
+DEBUG: Processing 4 seat services
+DEBUG: Found pricing ObjectKey f29c1264-524b-4553-9c12-64524bb50033, using VDC spec mapping    
+DEBUG: Found seat location for f29c1264-524b-4553-9c12-64524bb50033: {'Column': 'A', 'Row': {'Number': {'value': '17'}}, 'Characteristics': {'Characteristic': [{'Code': 'CH'}, {'Code': 'LS'}, {'Code': 'W'}, {'Remarks': {'Remark': [{'value': 'A'}]}}]}}
+DEBUG: Using simplified seat location for pricing ObjectKey f29c1264-524b-4553-9c12-64524bb50033
+DEBUG: Added seat service using VDC spec: f29c1264-524b-4553-9c12-64524bb50033
+DEBUG: Finished adding seat/service selections to OrderCreate per VDC spec
+INFO:scripts.build_ordercreate_enhanced_rq:Enhanced OrderCreate request built successfully     
+INFO:services.flight.booking:[DEBUG] ===== ENHANCED ORDERCREATE BUILDER COMPLETED SUCCESSFULLY =====
+INFO:services.flight.booking:[DEBUG] OrderCreate payload generated successfully (ReqID: 88076056-f4c0-4dbd-913e-b9e2947d8d0a)
+INFO:services.flight.booking:Successfully generated OrderCreate payload using request builder  
+INFO:services.flight.booking:[DEBUG] Finished calling _build_booking_payload (ReqID: 88076056-f4c0-4dbd-913e-b9e2947d8d0a)
+[PRINT DEBUG] Finished calling _build_booking_payload (ReqID: 88076056-f4c0-4dbd-913e-b9e2947d8d0a)
+INFO:services.flight.booking:Found airline code 'AF' in OrderCreate payload ShoppingResponse.Owner
+INFO:services.flight.booking:Extracted airline code 'AF' for booking (ReqID: 88076056-f4c0-4dbd-913e-b9e2947d8d0a)
+INFO:services.flight.core:Making POST request to https://api.stage.verteil.com/entrygate/rest/request:orderCreate for service OrderCreate (ReqID: 88076056-f4c0-4dbd-913e-b9e2947d8d0a).      
+[2025-10-05 23:36:31,488] INFO in core: Making POST request to https://api.stage.verteil.com/entrygate/rest/request:orderCreate for service OrderCreate (ReqID: 88076056-f4c0-4dbd-913e-b9e2947d8d0a).
+INFO:utils.api_logger:API request logged: api_logs\booking\Booking_RQ.json
+INFO:services.flight.core:Successfully received API response for OrderCreate (ReqID: 88076056-f4c0-4dbd-913e-b9e2947d8d0a) with status 200
+[2025-10-05 23:36:37,845] INFO in core: Successfully received API response for OrderCreate (ReqID: 88076056-f4c0-4dbd-913e-b9e2947d8d0a) with status 200
+INFO:utils.api_logger:API response logged (transformed only): api_logs\booking\Booking_RS.json 
+INFO:services.flight.booking:[DEBUG] ===== PROCESSING ORDERCREATE RESPONSE =====
+INFO:services.flight.booking:[DEBUG] Response type: dict
+INFO:services.flight.booking:[DEBUG] Response top-level keys: ['Errors']
+INFO:services.flight.booking:[DEBUG] No Response section found or response is not a dict       
+ERROR:services.flight.booking:[DEBUG] API returned errors: {'Error': [{'value': 'Unable to process - system error', 'ShortText': 'Client received SOAP Fault from server: Duplicate key f29c1264-524b-4553-9c12-64524bb50033 (attempted merging values [1 ADT] and [1 ADT]) Please see the server log to find more detail regarding exact cause of the failure.', 'Code': 'AIRLINE_ERROR', 'Reason': 'UNKNOWN'}]}
+ERROR:services.flight.booking:[DEBUG] Error Code: AIRLINE_ERROR
+ERROR:services.flight.booking:[DEBUG] Error Message: Unable to process - system error
+🟢🟢🟢 create_booking returned successfully! 🟢🟢🟢
+INFO:services.flight.booking:🟢🟢🟢 create_booking returned successfully! 🟢🟢🟢
+INFO:routes.verteil_flights:Order created successfully - Request ID: 88076056-f4c0-4dbd-913e-b9e2947d8d0a
+INFO:services.redis_flight_storage:Stored booking data for session_id: booking_N/A
+INFO:routes.verteil_flights:✅ OrderCreate response stored in Redis for session: booking_N/A
+INFO:utils.api_logger:API response logged (transformed only): api_logs\booking\Booking_RS.json 
+[2025-10-05 23:36:38 +0300] [30000] [INFO] 127.0.0.1:56098 POST /api/verteil/order-create 1.1 200 677 14593982

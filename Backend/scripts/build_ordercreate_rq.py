@@ -767,17 +767,27 @@ def process_passengers_for_order_create_fixed(
                 passenger_entry["Contacts"] = {"Contact": [contact_entry]}
         
         # Add documents
-        passenger_documents_input = pax_data.get("Documents", [])
+        # FIX: Documents structure is {"Document": [...]} not just an array
+        documents_wrapper = pax_data.get("Documents", {})
+        passenger_documents_input = []
+        if isinstance(documents_wrapper, dict):
+            passenger_documents_input = documents_wrapper.get("Document", [])
+        elif isinstance(documents_wrapper, list):
+            # Fallback: if Documents is already an array
+            passenger_documents_input = documents_wrapper
+            
         if passenger_documents_input:
             formatted_documents = []
             for doc_data in passenger_documents_input:
-                doc_entry = {
-                    "Type": doc_data.get("Type"),
-                    "ID": doc_data.get("ID"),
-                    "DateOfExpiration": doc_data.get("DateOfExpiration"),
-                    "CountryOfIssuance": doc_data.get("CountryOfIssuance", "").upper()
-                }
-                formatted_documents.append(doc_entry)
+                # Handle both dict and potential string (though shouldn't be string)
+                if isinstance(doc_data, dict):
+                    doc_entry = {
+                        "Type": doc_data.get("Type"),
+                        "ID": doc_data.get("ID"),
+                        "DateOfExpiration": doc_data.get("DateOfExpiration"),
+                        "CountryOfIssuance": doc_data.get("CountryOfIssuance", "").upper()
+                    }
+                    formatted_documents.append(doc_entry)
             
             if formatted_documents:
                 passenger_entry["PassengerIDInfo"] = {"PassengerDocument": formatted_documents}

@@ -1,7 +1,7 @@
 {
-  "timestamp": "2025-09-29T21:00:57.035333",
+  "timestamp": "2025-10-17T21:13:22.288606",
   "service": "FlightPrice",
-  "request_id": "6b1e0921-c244-4265-a9e0-6edda8fa8492",
+  "request_id": "7d0b7598-2c36-4d12-83cd-f5ab4e460724",
   "status_code": 200,
   "response_time_ms": null,
   "response": {
@@ -13,14 +13,14 @@
           "fare_family": "Light",
           "flight_segments": [
             {
-              "departure_airport": "FRA",
-              "arrival_airport": "CDG",
-              "departure_datetime": "2025-10-08T07:05:00.000",
-              "arrival_datetime": "2025-10-08T08:35:00.000",
+              "departure_airport": "CDG",
+              "arrival_airport": "FRA",
+              "departure_datetime": "2025-10-23T07:40:00.000",
+              "arrival_datetime": "2025-10-23T09:00:00.000",
               "airline_code": "A5",
               "airline_name": "Airline A5",
               "airline_logo_url": null,
-              "flight_number": "A51019",
+              "flight_number": "A51518",
               "duration": "N/A"
             }
           ],
@@ -33,95 +33,95 @@
                 "checked": "No baggage allowance"
               },
               "fare_rules": {
-                "Cancel": {
-                  "After Departure": {
-                    "od_pair": "FRA-CDG",
-                    "min_amount": 17270.0,
-                    "max_amount": 17270.0,
+                "Change Noshow": {
+                  "After Departure NO Show": {
+                    "od_pair": "CDG-FRA",
+                    "min_amount": 11956.0,
+                    "max_amount": 11956.0,
                     "currency": "INR",
-                    "interpretation": "Non-refundable (after departure)"
-                  },
-                  "Prior to Departure": {
-                    "od_pair": "FRA-CDG",
-                    "min_amount": 17270.0,
-                    "max_amount": 17270.0,
-                    "currency": "INR",
-                    "interpretation": "Non-refundable"
-                  }
-                },
-                "Change": {
-                  "Prior to Departure": {
-                    "od_pair": "FRA-CDG",
-                    "min_amount": 17270.0,
-                    "max_amount": 17270.0,
-                    "currency": "INR",
-                    "interpretation": "Change not allowed"
-                  },
-                  "After Departure": {
-                    "od_pair": "FRA-CDG",
-                    "min_amount": 17270.0,
-                    "max_amount": 17270.0,
-                    "currency": "INR",
-                    "interpretation": "Change not allowed (after departure)"
+                    "interpretation": "Change not allowed (after departure no show) [No-show]"
                   }
                 },
                 "Cancel Noshow": {
                   "After Departure NO Show": {
-                    "od_pair": "FRA-CDG",
-                    "min_amount": 17270.0,
-                    "max_amount": 17270.0,
+                    "od_pair": "CDG-FRA",
+                    "min_amount": 11956.0,
+                    "max_amount": 11956.0,
                     "currency": "INR",
                     "interpretation": "Non-refundable (after departure no show) [No-show]"
                   }
                 },
-                "Change Noshow": {
-                  "After Departure NO Show": {
-                    "od_pair": "FRA-CDG",
-                    "min_amount": 17270.0,
-                    "max_amount": 17270.0,
+                "Cancel": {
+                  "Prior to Departure": {
+                    "od_pair": "CDG-FRA",
+                    "min_amount": 11956.0,
+                    "max_amount": 11956.0,
                     "currency": "INR",
-                    "interpretation": "Change not allowed (after departure no show) [No-show]"
+                    "interpretation": "Non-refundable"
+                  },
+                  "After Departure": {
+                    "od_pair": "CDG-FRA",
+                    "min_amount": 11956.0,
+                    "max_amount": 11956.0,
+                    "currency": "INR",
+                    "interpretation": "Non-refundable (after departure)"
+                  }
+                },
+                "Change": {
+                  "After Departure": {
+                    "od_pair": "CDG-FRA",
+                    "min_amount": 11956.0,
+                    "max_amount": 11956.0,
+                    "currency": "INR",
+                    "interpretation": "Change not allowed (after departure)"
+                  },
+                  "Prior to Departure": {
+                    "od_pair": "CDG-FRA",
+                    "min_amount": 11956.0,
+                    "max_amount": 11956.0,
+                    "currency": "INR",
+                    "interpretation": "Change not allowed"
                   }
                 }
               }
             }
           ],
           "total_price": {
-            "amount": 16750.0,
+            "amount": 11581.0,
             "currency": "INR"
           },
           "time_limits": {
-            "offer_expiration": "2025-09-29T18:30:25.810",
-            "payment_deadline": "2025-09-30T19:00:00.000"
+            "offer_expiration": "2025-10-17T18:42:31.888",
+            "payment_deadline": "2025-10-18T19:00:00.000"
           },
           "direction": "oneway",
-          "original_offer_id": "edb526aa-9135-480a-b526-aa9135080004"
+          "original_offer_id": "ef49d126-b797-4712-89d1-26b797370001"
         }
       ],
       "total_offers": 1,
       "transformation_status": "success",
       "metadata": {
-        "cache_key": "flight_price_response:6b1e0921-c244-4265-a9e0-6edda8fa8492",
-        "flight_price_cache_key": "flight_price_raw_6b1e0921-c244-4265-a9e0-6edda8fa8492_1759168855",
+        "cache_key": "flight_price_response:7d0b7598-2c36-4d12-83cd-f5ab4e460724",
+        "flight_price_cache_key": "flight_price_raw_7d0b7598-2c36-4d12-83cd-f5ab4e460724_1760724801",
         "cached": true,
-        "request_id": "6b1e0921-c244-4265-a9e0-6edda8fa8492",
+        "request_id": "7d0b7598-2c36-4d12-83cd-f5ab4e460724",
         "processed_cache_key": "flight_price:f470232ce29c72f4d50f5821daa2763b"
       }
     },
-    "request_id": "6b1e0921-c244-4265-a9e0-6edda8fa8492",
+    "request_id": "7d0b7598-2c36-4d12-83cd-f5ab4e460724",
     "raw_response": {
       "Success": {},
       "ShoppingResponseID": {
         "ResponseID": {
-          "value": "EXsjg1GfB4vGnSVojmzfw8OhdMM8Bnm6N-GMq-1AcUs-AF"
+          "value": "tz-s9tozhn8KCauIlsOhm4dhNa5LF7sNsGxATQtLyJo-AF"
         }
       },
       "PricedFlightOffers": {
         "PricedFlightOffer": [
           {
             "OfferID": {
-              "ObjectKey": "edb526aa-9135-480a-b526-aa9135080004",
-              "value": "edb526aa-9135-480a-b526-aa9135080004",
+              "ObjectKey": "ef49d126-b797-4712-89d1-26b797370001",
+              "value": "ef49d126-b797-4712-89d1-26b797370001",
               "Owner": "AF",
               "Channel": "NDC"
             },
@@ -140,14 +140,14 @@
                           {
                             "ClassOfService": {
                               "Code": {
-                                "value": "T"
+                                "value": "N"
                               },
                               "MarketingName": {
                                 "value": "ECONOMY",
                                 "CabinDesignator": "Y"
                               },
                               "refs": [
-                                "FG-SEG2"
+                                "FG-SEG1"
                               ]
                             },
                             "BagDetailAssociation": {
@@ -158,7 +158,7 @@
                                 "BA1_CARRY_ON_ADT"
                               ]
                             },
-                            "ref": "SEG2"
+                            "ref": "SEG1"
                           }
                         ],
                         "OriginDestinationReferences": [
@@ -178,18 +178,18 @@
                   "PriceDetail": {
                     "TotalAmount": {
                       "SimpleCurrencyPrice": {
-                        "value": 16750.0,
+                        "value": 11581.0,
                         "Code": "INR"
                       }
                     },
                     "BaseAmount": {
-                      "value": 10400.0,
+                      "value": 7490.0,
                       "Code": "INR"
                     },
                     "Discount": [
                       {
                         "DiscountAmount": {
-                          "value": 520,
+                          "value": 375,
                           "Code": "INR"
                         },
                         "DiscountPercent": 5,
@@ -197,49 +197,56 @@
                         "discountCode": "Disc_rea",
                         "discountName": "ReaDiscount",
                         "preDiscountedAmount": {
-                          "value": 17270.0,
+                          "value": 11956.0,
                           "Code": "INR"
                         }
                       }
                     ],
                     "Taxes": {
                       "Total": {
-                        "value": 6870.0,
+                        "value": 4466.0,
                         "Code": "INR"
                       },
                       "Breakdown": {
                         "Tax": [
                           {
                             "Amount": {
-                              "value": 156.0,
+                              "value": 154.0,
                               "Code": "INR"
                             },
                             "TaxCode": "YR"
                           },
                           {
                             "Amount": {
-                              "value": 1234.0,
+                              "value": 527.0,
                               "Code": "INR"
                             },
-                            "TaxCode": "DE"
+                            "TaxCode": "FR"
                           },
                           {
                             "Amount": {
-                              "value": 1616.0,
+                              "value": 1339.0,
                               "Code": "INR"
                             },
-                            "TaxCode": "OY"
+                            "TaxCode": "FR"
                           },
                           {
                             "Amount": {
-                              "value": 3604.0,
+                              "value": 759.0,
                               "Code": "INR"
                             },
-                            "TaxCode": "RA"
+                            "TaxCode": "O4"
                           },
                           {
                             "Amount": {
-                              "value": 260,
+                              "value": 1431.0,
+                              "Code": "INR"
+                            },
+                            "TaxCode": "QX"
+                          },
+                          {
+                            "Amount": {
+                              "value": 256,
                               "Code": "INR"
                             },
                             "TaxCode": "T02"
@@ -254,37 +261,37 @@
                     {
                       "FareBasis": {
                         "FareBasisCode": {
-                          "Code": "TYS0BALA"
+                          "Code": "NYS5BALA"
                         },
-                        "RBD": "T"
+                        "RBD": "N"
                       },
                       "FareRules": {
                         "Penalty": {
                           "refs": [
-                            "PEN_Cancellation_ADE_17270.00_NAV_N",
-                            "PEN_Change_PDE_17270.00_NAV_N",
-                            "PEN_Cancellation_PDE_17270.00_NAV_N",
-                            "PEN_NoShow_NOSHOW_CANCELLATION_17270.00_false",
-                            "PEN_NoShow_NOSHOW_CHANGE_17270.00_false",
-                            "PEN_Change_ADE_17270.00_NAV_N"
+                            "PEN_NoShow_NOSHOW_CHANGE_11956.00_false",
+                            "PEN_NoShow_NOSHOW_CANCELLATION_11956.00_false",
+                            "PEN_Cancellation_PDE_11956.00_NAV_N",
+                            "PEN_Change_ADE_11956.00_NAV_N",
+                            "PEN_Change_PDE_11956.00_NAV_N",
+                            "PEN_Cancellation_ADE_11956.00_NAV_N"
                           ]
                         }
                       },
                       "refs": [
-                        "SEG2"
+                        "SEG1"
                       ]
                     }
                   ]
                 },
-                "OfferItemID": "adeb2186-018a-412a-ab21-86018a212a30"
+                "OfferItemID": "d47274a9-3f9f-4a99-b274-a93f9fba9906"
               }
             ],
             "TimeLimits": {
               "OfferExpiration": {
-                "DateTime": "2025-09-29T18:30:25.810"
+                "DateTime": "2025-10-17T18:42:31.888"
               },
               "Payment": {
-                "DateTime": "2025-09-30T19:00:00.000"
+                "DateTime": "2025-10-18T19:00:00.000"
               }
             }
           }
@@ -382,7 +389,7 @@
         "FareList": {
           "FareGroup": [
             {
-              "ListKey": "FG-SEG2",
+              "ListKey": "FG-SEG1",
               "Fare": {
                 "FareCode": {
                   "Code": "70J"
@@ -398,7 +405,7 @@
                 }
               },
               "FareBasisCode": {
-                "Code": "TYS0BALA"
+                "Code": "NYS5BALA"
               }
             }
           ]
@@ -406,25 +413,25 @@
         "FlightSegmentList": {
           "FlightSegment": [
             {
-              "SegmentKey": "SEG2",
+              "SegmentKey": "SEG1",
               "Departure": {
                 "AirportCode": {
-                  "value": "FRA"
+                  "value": "CDG"
                 },
-                "Date": "2025-10-08T07:05:00.000",
-                "Time": "07:05",
+                "Date": "2025-10-23T07:40:00.000",
+                "Time": "07:40",
                 "Terminal": {
-                  "Name": "2"
+                  "Name": "2G"
                 }
               },
               "Arrival": {
                 "AirportCode": {
-                  "value": "CDG"
+                  "value": "FRA"
                 },
-                "Date": "2025-10-08T08:35:00.000",
-                "Time": "08:35",
+                "Date": "2025-10-23T09:00:00.000",
+                "Time": "09:00",
                 "Terminal": {
-                  "Name": "2G"
+                  "Name": "2"
                 }
               },
               "MarketingCarrier": {
@@ -432,7 +439,7 @@
                   "value": "AF"
                 },
                 "FlightNumber": {
-                  "value": "1019"
+                  "value": "1518"
                 }
               },
               "OperatingCarrier": {
@@ -442,15 +449,15 @@
               },
               "Equipment": {
                 "AircraftCode": {
-                  "value": "E90"
+                  "value": "E70"
                 }
               },
               "ClassOfService": {
                 "Code": {
-                  "value": "T"
+                  "value": "N"
                 },
                 "refs": [
-                  "FG-SEG2"
+                  "FG-SEG1"
                 ]
               }
             }
@@ -462,7 +469,7 @@
               "FlightKey": "PJ1",
               "SegmentReferences": {
                 "value": [
-                  "SEG2"
+                  "SEG1"
                 ]
               }
             }
@@ -478,10 +485,10 @@
                 ]
               },
               "DepartureCode": {
-                "value": "FRA"
+                "value": "CDG"
               },
               "ArrivalCode": {
-                "value": "CDG"
+                "value": "FRA"
               }
             }
           ]
@@ -489,7 +496,7 @@
         "PenaltyList": {
           "Penalty": [
             {
-              "ObjectKey": "PEN_NoShow_NOSHOW_CHANGE_17270.00_false",
+              "ObjectKey": "PEN_NoShow_NOSHOW_CHANGE_11956.00_false",
               "Details": {
                 "Detail": [
                   {
@@ -501,7 +508,7 @@
                       "Amount": [
                         {
                           "CurrencyAmountValue": {
-                            "value": 17270.0,
+                            "value": 11956.0,
                             "Code": "INR"
                           },
                           "AmountApplication": "MIN",
@@ -515,7 +522,7 @@
                         },
                         {
                           "CurrencyAmountValue": {
-                            "value": 17270.0,
+                            "value": 11956.0,
                             "Code": "INR"
                           },
                           "AmountApplication": "MAX",
@@ -536,7 +543,7 @@
               "ChangeAllowedInd": false
             },
             {
-              "ObjectKey": "PEN_NoShow_NOSHOW_CANCELLATION_17270.00_false",
+              "ObjectKey": "PEN_NoShow_NOSHOW_CANCELLATION_11956.00_false",
               "Details": {
                 "Detail": [
                   {
@@ -548,7 +555,7 @@
                       "Amount": [
                         {
                           "CurrencyAmountValue": {
-                            "value": 17270.0,
+                            "value": 11956.0,
                             "Code": "INR"
                           },
                           "AmountApplication": "MIN",
@@ -562,7 +569,7 @@
                         },
                         {
                           "CurrencyAmountValue": {
-                            "value": 17270.0,
+                            "value": 11956.0,
                             "Code": "INR"
                           },
                           "AmountApplication": "MAX",
@@ -583,7 +590,7 @@
               "RefundableInd": false
             },
             {
-              "ObjectKey": "PEN_Cancellation_PDE_17270.00_NAV_N",
+              "ObjectKey": "PEN_Cancellation_PDE_11956.00_NAV_N",
               "Details": {
                 "Detail": [
                   {
@@ -595,7 +602,7 @@
                       "Amount": [
                         {
                           "CurrencyAmountValue": {
-                            "value": 17270.0,
+                            "value": 11956.0,
                             "Code": "INR"
                           },
                           "AmountApplication": "MIN",
@@ -609,7 +616,7 @@
                         },
                         {
                           "CurrencyAmountValue": {
-                            "value": 17270.0,
+                            "value": 11956.0,
                             "Code": "INR"
                           },
                           "AmountApplication": "MAX",
@@ -630,7 +637,7 @@
               "RefundableInd": false
             },
             {
-              "ObjectKey": "PEN_Cancellation_ADE_17270.00_NAV_N",
+              "ObjectKey": "PEN_Cancellation_ADE_11956.00_NAV_N",
               "Details": {
                 "Detail": [
                   {
@@ -642,7 +649,7 @@
                       "Amount": [
                         {
                           "CurrencyAmountValue": {
-                            "value": 17270.0,
+                            "value": 11956.0,
                             "Code": "INR"
                           },
                           "AmountApplication": "MIN",
@@ -656,7 +663,7 @@
                         },
                         {
                           "CurrencyAmountValue": {
-                            "value": 17270.0,
+                            "value": 11956.0,
                             "Code": "INR"
                           },
                           "AmountApplication": "MAX",
@@ -677,7 +684,7 @@
               "RefundableInd": false
             },
             {
-              "ObjectKey": "PEN_Change_PDE_17270.00_NAV_N",
+              "ObjectKey": "PEN_Change_PDE_11956.00_NAV_N",
               "Details": {
                 "Detail": [
                   {
@@ -689,7 +696,7 @@
                       "Amount": [
                         {
                           "CurrencyAmountValue": {
-                            "value": 17270.0,
+                            "value": 11956.0,
                             "Code": "INR"
                           },
                           "AmountApplication": "MIN",
@@ -703,7 +710,7 @@
                         },
                         {
                           "CurrencyAmountValue": {
-                            "value": 17270.0,
+                            "value": 11956.0,
                             "Code": "INR"
                           },
                           "AmountApplication": "MAX",
@@ -724,7 +731,7 @@
               "ChangeAllowedInd": false
             },
             {
-              "ObjectKey": "PEN_Change_ADE_17270.00_NAV_N",
+              "ObjectKey": "PEN_Change_ADE_11956.00_NAV_N",
               "Details": {
                 "Detail": [
                   {
@@ -736,7 +743,7 @@
                       "Amount": [
                         {
                           "CurrencyAmountValue": {
-                            "value": 17270.0,
+                            "value": 11956.0,
                             "Code": "INR"
                           },
                           "AmountApplication": "MIN",
@@ -750,7 +757,7 @@
                         },
                         {
                           "CurrencyAmountValue": {
-                            "value": 17270.0,
+                            "value": 11956.0,
                             "Code": "INR"
                           },
                           "AmountApplication": "MAX",
@@ -784,6 +791,6 @@
     },
     "cache_key": "flight_price:f470232ce29c72f4d50f5821daa2763b",
     "cached": true,
-    "flight_price_cache_key": "flight_price_raw_6b1e0921-c244-4265-a9e0-6edda8fa8492_1759168855"
+    "flight_price_cache_key": "flight_price_raw_7d0b7598-2c36-4d12-83cd-f5ab4e460724_1760724801"
   }
 }

@@ -1,12 +1,12 @@
 {
-  "timestamp": "2025-09-29T21:01:04.046739",
+  "timestamp": "2025-10-17T21:13:31.924056",
   "service": "ServiceList",
-  "request_id": "75e29a13-4a95-45a1-95d5-2da04cc01cd3",
+  "request_id": "4f7548e6-54e8-4087-99c9-ec9a1a51e0a0",
   "endpoint": "/entrygate/rest/request:preServiceList",
   "headers": {
     "Content-Type": "application/json",
     "Accept": "*/*",
-    "Authorization": "Bearer ***8_J2lJuA",
+    "Authorization": "Bearer ***JfR56jBg",
     "OfficeId": "***3746",
     "service": "ServiceList",
     "User-Agent": "PostmanRuntime/7.41",
@@ -35,27 +35,27 @@
         {
           "Flight": [
             {
-              "SegmentKey": "SEG2",
+              "SegmentKey": "SEG1",
               "Departure": {
                 "AirportCode": {
-                  "value": "FRA"
+                  "value": "CDG"
                 },
-                "Date": "2025-10-08T07:05:00.000",
-                "Time": "07:05",
+                "Date": "2025-10-23T07:40:00.000",
+                "Time": "07:40",
                 "AirportName": null,
                 "Terminal": {
-                  "Name": "2"
+                  "Name": "2G"
                 }
               },
               "Arrival": {
                 "AirportCode": {
-                  "value": "CDG"
+                  "value": "FRA"
                 },
-                "Date": "2025-10-08T08:35:00.000",
-                "Time": "08:35",
+                "Date": "2025-10-23T09:00:00.000",
+                "Time": "09:00",
                 "AirportName": null,
                 "Terminal": {
-                  "Name": "2G"
+                  "Name": "2"
                 }
               },
               "MarketingCarrier": {
@@ -63,12 +63,12 @@
                   "value": "AF"
                 },
                 "FlightNumber": {
-                  "value": "1019"
+                  "value": "1518"
                 }
               },
               "Equipment": {
                 "AircraftCode": {
-                  "value": "E90"
+                  "value": "E70"
                 }
               },
               "FlightDetail": {}
@@ -80,14 +80,14 @@
         "Offer": [
           {
             "OfferID": {
-              "value": "edb526aa-9135-480a-b526-aa9135080004",
+              "value": "ef49d126-b797-4712-89d1-26b797370001",
               "Owner": "AF",
               "Channel": "NDC"
             },
             "OfferItemIDs": {
               "OfferItemID": [
                 {
-                  "value": "adeb2186-018a-412a-ab21-86018a212a30"
+                  "value": "d47274a9-3f9f-4a99-b274-a93f9fba9906"
                 }
               ]
             }
@@ -97,7 +97,7 @@
     },
     "ShoppingResponseID": {
       "ResponseID": {
-        "value": "EXsjg1GfB4vGnSVojmzfw8OhdMM8Bnm6N-GMq-1AcUs-AF"
+        "value": "tz-s9tozhn8KCauIlsOhm4dhNa5LF7sNsGxATQtLyJo-AF"
       }
     }
   }

@@ -1,5 +1,23 @@
 # --- START OF FILE build_ordercreate_enhanced_rq.py ---
 
+"""
+⚠️ DEPRECATION NOTICE ⚠️
+
+This file is DEPRECATED and should NOT be used for new implementations.
+
+Reason: This builder uses fallback logic that doesn't align with NDC specification.
+According to reference examples (9_FlightPriceRQ, 10_FlightPriceRS, 11_OrderCreateRQ),
+ancillary items must be priced separately via sequential FlightPrice calls, and
+OrderCreate must use offer items from the ancillary pricing response.
+
+Use instead:
+- build_ordercreate_rq.py - Standard OrderCreate builder with proper ancillary pricing support
+- build_flightprice_ancillary_rq.py - Separate pricing for services and seats
+
+This file will be removed in a future version.
+Last Updated: October 17, 2025
+"""
+
 import json
 import re
 from typing import Dict, Any, List, Optional, Union
@@ -8,6 +26,9 @@ import logging
 
 # Set up logger
 logger = logging.getLogger(__name__)
+
+# Log deprecation warning on import
+logger.warning("⚠️ DEPRECATION WARNING: build_ordercreate_enhanced_rq.py is deprecated. Use build_ordercreate_rq.py instead.")
 
 def normalize_to_list(data: Union[List, Dict, Any]) -> List:
     """Utility function to ensure data is always a list - DRY principle"""
@@ -184,13 +205,25 @@ def build_ordercreate_enhanced_request(
     try:
         logger.info("Building enhanced OrderCreate request")
         
-        # Detect PricedInd scenario
-        scenario_info = detect_priced_ind_scenario(
-            servicelist_response=servicelist_response,
-            seatavailability_response=seatavailability_response,
-            selected_services=selected_services,
-            selected_seats=selected_seats
-        )
+        # If ancillary_pricing_response is provided, it means we're in PricedInd=false scenario
+        # Override scenario detection in this case
+        if ancillary_pricing_response:
+            logger.info("Ancillary pricing response provided - forcing PricedInd=false scenario")
+            scenario_info = {
+                "scenario": "priced_ind_false",
+                "services_priced": [],
+                "services_unpriced": selected_services or [],
+                "seats_priced": [],
+                "seats_unpriced": selected_seats or []
+            }
+        else:
+            # Detect PricedInd scenario from original responses
+            scenario_info = detect_priced_ind_scenario(
+                servicelist_response=servicelist_response,
+                seatavailability_response=seatavailability_response,
+                selected_services=selected_services,
+                selected_seats=selected_seats
+            )
         
         # Determine which response to use for pricing data
         pricing_response = ancillary_pricing_response if ancillary_pricing_response else flight_price_response
@@ -326,9 +359,14 @@ def build_ordercreate_enhanced_request(
             ))
         elif scenario_info["scenario"] == "priced_ind_false":
             # Use ancillary pricing response
-            offer_items.extend(_build_priced_ind_false_items(
+            logger.info("Building offer items for PricedInd=false scenario")
+            priced_ind_false_items = _build_priced_ind_false_items(
                 pricing_response, passengers_data, airline_code
-            ))
+            )
+            logger.info(f"Built {len(priced_ind_false_items)} items from PricedInd=false builder")
+            for i, item in enumerate(priced_ind_false_items):
+                logger.info(f"PricedInd=false item {i}: OfferItemID={item.get('OfferItemID', {}).get('value', 'N/A')}")
+            offer_items.extend(priced_ind_false_items)
         else:  # mixed scenario
             # Combine both approaches
             offer_items.extend(_build_mixed_scenario_items(
@@ -348,10 +386,28 @@ def build_ordercreate_enhanced_request(
                 selected_services, selected_seats
             ))
         elif scenario_info["scenario"] == "priced_ind_false":
-            service_list.extend(_build_service_list_from_responses(
-                servicelist_response, seatavailability_response, 
-                selected_services, selected_seats
-            ))
+            # CRITICAL FIX: For PricedInd=false, use ServiceList from ANCILLARY PRICING RESPONSE (FlightPriceRS)
+            # NOT from original ServiceListRS/SeatAvailabilityRS to avoid duplicates
+            logger.info("Using ServiceList from ancillary pricing response (FlightPriceRS)")
+            data_lists = ancillary_pricing_response.get('DataLists', {})
+            logger.info(f"DataLists keys: {list(data_lists.keys())}")
+            
+            service_list_obj = data_lists.get('ServiceList', {})
+            logger.info(f"ServiceList object type: {type(service_list_obj)}, keys: {list(service_list_obj.keys()) if isinstance(service_list_obj, dict) else 'N/A'}")
+            
+            ancillary_services = service_list_obj.get('Service', []) if isinstance(service_list_obj, dict) else []
+            logger.info(f"Service array type: {type(ancillary_services)}, length: {len(ancillary_services) if isinstance(ancillary_services, (list, dict)) else 0}")
+            
+            # Normalize to list
+            ancillary_services = normalize_to_list(ancillary_services)
+            logger.info(f"After normalization: {len(ancillary_services)} services")
+            
+            service_list.extend(ancillary_services)
+            logger.info(f"Added {len(service_list)} services from ancillary pricing response to OrderCreate DataLists")
+            
+            # Log each service for debugging
+            for idx, svc in enumerate(service_list):
+                logger.info(f"Service {idx}: ObjectKey={svc.get('ObjectKey')}, ServiceID={svc.get('ServiceID', {}).get('value')}, PricedInd={svc.get('PricedInd')}")
         else:  # mixed scenario
             service_list.extend(_build_mixed_service_list(
                 servicelist_response, seatavailability_response,
@@ -730,7 +786,7 @@ def _build_priced_ind_false_items(
                     logger.info(f"AssociatedService keys: {list(associated_service.keys()) if associated_service else 'None'}")
                     
                     if 'SeatAssignment' in associated_service:
-                        # This is a seat item
+                        # This is a seat item - build per VDC spec
                         seat_assignments = normalize_to_list(associated_service.get('SeatAssignment', []))
                         if seat_assignments:
                             seat_assignment = seat_assignments[0]
@@ -738,37 +794,55 @@ def _build_priced_ind_false_items(
                         else:
                             seat = {}
                         
+                        # Get price total
+                        price_detail = price.get('RequestedDate', {}).get('PriceDetail', {})
+                        total_amount = price_detail.get('TotalAmount', {}).get('SimpleCurrencyPrice', {})
+                        
+                        # Get traveler reference
+                        traveler_ref = associations[0].get('AssociatedTraveler', {}).get('TravelerReferences', ['PAX1'])
+                        if isinstance(traveler_ref, list):
+                            traveler_ref = traveler_ref[0] if traveler_ref else 'PAX1'
+                        
+                        # Build SeatItem per VDC specification
                         seat_item = {
                             "OfferItemID": {
                                 "value": offer_item_id,
                                 "Owner": offer.get('OfferID', {}).get('Owner', ''),
-                                "refs": [pax.get('ObjectKey', f'PAX{i+1}') for i, pax in enumerate(passengers_data)],
+                                "refs": [
+                                    offer.get('OfferID', {}).get('value', ''),
+                                    pricing_response.get('ShoppingResponseID', {}).get('ResponseID', {}).get('value', '')
+                                ],
                                 "Channel": "NDC"
                             },
                             "OfferItemType": {
                                 "SeatItem": [{
                                     "Price": {
-                                        "Total": price.get('RequestedDate', {}).get('PriceDetail', {}).get('TotalAmount', {}).get('SimpleCurrencyPrice', {})
+                                        "Total": total_amount
                                     },
+                                    "Descriptions": seat.get('Descriptions', {}),
                                     "Location": seat.get('Location', {}),
                                     "SeatAssociation": [{
                                         "SegmentReferences": {
                                             "value": [associations[0].get('ApplicableFlight', {}).get('FlightSegmentReference', '')]
                                         },
-                                        "TravelerReference": associations[0].get('AssociatedTraveler', {}).get('TravelerReferences', ['PAX1'])[0]
+                                        "TravelerReference": traveler_ref
                                     }]
                                 }]
                             }
                         }
                         items.append(seat_item)
+                        logger.info(f"Built SeatItem for OfferItemID: {offer_item_id}")
                     else:
-                        # This is a service item
+                        # This is a service item (baggage, meal, etc.)
                         logger.info(f"Building service item for OfferItemID: {offer_item_id}")
                         service_item = {
                             "OfferItemID": {
                                 "value": offer_item_id,
                                 "Owner": offer.get('OfferID', {}).get('Owner', ''),
-                                "refs": [pax.get('ObjectKey', f'PAX{i+1}') for i, pax in enumerate(passengers_data)],
+                                "refs": [
+                                    offer.get('OfferID', {}).get('value', ''),
+                                    pricing_response.get('ShoppingResponseID', {}).get('ResponseID', {}).get('value', '')
+                                ],
                                 "Channel": "NDC"
                             },
                             "OfferItemType": {
@@ -781,6 +855,7 @@ def _build_priced_ind_false_items(
                             }
                         }
                         items.append(service_item)
+                        logger.info(f"Built OtherItem for OfferItemID: {offer_item_id}")
         
         return items
         
@@ -998,8 +1073,19 @@ def build_ordercreate_enhanced_request(
         # Step 2: Determine which FlightPriceRS response to use
         final_flight_price_response = flight_price_response
         
+        # CRITICAL: If ancillary_pricing_response is provided, we're in PricedInd=false scenario
+        # Use the ancillary pricing response as the source for OrderCreate
+        if ancillary_pricing_response:
+            logger.info("Ancillary pricing response provided - using it as source for OrderCreate (PricedInd=false scenario)")
+            # Check if it's wrapped in response structure
+            if 'response' in ancillary_pricing_response and 'raw_response' in ancillary_pricing_response['response']:
+                final_flight_price_response = ancillary_pricing_response['response']['raw_response']
+            else:
+                final_flight_price_response = ancillary_pricing_response
+            
+            logger.info(f"Using ancillary FlightPriceRS with {len(final_flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', []))} offers")
         # FIXED: Ensure we use the correct FlightPriceRS data structure
-        if 'response' in flight_price_response and 'raw_response' in flight_price_response['response']:
+        elif 'response' in flight_price_response and 'raw_response' in flight_price_response['response']:
             final_flight_price_response = flight_price_response['response']['raw_response']
             logger.info("Using raw FlightPriceRS response for proper segment key mapping")
             
@@ -1028,17 +1114,109 @@ def build_ordercreate_enhanced_request(
         else:
             logger.info("No pricing required - using original FlightPriceRS response")
         
-        # Step 3: Generate OrderCreate request using the appropriate response
-        from scripts.build_ordercreate_rq import generate_order_create_rq
-        order_create_rq = generate_order_create_rq(
-            flight_price_response=final_flight_price_response,
-            passengers_data=passengers_data,
-            payment_input_info=payment_input_info,
-            servicelist_response=servicelist_response,
-            seatavailability_response=seatavailability_response,
-            selected_services=selected_services,
-            selected_seats=selected_seats
-        )
+        # Step 3: Generate OrderCreate request using the appropriate method
+        if ancillary_pricing_response:
+            # Use NEW builder that correctly handles SeatItem from ancillary pricing response
+            logger.info("Using NEW builder for PricedInd=false scenario (builds SeatItem correctly)")
+            
+            # Call the internal builder function (the one at line 158) that builds SeatItem correctly
+            # This is the CORRECT implementation for ancillary pricing
+            scenario_info = {
+                "scenario": "priced_ind_false",
+                "services_priced": [],
+                "services_unpriced": selected_services or [],
+                "seats_priced": [],
+                "seats_unpriced": selected_seats or []
+            }
+            
+            # Build using the same logic as the function starting at line 158
+            # which correctly builds SeatItems from PricedFlightOffers
+            order_create_rq = {
+                "Query": {
+                    "Passengers": {"Passenger": []},
+                    "OrderItems": {
+                        "ShoppingResponse": {},
+                        "OfferItem": []
+                    },
+                    "DataLists": {
+                        "ServiceList": {"Service": []}
+                    },
+                    "Metadata": {},
+                    "Payments": {"Payment": []}
+                }
+            }
+            
+            # Build passengers (use generate_order_create_rq approach)
+            from scripts.build_ordercreate_rq import generate_order_create_rq as build_passengers_helper
+            temp_order = build_passengers_helper(
+                flight_price_response=final_flight_price_response,
+                passengers_data=passengers_data,
+                payment_input_info=payment_input_info,
+                servicelist_response=None,
+                seatavailability_response=None,
+                selected_services=[],
+                selected_seats=[]
+            )
+            
+            # Copy passengers from temp order
+            order_create_rq["Query"]["Passengers"] = temp_order["Query"]["Passengers"]
+            order_create_rq["Query"]["Metadata"] = temp_order["Query"]["Metadata"]
+            order_create_rq["Query"]["Payments"] = temp_order["Query"]["Payments"]
+            
+            # Build ShoppingResponse
+            priced_offers = normalize_to_list(final_flight_price_response.get('PricedFlightOffers', {}).get('PricedFlightOffer', []))
+            if priced_offers:
+                selected_offer = priced_offers[0]
+                offer_id = selected_offer.get('OfferID', {})
+                
+                order_create_rq["Query"]["OrderItems"]["ShoppingResponse"] = {
+                    "Owner": offer_id.get('Owner', ''),
+                    "ResponseID": {
+                        "value": final_flight_price_response.get('ShoppingResponseID', {}).get('ResponseID', {}).get('value', '')
+                    },
+                    "Offers": {
+                        "Offer": [{
+                            "OfferID": {
+                                "ObjectKey": offer_id.get('value', ''),
+                                "value": offer_id.get('value', ''),
+                                "Owner": offer_id.get('Owner', ''),
+                                "Channel": offer_id.get('Channel', 'NDC')
+                            },
+                            "OfferItems": {"OfferItem": []}
+                        }]
+                    }
+                }
+            
+            # Build OfferItems using _build_priced_ind_false_items
+            airline_code = _extract_airline_from_flight_price_response(final_flight_price_response)
+            offer_items = _build_priced_ind_false_items(
+                final_flight_price_response, 
+                passengers_data, 
+                airline_code
+            )
+            order_create_rq["Query"]["OrderItems"]["OfferItem"] = offer_items
+            
+            # Build ServiceList from ancillary pricing response
+            data_lists = final_flight_price_response.get('DataLists', {})
+            service_list_obj = data_lists.get('ServiceList', {})
+            services = normalize_to_list(service_list_obj.get('Service', []) if isinstance(service_list_obj, dict) else [])
+            order_create_rq["Query"]["DataLists"]["ServiceList"]["Service"] = services
+            
+            logger.info(f"NEW builder: Generated {len(offer_items)} OfferItems, {len(services)} services")
+            
+        else:
+            # Use OLD builder for backward compatibility (PricedInd=true scenario)
+            logger.info("Using OLD builder (generate_order_create_rq) for PricedInd=true scenario")
+            from scripts.build_ordercreate_rq import generate_order_create_rq
+            order_create_rq = generate_order_create_rq(
+                flight_price_response=final_flight_price_response,
+                passengers_data=passengers_data,
+                payment_input_info=payment_input_info,
+                servicelist_response=servicelist_response,
+                seatavailability_response=seatavailability_response,
+                selected_services=selected_services,
+                selected_seats=selected_seats
+            )
         
         # Add metadata about the pricing process
         if 'metadata' not in order_create_rq:
@@ -1054,7 +1232,7 @@ def build_ordercreate_enhanced_request(
         logger.error(f"Error building enhanced OrderCreate request: {e}")
         # Fallback to basic OrderCreate
         logger.info("Falling back to basic OrderCreate request")
-        from build_ordercreate_rq import generate_order_create_rq
+        from scripts.build_ordercreate_rq import generate_order_create_rq
         return generate_order_create_rq(
             flight_price_response=flight_price_response,
             passengers_data=passengers_data,

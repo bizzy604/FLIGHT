@@ -1,12 +1,12 @@
 {
-  "timestamp": "2025-09-29T21:08:34.868788",
+  "timestamp": "2025-10-17T21:16:26.202995",
   "service": "OrderCreate",
-  "request_id": "3ee385ce-2143-4e0e-9e9c-0f12a0f4d034",
+  "request_id": "9cdf12fe-31e7-4236-b73d-d1de3c5796bf",
   "endpoint": "/entrygate/rest/request:orderCreate",
   "headers": {
     "Content-Type": "application/json",
     "Accept": "*/*",
-    "Authorization": "Bearer ***8_J2lJuA",
+    "Authorization": "Bearer ***JfR56jBg",
     "OfficeId": "***3746",
     "service": "OrderCreate",
     "User-Agent": "PostmanRuntime/7.41",
@@ -43,7 +43,7 @@
             },
             "Age": {
               "BirthDate": {
-                "value": "2003-06-04"
+                "value": "2000-09-07"
               }
             },
             "Contacts": {
@@ -51,9 +51,9 @@
                 {
                   "AddressContact": {
                     "Street": [
-                      "190"
+                      "KIMATHI STREET"
                     ],
-                    "CityName": "LODWAR",
+                    "CityName": "NAIROBI",
                     "CountrySubDivisionCode": "",
                     "PostalCode": "30500",
                     "CountryCode": {
@@ -62,15 +62,15 @@
                   },
                   "EmailContact": {
                     "Address": {
-                      "value": "kevinamoni20@gmail.com"
+                      "value": "bkev4025@gmail.com"
                     }
                   },
                   "PhoneContact": {
                     "Application": "Home",
                     "Number": [
                       {
-                        "value": "0796861525",
-                        "CountryCode": "+33"
+                        "value": "796861525",
+                        "CountryCode": "+254"
                       }
                     ]
                   }
@@ -81,8 +81,8 @@
               "PassengerDocument": [
                 {
                   "Type": "PT",
-                  "ID": "Q032893N",
-                  "DateOfExpiration": "2033-08-09",
+                  "ID": "101238478",
+                  "DateOfExpiration": "2033-09-10",
                   "CountryOfIssuance": "KE"
                 }
               ]
@@ -94,14 +94,14 @@
         "ShoppingResponse": {
           "Owner": "AF",
           "ResponseID": {
-            "value": "EXsjg1GfB4vGnSVojmzfw8OhdMM8Bnm6N-GMq-1AcUs-AF"
+            "value": "tz-s9tozhn8KCauIlsOhm4dhNa5LF7sNsGxATQtLyJo-AF"
           },
           "Offers": {
             "Offer": [
               {
                 "OfferID": {
-                  "ObjectKey": "edb526aa-9135-480a-b526-aa9135080004",
-                  "value": "edb526aa-9135-480a-b526-aa9135080004",
+                  "ObjectKey": "ef49d126-b797-4712-89d1-26b797370001",
+                  "value": "ef49d126-b797-4712-89d1-26b797370001",
                   "Owner": "AF",
                   "Channel": "NDC"
                 },
@@ -110,7 +110,7 @@
                     {
                       "OfferItemID": {
                         "Owner": "AF",
-                        "value": "adeb2186-018a-412a-ab21-86018a212a30",
+                        "value": "d47274a9-3f9f-4a99-b274-a93f9fba9906",
                         "Channel": "NDC"
                       }
                     }
@@ -123,7 +123,7 @@
         "OfferItem": [
           {
             "OfferItemID": {
-              "value": "adeb2186-018a-412a-ab21-86018a212a30",
+              "value": "d47274a9-3f9f-4a99-b274-a93f9fba9906",
               "Owner": "AF",
               "Channel": "NDC"
             },
@@ -132,12 +132,12 @@
                 {
                   "Price": {
                     "BaseAmount": {
-                      "value": 10400.0,
+                      "value": 7490.0,
                       "Code": "INR"
                     },
                     "Taxes": {
                       "Total": {
-                        "value": 6870.0,
+                        "value": 4466.0,
                         "Code": "INR"
                       }
                     }
@@ -148,34 +148,34 @@
                         {
                           "Departure": {
                             "AirportCode": {
-                              "value": "FRA"
-                            },
-                            "Date": "2025-10-08",
-                            "Time": "07:05",
-                            "Terminal": {
-                              "Name": "2"
-                            }
-                          },
-                          "Arrival": {
-                            "AirportCode": {
                               "value": "CDG"
                             },
-                            "Date": "2025-10-08",
-                            "Time": "08:35",
+                            "Date": "2025-10-23",
+                            "Time": "07:40",
                             "Terminal": {
                               "Name": "2G"
                             }
                           },
+                          "Arrival": {
+                            "AirportCode": {
+                              "value": "FRA"
+                            },
+                            "Date": "2025-10-23",
+                            "Time": "09:00",
+                            "Terminal": {
+                              "Name": "2"
+                            }
+                          },
                           "ClassOfService": {
                             "Code": {
-                              "value": "T"
+                              "value": "N"
                             },
                             "MarketingName": {
                               "value": "ECONOMY",
                               "CabinDesignator": "Y"
                             },
                             "refs": [
-                              "FG-SEG2"
+                              "FG-SEG1"
                             ]
                           },
                           "MarketingCarrier": {
@@ -183,16 +183,16 @@
                               "value": "AF"
                             },
                             "FlightNumber": {
-                              "value": "1019"
+                              "value": "1518"
                             }
                           },
                           "Equipment": {
                             "AircraftCode": {
-                              "value": "E90"
+                              "value": "E70"
                             }
                           },
                           "Details": null,
-                          "SegmentKey": "SEG2"
+                          "SegmentKey": "SEG1"
                         }
                       ],
                       "OriginDestinationKey": "OD1"
@@ -206,16 +206,174 @@
                       {
                         "FareBasis": {
                           "FareBasisCode": {
-                            "Code": "TYS0BALA"
+                            "Code": "NYS5BALA"
                           },
-                          "RBD": "T"
+                          "RBD": "N"
                         },
                         "refs": [
-                          "SEG2"
+                          "SEG1"
                         ]
                       }
                     ]
                   }
+                }
+              ]
+            }
+          },
+          {
+            "OfferItemID": {
+              "value": "cc550c32-83d8-4a4d-950c-3283d8ca0002",
+              "Owner": "AF",
+              "refs": [
+                "ef49d126-b797-4712-89d1-26b797370001",
+                "tz-s9tozhn8KCauIlsOhm4dhNa5LF7sNsGxATQtLyJo-AF"
+              ],
+              "Channel": "NDC"
+            },
+            "OfferItemType": {
+              "OtherItem": [
+                {
+                  "refs": [
+                    "PAX1",
+                    "1-ServiceIdAF-2"
+                  ],
+                  "Price": {
+                    "SimpleCurrencyPrice": {
+                      "value": 4102.0,
+                      "Code": "INR"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "OfferItemID": {
+              "value": "cc550c32-83d8-4a4d-950c-3283d8ca000f",
+              "Owner": "AF",
+              "refs": [
+                "ef49d126-b797-4712-89d1-26b797370001",
+                "tz-s9tozhn8KCauIlsOhm4dhNa5LF7sNsGxATQtLyJo-AF"
+              ],
+              "Channel": "NDC"
+            },
+            "OfferItemType": {
+              "OtherItem": [
+                {
+                  "refs": [
+                    "PAX1",
+                    "1-ServiceIdAF-15"
+                  ],
+                  "Price": {
+                    "SimpleCurrencyPrice": {
+                      "value": 0.0,
+                      "Code": "INR"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "OfferItemID": {
+              "value": "cc550c32-83d8-4a4d-950c-3283d8ca0011",
+              "Owner": "AF",
+              "refs": [
+                "ef49d126-b797-4712-89d1-26b797370001",
+                "tz-s9tozhn8KCauIlsOhm4dhNa5LF7sNsGxATQtLyJo-AF"
+              ],
+              "Channel": "NDC"
+            },
+            "OfferItemType": {
+              "OtherItem": [
+                {
+                  "refs": [
+                    "PAX1",
+                    "1-ServiceIdAF-17"
+                  ],
+                  "Price": {
+                    "SimpleCurrencyPrice": {
+                      "value": 0.0,
+                      "Code": "INR"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "OfferItemID": {
+              "value": "e0ee9182-5616-47e1-ae91-825616070020",
+              "refs": [
+                "ef49d126-b797-4712-89d1-26b797370001",
+                "tz-s9tozhn8KCauIlsOhm4dhNa5LF7sNsGxATQtLyJo-AF"
+              ],
+              "Channel": "NDC"
+            },
+            "OfferItemType": {
+              "SeatItem": [
+                {
+                  "Price": {
+                    "Total": {
+                      "value": 771.0,
+                      "Code": "INR"
+                    }
+                  },
+                  "Descriptions": {
+                    "Description": [
+                      {
+                        "Text": {
+                          "value": "STANDARD SEAT SELECTION"
+                        }
+                      }
+                    ]
+                  },
+                  "Location": {
+                    "Column": "A",
+                    "Row": {
+                      "Number": {
+                        "value": "11"
+                      }
+                    },
+                    "Characteristics": {
+                      "Characteristic": [
+                        {
+                          "Code": "AM"
+                        },
+                        {
+                          "Code": "CH"
+                        },
+                        {
+                          "Code": "LS"
+                        },
+                        {
+                          "Code": "OW"
+                        },
+                        {
+                          "Code": "W"
+                        },
+                        {
+                          "Remarks": {
+                            "Remark": [
+                              {
+                                "value": "A"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "SeatAssociation": [
+                    {
+                      "SegmentReferences": {
+                        "value": [
+                          "SEG1"
+                        ]
+                      },
+                      "TravelerReference": "PAX1"
+                    }
+                  ]
                 }
               ]
             }
@@ -226,20 +384,242 @@
         "FareList": {
           "FareGroup": [
             {
-              "ListKey": "FG-SEG2",
+              "ListKey": "FG-SEG1",
               "Fare": {
                 "FareCode": {
                   "Code": "70J"
                 }
               },
               "FareBasisCode": {
-                "Code": "TYS0BALA"
+                "Code": "NYS5BALA"
               }
             }
           ]
         },
         "ServiceList": {
-          "Service": []
+          "Service": [
+            {
+              "ObjectKey": "1-ServiceIdAF-2",
+              "ServiceID": {
+                "ObjectKey": "cc550c32-83d8-4a4d-950c-3283d8ca0002",
+                "value": "SRV2",
+                "Owner": "AF"
+              },
+              "Name": {
+                "value": "BAG:LUGGAGE-FIRST ADDITIONAL BAG"
+              },
+              "Descriptions": {
+                "Description": [
+                  {
+                    "Text": {
+                      "value": "1 ABAG x 23 KG"
+                    }
+                  }
+                ]
+              },
+              "Price": [
+                {
+                  "Total": {
+                    "value": 4102.0,
+                    "Code": "INR"
+                  }
+                }
+              ],
+              "BookingInstructions": {
+                "SSRCode": [
+                  "ABAG"
+                ],
+                "Method": "SSR"
+              },
+              "ServiceDefinitionRef": {},
+              "Associations": [
+                {
+                  "Traveler": {
+                    "TravelerReferences": [
+                      "PAX1"
+                    ]
+                  },
+                  "Flight": {
+                    "originDestinationReferencesOrSegmentReferences": [
+                      {
+                        "SegmentReferences": {
+                          "value": [
+                            "SEG1"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "PricedInd": false
+            },
+            {
+              "ObjectKey": "1-ServiceIdAF-15",
+              "ServiceID": {
+                "ObjectKey": "cc550c32-83d8-4a4d-950c-3283d8ca000f",
+                "value": "SRV17",
+                "Owner": "AF"
+              },
+              "Name": {
+                "value": "DISABILITY:WCHR - Wheelchair request - Stairs OK"
+              },
+              "Descriptions": {
+                "Description": [
+                  {
+                    "Text": {
+                      "value": "Wheelchair request - Stairs OK"
+                    }
+                  }
+                ]
+              },
+              "Price": [
+                {
+                  "Total": {
+                    "value": 0.0,
+                    "Code": "INR"
+                  }
+                }
+              ],
+              "BookingInstructions": {
+                "SSRCode": [
+                  "WCHR"
+                ],
+                "Method": "SSR"
+              },
+              "ServiceDefinitionRef": {},
+              "Associations": [
+                {
+                  "Traveler": {
+                    "TravelerReferences": [
+                      "PAX1"
+                    ]
+                  },
+                  "Flight": {
+                    "originDestinationReferencesOrSegmentReferences": [
+                      {
+                        "SegmentReferences": {
+                          "value": [
+                            "SEG1"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "PricedInd": false
+            },
+            {
+              "ObjectKey": "1-ServiceIdAF-17",
+              "ServiceID": {
+                "ObjectKey": "cc550c32-83d8-4a4d-950c-3283d8ca0011",
+                "value": "SRV19",
+                "Owner": "AF"
+              },
+              "Name": {
+                "value": "DISABILITY:BLND - Visual impairment"
+              },
+              "Descriptions": {
+                "Description": [
+                  {
+                    "Text": {
+                      "value": "Visual impairment"
+                    }
+                  }
+                ]
+              },
+              "Price": [
+                {
+                  "Total": {
+                    "value": 0.0,
+                    "Code": "INR"
+                  }
+                }
+              ],
+              "BookingInstructions": {
+                "SSRCode": [
+                  "BLND"
+                ],
+                "Method": "SSR"
+              },
+              "ServiceDefinitionRef": {},
+              "Associations": [
+                {
+                  "Traveler": {
+                    "TravelerReferences": [
+                      "PAX1"
+                    ]
+                  },
+                  "Flight": {
+                    "originDestinationReferencesOrSegmentReferences": [
+                      {
+                        "SegmentReferences": {
+                          "value": [
+                            "SEG1"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "PricedInd": false
+            },
+            {
+              "ObjectKey": "e0ee9182-5616-47e1-ae91-825616070020",
+              "ServiceID": {
+                "value": "SERV_AFKL_SRV0_SEG1",
+                "Owner": "AF"
+              },
+              "Name": {
+                "value": "SEAT"
+              },
+              "Descriptions": {
+                "Description": [
+                  {
+                    "Text": {
+                      "value": "STANDARD SEAT SELECTION"
+                    }
+                  }
+                ]
+              },
+              "Price": [
+                {
+                  "Total": {
+                    "value": 771.0,
+                    "Code": "INR"
+                  }
+                }
+              ],
+              "Associations": [
+                {
+                  "Traveler": {
+                    "TravelerReferences": [
+                      "PAX1"
+                    ]
+                  },
+                  "Flight": {
+                    "originDestinationReferencesOrSegmentReferences": [
+                      {
+                        "SegmentReferences": {
+                          "value": [
+                            "SEG1"
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  "Offer": {
+                    "OfferReferences": [
+                      "ef49d126-b797-4712-89d1-26b797370001"
+                    ]
+                  }
+                }
+              ],
+              "PricedInd": false
+            }
+          ]
         }
       },
       "Metadata": {
@@ -250,14 +630,14 @@
                 {
                   "any": {
                     "VdcAugPoint": {
-                      "Value": "TRApprovalDate=09/29/2025"
+                      "Value": "TRApprovalDate=10/17/2025"
                     }
                   }
                 },
                 {
                   "any": {
                     "VdcAugPoint": {
-                      "Value": "TRCreationDate=09/29/2025"
+                      "Value": "TRCreationDate=10/17/2025"
                     }
                   }
                 }
@@ -279,7 +659,7 @@
             },
             "Amount": {
               "Code": "INR",
-              "value": 16750
+              "value": 16454
             }
           }
         ]

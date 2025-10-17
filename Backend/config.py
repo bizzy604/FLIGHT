@@ -18,6 +18,8 @@ class Config:
     
     # API settings
     API_PREFIX = '/api'
+    # Base URL for this application's own API (used by internal calls)
+    API_BASE_URL = os.environ.get('API_BASE_URL', 'http://localhost:5000')
     
     # CORS settings
     CORS_ORIGINS = [

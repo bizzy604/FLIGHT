@@ -40,7 +40,8 @@ class APILogger:
             self.base_dir / "flight_price", 
             self.base_dir / "booking",
             self.base_dir / "service_list",
-            self.base_dir / "seat_availability"
+            self.base_dir / "seat_availability",
+            self.base_dir / "ancillary_pricing"
         ]
         
         for directory in directories:
@@ -53,7 +54,8 @@ class APILogger:
             'FlightPrice': 'flight_price',
             'OrderCreate': 'booking',
             'ServiceList': 'service_list',
-            'SeatAvailability': 'seat_availability'
+            'SeatAvailability': 'seat_availability',
+            'AncillaryPricing': 'ancillary_pricing'
         }
         
         service_dir = service_mapping.get(service_name, service_name.lower())
@@ -67,7 +69,8 @@ class APILogger:
             'FlightPrice': 'FlightPrice', 
             'OrderCreate': 'Booking',
             'ServiceList': 'ServiceList',
-            'SeatAvailability': 'SeatAvailability'
+            'SeatAvailability': 'SeatAvailability',
+            'AncillaryPricing': 'AncillaryPricing'
         }.get(service_name, service_name)
         
         if data_type == "request":

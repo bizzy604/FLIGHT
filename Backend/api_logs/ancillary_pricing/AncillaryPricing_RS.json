@@ -1,0 +1,20 @@
+{
+  "timestamp": "2025-10-17T21:16:26.171643",
+  "service": "AncillaryPricing",
+  "request_id": "c2f0e5ba-d360-4199-9771-be23e60116b8",
+  "status_code": 200,
+  "response_time_ms": null,
+  "response": {
+    "Errors": {
+      "Error": [
+        {
+          "value": "Unable to process - system error",
+          "ShortText": "911 - Client received SOAP Fault from server: Internal Error (from client) Please see the server log to find more detail regarding exact cause of the failure.",
+          "Code": "AIRLINE_ERROR",
+          "Owner": "AF",
+          "Reason": "UNKNOWN"
+        }
+      ]
+    }
+  }
+}
