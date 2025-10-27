@@ -18,3 +18,15 @@ dependencies = [
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["Backend*"]
+
+[tool.pytest.ini_options]
+markers = [
+    "live: marks tests that require live VDC API access (deselect with '-m \"not live\"')",
+    "unit: marks unit tests",
+    "integration: marks integration tests"
+]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"

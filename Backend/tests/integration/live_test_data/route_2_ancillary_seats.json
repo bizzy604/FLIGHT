@@ -1,0 +1,12 @@
+{
+  "status": "success",
+  "data": {
+    "VdcErrors": {
+      "Error": [
+        {
+          "ShortText": "Service configuration error. Please contact technical support quoting transactionID cwtzfT-1761606320053"
+        }
+      ]
+    }
+  }
+}

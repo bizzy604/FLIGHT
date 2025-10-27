@@ -1,0 +1,397 @@
+{
+  "Query": {
+    "Passengers": {
+      "Passenger": [
+        {
+          "ObjectKey": "PAX1",
+          "PTC": {
+            "value": "ADT"
+          },
+          "Name": {
+            "Surname": {
+              "value": "Doe"
+            },
+            "Given": [
+              {
+                "value": "John"
+              }
+            ],
+            "Title": "Mr"
+          },
+          "Contacts": {
+            "Contact": [
+              {
+                "EmailContact": {
+                  "Address": {
+                    "value": "john.doe@example.com"
+                  }
+                },
+                "PhoneContact": {
+                  "Application": "Home",
+                  "Number": [
+                    {
+                      "value": "+1234567890",
+                      "CountryCode": "1"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "Gender": {
+            "value": "Male"
+          },
+          "Age": {
+            "BirthDate": {
+              "value": "1990-01-15"
+            }
+          },
+          "AdditionalRoles": {
+            "PaymentContactInd": true
+          }
+        }
+      ]
+    },
+    "OrderItems": {
+      "ShoppingResponse": {
+        "Owner": "EY",
+        "ResponseID": {
+          "value": "1fdGobAtVsU39afK3NBpUsgA2Usz-VHcQjgoRdrBRcE-EY"
+        },
+        "Offers": {
+          "Offer": [
+            {
+              "OfferID": {
+                "ObjectKey": "1H2EYZ_52ZCL855KSCBXV0W9QEHDHNGA2AV",
+                "value": "1H2EYZ_52ZCL855KSCBXV0W9QEHDHNGA2AV",
+                "Owner": "EY",
+                "Channel": "NDC"
+              },
+              "OfferItems": {
+                "OfferItem": [
+                  {
+                    "OfferItemID": {
+                      "value": "1H2EYZ_52ZCL855KSCBXV0W9QEHDHNGA2AV-1-1",
+                      "Owner": "EY",
+                      "Channel": "NDC"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "OfferItem": [
+        {
+          "OfferItemID": {
+            "value": "1H2EYZ_52ZCL855KSCBXV0W9QEHDHNGA2AV-1-1",
+            "Owner": "EY",
+            "Channel": "NDC"
+          },
+          "OfferItemType": {
+            "DetailedFlightItem": [
+              {
+                "Price": {
+                  "TotalAmount": {
+                    "SimpleCurrencyPrice": {
+                      "value": 21673,
+                      "Code": "INR"
+                    }
+                  },
+                  "BaseAmount": {
+                    "value": 6515,
+                    "Code": "INR"
+                  },
+                  "Discount": [
+                    {
+                      "DiscountAmount": {
+                        "value": 326,
+                        "Code": "INR"
+                      },
+                      "DiscountPercent": 5,
+                      "discountOwner": "Magellan Travel Services (P) Ltd.",
+                      "discountCode": "Disc_rea",
+                      "discountName": "ReaDiscount",
+                      "preDiscountedAmount": {
+                        "value": 21999,
+                        "Code": "INR"
+                      }
+                    }
+                  ],
+                  "Taxes": {
+                    "Total": {
+                      "value": 15484,
+                      "Code": "INR"
+                    },
+                    "Breakdown": {
+                      "Tax": [
+                        {
+                          "Amount": {
+                            "value": 11420,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "YQ"
+                        },
+                        {
+                          "Amount": {
+                            "value": 726,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "IN"
+                        },
+                        {
+                          "Amount": {
+                            "value": 897,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "K3"
+                        },
+                        {
+                          "Amount": {
+                            "value": 1244,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "P2"
+                        },
+                        {
+                          "Amount": {
+                            "value": 1077,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "F6"
+                        },
+                        {
+                          "Amount": {
+                            "value": 120,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "ZR"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "FareDetail": {
+                  "FareComponent": [
+                    {
+                      "FareBasis": {
+                        "FareBasisCode": {
+                          "Code": "UNN10H6T"
+                        },
+                        "RBD": "U"
+                      },
+                      "FareRules": {
+                        "Penalty": {
+                          "refs": [
+                            "CANCEL-PAX1-SEG4-bSmb75",
+                            "CANCEL-PAX1-SEG4-EsRIQS",
+                            "CANCEL-PAX1-SEG4-wxjWSx",
+                            "CANCEL-PAX1-SEG4-Ylk8Uk",
+                            "CHANGE-PAX1-SEG4-HfhZN6",
+                            "CHANGE-PAX1-SEG4-oPwFeH",
+                            "CHANGE-PAX1-SEG4-MMP4kM",
+                            "CHANGE-PAX1-SEG4-x6zIgS"
+                          ]
+                        }
+                      },
+                      "refs": [
+                        "SEG4"
+                      ]
+                    },
+                    {
+                      "FareBasis": {
+                        "FareBasisCode": {
+                          "Code": "UNN10H6T"
+                        },
+                        "RBD": "U"
+                      },
+                      "FareRules": {
+                        "Penalty": {
+                          "refs": [
+                            "CANCEL-PAX1-SEG8-1ne2Nt",
+                            "CANCEL-PAX1-SEG8-tOK57d",
+                            "CANCEL-PAX1-SEG8-eMn5Lt",
+                            "CANCEL-PAX1-SEG8-qSOzuL",
+                            "CHANGE-PAX1-SEG8-ljXGa0",
+                            "CHANGE-PAX1-SEG8-fFtnfy",
+                            "CHANGE-PAX1-SEG8-H8UN5f",
+                            "CHANGE-PAX1-SEG8-TTD7Va"
+                          ]
+                        }
+                      },
+                      "refs": [
+                        "SEG8"
+                      ]
+                    }
+                  ]
+                },
+                "OriginDestination": [
+                  {
+                    "Flight": [
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "BOM"
+                          },
+                          "Date": "2025-11-27T04:45:00.000",
+                          "Time": "04:45",
+                          "AirportName": "Chhatrapati Shivaji International Airport",
+                          "Terminal": {
+                            "Name": "2"
+                          }
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "AUH"
+                          },
+                          "Date": "2025-11-27T06:30:00.000",
+                          "Time": "06:30",
+                          "AirportName": "Abu Dhabi International Airport",
+                          "Terminal": {
+                            "Name": "A"
+                          }
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "EY"
+                          },
+                          "Name": "ETIHAD AIRWAYS",
+                          "FlightNumber": {
+                            "value": "207"
+                          }
+                        },
+                        "Equipment": {
+                          "AircraftCode": {
+                            "value": "789"
+                          }
+                        },
+                        "Details": {
+                          "FlightDuration": {
+                            "Value": "PT3H15M"
+                          }
+                        },
+                        "ClassOfService": {},
+                        "SegmentKey": "SEG4"
+                      },
+                      {
+                        "Departure": {
+                          "AirportCode": {
+                            "value": "AUH"
+                          },
+                          "Date": "2025-11-27T10:40:00.000",
+                          "Time": "10:40",
+                          "AirportName": "Abu Dhabi International Airport",
+                          "Terminal": {
+                            "Name": "A"
+                          }
+                        },
+                        "Arrival": {
+                          "AirportCode": {
+                            "value": "LHR"
+                          },
+                          "Date": "2025-11-27T14:30:00.000",
+                          "Time": "14:30",
+                          "AirportName": "London Heathrow Airport",
+                          "Terminal": {
+                            "Name": "4"
+                          }
+                        },
+                        "MarketingCarrier": {
+                          "AirlineID": {
+                            "value": "EY"
+                          },
+                          "Name": "ETIHAD AIRWAYS",
+                          "FlightNumber": {
+                            "value": "65"
+                          }
+                        },
+                        "Equipment": {
+                          "AircraftCode": {
+                            "value": "789"
+                          }
+                        },
+                        "Details": {
+                          "FlightDuration": {
+                            "Value": "PT7H50M"
+                          }
+                        },
+                        "ClassOfService": {},
+                        "SegmentKey": "SEG8"
+                      }
+                    ],
+                    "OriginDestinationKey": "OND1"
+                  }
+                ],
+                "refs": [
+                  "PAX1"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "DataLists": {
+      "FareList": {
+        "FareGroup": [
+          {
+            "ListKey": "FG-358400289607977",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              },
+              "FareDetail": {
+                "Remarks": {
+                  "Remark": [
+                    {
+                      "value": "PUBL"
+                    }
+                  ]
+                }
+              }
+            },
+            "FareBasisCode": {
+              "Code": "UNN10H6T"
+            }
+          },
+          {
+            "ListKey": "FG-358400289616896",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              },
+              "FareDetail": {
+                "Remarks": {
+                  "Remark": [
+                    {
+                      "value": "PUBL"
+                    }
+                  ]
+                }
+              }
+            },
+            "FareBasisCode": {
+              "Code": "UNN10H6T"
+            }
+          }
+        ]
+      }
+    },
+    "Payments": {
+      "Payment": [
+        {
+          "Method": {
+            "Cash": {
+              "CashInd": "true"
+            }
+          },
+          "Amount": {
+            "Code": "INR",
+            "value": 21673
+          }
+        }
+      ]
+    }
+  }
+}

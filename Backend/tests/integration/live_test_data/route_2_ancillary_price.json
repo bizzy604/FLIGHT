@@ -1,0 +1,1590 @@
+{
+  "offer_id": "1H2EYZ_52ZCL855KSCBXV0W9QEHDHNGA2AV",
+  "pricing": {
+    "total": 21673.0,
+    "base_fare": 6515.0,
+    "taxes": 15484.0,
+    "discount": 326.0,
+    "discount_details": {
+      "amount": 326.0,
+      "percent": 5,
+      "code": "Disc_rea",
+      "name": "ReaDiscount",
+      "pre_discount_amount": 21999.0
+    },
+    "currency": "INR"
+  },
+  "breakdown": [
+    {
+      "offer_item_id": "1H2EYZ_52ZCL855KSCBXV0W9QEHDHNGA2AV-1-1",
+      "traveler_refs": [
+        "PAX1"
+      ],
+      "flight_refs": [
+        "FLT1"
+      ],
+      "origin_destination_refs": [
+        "OND1"
+      ],
+      "total": 21673.0,
+      "base_fare": 6515.0,
+      "taxes": 15484.0,
+      "tax_breakdown": [
+        {
+          "code": "YQ",
+          "amount": 11420.0,
+          "description": ""
+        },
+        {
+          "code": "IN",
+          "amount": 726.0,
+          "description": ""
+        },
+        {
+          "code": "K3",
+          "amount": 897.0,
+          "description": ""
+        },
+        {
+          "code": "P2",
+          "amount": 1244.0,
+          "description": ""
+        },
+        {
+          "code": "F6",
+          "amount": 1077.0,
+          "description": ""
+        },
+        {
+          "code": "ZR",
+          "amount": 120.0,
+          "description": ""
+        }
+      ],
+      "currency": "INR"
+    }
+  ],
+  "fare_details": {
+    "fare_basis_code": "UNN10H6T",
+    "rbd": "U",
+    "cabin_type": "Economy",
+    "booking_class": {
+      "code": "U",
+      "name": "ECONOMY"
+    }
+  },
+  "penalties": {
+    "change": {
+      "allowed": false,
+      "fees": [
+        {
+          "type": "Change",
+          "max_amount": 21999.0,
+          "min_amount": 21999.0,
+          "currency": "INR",
+          "remarks": [
+            "Reissue not permitted before departure"
+          ]
+        },
+        {
+          "type": "Change-NoShow",
+          "max_amount": 21999.0,
+          "min_amount": 21999.0,
+          "currency": "INR",
+          "remarks": [
+            "Reissue not permitted before departure no show"
+          ]
+        },
+        {
+          "type": "Change",
+          "max_amount": 21999.0,
+          "min_amount": 21999.0,
+          "currency": "INR",
+          "remarks": [
+            "Reissue not permitted after departure"
+          ]
+        },
+        {
+          "type": "Change-NoShow",
+          "max_amount": 21999.0,
+          "min_amount": 21999.0,
+          "currency": "INR",
+          "remarks": [
+            "Reissue not permitted after departure no show"
+          ]
+        },
+        {
+          "type": "Change",
+          "max_amount": 21999.0,
+          "min_amount": 21999.0,
+          "currency": "INR",
+          "remarks": [
+            "Reissue not permitted before departure"
+          ]
+        },
+        {
+          "type": "Change-NoShow",
+          "max_amount": 21999.0,
+          "min_amount": 21999.0,
+          "currency": "INR",
+          "remarks": [
+            "Reissue not permitted before departure no show"
+          ]
+        },
+        {
+          "type": "Change",
+          "max_amount": 21999.0,
+          "min_amount": 21999.0,
+          "currency": "INR",
+          "remarks": [
+            "Reissue not permitted after departure"
+          ]
+        },
+        {
+          "type": "Change-NoShow",
+          "max_amount": 21999.0,
+          "min_amount": 21999.0,
+          "currency": "INR",
+          "remarks": [
+            "Reissue not permitted after departure no show"
+          ]
+        }
+      ]
+    },
+    "cancel": {
+      "allowed": true,
+      "fees": [
+        {
+          "type": "Cancel",
+          "max_amount": 21999.0,
+          "min_amount": 21999.0,
+          "currency": "INR",
+          "remarks": [
+            "Refund not permitted before departure"
+          ]
+        },
+        {
+          "type": "Cancel-NoShow",
+          "max_amount": 21999.0,
+          "min_amount": 21999.0,
+          "currency": "INR",
+          "remarks": [
+            "Refund not permitted before departure no show"
+          ]
+        },
+        {
+          "type": "Cancel",
+          "max_amount": 21999.0,
+          "min_amount": 21999.0,
+          "currency": "INR",
+          "remarks": [
+            "Refund not permitted after departure"
+          ]
+        },
+        {
+          "type": "Cancel-NoShow",
+          "max_amount": 21999.0,
+          "min_amount": 21999.0,
+          "currency": "INR",
+          "remarks": [
+            "Refund not permitted after departure no show"
+          ]
+        },
+        {
+          "type": "Cancel",
+          "max_amount": 21999.0,
+          "min_amount": 21999.0,
+          "currency": "INR",
+          "remarks": [
+            "Refund not permitted before departure"
+          ]
+        },
+        {
+          "type": "Cancel-NoShow",
+          "max_amount": 21999.0,
+          "min_amount": 21999.0,
+          "currency": "INR",
+          "remarks": [
+            "Refund not permitted before departure no show"
+          ]
+        },
+        {
+          "type": "Cancel",
+          "max_amount": 21999.0,
+          "min_amount": 21999.0,
+          "currency": "INR",
+          "remarks": [
+            "Refund not permitted after departure"
+          ]
+        },
+        {
+          "type": "Cancel-NoShow",
+          "max_amount": 21999.0,
+          "min_amount": 21999.0,
+          "currency": "INR",
+          "remarks": [
+            "Refund not permitted after departure no show"
+          ]
+        }
+      ]
+    },
+    "refundable": false
+  },
+  "baggage": {
+    "checked": {
+      "weight": 0,
+      "unit": "Kilogram",
+      "description": "Traveler"
+    },
+    "carry_on": {
+      "quantity": 1,
+      "weight": 7,
+      "unit": "Kilogram"
+    }
+  },
+  "segments": [
+    {
+      "segment_key": "SEG4",
+      "departure": {
+        "airport": "BOM",
+        "date": "2025-11-27T04:45:00.000",
+        "time": "04:45",
+        "terminal": "2"
+      },
+      "arrival": {
+        "airport": "AUH",
+        "date": "2025-11-27T06:30:00.000",
+        "time": "06:30",
+        "terminal": "A"
+      },
+      "marketing_carrier": {
+        "airline": "EY",
+        "name": "ETIHAD AIRWAYS",
+        "flight_number": "207"
+      },
+      "aircraft": "789",
+      "duration": "PT3H15M"
+    },
+    {
+      "segment_key": "SEG8",
+      "departure": {
+        "airport": "AUH",
+        "date": "2025-11-27T10:40:00.000",
+        "time": "10:40",
+        "terminal": "A"
+      },
+      "arrival": {
+        "airport": "LHR",
+        "date": "2025-11-27T14:30:00.000",
+        "time": "14:30",
+        "terminal": "4"
+      },
+      "marketing_carrier": {
+        "airline": "EY",
+        "name": "ETIHAD AIRWAYS",
+        "flight_number": "65"
+      },
+      "aircraft": "789",
+      "duration": "PT7H50M"
+    }
+  ],
+  "trip_type": "one-way",
+  "time_limits": {
+    "offer_expiration": "2025-10-27T23:35:19.000",
+    "payment_time_limit": "2025-11-03T23:05:00.000"
+  },
+  "metadata": {
+    "currency": "INR",
+    "timestamp": "2025-10-27T23:05:19.817304+00:00"
+  },
+  "raw_response": {
+    "ShoppingResponseID": {
+      "ResponseID": {
+        "value": "1fdGobAtVsU39afK3NBpUsgA2Usz-VHcQjgoRdrBRcE-EY"
+      }
+    },
+    "PricedFlightOffers": {
+      "PricedFlightOffer": [
+        {
+          "OfferID": {
+            "ObjectKey": "1H2EYZ_52ZCL855KSCBXV0W9QEHDHNGA2AV",
+            "value": "1H2EYZ_52ZCL855KSCBXV0W9QEHDHNGA2AV",
+            "Owner": "EY",
+            "Channel": "NDC"
+          },
+          "OfferPrice": [
+            {
+              "RequestedDate": {
+                "Associations": [
+                  {
+                    "AssociatedTraveler": {
+                      "TravelerReferences": [
+                        "PAX1"
+                      ]
+                    },
+                    "ApplicableFlight": {
+                      "FlightSegmentReference": [
+                        {
+                          "ClassOfService": {
+                            "Code": {
+                              "value": "U"
+                            },
+                            "MarketingName": {
+                              "value": "ECONOMY",
+                              "CabinDesignator": "Y"
+                            },
+                            "refs": [
+                              "FG-358400289607977"
+                            ]
+                          },
+                          "BagDetailAssociation": {
+                            "CheckedBagReferences": [
+                              "FBA1"
+                            ],
+                            "CarryOnReferences": [
+                              "CARRY_ON_ALLOWANCE_5_ADT"
+                            ]
+                          },
+                          "ref": "SEG4"
+                        },
+                        {
+                          "ClassOfService": {
+                            "Code": {
+                              "value": "U"
+                            },
+                            "MarketingName": {
+                              "value": "ECONOMY",
+                              "CabinDesignator": "Y"
+                            },
+                            "refs": [
+                              "FG-358400289607977"
+                            ]
+                          },
+                          "BagDetailAssociation": {
+                            "CheckedBagReferences": [
+                              "FBA1"
+                            ],
+                            "CarryOnReferences": [
+                              "CARRY_ON_ALLOWANCE_5_ADT"
+                            ]
+                          },
+                          "ref": "SEG8"
+                        }
+                      ],
+                      "OriginDestinationReferences": [
+                        "OND1"
+                      ],
+                      "FlightReferences": {
+                        "value": [
+                          "FLT1"
+                        ]
+                      }
+                    },
+                    "PriceClass": {
+                      "PriceClassReference": "YBASIC"
+                    }
+                  }
+                ],
+                "PriceDetail": {
+                  "TotalAmount": {
+                    "SimpleCurrencyPrice": {
+                      "value": 21673,
+                      "Code": "INR"
+                    }
+                  },
+                  "BaseAmount": {
+                    "value": 6515,
+                    "Code": "INR"
+                  },
+                  "Discount": [
+                    {
+                      "DiscountAmount": {
+                        "value": 326,
+                        "Code": "INR"
+                      },
+                      "DiscountPercent": 5,
+                      "discountOwner": "Magellan Travel Services (P) Ltd.",
+                      "discountCode": "Disc_rea",
+                      "discountName": "ReaDiscount",
+                      "preDiscountedAmount": {
+                        "value": 21999,
+                        "Code": "INR"
+                      }
+                    }
+                  ],
+                  "Taxes": {
+                    "Total": {
+                      "value": 15484,
+                      "Code": "INR"
+                    },
+                    "Breakdown": {
+                      "Tax": [
+                        {
+                          "Amount": {
+                            "value": 11420,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "YQ"
+                        },
+                        {
+                          "Amount": {
+                            "value": 726,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "IN"
+                        },
+                        {
+                          "Amount": {
+                            "value": 897,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "K3"
+                        },
+                        {
+                          "Amount": {
+                            "value": 1244,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "P2"
+                        },
+                        {
+                          "Amount": {
+                            "value": 1077,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "F6"
+                        },
+                        {
+                          "Amount": {
+                            "value": 120,
+                            "Code": "INR"
+                          },
+                          "TaxCode": "ZR"
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              "FareDetail": {
+                "FareComponent": [
+                  {
+                    "FareBasis": {
+                      "FareBasisCode": {
+                        "Code": "UNN10H6T"
+                      },
+                      "RBD": "U"
+                    },
+                    "FareRules": {
+                      "Penalty": {
+                        "refs": [
+                          "CANCEL-PAX1-SEG4-bSmb75",
+                          "CANCEL-PAX1-SEG4-EsRIQS",
+                          "CANCEL-PAX1-SEG4-wxjWSx",
+                          "CANCEL-PAX1-SEG4-Ylk8Uk",
+                          "CHANGE-PAX1-SEG4-HfhZN6",
+                          "CHANGE-PAX1-SEG4-oPwFeH",
+                          "CHANGE-PAX1-SEG4-MMP4kM",
+                          "CHANGE-PAX1-SEG4-x6zIgS"
+                        ]
+                      }
+                    },
+                    "refs": [
+                      "SEG4"
+                    ]
+                  },
+                  {
+                    "FareBasis": {
+                      "FareBasisCode": {
+                        "Code": "UNN10H6T"
+                      },
+                      "RBD": "U"
+                    },
+                    "FareRules": {
+                      "Penalty": {
+                        "refs": [
+                          "CANCEL-PAX1-SEG8-1ne2Nt",
+                          "CANCEL-PAX1-SEG8-tOK57d",
+                          "CANCEL-PAX1-SEG8-eMn5Lt",
+                          "CANCEL-PAX1-SEG8-qSOzuL",
+                          "CHANGE-PAX1-SEG8-ljXGa0",
+                          "CHANGE-PAX1-SEG8-fFtnfy",
+                          "CHANGE-PAX1-SEG8-H8UN5f",
+                          "CHANGE-PAX1-SEG8-TTD7Va"
+                        ]
+                      }
+                    },
+                    "refs": [
+                      "SEG8"
+                    ]
+                  }
+                ]
+              },
+              "OfferItemID": "1H2EYZ_52ZCL855KSCBXV0W9QEHDHNGA2AV-1-1"
+            }
+          ],
+          "TimeLimits": {
+            "OfferExpiration": {
+              "DateTime": "2025-10-27T23:35:19.000"
+            },
+            "Payment": {
+              "DateTime": "2025-11-03T23:05:00.000"
+            }
+          }
+        }
+      ]
+    },
+    "DataLists": {
+      "AnonymousTravelerList": {
+        "AnonymousTraveler": [
+          {
+            "ObjectKey": "PAX1",
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      },
+      "CarryOnAllowanceList": {
+        "CarryOnAllowance": [
+          {
+            "ListKey": "CARRY_ON_ALLOWANCE_5_ADT",
+            "AllowanceDescription": {
+              "ApplicableParty": "Traveler",
+              "Descriptions": {
+                "Description": [
+                  {
+                    "Text": {
+                      "value": "Max width 56 cm, height 36 cm and depth 23 cm.One bag only. All laptops, purses and documents must be placed inside your bag. Charges apply if your baggage exceeds your allowance."
+                    }
+                  }
+                ]
+              }
+            },
+            "PieceAllowance": [
+              {
+                "ApplicableParty": "Traveler",
+                "TotalQuantity": 1,
+                "PieceMeasurements": [
+                  {
+                    "Quantity": 1
+                  }
+                ]
+              }
+            ],
+            "WeightAllowance": {
+              "ApplicableParty": "Traveler",
+              "MaximumWeight": [
+                {
+                  "Value": 7,
+                  "UOM": "Kilogram"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "CheckedBagAllowanceList": {
+        "CheckedBagAllowance": [
+          {
+            "ListKey": "FBA1",
+            "AllowanceDescription": {
+              "ApplicableParty": "Traveler",
+              "Descriptions": {
+                "Description": [
+                  {
+                    "Text": {
+                      "value": "Checked"
+                    }
+                  }
+                ]
+              }
+            },
+            "WeightAllowance": {
+              "ApplicableParty": "Traveler",
+              "MaximumWeight": [
+                {
+                  "Value": 0,
+                  "UOM": "Kilogram"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "FareList": {
+        "FareGroup": [
+          {
+            "ListKey": "FG-358400289607977",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              },
+              "FareDetail": {
+                "Remarks": {
+                  "Remark": [
+                    {
+                      "value": "PUBL"
+                    }
+                  ]
+                }
+              }
+            },
+            "FareBasisCode": {
+              "Code": "UNN10H6T"
+            }
+          },
+          {
+            "ListKey": "FG-358400289616896",
+            "Fare": {
+              "FareCode": {
+                "Code": "70J"
+              },
+              "FareDetail": {
+                "Remarks": {
+                  "Remark": [
+                    {
+                      "value": "PUBL"
+                    }
+                  ]
+                }
+              }
+            },
+            "FareBasisCode": {
+              "Code": "UNN10H6T"
+            }
+          }
+        ]
+      },
+      "FlightSegmentList": {
+        "FlightSegment": [
+          {
+            "SegmentKey": "SEG4",
+            "Departure": {
+              "AirportCode": {
+                "value": "BOM"
+              },
+              "Date": "2025-11-27T04:45:00.000",
+              "Time": "04:45",
+              "AirportName": "Chhatrapati Shivaji International Airport",
+              "Terminal": {
+                "Name": "2"
+              }
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "AUH"
+              },
+              "Date": "2025-11-27T06:30:00.000",
+              "Time": "06:30",
+              "AirportName": "Abu Dhabi International Airport",
+              "Terminal": {
+                "Name": "A"
+              }
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "EY"
+              },
+              "Name": "ETIHAD AIRWAYS",
+              "FlightNumber": {
+                "value": "207"
+              }
+            },
+            "OperatingCarrier": {
+              "AirlineID": {
+                "value": "EY"
+              },
+              "Name": "ETIHAD AIRWAYS"
+            },
+            "Equipment": {
+              "AircraftCode": {
+                "value": "789"
+              }
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT3H15M"
+              }
+            }
+          },
+          {
+            "SegmentKey": "SEG8",
+            "Departure": {
+              "AirportCode": {
+                "value": "AUH"
+              },
+              "Date": "2025-11-27T10:40:00.000",
+              "Time": "10:40",
+              "AirportName": "Abu Dhabi International Airport",
+              "Terminal": {
+                "Name": "A"
+              }
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "LHR"
+              },
+              "Date": "2025-11-27T14:30:00.000",
+              "Time": "14:30",
+              "AirportName": "London Heathrow Airport",
+              "Terminal": {
+                "Name": "4"
+              }
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "EY"
+              },
+              "Name": "ETIHAD AIRWAYS",
+              "FlightNumber": {
+                "value": "65"
+              }
+            },
+            "OperatingCarrier": {
+              "AirlineID": {
+                "value": "EY"
+              },
+              "Name": "ETIHAD AIRWAYS"
+            },
+            "Equipment": {
+              "AircraftCode": {
+                "value": "789"
+              }
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT7H50M"
+              }
+            }
+          }
+        ]
+      },
+      "FlightList": {
+        "Flight": [
+          {
+            "FlightKey": "FLT1",
+            "SegmentReferences": {
+              "value": [
+                "SEG4",
+                "SEG8"
+              ]
+            }
+          }
+        ]
+      },
+      "OriginDestinationList": {
+        "OriginDestination": [
+          {
+            "OriginDestinationKey": "OND1",
+            "FlightReferences": {
+              "value": [
+                "FLT1"
+              ]
+            },
+            "DepartureCode": {
+              "value": "BOM"
+            },
+            "ArrivalCode": {
+              "value": "LHR"
+            }
+          }
+        ]
+      },
+      "PenaltyList": {
+        "Penalty": [
+          {
+            "ObjectKey": "CANCEL-PAX1-SEG4-bSmb75",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Cancel",
+                  "Application": {
+                    "Code": "2"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Refund not permitted before departure"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Refund not permitted before departure"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "CancelFeeInd": false,
+            "RefundableInd": false
+          },
+          {
+            "ObjectKey": "CANCEL-PAX1-SEG4-EsRIQS",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Cancel-NoShow",
+                  "Application": {
+                    "Code": "4"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Refund not permitted before departure no show"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Refund not permitted before departure no show"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "CancelFeeInd": false,
+            "RefundableInd": false
+          },
+          {
+            "ObjectKey": "CANCEL-PAX1-SEG4-wxjWSx",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Cancel",
+                  "Application": {
+                    "Code": "3"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Refund not permitted after departure"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Refund not permitted after departure"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "CancelFeeInd": false,
+            "RefundableInd": false
+          },
+          {
+            "ObjectKey": "CANCEL-PAX1-SEG4-Ylk8Uk",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Cancel-NoShow",
+                  "Application": {
+                    "Code": "1"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Refund not permitted after departure no show"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Refund not permitted after departure no show"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "CancelFeeInd": false,
+            "RefundableInd": false
+          },
+          {
+            "ObjectKey": "CHANGE-PAX1-SEG4-HfhZN6",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Change",
+                  "Application": {
+                    "Code": "2"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Reissue not permitted before departure"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Reissue not permitted before departure"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "ChangeFeeInd": false,
+            "ChangeAllowedInd": false
+          },
+          {
+            "ObjectKey": "CHANGE-PAX1-SEG4-oPwFeH",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Change-NoShow",
+                  "Application": {
+                    "Code": "4"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Reissue not permitted before departure no show"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Reissue not permitted before departure no show"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "ChangeFeeInd": false,
+            "ChangeAllowedInd": false
+          },
+          {
+            "ObjectKey": "CHANGE-PAX1-SEG4-MMP4kM",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Change",
+                  "Application": {
+                    "Code": "3"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Reissue not permitted after departure"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Reissue not permitted after departure"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "ChangeFeeInd": false,
+            "ChangeAllowedInd": false
+          },
+          {
+            "ObjectKey": "CHANGE-PAX1-SEG4-x6zIgS",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Change-NoShow",
+                  "Application": {
+                    "Code": "1"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Reissue not permitted after departure no show"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Reissue not permitted after departure no show"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "ChangeFeeInd": false,
+            "ChangeAllowedInd": false
+          },
+          {
+            "ObjectKey": "CANCEL-PAX1-SEG8-1ne2Nt",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Cancel",
+                  "Application": {
+                    "Code": "2"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Refund not permitted before departure"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Refund not permitted before departure"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "CancelFeeInd": false,
+            "RefundableInd": false
+          },
+          {
+            "ObjectKey": "CANCEL-PAX1-SEG8-tOK57d",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Cancel-NoShow",
+                  "Application": {
+                    "Code": "4"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Refund not permitted before departure no show"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Refund not permitted before departure no show"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "CancelFeeInd": false,
+            "RefundableInd": false
+          },
+          {
+            "ObjectKey": "CANCEL-PAX1-SEG8-eMn5Lt",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Cancel",
+                  "Application": {
+                    "Code": "3"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Refund not permitted after departure"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Refund not permitted after departure"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "CancelFeeInd": false,
+            "RefundableInd": false
+          },
+          {
+            "ObjectKey": "CANCEL-PAX1-SEG8-qSOzuL",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Cancel-NoShow",
+                  "Application": {
+                    "Code": "1"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Refund not permitted after departure no show"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Refund not permitted after departure no show"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "CancelFeeInd": false,
+            "RefundableInd": false
+          },
+          {
+            "ObjectKey": "CHANGE-PAX1-SEG8-ljXGa0",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Change",
+                  "Application": {
+                    "Code": "2"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Reissue not permitted before departure"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Reissue not permitted before departure"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "ChangeFeeInd": false,
+            "ChangeAllowedInd": false
+          },
+          {
+            "ObjectKey": "CHANGE-PAX1-SEG8-fFtnfy",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Change-NoShow",
+                  "Application": {
+                    "Code": "4"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Reissue not permitted before departure no show"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Reissue not permitted before departure no show"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "ChangeFeeInd": false,
+            "ChangeAllowedInd": false
+          },
+          {
+            "ObjectKey": "CHANGE-PAX1-SEG8-H8UN5f",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Change",
+                  "Application": {
+                    "Code": "3"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Reissue not permitted after departure"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Reissue not permitted after departure"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "ChangeFeeInd": false,
+            "ChangeAllowedInd": false
+          },
+          {
+            "ObjectKey": "CHANGE-PAX1-SEG8-TTD7Va",
+            "Details": {
+              "Detail": [
+                {
+                  "Type": "Change-NoShow",
+                  "Application": {
+                    "Code": "1"
+                  },
+                  "Amounts": {
+                    "Amount": [
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MAX",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Reissue not permitted after departure no show"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "CurrencyAmountValue": {
+                          "value": 21999,
+                          "Code": "INR"
+                        },
+                        "AmountApplication": "MIN",
+                        "ApplicableFeeRemarks": {
+                          "Remark": [
+                            {
+                              "value": "Reissue not permitted after departure no show"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "ChangeFeeInd": false,
+            "ChangeAllowedInd": false
+          }
+        ]
+      },
+      "PriceClassList": {
+        "PriceClass": [
+          {
+            "ObjectKey": "YBASIC",
+            "Name": "Economy Basic",
+            "Code": "YBASIC",
+            "Descriptions": {
+              "Description": [
+                {
+                  "Text": {
+                    "value": "Miles earned per guest - 15%"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "Cabin baggage allowance - Find more information on baggage terms at https://www.etihad.com/en-ae/fly-etihad/baggage"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "Checked baggage allowance per guest - Checked baggage allowance isn't included. Find more information on baggage terms at https://www.etihad.com/en-ae/fly-etihad/baggage"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "Cancellation / Refund - Cancellation isn't allowed"
+                  }
+                },
+                {
+                  "Text": {
+                    "value": "Change / Reissue - Changes not allowed"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

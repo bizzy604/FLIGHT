@@ -1,10 +1,4 @@
 {
-  "timestamp": "2025-10-17T21:12:35.315438",
-  "service": "AirShopping",
-  "request_id": "6f0a3a92-f9c7-4264-bf6a-29b70c1614a4",
-  "status_code": 200,
-  "response_time_ms": 6848.252773284912,
-  "response": {
     "Document": {
       "ReferenceVersion": "18.1"
     },
@@ -39611,4 +39605,3 @@
       ]
     }
   }
-}

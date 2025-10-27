@@ -1,0 +1,202 @@
+{
+  "Query": {
+    "OriginDestination": [
+      {
+        "Flight": [
+          {
+            "SegmentKey": "EY-SEG4",
+            "Departure": {
+              "AirportCode": {
+                "value": "BOM"
+              },
+              "Date": "2025-11-27T04:45:00.000",
+              "Time": "04:45",
+              "Terminal": {
+                "Name": "2"
+              }
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "AUH"
+              },
+              "Date": "2025-11-27T06:30:00.000",
+              "Time": "06:30",
+              "Terminal": {
+                "Name": "A"
+              }
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "EY"
+              },
+              "Name": "Etihad Airways",
+              "FlightNumber": {
+                "value": "207"
+              }
+            },
+            "OperatingCarrier": {
+              "AirlineID": {
+                "value": "EY"
+              },
+              "Name": "ETIHAD AIRWAYS"
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT3H15M"
+              }
+            }
+          },
+          {
+            "SegmentKey": "EY-SEG8",
+            "Departure": {
+              "AirportCode": {
+                "value": "AUH"
+              },
+              "Date": "2025-11-27T10:40:00.000",
+              "Time": "10:40",
+              "Terminal": {
+                "Name": "A"
+              }
+            },
+            "Arrival": {
+              "AirportCode": {
+                "value": "LHR"
+              },
+              "Date": "2025-11-27T14:30:00.000",
+              "Time": "14:30",
+              "Terminal": {
+                "Name": "4"
+              }
+            },
+            "MarketingCarrier": {
+              "AirlineID": {
+                "value": "EY"
+              },
+              "Name": "Etihad Airways",
+              "FlightNumber": {
+                "value": "65"
+              }
+            },
+            "OperatingCarrier": {
+              "AirlineID": {
+                "value": "EY"
+              },
+              "Name": "ETIHAD AIRWAYS"
+            },
+            "FlightDetail": {
+              "FlightDuration": {
+                "Value": "PT7H50M"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "Offers": {
+      "Offer": [
+        {
+          "OfferID": {
+            "value": "1H2EYZ_52ZCL855KSCBXV0W9QEHDHNGA2AV",
+            "Owner": "EY",
+            "Channel": "NDC"
+          },
+          "OfferItemIDs": {
+            "OfferItemID": [
+              {
+                "value": "1H2EYZ_52ZCL855KSCBXV0W9QEHDHNGA2AV-1-1",
+                "refs": [
+                  "EY-PAX1"
+                ]
+              }
+            ]
+          },
+          "refs": [
+            {
+              "Ref": "VDC-AIRLINE-SRID"
+            },
+            {
+              "Ref": "VDC-PR-7p6P2coJEIscoOaie2M9"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "Travelers": {
+    "Traveler": [
+      {
+        "AnonymousTraveler": [
+          {
+            "PTC": {
+              "value": "ADT"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "ShoppingResponseID": {
+    "Owner": "EY",
+    "ResponseID": {
+      "value": "1fdGobAtVsU39afK3NBpUsgA2Usz-VHcQjgoRdrBRcE-EY"
+    }
+  },
+  "DataLists": {
+    "FareGroup": [
+      {
+        "ListKey": "EY-FG-358390974721283",
+        "FareBasisCode": {
+          "Code": "UNN10H6T"
+        }
+      }
+    ],
+    "AnonymousTravelerList": {
+      "AnonymousTraveler": [
+        {
+          "ObjectKey": "EY-PAX1",
+          "PTC": {
+            "value": "ADT"
+          }
+        }
+      ]
+    }
+  },
+  "Metadata": {
+    "Other": {
+      "OtherMetadata": [
+        {
+          "PriceMetadatas": {
+            "PriceMetadata": [
+              {
+                "MetadataKey": "VDC-AIRLINE-SRID",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "type": "java.util.HashMap",
+                        "value": "eyJRUiI6IjFIMlFSWl82UDMzOEhMSFc2M09OWUxKRDZGWkZQTElKVjNKIiwiS0wiOiI5aVBzbVV1UEFVMzhTWHNXUHB6eiIsIkFGIjoiR0NqUVA5aVpuV1FSb1o3cnBxRGUiLCJLUSI6IjFIMktRWl9TWThPSVNaM1RGM0ZBVUtTT05LWjBIQU5aQllGIiwiRUsiOiJYODNDRDNBMTctNTJBLTQ3RTMtQTM4QSIsIkxIRyI6Ilg4QjQ5MDQxNC02NDItNDI0OS1COEI3IiwiRVQiOiJMRUQ0TkNHRTlETkJXMVYiLCJFWSI6Ik1ITVNYTUlWMEFNNzE0Mk1NTlBGWldJMzUwIiwiQ1giOiIxSDJDWFpfTkdZN0FYMzlCSFM3RVBKOVdSUVpRV1VGVzZKNSIsIkFZIjoiMUgyQVlaX1ZGSERMSVlNVTBWT1JaSFNFMjhETUQ4MUhCTTQiLCJTUSI6IiNZTDBBN0JJTUM1NTE0Mk1NTlBGWldJMzUwIiwiR0YiOiI3MzQ1ZDNlZi0xNzFhLTQ4YzgtOTBmYS02YjY2MWYzZTE1NGQ6NzM0NWQzZWYtMTcxYS00OGM4LTkwZmEtNmI2NjFmM2UxNTRkIiwiQkEiOiJhYzIudHgtcGwtMGFlYTkzZmQtYjY5ZC00NDk4LTg3MjAtNjY2NWQ1YTY3NDY0In0="
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "MetadataKey": "VDC-PR-7p6P2coJEIscoOaie2M9",
+                "AugmentationPoint": {
+                  "AugPoint": [
+                    {
+                      "any": {
+                        "@type": "com.verteil.pricemanager.data.PriceRuleAugPoint",
+                        "value": "kIpMEnfABCpOQ/30EWfCcvLBCDXDg1h//7ZhHdYQYH1e+QVQWKzhqPy6QmMyXG+tb2ZKEvvFXb/giEhBpOHYK9+p9Vsch/OBKmWH+3J2+xLLMPM98zj33MZb6afV2Ib3wNzsHDNlZ+nkjsnVWMgsXNaLmdgllU4zINxo9NE6fY+6nmk/kxav+d5U8ih3b8sevDYBEAwpZJHDpv/WHjRV0HSZetklYeTfifbunCRKn+eAgeDB4pmiceUsW9gh92rsKjtgv5Il3Zolp2zwqrWse5sCIPJJZs3iRG03I7NdfwnNxzuFtgAvfKN6cLmDpvdgiiBs318a4GTITjx8IGxiADgb92gvjvLWZ/xtWgG/DdIJBAs/9DLGuzJumjHHmy144vIvzI0P"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

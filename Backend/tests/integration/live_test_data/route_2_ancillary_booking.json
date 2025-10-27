@@ -1,0 +1,13 @@
+{
+  "status": "success",
+  "booking": {
+    "booking_reference": "EXTRACTION_FAILED",
+    "order_id": "EXTRACTION_FAILED",
+    "total_price": {},
+    "passengers": [],
+    "flights": [],
+    "ancillaries": {}
+  },
+  "error": null,
+  "error_type": null
+}
